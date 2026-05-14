@@ -6,8 +6,35 @@ import { generateInsights, generateTrendData, generateCorrelations } from '../da
 import { GlassCard, PageHeader, InsightCard, ScoreRing, showToast } from '../components/ui/Components';
 import AIExplainer from '../components/ui/AIExplainer';
 import { TrendCard, ForecastRow } from '../components/ui/TrendComponents';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine, LineChart, Line, YAxis, Legend } from 'recharts';
 import { Link } from 'react-router-dom';
+
+// Simple Calendar Heatmap Component
+function ActivityHeatmap({ data, colorMap, title }) {
+  // data: array of { date, value }
+  return (
+    <div className="p-3 rounded-xl border border-white/5 bg-black/10">
+      <h4 className="text-[10px] text-slate-400 mb-2 uppercase tracking-wider font-semibold">{title}</h4>
+      <div className="flex flex-wrap gap-1">
+        {data.slice(-30).map((d, i) => {
+          let opacity = Math.min(1, Math.max(0.1, d.value / (colorMap.max || 10)));
+          return (
+            <div 
+              key={i} 
+              title={`${d.date}: ${d.value}`}
+              className="w-3 h-3 rounded-[2px]" 
+              style={{ backgroundColor: colorMap.color, opacity: d.value > 0 ? opacity : 0.05 }}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between items-center mt-2 px-1">
+        <span className="text-[8px] text-slate-600">30 Days Ago</span>
+        <span className="text-[8px] text-slate-600">Today</span>
+      </div>
+    </div>
+  );
+}
 
 const severityConfig = {
   urgent: { border: 'border-red-500/30', bg: 'bg-red-500/5', badge: 'bg-red-500/15 text-red-300', pulse: 'bg-red-400', label: '🚨 Urgent Pattern' },
@@ -133,7 +160,8 @@ export default function Insights() {
 
   const insights = useMemo(() => generateInsights(currentState), [currentState]);
   const trendData = useMemo(() => generateTrendData(currentState, 14), [currentState]);
-  const correlations = useMemo(() => generateCorrelations(trendData), [trendData]);
+  const behavioralAnalytics = computed?.behavioralAnalytics;
+  const correlations = behavioralAnalytics?.correlations || [];
 
   const criticalCount = patterns.filter(p => p.severity === 'critical').length;
   const warningCount = patterns.filter(p => p.severity === 'warning').length;
@@ -400,22 +428,135 @@ export default function Insights() {
 
         <div>
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-            🔄 Habit Correlations
+            🔄 Real Behavioral Correlations
           </h3>
           <div className="space-y-3">
-            {correlations.map((corr, i) => (
+            {correlations.length === 0 ? (
+               <div className="p-4 rounded-xl bg-white/[0.02] text-center text-xs text-slate-500">
+                 <span className="block text-2xl mb-2">📊</span>Need more data to detect correlations.
+               </div>
+            ) : correlations.map((corr, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                className={`p-3 rounded-xl text-xs border ${corr.type === 'positive' ? 'border-emerald-500/20 bg-emerald-500/5' : corr.type === 'negative' ? 'border-red-500/20 bg-red-500/5' : 'border-slate-500/20 bg-slate-500/5'}`}>
-                <p className="text-slate-300 mb-2">{corr.pattern}</p>
+                className={`p-3 rounded-xl text-xs border ${corr.type === 'positive' ? 'border-emerald-500/20 bg-emerald-500/5' : corr.type === 'negative' ? 'border-red-500/20 bg-red-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+                <p className="text-slate-300 mb-2">{corr.description}</p>
                 <div className="flex justify-between items-center">
-                  <div className="flex gap-1">{corr.domains.map(d => <span key={d} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{d}</span>)}</div>
-                  <span className="text-[10px] text-slate-500">Strength: {Math.round(corr.strength * 100)}%</span>
+                  <div className="flex gap-1">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{corr.domainA}</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{corr.domainB}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500">Strength: {corr.strength}</span>
                 </div>
               </motion.div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* ── NEW: Behavioral Analytics Intelligence ── */}
+      {behavioralAnalytics && behavioralAnalytics.hasData && (
+        <div className="mb-8">
+          <h2 className="text-sm font-bold flex items-center gap-2 mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+            🧬 Behavioral Analytics Intelligence
+            <span className="text-[10px] font-normal text-slate-500">Consistency, Volatility, Momentum</span>
+          </h2>
+          
+          <div className="grid lg:grid-cols-3 gap-4">
+            <GlassCard className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Consistency</h3>
+              <div className="flex items-end gap-2">
+                <span className={`text-4xl font-bold ${behavioralAnalytics.consistency.score > 75 ? 'text-emerald-400' : behavioralAnalytics.consistency.score > 50 ? 'text-amber-400' : 'text-red-400'}`}>{behavioralAnalytics.consistency.score}</span>
+                <span className="text-xs text-slate-500 mb-1">/100</span>
+              </div>
+              <p className="text-xs text-slate-400">{behavioralAnalytics.consistency.status}</p>
+              <div className="mt-2 text-[10px] text-slate-500 p-2 rounded-lg bg-black/20 border border-white/5">
+                Volatility Index: <span className="text-white">{behavioralAnalytics.consistency.volatility}</span>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recovery Momentum</h3>
+              <div className="flex items-end gap-2">
+                <span className={`text-4xl font-bold ${behavioralAnalytics.recoveryMomentum > 0 ? 'text-emerald-400' : behavioralAnalytics.recoveryMomentum < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                  {behavioralAnalytics.recoveryMomentum > 0 ? '+' : ''}{behavioralAnalytics.recoveryMomentum}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">
+                {behavioralAnalytics.recoveryMomentum > 0 ? 'Burnout risk is decreasing over the last 5 days.' : behavioralAnalytics.recoveryMomentum < 0 ? 'Burnout risk is accelerating.' : 'Stable burnout risk velocity.'}
+              </p>
+            </GlassCard>
+            
+            <GlassCard className="flex flex-col gap-3 col-span-1 lg:col-span-1">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Burnout Timeline</h3>
+              {behavioralAnalytics.burnoutTimeline.length > 0 ? (
+                <div className="h-24 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={behavioralAnalytics.burnoutTimeline.slice(-14)}>
+                      <defs>
+                        <linearGradient id="boGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" hide />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="burnoutRisk" stroke="#f59e0b" fill="url(#boGradient)" strokeWidth={2} name="Burnout Risk" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="text-xs text-slate-500 py-4 text-center">Not enough data</div>
+              )}
+            </GlassCard>
+            
+            {/* Heatmaps Row */}
+            <GlassCard className="col-span-1 lg:col-span-3">
+               <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Behavioral Consistency Heatmaps</h3>
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <ActivityHeatmap 
+                    title="Sleep Regularity" 
+                    data={behavioralAnalytics.burnoutTimeline.map(b => ({ date: b.date, value: b.recovery > 0 ? 8 : 4 }))}
+                    colorMap={{ color: '#8b5cf6', max: 10 }}
+                  />
+                  <ActivityHeatmap 
+                    title="Stress Intensity" 
+                    data={behavioralAnalytics.burnoutTimeline.map(b => ({ date: b.date, value: b.stress }))}
+                    colorMap={{ color: '#f43f5e', max: 10 }}
+                  />
+                  <ActivityHeatmap 
+                    title="Study Behavior" 
+                    data={(computed?.metricHistory || []).map(m => ({ date: m.date, value: m.career?.studyHoursDaily || 0 }))}
+                    colorMap={{ color: '#3b82f6', max: 8 }}
+                  />
+                  <ActivityHeatmap 
+                    title="Workout Streaks" 
+                    data={(computed?.metricHistory || []).map(m => ({ date: m.date, value: m.health?.workoutsPerWeek > 0 ? 1 : 0 }))}
+                    colorMap={{ color: '#10b981', max: 1 }}
+                  />
+               </div>
+            </GlassCard>
+
+            {/* Goal Trajectories Chart */}
+            {behavioralAnalytics.goalTrajectories.length > 0 && (
+              <GlassCard className="col-span-1 lg:col-span-3">
+                 <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Goal Trajectories & Velocity</h3>
+                 <div className="h-40 w-full p-2 border border-white/5 rounded-xl bg-black/10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={behavioralAnalytics.goalTrajectories[0].history.slice(-14)}>
+                        <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[0, 100]} hide />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend wrapperStyle={{ fontSize: '10px' }} />
+                        {behavioralAnalytics.goalTrajectories.map((g, i) => (
+                           <Line key={g.id} type="monotone" dataKey="progress" data={g.history.slice(-14)} name={g.name} stroke={['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'][i%4]} strokeWidth={2} dot={{ r: 2 }} />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                 </div>
+              </GlassCard>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Daily Reflection */}
       <GlassCard glow="glow-cyan">

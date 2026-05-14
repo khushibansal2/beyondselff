@@ -17,6 +17,7 @@ import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { evaluateAnomalies } from '../engines/anomalyEngine';
 import { analyzeTrends } from '../engines/trendEngine';
 import { analyzeGoalIntelligence } from '../engines/goalIntelligenceEngine';
+import { computeAnalytics } from '../engines/analyticsEngine';
 import { queueCloudSync, fetchCloudState, forceImmediateSync } from '../services/syncService';
 import { showToast } from '../components/ui/Components';
 
@@ -447,6 +448,7 @@ export function DataProvider({ children }) {
       
       const stateToSave = { ...state };
       delete stateToSave.syncStatus;
+      delete stateToSave.behavioralAnalytics;
       
       if (state.dataSource !== 'none') {
         queueCloudSync(stateToSave, (syncResult) => {
@@ -518,11 +520,12 @@ export function DataProvider({ children }) {
       const burnoutRisk = lifeBalance?.burnout?.risk || 0;
       const goalIntelligence = analyzeGoalIntelligence(
         state.goals || [], 
-        trendReport, 
-        state.anomalies || [], 
-        burnoutRisk, 
-        state.simulatorState || {}
+        userData, 
+        trendReport,
+        burnoutRisk
       );
+
+      const behavioralAnalytics = computeAnalytics(state.metricHistory || [], userData, state.goals || []);
 
       return {
         ...lifeBalance,
@@ -532,6 +535,7 @@ export function DataProvider({ children }) {
         feedbackHistory: state.feedbackHistory || [],
         trendReport,
         goalIntelligence,
+        behavioralAnalytics,
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);

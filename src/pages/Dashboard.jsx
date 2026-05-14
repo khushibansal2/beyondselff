@@ -219,29 +219,61 @@ export default function Dashboard() {
               {goalIntelligence.goals.slice(0, 3).map(g => (
                 <div key={g.id} className={`p-3 rounded-xl border bg-black/20 ${g.statusColor === 'emerald' ? 'border-emerald-500/20' : g.statusColor === 'red' ? 'border-red-500/20' : g.statusColor === 'blue' ? 'border-blue-500/20' : 'border-amber-500/20'}`}>
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-xs font-bold text-white truncate pr-2">{g.title}</p>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded flex-shrink-0 ${g.statusColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : g.statusColor === 'red' ? 'bg-red-500/10 text-red-400' : g.statusColor === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                      {g.status}
-                    </span>
+                     <p className="text-xs font-bold text-white truncate pr-2">{g.title}</p>
+                     <span className={`text-[9px] px-1.5 py-0.5 rounded flex-shrink-0 ${g.statusColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : g.statusColor === 'red' ? 'bg-red-500/10 text-red-400' : g.statusColor === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                       {g.status}
+                     </span>
                   </div>
-                  
                   <div className="flex items-center justify-between text-[10px] text-slate-400 mb-2">
                     <span>ETA: <strong className="text-white">{g.etaText}</strong></span>
                     <span>{g.probabilityOfSuccess}% Conf.</span>
                   </div>
-                  
-                  {/* Progress bar */}
                   <div className="w-full bg-slate-800 rounded-full h-1.5 mb-2 overflow-hidden">
                     <div className={`h-1.5 rounded-full ${g.statusColor === 'emerald' ? 'bg-emerald-400' : g.statusColor === 'red' ? 'bg-red-400' : g.statusColor === 'blue' ? 'bg-blue-400' : 'bg-amber-400'}`} style={{ width: `${g.progress}%` }}></div>
                   </div>
-
-                  {g.risks && g.risks.length > 0 && (
-                    <div className="text-[9px] text-red-300 mt-1 flex items-start gap-1">
-                      <span>⚠️</span> <span className="line-clamp-1">{g.risks[0].text}</span>
-                    </div>
-                  )}
                 </div>
               ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Behavioral Analytics Scorecard */}
+      {computed?.behavioralAnalytics?.hasData && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mb-6">
+          <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                🧬 Behavioral Scorecard
+                <span className="text-[10px] text-slate-500 font-normal">Consistency & Volatility</span>
+              </h3>
+              <Link to="/insights" className="text-[10px] text-blue-400 hover:text-blue-300">Detailed View →</Link>
+            </div>
+            
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="p-3 rounded-xl border border-white/[0.05] bg-black/20 flex flex-col justify-between">
+                <span className="text-[10px] text-slate-400 mb-1">Consistency Score</span>
+                <span className={`text-xl font-bold ${computed.behavioralAnalytics.consistency.score > 75 ? 'text-emerald-400' : 'text-amber-400'}`}>{computed.behavioralAnalytics.consistency.score}/100</span>
+                <span className="text-[9px] text-slate-500 mt-1">{computed.behavioralAnalytics.consistency.status}</span>
+              </div>
+              <div className="p-3 rounded-xl border border-white/[0.05] bg-black/20 flex flex-col justify-between">
+                <span className="text-[10px] text-slate-400 mb-1">Recovery Momentum</span>
+                <span className={`text-xl font-bold ${computed.behavioralAnalytics.recoveryMomentum > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  {computed.behavioralAnalytics.recoveryMomentum > 0 ? '+' : ''}{computed.behavioralAnalytics.recoveryMomentum}
+                </span>
+                <span className="text-[9px] text-slate-500 mt-1">Velocity vs last 5 days</span>
+              </div>
+              <div className="p-3 rounded-xl border border-white/[0.05] bg-black/20 flex flex-col justify-between col-span-2">
+                <span className="text-[10px] text-slate-400 mb-1">Top Correlation</span>
+                {computed.behavioralAnalytics.correlations[0] ? (
+                  <div>
+                    <span className="text-xs text-slate-300 block mb-1 truncate">{computed.behavioralAnalytics.correlations[0].description}</span>
+                    <span className="text-[9px] text-slate-500 px-1.5 py-0.5 rounded bg-white/5 uppercase">{computed.behavioralAnalytics.correlations[0].strength}</span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-slate-500 italic">Not enough variance yet</span>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>

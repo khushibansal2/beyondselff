@@ -139,7 +139,13 @@ RECENT USER FEEDBACK ON RECOMMENDATIONS:
 ${feedbackSummary}
 (Use this to understand what advice the user likes/dislikes.)
 
-YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. Reference real slopes, time windows, and momentum when asked about trends. Never fabricate numbers.`;
+ADVANCED BEHAVIORAL ANALYTICS:
+${context.behavioralAnalytics?.correlations?.map(c => `- ${c.domainA} vs ${c.domainB}: ${c.description} (${c.strength} correlation)`).join('\n') || 'Not enough data for correlations.'}
+- Consistency Score: ${context.behavioralAnalytics?.consistency?.score}/100 (${context.behavioralAnalytics?.consistency?.status})
+- Volatility index: ${context.behavioralAnalytics?.consistency?.volatility}
+- Recovery Momentum: ${context.behavioralAnalytics?.recoveryMomentum > 0 ? '+' : ''}${context.behavioralAnalytics?.recoveryMomentum} (positive means recovering)
+
+YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. Reference real correlations, burnout cycles, consistency metrics, and recovery momentum. Never fabricate numbers.`;
 }
 
 // Helper to get Auth Header
