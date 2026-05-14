@@ -268,7 +268,31 @@ export default function Insights() {
         </div>
         <div className="mt-4 flex items-center justify-between">
           <p className="text-[10px] text-slate-600">Analysis based on your data patterns</p>
-          <button onClick={() => showToast('Full report exported', 'success')} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">Export Report →</button>
+          <button onClick={() => {
+            const reportLines = [
+              `BeyondSelf Insights Report — ${new Date().toLocaleDateString()}`,
+              `==============================================`,
+              `Life Balance: ${balance}/100`,
+              `Health: ${healthScore}/100  |  Finance: ${financeScore}/100  |  Career: ${careerScore}/100`,
+              `Burnout Risk: ${burnout}%`,
+              '',
+              'Cross-Domain Patterns:',
+              ...patterns.map(p => `  [${p.severity.toUpperCase()}] ${p.title}: ${p.effect}`),
+              '',
+              'Today\'s Reflections:',
+              ...[(h.sleepAvg||0)<6?'Sleep deficit detected':'Sleep healthy', (h.stressLevel||0)>7?'Stress critically high':'Stress manageable'],
+            ];
+            const blob = new Blob([reportLines.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `beyondself_report_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Full report exported', 'success');
+          }} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">Export Report →</button>
         </div>
       </GlassCard>
     </div>

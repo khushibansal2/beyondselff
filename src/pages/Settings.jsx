@@ -1,13 +1,50 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import { GlassCard, PageHeader, SecurityBadge, showToast } from '../components/ui/Components';
 
 export default function Settings() {
   const { user, logout } = useAuth();
+  const { health, finance, career, goals, timeline, gamification, computed, aiCache, updateAICache } = useData();
   const [notifications, setNotifications] = useState({ insights: true, goals: true, burnout: true, weekly: false });
   const [privacy, setPrivacy] = useState({ anonymizeAI: true, localOnly: true, shareData: false });
   const [dangerConfirm, setDangerConfirm] = useState(false);
+
+  const exportAllData = () => {
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      profile: { name: user?.name, email: user?.email, persona: user?.persona },
+      health,
+      finance,
+      career,
+      goals,
+      timeline,
+      gamification,
+      computedScores: {
+        healthScore: computed?.healthScore?.score,
+        financeScore: computed?.financeScore?.score,
+        careerScore: computed?.careerScore?.score,
+        lifeBalance: computed?.balance,
+        burnoutRisk: computed?.burnout?.risk,
+      },
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `beyondself_export_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Data exported as JSON', 'success');
+  };
+
+  const clearCache = () => {
+    updateAICache({ dashboardNarrative: null, dashboardNarrativeHash: null, lastSimulation: null });
+    showToast('AI cache cleared successfully', 'success');
+  };
 
   const toggleNotif = (key) => {
     setNotifications(p => ({ ...p, [key]: !p[key] }));
@@ -118,11 +155,11 @@ export default function Settings() {
       <GlassCard>
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🗃️ Data Management</h3>
         <div className="space-y-3">
-          <button onClick={() => showToast('Data exported as JSON', 'success')} className="w-full p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-left text-sm hover:bg-white/[0.04] transition-all flex items-center justify-between">
+          <button onClick={exportAllData} className="w-full p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-left text-sm hover:bg-white/[0.04] transition-all flex items-center justify-between">
             <div className="flex items-center gap-2"><span>📥</span> Export All Data</div>
-            <span className="text-xs text-slate-500">JSON / CSV</span>
+            <span className="text-xs text-slate-500">JSON</span>
           </button>
-          <button onClick={() => showToast('Cache cleared successfully', 'success')} className="w-full p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-left text-sm hover:bg-white/[0.04] transition-all flex items-center justify-between">
+          <button onClick={clearCache} className="w-full p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-left text-sm hover:bg-white/[0.04] transition-all flex items-center justify-between">
             <div className="flex items-center gap-2"><span>🧹</span> Clear Cache</div>
             <span className="text-xs text-slate-500">Remove temporary data</span>
           </button>

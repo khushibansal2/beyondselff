@@ -21,7 +21,7 @@ const mockApiSources = [
 ];
 
 export default function Upload() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { health, finance, career, timeline, goals, setUserData } = useData();
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
