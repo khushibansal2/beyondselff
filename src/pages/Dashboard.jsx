@@ -264,6 +264,32 @@ export default function Dashboard() {
         </motion.div>
       )}
 
+      {/* Voice Intelligence Strip */}
+      {timeline && timeline.some(t => t.type === 'Voice Log') && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }} className="mb-6">
+          <div className="p-4 rounded-2xl border border-blue-500/10 bg-blue-500/5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-blue-300 flex items-center gap-2">
+                🎙️ Voice Intelligence
+                <span className="text-[10px] text-blue-500/70 font-normal">Recent Transcriptions & Logs</span>
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {timeline.filter(t => t.type === 'Voice Log').sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3).map((v, i) => (
+                <div key={i} className="p-3 rounded-xl border border-white/[0.05] bg-black/20">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-[10px] text-blue-400 capitalize">{v.domain} Update</span>
+                    <span className="text-[9px] text-slate-500">{new Date(v.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <p className="text-xs text-slate-300 italic">"{v.text.replace('Voice command: "', '').replace('"', '')}"</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Behavioral Analytics Scorecard */}
       {computed?.behavioralAnalytics?.hasData && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mb-6">

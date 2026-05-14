@@ -118,8 +118,12 @@ export default function Coach() {
     setInput('');
     setTyping(true);
 
-    // Pass full computed context + simulation history if available
-    const contextWithSim = { ...computed, lastSimulation: aiCache.lastSimulation };
+    // Pass full computed context + simulation history + recent chat history for continuity
+    const contextWithSim = { 
+      ...computed, 
+      lastSimulation: aiCache.lastSimulation,
+      recentHistory: messages.slice(-4).map(m => `${m.role === 'user' ? 'User' : 'Coach'}: ${m.text}`)
+    };
     const result = await chatWithAI(text.trim(), contextWithSim);
 
     const aiMsg = {

@@ -154,6 +154,10 @@ ${Object.keys(context.integrations || {}).filter(k => context.integrations[k].co
   : 'No active real-world data integrations. Relying solely on manual logs.'}
 (Reference this when discussing external data, such as Fitbit, Plaid, or GitHub activity.)
 
+RECENT CHAT HISTORY (FOR CONVERSATIONAL CONTEXT):
+${context.recentHistory && context.recentHistory.length > 0 ? context.recentHistory.join('\n') : 'No recent history.'}
+(Use the above to understand follow-up questions like "What about burnout?", but prioritize answering the CURRENT message).
+
 YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. Reference real correlations, burnout cycles, consistency metrics, and recovery momentum. Never fabricate numbers.`;
 }
 

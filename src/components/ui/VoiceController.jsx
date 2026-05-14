@@ -2,21 +2,23 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../../context/DataContext';
 import { parseVoiceIntent } from '../../services/voiceParser';
+import { transcribeAudio } from '../../services/transcriptionService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from './Components';
 
 const MIC_STATE = {
   IDLE: 'idle',
   LISTENING: 'listening',
+  UPLOADING: 'uploading',
   PROCESSING: 'processing',
   CONFIRM: 'confirm',
   ERROR: 'error',
   UNSUPPORTED: 'unsupported',
-  FALLBACK: 'fallback', // Text-input fallback when speech service is blocked
+  FALLBACK: 'fallback', // Text-input fallback
 };
 
-// Detect support ONCE at module level (avoids re-checking in effects)
-const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+// Audio context and recorder refs
+// SpeechRecognitionAPI removed in favor of backend universal transcription
 
 export function VoiceController() {
   const ctx = useData();
@@ -30,6 +32,9 @@ export function VoiceController() {
   const [errorMsg, setErrorMsg] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [fallbackInput, setFallbackInput] = useState('');
+  
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   // Ref keeps finance data fresh — avoids stale closure on executeLog
   const financeRef = useRef(ctx.finance);
@@ -51,117 +56,107 @@ export function VoiceController() {
         setParsedIntent(intent);
         setMicState(MIC_STATE.CONFIRM);
       } else {
-        setErrorMsg(
-          `Could not understand: "${text.trim()}". ` +
-          `Try: "Log 7 hours sleep and stress 4" or "Add expense 500"`
-        );
-        setMicState(MIC_STATE.ERROR);
+        // Assume fallback/coach routing if unclear to make conversational continuity work
+        setIsOpen(false);
+        resetState();
+        navigate(`/coach?q=${encodeURIComponent(text.trim())}`);
       }
     }, 350);
   }, [navigate]);
 
-  // ── Web Speech Recognition ───────────────────────────────────────────────
-  const startSpeechRecognition = useCallback(() => {
-    if (!SpeechRecognitionAPI) {
+  // ── Backend MediaRecorder Transcription ───────────────────────────────────────────────
+  const startRecording = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setMicState(MIC_STATE.UNSUPPORTED);
-      setErrorMsg('Web Speech API is not supported in this browser. Use Chrome or Edge.');
+      setErrorMsg('Audio recording is not supported in this browser. Please type instead.');
       setIsOpen(true);
       return;
     }
 
-    const rec = new SpeechRecognitionAPI();
-    rec.lang = 'en-IN';
-    rec.continuous = false;
-    rec.interimResults = true;
-    rec.maxAlternatives = 1;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-    let finalText = '';
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
 
-    rec.onstart = () => {
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        if (audioBlob.size < 100) {
+          setErrorMsg('No audio detected. Please speak clearly and try again.');
+          setMicState(MIC_STATE.ERROR);
+          return;
+        }
+
+        setMicState(MIC_STATE.UPLOADING);
+        
+        try {
+          // If the user typed something into fallbackInput while recording (rare but possible), we can pass it as a mock
+          const result = await transcribeAudio(audioBlob, fallbackInput);
+          if (result.transcript && result.transcript.trim()) {
+            setTranscript(result.transcript);
+            processTranscript(result.transcript);
+          } else {
+            setErrorMsg('Transcription returned empty. Please try again.');
+            setMicState(MIC_STATE.ERROR);
+          }
+        } catch (err) {
+          console.warn('[VoiceController] Transcription error:', err);
+          setErrorMsg(`Backend Transcription Error: ${err.message}`);
+          setMicState(MIC_STATE.FALLBACK);
+        }
+      };
+
+      mediaRecorder.start();
       setMicState(MIC_STATE.LISTENING);
       setTranscript('');
       setInterimText('');
       setParsedIntent(null);
       setErrorMsg('');
-      finalText = '';
-    };
-
-    rec.onresult = (e) => {
-      let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) {
-          finalText += t;
-        } else {
-          interim = t;
+      
+      // Stop automatically after 10 seconds to prevent massive files
+      setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          stopRecording();
         }
-      }
-      setTranscript(finalText);
-      setInterimText(interim);
-    };
+      }, 10000);
 
-    rec.onend = () => {
-      setInterimText('');
-      if (finalText.trim()) {
-        processTranscript(finalText.trim());
-      } else {
-        // Nothing was said — go back to idle quietly
-        setMicState(MIC_STATE.IDLE);
-        setIsOpen(false);
-      }
-    };
-
-    rec.onerror = (e) => {
-      setInterimText('');
-      console.warn('[VoiceController] SpeechRecognition error:', e.error);
-
-      if (e.error === 'not-allowed' || e.error === 'permission-denied') {
-        setErrorMsg(
-          '🔒 Microphone permission was denied.\n' +
-          'Click the 🔒 icon in your browser address bar → Allow microphone access → then try again.'
-        );
-        setMicState(MIC_STATE.ERROR);
-      } else if (e.error === 'service-not-allowed') {
-        // Browser is blocking the cloud speech service.
-        // This happens on http:// non-localhost or when Chrome flags restrict it.
-        setMicState(MIC_STATE.FALLBACK);
-        setErrorMsg('');
-      } else if (e.error === 'no-speech') {
-        setErrorMsg('No speech detected. Please speak clearly and try again.');
-        setMicState(MIC_STATE.ERROR);
-      } else if (e.error === 'network') {
-        setErrorMsg(
-          '📡 Network error. Chrome Speech needs an internet connection.\n' +
-          'You can type your command below instead.'
-        );
-        setMicState(MIC_STATE.FALLBACK);
-      } else if (e.error === 'audio-capture') {
-        setErrorMsg('🎙️ No microphone found. Please connect a microphone and try again.');
-        setMicState(MIC_STATE.ERROR);
-      } else {
-        // Unknown error — offer fallback
-        setMicState(MIC_STATE.FALLBACK);
-        setErrorMsg('');
-      }
-    };
-
-    try {
-      rec.start();
     } catch (err) {
-      console.warn('[VoiceController] rec.start() threw:', err);
-      setMicState(MIC_STATE.FALLBACK);
+      console.warn('[VoiceController] getUserMedia error:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setErrorMsg('🔒 Microphone permission was denied. Click the 🔒 icon in your browser address bar → Allow microphone access.');
+      } else {
+        setErrorMsg('🎙️ No microphone found or accessible.');
+      }
+      setMicState(MIC_STATE.ERROR);
       setIsOpen(true);
     }
-  }, [processTranscript]);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+  };
 
   // ── Mic button click ─────────────────────────────────────────────────────
   const handleMicClick = () => {
-    if (micState === MIC_STATE.LISTENING) return; // Let browser end naturally
+    if (micState === MIC_STATE.LISTENING) {
+      stopRecording();
+      return;
+    }
 
     // Reset → start fresh
     resetState(false); // don't close panel
     setIsOpen(true);
-    startSpeechRecognition();
+    startRecording();
   };
 
   // ── Execute the confirmed log ─────────────────────────────────────────────
@@ -213,6 +208,7 @@ export function VoiceController() {
   const micBg = {
     [MIC_STATE.IDLE]:        'bg-blue-600 hover:bg-blue-500',
     [MIC_STATE.LISTENING]:   'bg-red-500 scale-110',
+    [MIC_STATE.UPLOADING]:   'bg-cyan-500',
     [MIC_STATE.PROCESSING]:  'bg-amber-500',
     [MIC_STATE.CONFIRM]:     'bg-emerald-600',
     [MIC_STATE.ERROR]:       'bg-red-700 hover:bg-red-600',
@@ -222,7 +218,8 @@ export function VoiceController() {
 
   const micIcon = {
     [MIC_STATE.IDLE]:        '🎤',
-    [MIC_STATE.LISTENING]:   '🔴',
+    [MIC_STATE.LISTENING]:   '■',
+    [MIC_STATE.UPLOADING]:   '☁️',
     [MIC_STATE.PROCESSING]:  '⏳',
     [MIC_STATE.CONFIRM]:     '✅',
     [MIC_STATE.ERROR]:       '⚠️',
@@ -235,7 +232,7 @@ export function VoiceController() {
       {/* Floating mic button */}
       <button
         onClick={handleMicClick}
-        disabled={micState === MIC_STATE.LISTENING || micState === MIC_STATE.PROCESSING}
+        disabled={micState === MIC_STATE.UPLOADING || micState === MIC_STATE.PROCESSING}
         className={`fixed bottom-24 md:bottom-8 right-6 w-14 h-14 rounded-full flex items-center justify-center text-xl shadow-xl shadow-blue-500/20 transition-all z-50 text-white ${micBg} ${micState === MIC_STATE.LISTENING ? 'animate-pulse' : ''}`}
         title={micState === MIC_STATE.FALLBACK ? 'Type your command' : 'Voice Command'}
         aria-label="Voice Command"
@@ -263,8 +260,11 @@ export function VoiceController() {
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
                     </span>
-                    Listening...
+                    Listening (Tap to stop)...
                   </>
+                )}
+                {micState === MIC_STATE.UPLOADING && (
+                  <><div className="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" /> Uploading...</>
                 )}
                 {micState === MIC_STATE.PROCESSING && (
                   <><div className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" /> Processing...</>
@@ -318,7 +318,7 @@ export function VoiceController() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => { resetState(false); startSpeechRecognition(); }}
+                    onClick={() => { resetState(false); startRecording(); }}
                     className="py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors"
                   >
                     🎤 Retry
@@ -362,16 +362,15 @@ export function VoiceController() {
             )}
 
             {/* ── LISTENING / IDLE: transcript display ── */}
-            {(micState === MIC_STATE.LISTENING || micState === MIC_STATE.IDLE) && (
+            {(micState === MIC_STATE.LISTENING || micState === MIC_STATE.IDLE || micState === MIC_STATE.UPLOADING) && (
               <div className="min-h-[64px] p-3 rounded-xl bg-black/40 border border-white/5 text-sm mb-3 leading-relaxed">
                 {transcript ? (
                   <span className="text-white">{transcript}</span>
-                ) : interimText ? (
-                  <span className="text-slate-400 italic">{interimText}</span>
                 ) : (
                   <span className="text-slate-500 italic">
                     {micState === MIC_STATE.LISTENING
-                      ? 'Speak now...'
+                      ? 'Speak now, then tap to process...'
+                      : micState === MIC_STATE.UPLOADING ? 'Transcribing securely via backend...' 
                       : 'Click mic or type. Try: "Log 7h sleep stress 4"'}
                   </span>
                 )}
@@ -408,7 +407,7 @@ export function VoiceController() {
                   </button>
                 </div>
                 <button
-                  onClick={() => { resetState(false); startSpeechRecognition(); }}
+                  onClick={() => { resetState(false); startRecording(); }}
                   className="w-full py-1.5 rounded-xl border border-white/10 text-slate-500 hover:text-white hover:bg-white/5 text-xs transition-colors"
                 >
                   🔁 Try Again
