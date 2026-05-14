@@ -47,6 +47,7 @@ function buildSystemPrompt(context) {
   const anomalies = context?.anomalies || [];
   const feedbackHistory = context?.feedbackHistory || [];
   const trendReport = context?.trendReport || null;
+  const goalIntelligence = context?.goalIntelligence || null;
 
   const crossDomainSummary = crossDomain.length > 0
     ? crossDomain.map(cd => `- ${cd.trigger} → ${cd.effect} (${cd.mechanism})`).join('\n')
@@ -82,6 +83,21 @@ function buildSystemPrompt(context) {
     .map(f => `- [${f.severity.toUpperCase()}] ${f.text}`)
     .join('\n') || 'No forecast alerts.';
 
+  // Goal intelligence summary
+  const goalSummary = (() => {
+    if (!goalIntelligence || !goalIntelligence.goals || goalIntelligence.goals.length === 0) return 'No active goals.';
+    return goalIntelligence.goals.map(g => {
+      let line = `- "${g.title}": ${g.progress}% done. Status: ${g.status} (${g.probabilityOfSuccess}% success probability). ETA: ${g.etaText}.`;
+      if (g.risks && g.risks.length > 0) {
+        line += ` Risks: ${g.risks.map(r => r.text).join(' ')}`;
+      }
+      if (g.simulatorImpact) {
+        line += ` Simulator shows: ${g.simulatorImpact}.`;
+      }
+      return line;
+    }).join('\n');
+  })();
+
   return `You are a Digital Twin AI Life Coach. You have access to the user's REAL computed scores from a deterministic engine. 
 
 IMPORTANT RULES:
@@ -114,6 +130,10 @@ ${trendSummary}
 FORECAST SIGNALS:
 ${forecastLines}
 (When asked about improvement, trends, or trajectory, reference these patterns DIRECTLY. Always name the time window and metric. Never invent trend data.)
+
+GOAL INTELLIGENCE:
+${goalSummary}
+(When asked about goals, probability of success, or risks, reference this deterministic analysis. DO NOT invent fake forecasts or completion dates.)
 
 RECENT USER FEEDBACK ON RECOMMENDATIONS:
 ${feedbackSummary}

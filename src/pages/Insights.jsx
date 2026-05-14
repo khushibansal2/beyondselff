@@ -101,6 +101,7 @@ export default function Insights() {
   const balance = computed?.balance || 0;
   const burnout = computed?.burnout?.risk || 0;
   const trendReport = computed?.trendReport || null;
+  const goalIntelligence = computed?.goalIntelligence || null;
 
   // Use deterministic cross-domain engine patterns directly (Step 2.3 & 2.5)
   const patterns = useMemo(() => {
@@ -215,6 +216,90 @@ export default function Insights() {
           patterns.map((p, i) => <PatternCard key={p.id} pattern={p} index={i} />)
         )}
       </div>
+
+      {/* ── Goal Intelligence Section ── */}
+      {goalIntelligence && goalIntelligence.goals.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+              🎯 Goal Intelligence
+              <span className="text-[10px] font-normal text-slate-500">Predictive analysis based on real trends</span>
+            </h2>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-4">
+            {goalIntelligence.goals.map(g => (
+              <GlassCard key={g.id} className={`border-t-2 ${g.statusColor === 'emerald' ? 'border-t-emerald-500' : g.statusColor === 'red' ? 'border-t-red-500' : g.statusColor === 'blue' ? 'border-t-blue-500' : 'border-t-amber-500'}`}>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">{g.title}</h3>
+                    <p className="text-[10px] text-slate-400 capitalize">{g.domain} Domain</p>
+                  </div>
+                  <span className={`text-[10px] font-semibold px-2 py-1 rounded-md ${g.statusColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : g.statusColor === 'red' ? 'bg-red-500/10 text-red-400' : g.statusColor === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                    {g.status}
+                  </span>
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-slate-400">Progress</span>
+                    <span className="font-medium">{g.progress}%</span>
+                  </div>
+                  <div className="w-full bg-black/40 rounded-full h-2 overflow-hidden">
+                    <div className={`h-full rounded-full ${g.statusColor === 'emerald' ? 'bg-emerald-400' : g.statusColor === 'red' ? 'bg-red-400' : g.statusColor === 'blue' ? 'bg-blue-400' : 'bg-amber-400'}`} style={{ width: `${g.progress}%` }}></div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                    <p className="text-[10px] text-slate-500 mb-1">Success Probability</p>
+                    <p className={`text-lg font-bold ${g.probabilityOfSuccess >= 70 ? 'text-emerald-400' : g.probabilityOfSuccess < 40 ? 'text-red-400' : 'text-amber-400'}`}>
+                      {g.probabilityOfSuccess}%
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                    <p className="text-[10px] text-slate-500 mb-1">Estimated Completion</p>
+                    <p className="text-sm font-bold text-slate-200">
+                      {g.etaText}
+                    </p>
+                  </div>
+                </div>
+
+                {g.risks && g.risks.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Active Risks</p>
+                    {g.risks.map((r, i) => (
+                      <div key={i} className="flex gap-2 text-xs p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300">
+                        <span className="flex-shrink-0">⚠️</span>
+                        <span>{r.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {g.suggestions && g.suggestions.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Adaptive Recommendations</p>
+                    {g.suggestions.map((s, i) => (
+                      <div key={i} className="flex gap-2 text-xs p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300">
+                        <span className="flex-shrink-0">💡</span>
+                        <span>{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {g.simulatorImpact && (
+                   <div className="mt-3 flex gap-2 text-xs p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                      <span className="flex-shrink-0">🔮</span>
+                      <span>{g.simulatorImpact}</span>
+                   </div>
+                )}
+              </GlassCard>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Behavioral Trend Intelligence Section ── */}
       <div className="mb-8">

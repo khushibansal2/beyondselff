@@ -16,6 +16,7 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback, u
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { evaluateAnomalies } from '../engines/anomalyEngine';
 import { analyzeTrends } from '../engines/trendEngine';
+import { analyzeGoalIntelligence } from '../engines/goalIntelligenceEngine';
 
 const DataContext = createContext(null);
 
@@ -442,6 +443,16 @@ export function DataProvider({ children }) {
     try {
       const lifeBalance = computeLifeBalance(userData, state.records);
       const trendReport = analyzeTrends(state.metricHistory || [], userData);
+      
+      const burnoutRisk = lifeBalance?.burnout?.risk || 0;
+      const goalIntelligence = analyzeGoalIntelligence(
+        state.goals || [], 
+        trendReport, 
+        state.anomalies || [], 
+        burnoutRisk, 
+        state.simulatorState || {}
+      );
+
       return {
         ...lifeBalance,
         lifeBalance,
@@ -449,12 +460,13 @@ export function DataProvider({ children }) {
         anomalies: state.anomalies || [],
         feedbackHistory: state.feedbackHistory || [],
         trendReport,
+        goalIntelligence,
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);
-      return { lifeBalance: null, hasData: false, trendReport: null };
+      return { lifeBalance: null, hasData: false, trendReport: null, goalIntelligence: null };
     }
-  }, [state.health, state.finance, state.career, state.records, state.anomalies, state.feedbackHistory, state.metricHistory]);
+  }, [state.health, state.finance, state.career, state.records, state.anomalies, state.feedbackHistory, state.metricHistory, state.goals, state.simulatorState]);
 
   const addTimelineEvent = useCallback((event) => {
     dispatch({ type: ACTIONS.ADD_TIMELINE_EVENT, payload: event });

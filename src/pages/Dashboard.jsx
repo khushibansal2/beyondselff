@@ -28,6 +28,7 @@ export default function Dashboard() {
   const weakestDomain = computed?.weakestDomain?.name || 'health';
   const trendReport = computed?.trendReport || null;
   const domainTrends = trendReport?.domainSummary || {};
+  const goalIntelligence = computed?.goalIntelligence || null;
   
   // Use deterministic alerts from lifeBalanceEngine via DataContext
   const urgentAlerts = [
@@ -201,6 +202,50 @@ export default function Dashboard() {
           <ScoreRing score={burnoutRisk} color={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f59e0b' : '#10b981'} label="Burnout Risk" delay={400} />
         </GlassCard>
       </div>
+
+      {/* Goal Intelligence Strip */}
+      {goalIntelligence && goalIntelligence.goals.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6">
+          <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                🎯 Goal Intelligence
+                <span className="text-[10px] text-slate-500 font-normal">Predictive Tracking</span>
+              </h3>
+              <Link to="/insights" className="text-[10px] text-blue-400 hover:text-blue-300">Detailed View →</Link>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {goalIntelligence.goals.slice(0, 3).map(g => (
+                <div key={g.id} className={`p-3 rounded-xl border bg-black/20 ${g.statusColor === 'emerald' ? 'border-emerald-500/20' : g.statusColor === 'red' ? 'border-red-500/20' : g.statusColor === 'blue' ? 'border-blue-500/20' : 'border-amber-500/20'}`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="text-xs font-bold text-white truncate pr-2">{g.title}</p>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded flex-shrink-0 ${g.statusColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : g.statusColor === 'red' ? 'bg-red-500/10 text-red-400' : g.statusColor === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                      {g.status}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 mb-2">
+                    <span>ETA: <strong className="text-white">{g.etaText}</strong></span>
+                    <span>{g.probabilityOfSuccess}% Conf.</span>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 mb-2 overflow-hidden">
+                    <div className={`h-1.5 rounded-full ${g.statusColor === 'emerald' ? 'bg-emerald-400' : g.statusColor === 'red' ? 'bg-red-400' : g.statusColor === 'blue' ? 'bg-blue-400' : 'bg-amber-400'}`} style={{ width: `${g.progress}%` }}></div>
+                  </div>
+
+                  {g.risks && g.risks.length > 0 && (
+                    <div className="text-[9px] text-red-300 mt-1 flex items-start gap-1">
+                      <span>⚠️</span> <span className="line-clamp-1">{g.risks[0].text}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Trend Intelligence Strip */}
       {trendReport?.hasTrends && (

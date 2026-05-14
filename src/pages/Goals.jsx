@@ -15,7 +15,9 @@ const aiGoalSuggestions = [
 
 export default function Goals() {
   const { user } = useAuth();
-  const { goals, updateGoals } = useData();
+  const { goals, updateGoals, computed } = useData();
+  const goalIntelligence = computed?.goalIntelligence || { goals: [] };
+  const intelligentGoals = goalIntelligence.goals || [];
   const [showNew, setShowNew] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: '', domain: 'health', deadline: '', milestones: '', priority: 'medium' });
   const [filter, setFilter] = useState('all');
@@ -72,9 +74,9 @@ export default function Goals() {
   const domainIcons = { health: '❤️', finance: '💰', career: '🎯' };
   const priorityColors = { high: 'text-red-400 bg-red-500/10', medium: 'text-amber-400 bg-amber-500/10', low: 'text-emerald-400 bg-emerald-500/10' };
 
-  const filteredGoals = (goals || []).filter(g => filter === 'all' || g.domain === filter);
-  const completedGoals = (goals || []).filter(g => g.progress >= 100).length;
-  const activeGoals = (goals || []).filter(g => g.progress < 100).length;
+  const filteredGoals = intelligentGoals.filter(g => filter === 'all' || g.domain === filter);
+  const completedGoals = intelligentGoals.filter(g => g.progress >= 100).length;
+  const activeGoals = intelligentGoals.filter(g => g.progress < 100).length;
 
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
@@ -83,7 +85,7 @@ export default function Goals() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <GlassCard className="text-center py-3">
-          <p className="text-2xl font-bold text-blue-400" style={{ fontFamily: 'var(--font-display)' }}>{(goals || []).length}</p>
+          <p className="text-2xl font-bold text-blue-400" style={{ fontFamily: 'var(--font-display)' }}>{intelligentGoals.length}</p>
           <p className="text-[10px] text-slate-500">Total Goals</p>
         </GlassCard>
         <GlassCard className="text-center py-3">
@@ -146,6 +148,11 @@ export default function Goals() {
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] text-slate-500 capitalize">{g.domain} • Due {g.deadline}</span>
                           {g.priority && <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${priorityColors[g.priority] || ''}`}>{g.priority}</span>}
+                          {g.status && (
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${g.statusColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : g.statusColor === 'red' ? 'bg-red-500/10 text-red-400' : g.statusColor === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                              {g.status}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -160,6 +167,12 @@ export default function Goals() {
                       <motion.div initial={{ width: 0 }} animate={{ width: `${g.progress}%` }} transition={{ duration: 1 }}
                         className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${dc}, ${dc}cc)` }} />
                     </div>
+                    {g.etaText && (
+                      <div className="flex justify-between items-center text-[10px] mt-1.5">
+                        <span className="text-slate-500">ETA: <span className="text-slate-300 font-medium">{g.etaText}</span></span>
+                        <span className={`${g.probabilityOfSuccess >= 70 ? 'text-emerald-400' : g.probabilityOfSuccess < 40 ? 'text-red-400' : 'text-amber-400'}`}>{g.probabilityOfSuccess}% Success Prob.</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex gap-2 mb-3">
