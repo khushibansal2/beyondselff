@@ -33,6 +33,7 @@ export default function Coach() {
   const [isListening, setIsListening] = useState(false);
   const endRef = useRef(null);
   const recognitionRef = useRef(null);
+  const pendingVoiceQuery = useRef(null); // holds voice query until messages load
 
   // ---- Safely read deterministic state ----
   const hs  = computed?.healthScore?.score  ?? 0;
@@ -86,12 +87,26 @@ export default function Coach() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const query = params.get('q');
-    if (query && !typing && messages.length > 0) {
-      // Clear the URL so we don't re-trigger on refresh
+    if (query) {
+      // Clear the URL immediately so we don't re-trigger on refresh
       navigate('/coach', { replace: true });
-      sendMessage(query);
+      if (messages.length > 0 && !typing) {
+        sendMessage(query);
+      } else {
+        // Messages haven't initialized yet — store and fire when ready
+        pendingVoiceQuery.current = query;
+      }
     }
-  }, [location.search, typing, messages.length]);
+  }, [location.search]);
+
+  // Fire pending voice query once messages load
+  useEffect(() => {
+    if (pendingVoiceQuery.current && messages.length > 0 && !typing) {
+      const q = pendingVoiceQuery.current;
+      pendingVoiceQuery.current = null;
+      sendMessage(q);
+    }
+  }, [messages.length, typing]);
 
   const sendMessage = async (text) => {
     if (!text.trim() || typing) return;
