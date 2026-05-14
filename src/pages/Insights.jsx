@@ -84,7 +84,7 @@ function PatternCard({ pattern, index }) {
 
 export default function Insights() {
   const { user } = useAuth();
-  const { computed, health, finance, career } = useData();
+  const { computed, health, finance, career, anomalies = [] } = useData();
 
   const h = health || {};
   const f = finance || {};
@@ -98,7 +98,7 @@ export default function Insights() {
 
   // Use deterministic cross-domain engine patterns directly (Step 2.3 & 2.5)
   const patterns = useMemo(() => {
-    return (computed?.crossDomain || []).map(cd => ({
+    const cdPatterns = (computed?.crossDomain || []).map(cd => ({
       ...cd,
       title: cd.id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Cascade',
       icon: cd.severity === 'positive' ? '✅' : cd.severity === 'critical' ? '🚨' : '⚡',
@@ -106,7 +106,21 @@ export default function Insights() {
       domains: [cd.from, cd.to],
       confidence: 100 // Deterministically computed
     }));
-  }, [computed?.crossDomain]);
+
+    const anomalyPatterns = anomalies.map(a => ({
+      id: a.id,
+      severity: a.severity,
+      title: 'Anomaly: ' + a.title,
+      icon: a.trend === 'up' ? '📈' : '📉',
+      description: a.description,
+      trigger: a.triggerReason,
+      mechanism: `Baseline was ${a.baseline}, now ${a.current}. ${a.recommendedAction}`,
+      domains: [a.affectedDomain],
+      confidence: 100
+    }));
+
+    return [...anomalyPatterns, ...cdPatterns];
+  }, [computed?.crossDomain, anomalies]);
 
   const currentState = useMemo(() => ({ ...user, health: h, finance: f, career: c, timeline: computed?.timeline || [] }), [user, h, f, c, computed?.timeline]);
 

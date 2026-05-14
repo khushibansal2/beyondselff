@@ -10,7 +10,7 @@ import { generateTrendData, generateCorrelations, generateInsights } from '../da
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { health, finance, career, timeline, computed, aiCache, updateAICache } = useData();
+  const { health, finance, career, timeline, computed, aiCache, updateAICache, anomalies = [] } = useData();
   const [aiNarrative, setAiNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
 
@@ -26,7 +26,13 @@ export default function Dashboard() {
   const weakestDomain = computed?.weakestDomain?.name || 'health';
   
   // Use deterministic alerts from lifeBalanceEngine via DataContext
-  const urgentAlerts = computed?.urgentAlerts || [];
+  const urgentAlerts = [
+    ...(computed?.urgentAlerts || []),
+    ...anomalies.map(a => ({
+      icon: a.severity === 'critical' ? '🚨' : '⚠️',
+      text: `${a.title}: ${a.description} (${a.trend === 'up' ? '📈' : '📉'})`
+    }))
+  ];
   const positiveSignals = computed?.positiveSignals || [];
   const crossDomain = computed?.crossDomain || [];
 

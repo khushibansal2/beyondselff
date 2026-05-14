@@ -44,10 +44,15 @@ function buildSystemPrompt(context) {
   const stressFactor = context?.healthScore?.factors?.find(f => f.name === 'Stress Level');
   const crossDomain = context?.crossDomain || [];
   const urgentAlerts = context?.urgentAlerts || [];
+  const anomalies = context?.anomalies || [];
 
   const crossDomainSummary = crossDomain.length > 0
     ? crossDomain.map(cd => `- ${cd.trigger} → ${cd.effect} (${cd.mechanism})`).join('\n')
     : 'No active cross-domain cascades detected.';
+
+  const anomaliesSummary = anomalies.length > 0
+    ? anomalies.map(a => `- ${a.title} (${a.severity}): ${a.description} (Baseline: ${a.baseline}, Current: ${a.current})`).join('\n')
+    : 'No unusual anomalies detected recently.';
 
   const alertSummary = urgentAlerts.length > 0
     ? urgentAlerts.map(a => `- ${a.text}`).join('\n')
@@ -240,6 +245,11 @@ function generateFallbackResponse(message, context) {
     const risk = burnout.risk;
     const factors = burnout.factors || [];
     if (risk != null) {
+      let response = "";
+      const alerts = [...(context.urgentAlerts || []), ...(context.anomalies || []).map(a => ({ text: `Anomaly detected: ${a.title} - ${a.description}` }))].map(u => u.text);
+      if (alerts.length > 0) {
+        response += `\n\nI must also alert you to the following: ${alerts[0]}`;
+      }
       const intros = [
         `Your burnout risk is currently ${risk}% (${burnout.level || 'moderate'}). `,
         `I'm tracking your burnout risk at ${risk}%. `,
@@ -248,7 +258,7 @@ function generateFallbackResponse(message, context) {
       const factorText = factors.length > 0
         ? `The main contributing factors your system detected are: ${factors.map(f => `${f.name} (${f.value})`).join(', ')}.`
         : '';
-      return `${intros[rotationIndex]}${factorText} ${risk > 60 ? 'This is in the critical range — your data suggests reducing your total daily work hours and prioritising sleep recovery as the highest-impact changes.' : risk > 30 ? 'Moderate burnout risk detected. Small consistent improvements in sleep and exercise typically reduce this within 2–3 weeks.' : 'Your burnout risk is low. Keep maintaining your current recovery habits.'}`;
+      return `${intros[rotationIndex]}${factorText} ${risk > 60 ? 'This is in the critical range — your data suggests reducing your total daily work hours and prioritising sleep recovery as the highest-impact changes.' : risk > 30 ? 'Moderate burnout risk detected. Small consistent improvements in sleep and exercise typically reduce this within 2–3 weeks.' : 'Your burnout risk is low. Keep maintaining your current recovery habits.'}${response}`;
     }
   }
 

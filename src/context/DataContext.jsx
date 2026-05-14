@@ -14,6 +14,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
+import { evaluateAnomalies } from '../engines/anomalyEngine';
 
 const DataContext = createContext(null);
 
@@ -27,6 +28,8 @@ const EMPTY_STATE = {
   career: {},
   goals: [],
   timeline: [],
+  anomalies: [],
+  metricHistory: [],
 
   // Records from backend (imported data)
   records: {
@@ -126,9 +129,17 @@ function dataReducer(state, action) {
 
     case ACTIONS.UPDATE_DOMAIN: {
       const { domain, data } = action.payload;
+      
+      const newDomainState = { ...state[domain], ...data };
+      const historyEntry = { date: Date.now(), domain, oldState: state[domain] || {}, newState: newDomainState };
+      
+      const newAnomalies = evaluateAnomalies(state, domain, data, state.anomalies || [], state.metricHistory || []);
+      
       return {
         ...state,
-        [domain]: { ...state[domain], ...data },
+        [domain]: newDomainState,
+        anomalies: newAnomalies,
+        metricHistory: [...(state.metricHistory || []), historyEntry].slice(-50), // keep last 50 events
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
         _revision: (state._revision || 0) + 1,
@@ -276,6 +287,8 @@ function migrateSchema(data) {
   }
   
   if (!migrated.simulatorState) migrated.simulatorState = { selected: [], months: 3 };
+  if (!migrated.anomalies) migrated.anomalies = [];
+  if (!migrated.metricHistory) migrated.metricHistory = [];
 
   return migrated;
 }
@@ -404,12 +417,13 @@ export function DataProvider({ children }) {
         ...lifeBalance,
         lifeBalance,
         hasData: true,
+        anomalies: state.anomalies || [],
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);
       return { lifeBalance: null, hasData: false };
     }
-  }, [state.health, state.finance, state.career, state.records]);
+  }, [state.health, state.finance, state.career, state.records, state.anomalies]);
 
   // Action dispatchers
   const actions = useMemo(() => ({
