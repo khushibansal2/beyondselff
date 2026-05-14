@@ -29,8 +29,8 @@ export default function Dashboard() {
   const urgentAlerts = [
     ...(computed?.urgentAlerts || []),
     ...anomalies.map(a => ({
-      icon: a.severity === 'critical' ? '🚨' : '⚠️',
-      text: `${a.title}: ${a.description} (${a.trend === 'up' ? '📈' : '📉'})`
+      icon: a.severity === 'urgent' ? '🚨' : a.severity === 'alert' ? '⚠️' : a.severity === 'attention' ? '🟡' : '👁️',
+      text: `${a.status === 'monitoring' ? '[Monitoring] ' : ''}${a.title}: ${a.description} (${a.trend === 'up' ? '📈' : '📉'})`
     }))
   ];
   const positiveSignals = computed?.positiveSignals || [];

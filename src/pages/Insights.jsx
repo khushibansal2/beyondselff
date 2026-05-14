@@ -9,8 +9,12 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine } f
 import { Link } from 'react-router-dom';
 
 const severityConfig = {
+  urgent: { border: 'border-red-500/30', bg: 'bg-red-500/5', badge: 'bg-red-500/15 text-red-300', pulse: 'bg-red-400', label: '🚨 Urgent Pattern' },
   critical: { border: 'border-red-500/30', bg: 'bg-red-500/5', badge: 'bg-red-500/15 text-red-300', pulse: 'bg-red-400', label: '🚨 Critical Pattern' },
+  alert: { border: 'border-orange-500/30', bg: 'bg-orange-500/5', badge: 'bg-orange-500/15 text-orange-300', pulse: 'bg-orange-400', label: '⚠️ Alert' },
   warning: { border: 'border-amber-500/30', bg: 'bg-amber-500/5', badge: 'bg-amber-500/15 text-amber-300', pulse: 'bg-amber-400', label: '⚠️ Warning Pattern' },
+  attention: { border: 'border-yellow-500/30', bg: 'bg-yellow-500/5', badge: 'bg-yellow-500/15 text-yellow-300', pulse: 'bg-yellow-400', label: '🟡 Attention Needed' },
+  watch: { border: 'border-blue-500/30', bg: 'bg-blue-500/5', badge: 'bg-blue-500/15 text-blue-300', pulse: 'bg-blue-400', label: '👁️ Monitoring' },
   positive: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', badge: 'bg-emerald-500/15 text-emerald-300', pulse: 'bg-emerald-400', label: '✅ Positive Pattern' },
 };
 
@@ -29,7 +33,7 @@ function PatternCard({ pattern, index }) {
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="relative flex-shrink-0 mt-0.5">
               <span className="text-2xl">{pattern.icon || '⚡'}</span>
-              {pattern.severity === 'critical' && (
+              {['critical', 'urgent', 'alert'].includes(pattern.severity) && (
                 <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${cfg.pulse} animate-pulse`} />
               )}
             </div>
@@ -110,7 +114,7 @@ export default function Insights() {
     const anomalyPatterns = anomalies.map(a => ({
       id: a.id,
       severity: a.severity,
-      title: 'Anomaly: ' + a.title,
+      title: `${a.status === 'monitoring' ? '[Monitoring] ' : ''}Anomaly: ${a.title}`,
       icon: a.trend === 'up' ? '📈' : '📉',
       description: a.description,
       trigger: a.triggerReason,
