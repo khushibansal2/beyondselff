@@ -53,19 +53,19 @@ export function evaluateAnomalies(currentState, domain, newData, activeAnomalies
       const pastFinanceDeltas = metricHistory
         .filter(h => h.domain === 'finance' && h.newState.expenses !== undefined && h.oldState.expenses !== undefined)
         .map(h => Number(h.newState.expenses) - Number(h.oldState.expenses))
-        .filter(d => d > 0);
+        .filter(d => d > 0 && d < 1000000); // Exclude massive bulk setup imports
         
-      let avgExpense = expenseDelta; 
-      if (pastFinanceDeltas.length > 0) {
-        avgExpense = pastFinanceDeltas.reduce((a, b) => a + b, 0) / pastFinanceDeltas.length;
-      }
+      // Default to a fraction of the delta if no history, allowing the very first log to trigger if it's massive
+      let avgExpense = pastFinanceDeltas.length > 0 
+        ? pastFinanceDeltas.reduce((a, b) => a + b, 0) / pastFinanceDeltas.length 
+        : Math.min(expenseDelta * 0.25, 2000); 
       
       // Sparse-history protection: Require higher relative jump if we have very few data points
       const isSparse = pastFinanceDeltas.length < 3;
       const adaptiveMultiplier = isSparse ? 2.5 : 1.5 + (1 / Math.max(pastFinanceDeltas.length, 1));
       const minThreshold = isSparse ? 1000 : 500;
       
-      if (expenseDelta > avgExpense * adaptiveMultiplier && expenseDelta > minThreshold && pastFinanceDeltas.length > 0) {
+      if (expenseDelta > avgExpense * adaptiveMultiplier && expenseDelta > minThreshold) {
         addOrUpdate({
           type: 'spending_spike',
           severity: isSparse ? 'attention' : 'alert',
