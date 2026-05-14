@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateNarrative } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader } from '../components/ui/Components';
+import { AdaptiveRecommendations } from '../components/ui/AdaptiveRecommendations';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';

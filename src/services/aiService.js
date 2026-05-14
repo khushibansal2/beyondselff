@@ -45,6 +45,7 @@ function buildSystemPrompt(context) {
   const crossDomain = context?.crossDomain || [];
   const urgentAlerts = context?.urgentAlerts || [];
   const anomalies = context?.anomalies || [];
+  const feedbackHistory = context?.feedbackHistory || [];
 
   const crossDomainSummary = crossDomain.length > 0
     ? crossDomain.map(cd => `- ${cd.trigger} → ${cd.effect} (${cd.mechanism})`).join('\n')
@@ -57,6 +58,10 @@ function buildSystemPrompt(context) {
   const alertSummary = urgentAlerts.length > 0
     ? urgentAlerts.map(a => `- ${a.text}`).join('\n')
     : 'No urgent alerts.';
+
+  const feedbackSummary = feedbackHistory.length > 0
+    ? feedbackHistory.slice(0, 5).map(f => `- User ${f.action.toUpperCase()}ED recommendation category '${f.category}'`).join('\n')
+    : 'No prior recommendation feedback.';
 
   return `You are a Digital Twin AI Life Coach. You have access to the user's REAL computed scores from a deterministic engine. 
 
@@ -84,7 +89,11 @@ ${crossDomainSummary}
 URGENT ALERTS:
 ${alertSummary}
 
-Use this data to give grounded, personalized, and emotionally intelligent coaching. If asked about burnout, explain which factors are causing it from the data above. If asked about finance, reference the actual finance score.`;
+RECENT USER FEEDBACK ON RECOMMENDATIONS:
+${feedbackSummary}
+(Use this to understand what advice the user likes/dislikes. If they ask about a recommendation, explain how it aligns with their preferences).
+
+YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. If asked about burnout, explain which factors are causing it from the data above. If asked about finance, reference the actual finance score.`;
 }
 
 /**

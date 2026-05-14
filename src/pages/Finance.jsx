@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
 import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
+import { AdaptiveRecommendations } from '../components/ui/AdaptiveRecommendations';
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, Legend } from 'recharts';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'];
@@ -109,13 +110,7 @@ export default function Finance() {
     }
   };
 
-  const recommendations = [
-    { icon: '💳', title: 'Spending Optimization', text: savingsRate < 20 ? `Your savings rate is ${savingsRate}%. Target 20-30% by cutting ₹${Math.round((f.expenses * 0.2))} in non-essential spending. Start with subscriptions (₹${f.subscriptions}).` : `Great savings rate of ${savingsRate}%! Consider investing the surplus for compound growth.`, confidence: 87, risk: savingsRate < 10 ? 'high' : 'low' },
-    { icon: '📈', title: 'Investment Allocation', text: f.investments === 0 ? 'Start investing! Recommended: 60% index funds, 20% bonds, 20% emergency fund. Even ₹1000/month grows significantly over time.' : `Current investments: ₹${f.investments}. Diversify into: 50% equity, 30% debt, 20% gold for stability.`, confidence: 82, risk: 'medium' },
-    { icon: '🛡️', title: 'Emergency Fund', text: f.savings < f.expenses * 3 ? `Emergency fund (₹${f.savings}) covers only ${(f.savings / Math.max(1, f.expenses)).toFixed(1)} months. Build to 3-6 months.` : 'Your emergency fund is solid. Consider moving surplus to investments.', confidence: 91, risk: f.savings < f.expenses ? 'high' : 'low' },
-    { icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) are ${Math.round(f.subscriptions/Math.max(1, f.income)*100)}% of income. Review and cut unused.` : 'Subscription spending is reasonable. Review annually.', confidence: 85, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
-    ...(emotionalSpending ? [{ icon: '😰', title: 'Emotional Spending Alert', text: `Your stress level (${user?.health?.stressLevel || 0}/10) correlates with increased spending. Implement a 24-hour wait rule before purchases over ₹500.`, confidence: 79, risk: 'high' }] : []),
-  ];
+
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
@@ -253,27 +248,7 @@ export default function Finance() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-4">
-          {recommendations.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-              <GlassCard>
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl">{r.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{r.title}</h4>
-                      <div className="flex gap-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}% AI Match</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
-        </div>
+        <AdaptiveRecommendations domain="finance" />
       )}
     </div>
   );

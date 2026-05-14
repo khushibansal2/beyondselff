@@ -30,6 +30,8 @@ const EMPTY_STATE = {
   timeline: [],
   anomalies: [],
   metricHistory: [],
+  feedbackHistory: [],
+  _revision: 0,
 
   // Records from backend (imported data)
   records: {
@@ -77,6 +79,7 @@ const ACTIONS = {
   UPDATE_GAMIFICATION: 'UPDATE_GAMIFICATION',
   UPDATE_AI_CACHE: 'UPDATE_AI_CACHE',
   UPDATE_SIMULATOR_STATE: 'UPDATE_SIMULATOR_STATE',
+  RECORD_FEEDBACK: 'RECORD_FEEDBACK',
   RESET: 'RESET',
   HYDRATE: 'HYDRATE',
 };
@@ -243,6 +246,26 @@ function dataReducer(state, action) {
       return {
         ...state,
         simulatorState: { ...(state.simulatorState || {}), ...action.payload },
+        _revision: (state._revision || 0) + 1,
+      };
+    }
+
+    case ACTIONS.RECORD_FEEDBACK: {
+      const { recId, action: feedbackAction, category } = action.payload;
+      const historyEntry = {
+        id: `fb-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        recId,
+        action: feedbackAction,
+        category,
+        timestamp: Date.now()
+      };
+      
+      console.log(`[DataContext] RECORD_FEEDBACK: ${feedbackAction} for ${recId}`);
+      
+      return {
+        ...state,
+        feedbackHistory: [historyEntry, ...(state.feedbackHistory || [])],
+        lastUpdated: new Date().toISOString(),
         _revision: (state._revision || 0) + 1,
       };
     }
@@ -421,12 +444,25 @@ export function DataProvider({ children }) {
         lifeBalance,
         hasData: true,
         anomalies: state.anomalies || [],
+        feedbackHistory: state.feedbackHistory || [],
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);
       return { lifeBalance: null, hasData: false };
     }
-  }, [state.health, state.finance, state.career, state.records, state.anomalies]);
+  }, [state.health, state.finance, state.career, state.records, state.anomalies, state.feedbackHistory]);
+
+  const addTimelineEvent = useCallback((event) => {
+    dispatch({ type: ACTIONS.ADD_TIMELINE_EVENT, payload: event });
+  }, []);
+
+  const recordFeedback = useCallback((recId, action, category) => {
+    dispatch({ type: ACTIONS.RECORD_FEEDBACK, payload: { recId, action, category } });
+  }, []);
+
+  const resetData = useCallback(() => {
+    dispatch({ type: ACTIONS.RESET });
+  }, []);
 
   // Action dispatchers
   const actions = useMemo(() => ({
@@ -458,9 +494,8 @@ export function DataProvider({ children }) {
       dispatch({ type: ACTIONS.DELETE_GOAL, payload: goalId });
     },
 
-    addTimelineEvent: (event) => {
-      dispatch({ type: ACTIONS.ADD_TIMELINE_EVENT, payload: { ...event, date: event.date || new Date().toISOString() } });
-    },
+    addTimelineEvent,
+    recordFeedback,
 
     updateGamification: (data) => {
       dispatch({ type: ACTIONS.UPDATE_GAMIFICATION, payload: data });
