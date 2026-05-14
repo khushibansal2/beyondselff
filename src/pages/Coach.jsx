@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { chatWithAI } from '../services/aiService';
 import { createVoiceRecognition } from '../services/voiceService';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { GlassCard, PageHeader, SecurityBadge } from '../components/ui/Components';
 
 // Max messages kept in persistent history (prevents localStorage bloat)
@@ -23,6 +24,8 @@ const quickQuestions = [
 export default function Coach() {
   const { user } = useAuth();
   const { computed, aiCache, updateAICache } = useData();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -78,6 +81,17 @@ export default function Coach() {
   }, [aiCache.coachHistory]);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  // Handle incoming voice queries from the global VoiceController
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get('q');
+    if (query && !typing && messages.length > 0) {
+      // Clear the URL so we don't re-trigger on refresh
+      navigate('/coach', { replace: true });
+      sendMessage(query);
+    }
+  }, [location.search, typing, messages.length]);
 
   const sendMessage = async (text) => {
     if (!text.trim() || typing) return;
