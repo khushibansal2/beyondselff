@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { generateInsights, generateTrendData, generateCorrelations } from '../data/demoData';
 import { GlassCard, PageHeader, InsightCard, ScoreRing, showToast } from '../components/ui/Components';
 import AIExplainer from '../components/ui/AIExplainer';
+import { TrendCard, ForecastRow } from '../components/ui/TrendComponents';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine } from 'recharts';
 import { Link } from 'react-router-dom';
 
@@ -99,6 +100,7 @@ export default function Insights() {
   const careerScore = computed?.careerScore?.score || 0;
   const balance = computed?.balance || 0;
   const burnout = computed?.burnout?.risk || 0;
+  const trendReport = computed?.trendReport || null;
 
   // Use deterministic cross-domain engine patterns directly (Step 2.3 & 2.5)
   const patterns = useMemo(() => {
@@ -211,6 +213,68 @@ export default function Insights() {
           </GlassCard>
         ) : (
           patterns.map((p, i) => <PatternCard key={p.id} pattern={p} index={i} />)
+        )}
+      </div>
+
+      {/* ── Behavioral Trend Intelligence Section ── */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+            📈 Behavioral Trend Intelligence
+            <span className="text-[10px] font-normal text-slate-500">Deterministic · Based on your log history</span>
+          </h2>
+        </div>
+
+        {!trendReport || !trendReport.hasTrends ? (
+          <GlassCard className="text-center py-8">
+            <span className="text-3xl block mb-2">📊</span>
+            <p className="font-semibold mb-1">Building Your Trend Baseline</p>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto">
+              {trendReport?.sparseData
+                ? 'Keep logging your health, finance, and career data. Trends become reliable after 3+ entries per domain.'
+                : 'Log data across domains to start seeing behavioral trends.'}
+            </p>
+          </GlassCard>
+        ) : (
+          <div className="space-y-4">
+            {/* Burnout cross-domain trend — highlighted at top */}
+            {trendReport.burnoutTrend && (
+              <TrendCard trend={trendReport.burnoutTrend} index={0} />
+            )}
+
+            {/* Forecast summary signals */}
+            {trendReport.forecastSummary?.length > 0 && (
+              <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+                <h3 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">🔮 Forecast Signals</h3>
+                <div className="space-y-2">
+                  {trendReport.forecastSummary.map((f, i) => <ForecastRow key={i} forecast={f} index={i} />)}
+                </div>
+              </div>
+            )}
+
+            {/* Individual metric trend cards */}
+            <div className="grid md:grid-cols-2 gap-3">
+              {trendReport.trends
+                .filter(t => t.trendType !== 'stable' && t.trendType !== 'insufficient_data')
+                .map((t, i) => <TrendCard key={t.id} trend={t} index={i} />)}
+            </div>
+
+            {/* Stable/monitoring metrics — collapsed table */}
+            {trendReport.trends.filter(t => t.trendType === 'stable' || t.trendType === 'plateau').length > 0 && (
+              <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.01]">
+                <h3 className="text-xs font-semibold text-slate-500 mb-2">Stable Metrics</h3>
+                <div className="flex flex-wrap gap-2">
+                  {trendReport.trends
+                    .filter(t => t.trendType === 'stable' || t.trendType === 'plateau')
+                    .map(t => (
+                      <span key={t.id} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/5">
+                        {t.icon} {t.label} ({t.trendType})
+                      </span>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

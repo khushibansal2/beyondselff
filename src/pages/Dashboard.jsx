@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { generateNarrative } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader } from '../components/ui/Components';
 import { AdaptiveRecommendations } from '../components/ui/AdaptiveRecommendations';
+import { TrendBadge, ForecastRow } from '../components/ui/TrendComponents';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';
@@ -25,6 +26,8 @@ export default function Dashboard() {
   const lifeBalance = computed?.balance || 0;
   const burnoutRisk = computed?.burnout?.risk || 0;
   const weakestDomain = computed?.weakestDomain?.name || 'health';
+  const trendReport = computed?.trendReport || null;
+  const domainTrends = trendReport?.domainSummary || {};
   
   // Use deterministic alerts from lifeBalanceEngine via DataContext
   const urgentAlerts = [
@@ -198,6 +201,51 @@ export default function Dashboard() {
           <ScoreRing score={burnoutRisk} color={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f59e0b' : '#10b981'} label="Burnout Risk" delay={400} />
         </GlassCard>
       </div>
+
+      {/* Trend Intelligence Strip */}
+      {trendReport?.hasTrends && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-6">
+          <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                📈 Behavioral Trend Intelligence
+                <span className="text-[10px] text-slate-500 font-normal">from your log history</span>
+              </h3>
+              <Link to="/insights" className="text-[10px] text-blue-400 hover:text-blue-300">Full Analysis →</Link>
+            </div>
+
+            {/* Domain trend badges */}
+            <div className="flex flex-wrap gap-3 mb-3">
+              {Object.entries(domainTrends).map(([domain, t]) => (
+                <div key={domain} className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-500 capitalize">{domain}:</span>
+                  <TrendBadge trendType={t.trendType} icon={t.icon} label={t.label} color={t.color} />
+                </div>
+              ))}
+              {trendReport.burnoutTrend && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-500">Burnout:</span>
+                  <TrendBadge
+                    trendType={trendReport.burnoutTrend.trendType}
+                    icon={trendReport.burnoutTrend.icon}
+                    label={trendReport.burnoutTrend.label}
+                    color={trendReport.burnoutTrend.color}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Top forecast signals */}
+            {trendReport.forecastSummary?.length > 0 && (
+              <div className="space-y-1.5">
+                {trendReport.forecastSummary.slice(0, 3).map((f, i) => (
+                  <ForecastRow key={i} forecast={f} index={i} />
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6 mb-8">
         {/* Metrics + Chart */}

@@ -46,6 +46,7 @@ function buildSystemPrompt(context) {
   const urgentAlerts = context?.urgentAlerts || [];
   const anomalies = context?.anomalies || [];
   const feedbackHistory = context?.feedbackHistory || [];
+  const trendReport = context?.trendReport || null;
 
   const crossDomainSummary = crossDomain.length > 0
     ? crossDomain.map(cd => `- ${cd.trigger} → ${cd.effect} (${cd.mechanism})`).join('\n')
@@ -62,6 +63,24 @@ function buildSystemPrompt(context) {
   const feedbackSummary = feedbackHistory.length > 0
     ? feedbackHistory.slice(0, 5).map(f => `- User ${f.action.toUpperCase()}ED recommendation category '${f.category}'`).join('\n')
     : 'No prior recommendation feedback.';
+
+  // Trend intelligence summary for coach grounding
+  const trendSummary = (() => {
+    if (!trendReport || !trendReport.hasTrends) return 'Not enough history for trend analysis yet.';
+    if (trendReport.sparseData) return 'Sparse data — trends are early-stage estimates only.';
+    const lines = trendReport.trends
+      .filter(t => t.trendType !== 'insufficient_data' && t.trendType !== 'stable')
+      .slice(0, 6)
+      .map(t => `- ${t.label}: ${t.trendType.replace(/_/g, ' ')} (slope ${t.slope ?? 'N/A'}, ${t.seriesLen} logs, ${t.confidence}% confidence)`);
+    if (trendReport.burnoutTrend) {
+      lines.unshift(`- Burnout trajectory: ${trendReport.burnoutTrend.trendType.replace(/_/g, ' ')} — ${trendReport.burnoutTrend.summary}`);
+    }
+    return lines.length > 0 ? lines.join('\n') : 'All key metrics are currently stable.';
+  })();
+
+  const forecastLines = trendReport?.forecastSummary?.slice(0, 4)
+    .map(f => `- [${f.severity.toUpperCase()}] ${f.text}`)
+    .join('\n') || 'No forecast alerts.';
 
   return `You are a Digital Twin AI Life Coach. You have access to the user's REAL computed scores from a deterministic engine. 
 
@@ -89,11 +108,18 @@ ${crossDomainSummary}
 URGENT ALERTS:
 ${alertSummary}
 
+BEHAVIORAL TREND INTELLIGENCE (from real historical logs — NOT guessed):
+${trendSummary}
+
+FORECAST SIGNALS:
+${forecastLines}
+(When asked about improvement, trends, or trajectory, reference these patterns DIRECTLY. Always name the time window and metric. Never invent trend data.)
+
 RECENT USER FEEDBACK ON RECOMMENDATIONS:
 ${feedbackSummary}
-(Use this to understand what advice the user likes/dislikes. If they ask about a recommendation, explain how it aligns with their preferences).
+(Use this to understand what advice the user likes/dislikes.)
 
-YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. If asked about burnout, explain which factors are causing it from the data above. If asked about finance, reference the actual finance score.`;
+YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. Reference real slopes, time windows, and momentum when asked about trends. Never fabricate numbers.`;
 }
 
 /**

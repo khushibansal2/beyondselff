@@ -15,6 +15,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { evaluateAnomalies } from '../engines/anomalyEngine';
+import { analyzeTrends } from '../engines/trendEngine';
 
 const DataContext = createContext(null);
 
@@ -440,18 +441,20 @@ export function DataProvider({ children }) {
 
     try {
       const lifeBalance = computeLifeBalance(userData, state.records);
+      const trendReport = analyzeTrends(state.metricHistory || [], userData);
       return {
         ...lifeBalance,
         lifeBalance,
         hasData: true,
         anomalies: state.anomalies || [],
         feedbackHistory: state.feedbackHistory || [],
+        trendReport,
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);
-      return { lifeBalance: null, hasData: false };
+      return { lifeBalance: null, hasData: false, trendReport: null };
     }
-  }, [state.health, state.finance, state.career, state.records, state.anomalies, state.feedbackHistory]);
+  }, [state.health, state.finance, state.career, state.records, state.anomalies, state.feedbackHistory, state.metricHistory]);
 
   const addTimelineEvent = useCallback((event) => {
     dispatch({ type: ACTIONS.ADD_TIMELINE_EVENT, payload: event });

@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { runSimulation } from '../engines/simulatorEngine';
 import { generateNarrative } from '../services/aiService';
 import { GlassCard, PageHeader, ScoreRing } from '../components/ui/Components';
+import { ForecastRow } from '../components/ui/TrendComponents';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
 
 const scenarios = [
@@ -19,6 +20,7 @@ const scenarios = [
 export default function Simulator() {
   const { user } = useAuth();
   const { health, finance, career, computed, updateAICache, simulatorState, updateSimulatorState, aiCache } = useData();
+  const trendReport = computed?.trendReport || null;
   const [selected, setSelected] = useState(simulatorState?.selected || []);
   const [months, setMonths] = useState(simulatorState?.months || 3);
   const [aiNarrative, setAiNarrative] = useState(aiCache?.lastSimulation?.narrative || null);
@@ -213,6 +215,43 @@ export default function Simulator() {
               )}
             </GlassCard>
           </div>
+
+          {/* Real-World Trend Conflict Panel */}
+          {selected.length > 0 && trendReport?.hasTrends && (() => {
+            const conflicts = [];
+            const declining = trendReport.trends.filter(t =>
+              ['declining','accelerating_decline','volatile'].includes(t.trendType)
+            );
+
+            declining.forEach(t => {
+              if (t.domain === 'health' && selected.some(s => ['sleep1','workout2'].includes(s))) return; // scenario addresses it
+              if (t.domain === 'finance' && selected.some(s => ['cutExp','sidehustle'].includes(s))) return;
+              if (t.domain === 'career' && selected.some(s => ['study2','dsa3'].includes(s))) return;
+              conflicts.push(t);
+            });
+
+            if (trendReport.burnoutTrend?.trendType === 'burnout_escalation' &&
+                !selected.some(s => ['sleep1','workout2'].includes(s))) {
+              conflicts.push(trendReport.burnoutTrend);
+            }
+
+            if (conflicts.length === 0) return null;
+            return (
+              <div className="mb-6 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+                <h3 className="text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
+                  ⚠️ Real-World Trend Conflicts
+                </h3>
+                <p className="text-xs text-slate-400 mb-3">
+                  Your simulation projects improvement, but your <strong>actual logged behavior</strong> shows conflicting trends that may undermine the projection:
+                </p>
+                <div className="space-y-1.5">
+                  {conflicts.slice(0, 4).map((c, i) => (
+                    <ForecastRow key={i} forecast={{ severity: 'attention', text: c.summary || `${c.label} is ${c.trendType?.replace(/_/g,' ')} in your real data.` }} index={i} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* AI Analysis, Timeline, Cascades */}
           {selected.length > 0 && (
