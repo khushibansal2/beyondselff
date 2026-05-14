@@ -11,7 +11,7 @@ const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'
 
 export default function Finance() {
   const { user } = useAuth();
-  const { finance, computed, updateDomain, addTimelineEvent } = useData();
+  const { finance, computed, updateDomain, addTimelineEvent, anomalies = [] } = useData();
   const [tab, setTab] = useState('overview');
   
   // Use data from context
@@ -124,6 +124,8 @@ export default function Finance() {
     return null;
   };
 
+  const financeAnomalies = anomalies.filter(a => a.affectedDomain === 'finance' || a.type === 'spending_spike');
+
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
       <PageHeader title="Financial Health" subtitle="Track spending, optimize savings, and build financial resilience." icon="💰" />
@@ -174,6 +176,35 @@ export default function Finance() {
               </div>
             </GlassCard>
           </div>
+
+          {/* Detected Anomalies */}
+          {financeAnomalies.length > 0 && (
+            <GlassCard glow="glow-rose">
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">🚨 Detected Anomalies</h3>
+              <div className="space-y-3">
+                {financeAnomalies.map(a => (
+                  <div key={a.id} className={`p-4 rounded-xl border text-xs ${a.severity === 'urgent' || a.severity === 'alert' ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm">{a.severity === 'urgent' || a.severity === 'alert' ? '🚨' : '⚠️'} {a.status === 'monitoring' ? '[Monitoring] ' : ''}{a.title}</h4>
+                      <span className="text-[10px] uppercase font-bold tracking-wider opacity-70 px-2 py-0.5 rounded-full bg-white/10">{a.severity}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mb-2">
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Baseline</span>
+                        <span className="font-medium text-white">₹{a.baseline?.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Current Transaction</span>
+                        <span className="font-medium text-rose-400">₹{a.current?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <p className="text-slate-300">{a.description}</p>
+                    <p className="text-slate-400 mt-1 italic text-[10px]">Recommended: {a.recommendedAction}</p>
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          )}
 
           {/* Financial Anxiety Check */}
           {(f.debt > 0 || savingsRate < 5 || emotionalSpending) && (

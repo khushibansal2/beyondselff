@@ -6,6 +6,7 @@
  */
 
 export function evaluateAnomalies(currentState, domain, newData, activeAnomalies = [], metricHistory = []) {
+  console.log(`[AnomalyEngine] Evaluating domain: ${domain}`);
   // Keep active and monitoring anomalies
   const newAnomalies = [...activeAnomalies.filter(a => a.status === 'active' || a.status === 'monitoring')];
   const now = new Date().toISOString();
@@ -65,7 +66,19 @@ export function evaluateAnomalies(currentState, domain, newData, activeAnomalies
       const adaptiveMultiplier = isSparse ? 2.5 : 1.5 + (1 / Math.max(pastFinanceDeltas.length, 1));
       const minThreshold = isSparse ? 1000 : 500;
       
+      console.log(`[AnomalyEngine: Finance]
+        oldTotal: ${oldExpenseTotal}
+        newTotal: ${newExpenseTotal}
+        expenseDelta (transaction): ${expenseDelta}
+        pastDeltasCount: ${pastFinanceDeltas.length}
+        avgExpense (baseline): ${avgExpense}
+        adaptiveMultiplier: ${adaptiveMultiplier}
+        minThreshold: ${minThreshold}
+        thresholdToBeat: ${avgExpense * adaptiveMultiplier}
+      `);
+      
       if (expenseDelta > avgExpense * adaptiveMultiplier && expenseDelta > minThreshold) {
+        console.log(`[AnomalyEngine: Finance] 🚨 SPENDING SPIKE DETECTED! Delta ${expenseDelta} > Threshold ${avgExpense * adaptiveMultiplier}`);
         addOrUpdate({
           type: 'spending_spike',
           severity: isSparse ? 'attention' : 'alert',
@@ -200,5 +213,7 @@ export function evaluateAnomalies(currentState, domain, newData, activeAnomalies
   }
 
   // Return only active and monitoring anomalies
-  return newAnomalies.filter(a => a.status === 'active' || a.status === 'monitoring');
+  const finalAnomalies = newAnomalies.filter(a => a.status === 'active' || a.status === 'monitoring');
+  console.log(`[AnomalyEngine] Returning ${finalAnomalies.length} active/monitoring anomalies.`);
+  return finalAnomalies;
 }

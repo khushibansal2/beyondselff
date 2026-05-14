@@ -129,11 +129,14 @@ function dataReducer(state, action) {
 
     case ACTIONS.UPDATE_DOMAIN: {
       const { domain, data } = action.payload;
+      console.log(`[DataContext] UPDATE_DOMAIN: ${domain}`, data);
       
       const newDomainState = { ...state[domain], ...data };
       const historyEntry = { date: Date.now(), domain, oldState: state[domain] || {}, newState: newDomainState };
       
+      console.log(`[DataContext] Previous Anomalies Count: ${state.anomalies?.length || 0}`);
       const newAnomalies = evaluateAnomalies(state, domain, data, state.anomalies || [], state.metricHistory || []);
+      console.log(`[DataContext] Next Anomalies Count: ${newAnomalies.length}`);
       
       return {
         ...state,
