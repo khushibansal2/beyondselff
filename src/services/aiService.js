@@ -145,6 +145,15 @@ ${context.behavioralAnalytics?.correlations?.map(c => `- ${c.domainA} vs ${c.dom
 - Volatility index: ${context.behavioralAnalytics?.consistency?.volatility}
 - Recovery Momentum: ${context.behavioralAnalytics?.recoveryMomentum > 0 ? '+' : ''}${context.behavioralAnalytics?.recoveryMomentum} (positive means recovering)
 
+REAL-WORLD INTEGRATIONS / IMPORTED DATA:
+${Object.keys(context.integrations || {}).filter(k => context.integrations[k].connected).length > 0 
+  ? Object.keys(context.integrations).filter(k => context.integrations[k].connected).map(k => {
+      const isStale = Date.now() - context.integrations[k].lastSync > 86400000;
+      return `- ${k}: Connected (Last Synced: ${new Date(context.integrations[k].lastSync).toLocaleString()} - ${isStale ? 'STALE' : 'LIVE'})`;
+    }).join('\n')
+  : 'No active real-world data integrations. Relying solely on manual logs.'}
+(Reference this when discussing external data, such as Fitbit, Plaid, or GitHub activity.)
+
 YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. Reference real correlations, burnout cycles, consistency metrics, and recovery momentum. Never fabricate numbers.`;
 }
 

@@ -9,10 +9,11 @@ import { TrendBadge, ForecastRow } from '../components/ui/TrendComponents';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';
+import { PROVIDERS } from '../services/integrationService';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { health, finance, career, timeline, computed, aiCache, updateAICache, anomalies = [] } = useData();
+  const { health, finance, career, timeline, computed, aiCache, updateAICache, anomalies = [], integrations } = useData();
   const [aiNarrative, setAiNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
 
@@ -138,10 +139,35 @@ export default function Dashboard() {
             </div>
           )}
           {positiveSignals.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mb-3">
               {positiveSignals.map((p, i) => (
                 <span key={i} className="text-[10px] text-emerald-300/80 px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">{p.icon} {p.text}</span>
               ))}
+            </div>
+          )}
+
+          {/* Connected Providers Status */}
+          {integrations && Object.keys(integrations).some(k => integrations[k].connected) && (
+            <div className="pt-3 border-t border-white/5 flex flex-wrap gap-3 items-center">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Live Data Sources:</span>
+              {Object.keys(integrations).filter(k => integrations[k].connected).map(k => {
+                const p = PROVIDERS[Object.keys(PROVIDERS).find(pk => PROVIDERS[pk].id === k)];
+                const status = integrations[k];
+                const isStale = Date.now() - status.lastSync > 86400000; // 24 hours
+                return (
+                  <div key={k} className="flex items-center gap-1.5 px-2 py-1 rounded bg-black/20 border border-white/5">
+                    <span className="text-[10px]">{p?.icon}</span>
+                    <span className="text-[9px] text-slate-400">{p?.name}</span>
+                    {status.syncing ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse ml-1"></span>
+                    ) : status.error ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 ml-1" title={status.error}></span>
+                    ) : (
+                      <span className={`w-1.5 h-1.5 rounded-full ml-1 ${isStale ? 'bg-amber-400' : 'bg-emerald-400'}`} title={isStale ? 'Sync recommended' : 'Up to date'}></span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

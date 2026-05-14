@@ -18,6 +18,7 @@ import { evaluateAnomalies } from '../engines/anomalyEngine';
 import { analyzeTrends } from '../engines/trendEngine';
 import { analyzeGoalIntelligence } from '../engines/goalIntelligenceEngine';
 import { computeAnalytics } from '../engines/analyticsEngine';
+import { PROVIDERS, syncProviderData, normalizeAndMergeMetrics } from '../services/integrationService';
 import { queueCloudSync, fetchCloudState, forceImmediateSync } from '../services/syncService';
 import { showToast } from '../components/ui/Components';
 
@@ -65,6 +66,9 @@ const EMPTY_STATE = {
   // Simulator state persistence
   simulatorState: { selected: [], months: 3 },
 
+  // Integrations state
+  integrations: {}, // e.g. { 'health_fitbit': { connected: true, lastSync: 1620000000 } }
+
   // Metadata
   dataSource: 'none', // 'none' | 'demo' | 'imported' | 'mixed'
   lastUpdated: null,
@@ -90,6 +94,7 @@ const ACTIONS = {
   HYDRATE: 'HYDRATE',
   SET_SYNC_STATUS: 'SET_SYNC_STATUS',
   SET_REVISION: 'SET_REVISION',
+  UPDATE_INTEGRATION: 'UPDATE_INTEGRATION',
 };
 
 function dataReducer(state, action) {
@@ -258,6 +263,19 @@ function dataReducer(state, action) {
       };
     }
 
+    case ACTIONS.UPDATE_INTEGRATION: {
+      const { providerId, data } = action.payload;
+      return {
+        ...state,
+        integrations: {
+          ...(state.integrations || {}),
+          [providerId]: { ...((state.integrations || {})[providerId] || {}), ...data }
+        },
+        _revision: (state._revision || 0) + 1,
+        lastUpdated: new Date().toISOString(),
+      };
+    }
+
     case ACTIONS.RECORD_FEEDBACK: {
       const { recId, action: feedbackAction, category } = action.payload;
       const historyEntry = {
@@ -332,6 +350,7 @@ function migrateSchema(data) {
   if (!migrated.anomalies) migrated.anomalies = [];
   if (!migrated.metricHistory) migrated.metricHistory = [];
   if (!migrated.feedbackHistory) migrated.feedbackHistory = [];
+  if (!migrated.integrations) migrated.integrations = {};
 
   return migrated;
 }
@@ -603,6 +622,39 @@ export function DataProvider({ children }) {
     reset: () => {
       dispatch({ type: ACTIONS.RESET });
     },
+
+    toggleIntegration: (providerId, connect) => {
+      dispatch({ 
+        type: ACTIONS.UPDATE_INTEGRATION, 
+        payload: { providerId, data: { connected: connect, lastSync: connect ? Date.now() : null } } 
+      });
+      if (connect) showToast(`Connected to ${PROVIDERS[Object.keys(PROVIDERS).find(k => PROVIDERS[k].id === providerId)]?.name || 'Provider'}`, 'success');
+      else showToast('Integration disconnected', 'info');
+    },
+
+    triggerIntegrationSync: async (providerId) => {
+      // Need to use state from context... wait, the actions are memoized.
+      // I'll define this as a standalone effect or let the UI handle the actual integration trigger,
+      // but DataContext can provide a safe update method. Let's just dispatch the result.
+    },
+    
+    // A better approach for triggerIntegrationSync: pass the current state to a helper, or just use `dispatch` directly.
+    applyIntegrationSync: (providerId, payload, newHistory) => {
+      dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'metricHistory', records: newHistory } });
+      dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: false, lastSync: Date.now(), error: null } } });
+      
+      const today = new Date().toISOString().split('T')[0];
+      if (payload.date === today) {
+        if (payload.metrics.health) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'health', data: payload.metrics.health } });
+        if (payload.metrics.finance) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'finance', data: payload.metrics.finance } });
+        if (payload.metrics.career) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'career', data: payload.metrics.career } });
+      }
+    },
+    
+    setIntegrationStatus: (providerId, statusObj) => {
+      dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: statusObj } });
+    }
+
   }), []);
 
   const value = useMemo(() => ({

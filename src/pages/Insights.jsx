@@ -8,6 +8,7 @@ import AIExplainer from '../components/ui/AIExplainer';
 import { TrendCard, ForecastRow } from '../components/ui/TrendComponents';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine, LineChart, Line, YAxis, Legend } from 'recharts';
 import { Link } from 'react-router-dom';
+import { PROVIDERS } from '../services/integrationService';
 
 // Simple Calendar Heatmap Component
 function ActivityHeatmap({ data, colorMap, title }) {
@@ -116,7 +117,7 @@ function PatternCard({ pattern, index }) {
 
 export default function Insights() {
   const { user } = useAuth();
-  const { computed, health, finance, career, anomalies = [] } = useData();
+  const { computed, health, finance, career, anomalies = [], integrations } = useData();
 
   const h = health || {};
   const f = finance || {};
@@ -185,6 +186,56 @@ export default function Insights() {
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
       <PageHeader title="Cross-Domain Intelligence" subtitle="AI-explained patterns across your health, finances, and career." icon="🧠" />
+
+      {/* ── NEW: Connected Intelligence Section ── */}
+      {integrations && Object.keys(integrations).some(k => integrations[k].connected) && (
+        <div className="mb-6">
+          <h2 className="text-sm font-bold flex items-center gap-2 mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+            🌐 Connected Intelligence
+            <span className="text-[10px] font-normal text-slate-500">Real-World Ingestion</span>
+          </h2>
+          <div className="grid lg:grid-cols-3 gap-4">
+            {Object.keys(integrations).filter(k => integrations[k].connected).map(k => {
+              const p = PROVIDERS[Object.keys(PROVIDERS).find(pk => PROVIDERS[pk].id === k)];
+              const status = integrations[k];
+              const isStale = Date.now() - status.lastSync > 86400000;
+              return (
+                <GlassCard key={k} className="flex flex-col gap-3 relative overflow-hidden group">
+                  <div className={`absolute top-0 right-0 w-16 h-16 rounded-bl-[4rem] transition-all duration-500 opacity-20 ${isStale ? 'bg-amber-500 group-hover:opacity-40' : 'bg-emerald-500 group-hover:opacity-40'}`}></div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">{p?.icon}</span>
+                    <div>
+                      <h3 className="text-xs font-semibold text-white uppercase tracking-wider">{p?.name}</h3>
+                      <p className="text-[10px] text-slate-500 capitalize">{p?.category} Sync</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-slate-400">Sync Status:</span>
+                      {status.syncing ? (
+                        <span className="text-blue-400 animate-pulse">Syncing...</span>
+                      ) : status.error ? (
+                        <span className="text-red-400" title={status.error}>Error</span>
+                      ) : (
+                        <span className={isStale ? 'text-amber-400' : 'text-emerald-400'}>{isStale ? 'Stale' : 'Live'}</span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-slate-400">Last Synced:</span>
+                      <span className="text-slate-300">{status.lastSync ? new Date(status.lastSync).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never'}</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-white/5">
+                    <p className="text-[10px] text-slate-400 leading-relaxed italic">
+                      {p?.category === 'health' ? 'Powering burnout timelines & recovery momentum.' : p?.category === 'finance' ? 'Feeding volatility analysis & behavioral heatmaps.' : 'Driving career velocity & goal trajectories.'}
+                    </p>
+                  </div>
+                </GlassCard>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 14-Day Pattern Report Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
