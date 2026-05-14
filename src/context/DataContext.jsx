@@ -17,6 +17,8 @@ import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { evaluateAnomalies } from '../engines/anomalyEngine';
 import { analyzeTrends } from '../engines/trendEngine';
 import { analyzeGoalIntelligence } from '../engines/goalIntelligenceEngine';
+import { queueCloudSync, fetchCloudState, forceImmediateSync } from '../services/syncService';
+import { showToast } from '../components/ui/Components';
 
 const DataContext = createContext(null);
 
@@ -66,6 +68,7 @@ const EMPTY_STATE = {
   dataSource: 'none', // 'none' | 'demo' | 'imported' | 'mixed'
   lastUpdated: null,
   importHistory: [],
+  syncStatus: 'idle', // 'idle' | 'saving' | 'synced' | 'error' | 'offline'
 };
 
 // Action types
@@ -84,6 +87,8 @@ const ACTIONS = {
   RECORD_FEEDBACK: 'RECORD_FEEDBACK',
   RESET: 'RESET',
   HYDRATE: 'HYDRATE',
+  SET_SYNC_STATUS: 'SET_SYNC_STATUS',
+  SET_REVISION: 'SET_REVISION',
 };
 
 function dataReducer(state, action) {
@@ -276,6 +281,14 @@ function dataReducer(state, action) {
       return { ...EMPTY_STATE };
     }
 
+    case ACTIONS.SET_SYNC_STATUS: {
+      return { ...state, syncStatus: action.payload };
+    }
+
+    case ACTIONS.SET_REVISION: {
+      return { ...state, _revision: action.payload };
+    }
+
     case ACTIONS.HYDRATE: {
       if (!action.payload || typeof action.payload !== 'object') return state;
       // Conflict resolution: only hydrate if incoming state is newer using monotonic revision
@@ -369,7 +382,21 @@ function loadPersistedState() {
 }
 
 function persistState(state) {
+  if (!state.userId) return;
   storageAdapter.save(state.userId, state);
+  
+  // Exclude non-persistent UI states
+  const stateToSave = { ...state };
+  delete stateToSave.syncStatus;
+  
+  if (state.dataSource !== 'none') {
+    queueCloudSync(stateToSave, (syncResult) => {
+      // In a pure function like persistState we can't dispatch easily without passing dispatch, 
+      // but we can rely on a global event or the caller if we refactor.
+      // Wait, we can't easily dispatch from persistState since it's outside the component.
+      // I'll leave the actual dispatching to an effect inside the component.
+    });
+  }
 }
 
 import { useAuth } from './AuthContext';
@@ -382,21 +409,65 @@ export function DataProvider({ children }) {
 
   // Sync with AuthContext on login/logout
   useEffect(() => {
-    registerAuthCallback((authUser) => {
+    registerAuthCallback(async (authUser) => {
       if (!authUser) {
         dispatch({ type: ACTIONS.RESET });
       } else {
+        // Optimistically set user data
         dispatch({ 
           type: ACTIONS.SET_USER_DATA, 
           payload: { userData: authUser, source: authUser.persona === 'New User' ? 'none' : 'demo' } 
         });
+
+        // Try to fetch from cloud
+        dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'saving' });
+        const cloudRes = await fetchCloudState();
+        
+        if (cloudRes.success) {
+          dispatch({ type: ACTIONS.HYDRATE, payload: { ...cloudRes.state, _revision: cloudRes.state._revision + 1 } });
+          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'synced' });
+          showToast('Digital Twin restored from cloud', 'success');
+        } else if (cloudRes.isNew) {
+          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'synced' });
+        } else {
+          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'offline' });
+          showToast('Offline mode active. Changes will sync later.', 'info');
+        }
       }
     });
   }, [registerAuthCallback]);
 
   // Persist on every state change (debounced effect)
   useEffect(() => {
-    const timer = setTimeout(() => persistState(state), 300);
+    if (!state.userId) return;
+    
+    // Save locally
+    const timer = setTimeout(() => {
+      storageAdapter.save(state.userId, state);
+      
+      const stateToSave = { ...state };
+      delete stateToSave.syncStatus;
+      
+      if (state.dataSource !== 'none') {
+        queueCloudSync(stateToSave, (syncResult) => {
+          if (syncResult.status === 'conflict') {
+            showToast('Sync conflict detected. Resolving...', 'warning');
+            dispatch({ 
+              type: ACTIONS.HYDRATE, 
+              payload: { ...syncResult.latestState, _revision: syncResult.newRevision + 1 } 
+            });
+          } else if (syncResult.status === 'success') {
+            dispatch({ type: ACTIONS.SET_REVISION, payload: syncResult.newRevision });
+            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'synced' });
+          } else if (syncResult.status === 'saving') {
+            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'saving' });
+          } else {
+            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'offline' });
+          }
+        });
+      }
+    }, 300);
+    
     return () => clearTimeout(timer);
   }, [state]);
 
