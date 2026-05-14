@@ -358,7 +358,10 @@ export default function Upload() {
               <button 
                 onClick={async () => {
                   if (h.id) {
-                    await fetch(`http://localhost:8080/api/uploads/${h.id}`, { method: 'DELETE' });
+                    await fetch(`http://localhost:8080/api/uploads/${h.id}`, { 
+                      method: 'DELETE',
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     fetchHistory();
                     showToast('Import deleted', 'info');
                   }

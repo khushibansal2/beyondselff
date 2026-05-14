@@ -11,16 +11,14 @@ export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setTimeout(() => {
-      const result = login(email, password);
-      if (result.success) navigate('/dashboard');
-      else setError(result.error);
-      setLoading(false);
-    }, 800);
+    const result = await login(email, password);
+    if (result.success) navigate('/dashboard');
+    else setError(result.error);
+    setLoading(false);
   };
 
   const demoAccounts = [
@@ -92,17 +90,15 @@ export function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
     setError('');
-    setTimeout(() => {
-      const result = signup(name, email, password);
-      if (result.success) navigate('/dashboard');
-      else setError(result.error);
-      setLoading(false);
-    }, 800);
+    const result = await signup(name, email, password);
+    if (result.success) navigate('/dashboard');
+    else setError(result.error);
+    setLoading(false);
   };
 
   return (

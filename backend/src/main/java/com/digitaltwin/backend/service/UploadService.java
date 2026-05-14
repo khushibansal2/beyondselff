@@ -171,7 +171,22 @@ public class UploadService {
 
     public void deleteImport(Long id) {
         importRepo.deleteById(id);
-        // Note: Realistically we should delete the associated records from Health/Finance/Career 
-        // as well using the importId, but keeping it simple for now.
+    }
+    
+    @Transactional
+    public void deleteImportSecurely(Long id, String userId) {
+        ImportHistory history = importRepo.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Import not found"));
+            
+        if (!history.getUserId().equals(userId)) {
+            throw new SecurityException("Unauthorized to delete this import");
+        }
+        
+        importRepo.delete(history);
+        
+        // Delete cascading records belonging to this import
+        healthRepo.deleteByImportId(id);
+        financeRepo.deleteByImportId(id);
+        careerRepo.deleteByImportId(id);
     }
 }

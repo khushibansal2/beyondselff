@@ -142,6 +142,21 @@ ${feedbackSummary}
 YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. Reference real slopes, time windows, and momentum when asked about trends. Never fabricate numbers.`;
 }
 
+// Helper to get Auth Header
+const getAuthHeaders = () => {
+  const auth = localStorage.getItem('dt_auth');
+  if (auth) {
+    try {
+      const { token } = JSON.parse(auth);
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    } catch (e) {}
+  }
+  return { 'Content-Type': 'application/json' };
+};
+
 /**
  * Send a chat message to the AI Coach.
  * @param {string} message - User's message
@@ -153,7 +168,7 @@ export async function chatWithAI(message, context = {}) {
   try {
     const res = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         message,
         context: stripPII(context),
@@ -191,7 +206,7 @@ export async function generateNarrative(computedData, type = 'dashboard') {
   try {
     const res = await fetch(`${API_BASE}/narrative`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         computedData: stripPII(computedData),
         type,
@@ -216,7 +231,7 @@ export async function explainInsight(insightData) {
   try {
     const res = await fetch(`${API_BASE}/explain`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ insightData: stripPII(insightData) }),
     });
 
