@@ -6,7 +6,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { showToast } from './Components';
 
 export function VoiceController() {
-  const { state, actions } = useData();
+  const ctx = useData();
+  const { updateDomain, addTimelineEvent } = ctx;
   const navigate = useNavigate();
   const location = useLocation();
   const [isListening, setIsListening] = useState(false);
@@ -16,6 +17,7 @@ export function VoiceController() {
   const [isOpen, setIsOpen] = useState(false);
   
   const recognitionRef = useRef(null);
+  const currentFinanceExpenses = ctx.finance?.expenses || 0;
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -91,18 +93,18 @@ export function VoiceController() {
     let domainData = { ...parsedIntent.data };
     
     // Handle special delta operators like expense addition
-    if (domainData.__delta_expense) {
-      const currentExpenses = state.finance?.expenses || 0;
-      domainData = { expenses: currentExpenses + domainData.__delta_expense };
+    if (domainData.__delta_expense !== undefined) {
+      domainData = { expenses: currentFinanceExpenses + domainData.__delta_expense };
     }
 
-    actions.updateDomain(parsedIntent.domain, domainData);
+    updateDomain(parsedIntent.domain, domainData);
     
-    actions.addTimelineEvent({
+    addTimelineEvent({
       type: 'Voice Log',
       text: `Voice command: "${transcript}"`,
       sentiment: 'positive',
-      domain: parsedIntent.domain
+      domain: parsedIntent.domain,
+      date: new Date().toISOString()
     });
     
     showToast(`Logged successfully to ${parsedIntent.domain}`, 'success');
@@ -120,8 +122,9 @@ export function VoiceController() {
     setError(null);
   };
 
-  // Don't show floating mic if we are on login screen
-  if (location.pathname === '/') return null;
+  // Hide on public/auth pages
+  const hiddenRoutes = ['/', '/login', '/signup'];
+  if (hiddenRoutes.includes(location.pathname)) return null;
 
   return (
     <>

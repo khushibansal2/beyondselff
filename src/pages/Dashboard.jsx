@@ -311,6 +311,15 @@ export default function Dashboard() {
           ))}
         </div>
       </GlassCard>
+
+      {/* Adaptive Recommendations Feed */}
+      <div className="mt-6">
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+          🧠 Your Top Recommendations
+          <span className="text-[10px] text-indigo-300 font-normal bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">Adaptive · Learns from you</span>
+        </h3>
+        <AdaptiveRecommendations />
+      </div>
     </div>
   );
 }

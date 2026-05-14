@@ -315,6 +315,7 @@ function migrateSchema(data) {
   if (!migrated.simulatorState) migrated.simulatorState = { selected: [], months: 3 };
   if (!migrated.anomalies) migrated.anomalies = [];
   if (!migrated.metricHistory) migrated.metricHistory = [];
+  if (!migrated.feedbackHistory) migrated.feedbackHistory = [];
 
   return migrated;
 }

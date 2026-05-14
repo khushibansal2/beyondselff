@@ -4,24 +4,33 @@ import { useData } from '../../context/DataContext';
 import { generateAdaptiveRecommendations, FEEDBACK_ACTIONS } from '../../engines/recommendationEngine';
 
 export function AdaptiveRecommendations({ domain = null }) {
-  const { actions, state } = useData();
+  const ctx = useData();
+  const { recordFeedback } = ctx;
   const [animatingOut, setAnimatingOut] = useState(null);
+
+  // Build state shape the engine expects: { health, finance, career, anomalies, feedbackHistory }
+  const engineState = {
+    health: ctx.health || {},
+    finance: ctx.finance || {},
+    career: ctx.career || {},
+    anomalies: ctx.anomalies || [],
+    feedbackHistory: ctx.feedbackHistory || [],
+  };
 
   // Re-run the recommendation engine whenever state or feedbackHistory changes
   const recommendations = useMemo(() => {
-    // Generate them using the deterministic engine
-    return generateAdaptiveRecommendations(state, domain);
-  }, [state, domain]);
+    return generateAdaptiveRecommendations(engineState, domain);
+  }, [ctx.health, ctx.finance, ctx.career, ctx.anomalies, ctx.feedbackHistory, domain]);
 
   const handleFeedback = (recId, action, category) => {
     if (action === FEEDBACK_ACTIONS.DISMISS || action === FEEDBACK_ACTIONS.NOT_RELEVANT || action === FEEDBACK_ACTIONS.ALREADY_DOING) {
       setAnimatingOut(recId);
       setTimeout(() => {
-        actions.recordFeedback(recId, action, category);
+        recordFeedback(recId, action, category);
         setAnimatingOut(null);
       }, 300);
     } else {
-      actions.recordFeedback(recId, action, category);
+      recordFeedback(recId, action, category);
     }
   };
 
