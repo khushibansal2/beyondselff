@@ -1,9 +1,15 @@
 // src/services/transcriptionService.js
-import { getAuthHeaders } from './apiConfig'; // We will define this if needed or just use localStorage
+// Backend-powered audio transcription service
+
+const getToken = () => {
+  try {
+    const auth = localStorage.getItem('dt_auth');
+    return auth ? JSON.parse(auth).token : '';
+  } catch { return ''; }
+};
 
 export const transcribeAudio = async (audioBlob, mockText = null) => {
-  const auth = localStorage.getItem('dt_auth');
-  const token = auth ? JSON.parse(auth).token : '';
+  const token = getToken();
 
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.webm');

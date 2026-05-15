@@ -12,7 +12,7 @@
  * - No duplicated state, no isolated page state
  */
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useRef } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { evaluateAnomalies } from '../engines/anomalyEngine';
 import { analyzeTrends } from '../engines/trendEngine';
@@ -427,6 +427,10 @@ export function DataProvider({ children }) {
     return loadPersistedState() || EMPTY_STATE;
   });
 
+  // Keep a ref to always-current state for async callbacks (integration sync, etc.)
+  const stateRef = useRef(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+
   // Sync with AuthContext on login/logout
   useEffect(() => {
     registerAuthCallback(async (authUser) => {
@@ -633,9 +637,34 @@ export function DataProvider({ children }) {
     },
 
     triggerIntegrationSync: async (providerId) => {
-      // Need to use state from context... wait, the actions are memoized.
-      // I'll define this as a standalone effect or let the UI handle the actual integration trigger,
-      // but DataContext can provide a safe update method. Let's just dispatch the result.
+      // Mark as syncing
+      dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: true, error: null } } });
+      try {
+        const payload = await syncProviderData(providerId, null);
+        // Merge into metric history
+        const currentHistory = stateRef.current?.metricHistory || [];
+        const newHistory = normalizeAndMergeMetrics(currentHistory, [payload]);
+        
+        // Apply sync result
+        dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: false, lastSync: Date.now(), connected: true, error: null } } });
+        
+        // Update metric history
+        dispatch({ type: ACTIONS.SET_USER_DATA, payload: { userData: { metricHistory: newHistory }, source: 'mixed' } });
+        
+        // If today's data, update live domain
+        const today = new Date().toISOString().split('T')[0];
+        if (payload.date === today) {
+          if (payload.metrics.health) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'health', data: payload.metrics.health } });
+          if (payload.metrics.finance) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'finance', data: payload.metrics.finance } });
+          if (payload.metrics.career) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'career', data: payload.metrics.career } });
+        }
+        
+        const providerKey = Object.keys(PROVIDERS).find(k => PROVIDERS[k].id === providerId);
+        showToast(`✅ ${PROVIDERS[providerKey]?.name || 'Provider'} synced successfully`, 'success');
+      } catch (err) {
+        dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: false, error: err.message } } });
+        showToast(`⚠️ Sync failed: ${err.message}`, 'error');
+      }
     },
     
     // A better approach for triggerIntegrationSync: pass the current state to a helper, or just use `dispatch` directly.

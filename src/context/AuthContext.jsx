@@ -15,21 +15,36 @@ export function AuthProvider({ children }) {
       const saved = localStorage.getItem('dt_auth');
       if (saved) {
         try {
-          const { token: t } = JSON.parse(saved);
-          const res = await fetch('http://localhost:8080/api/auth/me', {
-            headers: { 'Authorization': `Bearer ${t}` }
-          });
+          const parsed = JSON.parse(saved);
+          const { token: t, user: savedUser } = parsed;
           
-          if (res.ok) {
-            const u = await res.json();
-            setUser(u);
-            setToken(t);
-            localStorage.setItem('dt_auth', JSON.stringify({ user: u, token: t }));
-          } else {
-            localStorage.removeItem('dt_auth');
+          // Try the real backend first
+          try {
+            const res = await fetch('http://localhost:8080/api/auth/me', {
+              headers: { 'Authorization': `Bearer ${t}` },
+              signal: AbortSignal.timeout(3000) // 3s timeout — don't block forever
+            });
+            if (res.ok) {
+              const u = await res.json();
+              setUser(u);
+              setToken(t);
+              localStorage.setItem('dt_auth', JSON.stringify({ user: u, token: t }));
+            } else {
+              // Token invalid — clear it
+              localStorage.removeItem('dt_auth');
+            }
+          } catch (networkErr) {
+            // Backend is down — restore from localStorage so the app still works offline
+            if (savedUser && t) {
+              console.warn('[Auth] Backend unreachable — restoring from local cache (offline mode)');
+              setUser(savedUser);
+              setToken(t);
+            } else {
+              localStorage.removeItem('dt_auth');
+            }
           }
         } catch (e) {
-          console.error("Auth restore failed:", e);
+          console.error('[Auth] Restore failed:', e);
           localStorage.removeItem('dt_auth');
         }
       }
@@ -46,11 +61,26 @@ export function AuthProvider({ children }) {
   }, [user, loading, onAuthChange]);
 
   const login = async (email, password) => {
+    // 1. Try demo users first (works even without backend)
+    const demoMatch = Object.values(demoUsers).find(
+      u => u.email === email && u.password === password
+    );
+    if (demoMatch) {
+      const { password: _pw, ...safeUser } = demoMatch;
+      const fakeToken = `demo_${safeUser.id}_${Date.now()}`;
+      setUser(safeUser);
+      setToken(fakeToken);
+      localStorage.setItem('dt_auth', JSON.stringify({ user: safeUser, token: fakeToken }));
+      return { success: true, isDemo: true };
+    }
+
+    // 2. Try real backend
     try {
       const res = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
+        signal: AbortSignal.timeout(5000)
       });
       if (!res.ok) {
         const err = await res.text();
@@ -62,7 +92,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('dt_auth', JSON.stringify(data));
       return { success: true, isDemo: false };
     } catch (e) {
-      return { success: false, error: 'Network error. Backend down?' };
+      return { success: false, error: 'Cannot reach server. Try demo accounts: arjun@demo.com / demo123' };
     }
   };
 
@@ -71,7 +101,8 @@ export function AuthProvider({ children }) {
       const res = await fetch('http://localhost:8080/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password }),
+        signal: AbortSignal.timeout(5000)
       });
       if (!res.ok) {
         const err = await res.text();
@@ -83,7 +114,13 @@ export function AuthProvider({ children }) {
       localStorage.setItem('dt_auth', JSON.stringify(data));
       return { success: true, isNew: true };
     } catch (e) {
-      return { success: false, error: 'Network error. Backend down?' };
+      // Offline signup: create a local-only account
+      const localUser = { id: `local_${Date.now()}`, name, email, persona: 'New User', avatar: '👤', role: 'user' };
+      const fakeToken = `local_${localUser.id}`;
+      setUser(localUser);
+      setToken(fakeToken);
+      localStorage.setItem('dt_auth', JSON.stringify({ user: localUser, token: fakeToken }));
+      return { success: true, isNew: true, isOffline: true };
     }
   };
 

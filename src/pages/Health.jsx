@@ -15,7 +15,7 @@ export default function Health() {
   const score = computed?.healthScore?.score || 0;
   const burnout = computed?.burnout?.risk || 0;
   const trendData = useMemo(() => generateTrendData(user, 30), [user]);
-  const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
+  const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -33,10 +33,17 @@ export default function Health() {
     if (form.mood) { updated.moodAvg = Number(form.mood); changes++; }
     if (form.water) { updated.waterIntake = parseInt(form.water, 10); changes++; }
     if (form.calories) { updated.calories = parseInt(form.calories, 10); changes++; }
-    if (form.workout) { changes++; }
+    if (form.weight) { updated.weight = parseFloat(form.weight); changes++; }
+    if (form.bmi) { updated.bmi = parseFloat(form.bmi); changes++; }
+    if (form.workout) {
+      // Count a workout session if >= 20 minutes, increment weekly count
+      const mins = parseInt(form.workout, 10);
+      if (mins >= 20) { updated.workoutsPerWeek = Math.min(7, (h.workoutsPerWeek || 0) + 1); }
+      changes++;
+    }
     if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
     updateDomain('health', updated);
-    setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
+    setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
     showToast(`Health data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
   };
 
@@ -150,9 +157,11 @@ export default function Health() {
               { key: 'sleep', label: 'Sleep (hours)', placeholder: '7.5', type: 'number', min: 0, max: 14, step: '0.5' },
               { key: 'mood', label: 'Mood (1-10)', placeholder: '7', type: 'number', min: 1, max: 10 },
               { key: 'stress', label: 'Stress (1-10)', placeholder: '4', type: 'number', min: 1, max: 10 },
-              { key: 'workout', label: 'Workout (minutes)', placeholder: '30', type: 'number', min: 0 },
+              { key: 'workout', label: 'Workout (minutes, ≥20 = 1 session)', placeholder: '30', type: 'number', min: 0 },
               { key: 'water', label: 'Water (glasses)', placeholder: '8', type: 'number', min: 0, max: 20 },
-              { key: 'calories', label: 'Calories', placeholder: '2200', type: 'number', min: 0 },
+              { key: 'calories', label: 'Calories consumed', placeholder: '2200', type: 'number', min: 0 },
+              { key: 'weight', label: 'Weight (kg)', placeholder: '65', type: 'number', min: 20, max: 300, step: '0.1' },
+              { key: 'bmi', label: 'BMI (optional)', placeholder: '22.5', type: 'number', min: 10, max: 60, step: '0.1' },
             ].map(f => (
               <div key={f.key}>
                 <label className="text-xs text-slate-400 mb-1.5 block">{f.label}</label>

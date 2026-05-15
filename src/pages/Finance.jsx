@@ -21,7 +21,7 @@ export default function Finance() {
   
   const trendData = useMemo(() => generateTrendData(user || {}, 30), [user]);
   
-  const [form, setForm] = useState({ income: '', expense: '', category: 'food', amount: '' });
+  const [form, setForm] = useState({ income: '', expense: '', category: 'food', amount: '', savings: '', investments: '', debt: '' });
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
 
@@ -53,7 +53,7 @@ export default function Finance() {
       hasUpdate = true;
       addTimelineEvent({
         type: 'Income Updated',
-        text: `Logged new monthly income: ₹${updated.income}`,
+        text: `Logged new monthly income: ₹${updated.income.toLocaleString()}`,
         sentiment: 'positive',
         domain: 'finance'
       });
@@ -70,10 +70,14 @@ export default function Finance() {
         domain: 'finance'
       });
     }
+
+    if (form.savings) { updated.savings = parseInt(form.savings); hasUpdate = true; }
+    if (form.investments) { updated.investments = parseInt(form.investments); hasUpdate = true; }
+    if (form.debt) { updated.debt = parseInt(form.debt); hasUpdate = true; }
     
     if (hasUpdate) {
       updateDomain('finance', updated);
-      setForm({ income: '', expense: '', category: 'food', amount: '' });
+      setForm({ income: '', expense: '', category: 'food', amount: '', savings: '', investments: '', debt: '' });
       showToast('Financial data updated', 'success');
     }
   };
@@ -239,10 +243,16 @@ export default function Finance() {
           </div>
           
           <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-4">
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
-            <div className="flex items-end"><button type="submit" className="btn-primary w-full">Save Entry ✓</button></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Income (₹)</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Savings (₹)</label><input type="number" value={form.savings} onChange={e => setForm(p => ({ ...p, savings: e.target.value }))} className="input-premium" placeholder="₹5000" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Investments (₹)</label><input type="number" value={form.investments} onChange={e => setForm(p => ({ ...p, investments: e.target.value }))} className="input-premium" placeholder="₹2000" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Total Debt (₹)</label><input type="number" value={form.debt} onChange={e => setForm(p => ({ ...p, debt: e.target.value }))} className="input-premium" placeholder="₹0" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium"><option value="food">Food &amp; Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills &amp; Utilities</option><option value="healthcare">Healthcare</option><option value="education">Education</option><option value="other">Other</option></select></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Amount (₹)</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
+            <div className="md:col-span-2 flex items-center justify-between gap-4">
+              <p className="text-xs text-slate-500">💡 Log income monthly; add expenses as they occur</p>
+              <button type="submit" className="btn-primary">Save Entry ✓</button>
+            </div>
           </form>
         </GlassCard>
       )}
