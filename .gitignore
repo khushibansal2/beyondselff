@@ -1,6 +1,32 @@
+# Frontend
 node_modules/
-.DS_Store
-target/
-.env
 dist/
 build/
+.env
+.env.local
+.env.production
+
+# Backend
+backend/target/
+backend/.env
+backend/uploads/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.class
+
+# Logs
+*.log
+logs/
+
+# Test artifacts
+test_auth.sh
+test_sync.sh
+dummy.csv
+dummy.pdf

@@ -1,87 +1,214 @@
 # BeyondSelf: Personal Digital Twin 🧠⚡️
 
-BeyondSelf is an intelligent, cross-domain "Digital Twin" application that ingests your real-world data (Health, Finance, and Career) and deterministically models how they interact. Instead of tracking habits in isolation, BeyondSelf reveals the hidden cascades in your life—like how poor sleep impacts your emotional spending, or how financial stress degrades your career placement readiness.
+BeyondSelf is an intelligent, cross-domain **Personal Digital Twin** that consolidates your Health, Finance, and Career data into one unified AI-powered platform. It reveals hidden life cascades — like how poor sleep degrades your coding productivity, or how financial stress triggers emotional spending.
 
 ---
 
-## ✨ Core Features
-
-### 1. Cross-Domain Intelligence Engine
-The platform abandons traditional siloed tracking. It uses a custom deterministic rules engine to map cause-and-effect relationships across your life:
-* **Health → Career:** Calculates how sleep debt directly degrades focus and coding efficiency.
-* **Health → Finance:** Models "emotional spending risk" triggered by high stress and burnout levels.
-* **Finance → Career:** Evaluates how financial runway impacts your ability to focus on long-term upskilling vs. short-term survival.
-
-### 2. Time-Travel Simulator
-An interactive projection engine that lets you simulate future lifestyle choices. 
-* **Scenario Modeling:** Toggle habits like "+1.5 hours of sleep" or "+2 DSA problems/day".
-* **Future Projections:** See a 3 to 12-month trajectory of your Life Balance Score, mapping out stable recoveries vs. compounding decline.
-* **Burnout Trajectories:** Predicts when a "hustle" routine will mathematically force a burnout crash.
-
-### 3. AI Digital Twin Coach (Gemini Powered)
-Chat with a highly contextual AI coach grounded entirely in your deterministic data.
-* **Explainability:** Ask *"Why did my balance score drop?"* and the coach will cite exact data cascades from the engine.
-* **Resilient Local Mode:** If the cloud AI is rate-limited or offline, the app seamlessly falls back to a built-in deterministic reasoning layer, ensuring the coach remains intelligent and helpful without hallucinations.
-
-### 4. Unified Dashboard & Data Ingestion
-* **Document Parsing:** Upload bank statements, health logs, or academic transcripts. The backend parses and normalizes raw data into standard metrics.
-* **Holistic Scoring:** Aggregates your life into three core pillars (Health, Finance, Career), which feed into a unified 0-100 Life Balance Score.
-
-### 5. Gamification & Goal Tracking
-* Turn life management into a game with XP, streaks, and unlockable badges.
-* Set cross-domain goals and track your progress in real-time.
-
----
-
-## 🛠️ Technology Stack
-
-### Frontend
-* **Framework:** React + Vite
-* **Styling:** Tailwind CSS (Glassmorphism, Dark UI)
-* **Charts:** Recharts for dynamic timeline projections
-* **State Management:** Custom Context APIs (`DataContext`, `AuthContext`)
-
-### Backend
-* **Framework:** Spring Boot (Java 23)
-* **Database:** H2 / PostgreSQL (Hibernate/JPA)
-* **AI Integration:** Google Gemini 2.0 Flash
-* **File Processing:** Apache PDFBox, Apache Commons CSV
-
----
-
-## 🚀 Running the Project Locally
+## 🚀 Quick Start (Fresh Clone)
 
 ### Prerequisites
-* **Node.js** (v18+)
-* **Java** (JDK 23)
-* **Maven** (v3.9+)
-* Gemini API Key
+| Tool | Version | Install |
+|---|---|---|
+| Java | 17+ | [adoptium.net](https://adoptium.net) |
+| Maven | 3.8+ | bundled with most IDEs or `brew install maven` |
+| Node.js | 18+ | [nodejs.org](https://nodejs.org) |
+| PostgreSQL | 14+ | [postgresql.org](https://www.postgresql.org/download/) |
 
-### 1. Start the Backend
-Navigate to the backend directory, add your API key, and start the Spring Boot server:
+### Option A — Automated Setup
+```bash
+git clone https://github.com/pavani0959/BeyondSelf.git
+cd BeyondSelf
+chmod +x setup.sh && ./setup.sh
+```
+
+### Option B — Manual Setup
+
+**1. Create the PostgreSQL database**
+```bash
+# Connect to PostgreSQL
+psql -U postgres
+
+# Inside psql:
+CREATE DATABASE digitaltwin;
+\q
+```
+
+**2. Configure backend credentials**
 ```bash
 cd backend
-# Edit src/main/resources/application.properties and insert your gemini.api.key
-mvn spring-boot:run
+cp .env.example .env
+# Edit .env with your DB credentials and Gemini API key
 ```
-*The backend will run on `http://localhost:8080`*
 
-### 2. Start the Frontend
-Open a new terminal window, navigate to the root directory, install dependencies, and start the Vite development server:
+**3. Start the Backend**
 ```bash
+cd backend
+DB_USERNAME=postgres DB_PASSWORD=yourpassword mvn spring-boot:run
+```
+Wait for: `Started BackendApplication in X seconds`
+
+**4. Install & Start the Frontend**
+```bash
+# From project root
 npm install
 npm run dev
 ```
-*The frontend will run on `http://localhost:5173`*
+
+**5. Open the app**
+```
+http://localhost:5173
+```
 
 ---
 
-## 📂 Project Architecture
-* `/src/engines/` - Deterministic mathematical models (Simulator, Balance, Burnout).
-* `/src/services/` - External integrations (AI Coach routing, Local Fallback handlers).
-* `/src/pages/` - Core UI views (Dashboard, Simulator, Coach, Gamification).
-* `/backend/` - Spring Boot server handling OCR, file parsing, and API proxying.
+## 🔑 Environment Variables
+
+Set these before running `mvn spring-boot:run`:
+
+| Variable | Description | Default |
+|---|---|---|
+| `DB_URL` | PostgreSQL JDBC URL | `jdbc:postgresql://localhost:5432/digitaltwin` |
+| `DB_USERNAME` | PostgreSQL username | `postgres` |
+| `DB_PASSWORD` | PostgreSQL password | *(empty)* |
+| `GEMINI_API_KEY` | Google Gemini AI key | *(get from [aistudio.google.com](https://aistudio.google.com))* |
+
+**Set as shell variables (Mac/Linux):**
+```bash
+export DB_USERNAME=postgres
+export DB_PASSWORD=yourpassword
+export GEMINI_API_KEY=your_key_here
+mvn spring-boot:run
+```
+
+**Or inline (one-time):**
+```bash
+DB_USERNAME=postgres DB_PASSWORD=secret GEMINI_API_KEY=AIza... mvn spring-boot:run
+```
 
 ---
 
-*Designed to help you understand your data, predict your future, and build a sustainable life.*
+## 🎮 Demo Login (No Backend Needed!)
+
+The app works **fully offline** with built-in demo personas — no database required:
+
+| Persona | Email | Password |
+|---|---|---|
+| 🧑‍💻 Stressed Student | `arjun@demo.com` | `demo123` |
+| 💪 Fitness Learner | `priya@demo.com` | `demo123` |
+| 💸 Overspender | `rahul@demo.com` | `demo123` |
+| 🔥 Burnout Risk | `sneha@demo.com` | `demo123` |
+| 🎯 Placement Coder | `karthik@demo.com` | `demo123` |
+
+Just click the persona buttons on the login page — no typing needed.
+
+---
+
+## ✨ Features
+
+### 🧠 Intelligence Engines (Deterministic)
+- **Life Balance Score** — cross-domain health/finance/career scoring
+- **Burnout Prediction** — early warning system with risk trajectory
+- **Anomaly Detection** — flags sudden changes in behavior patterns
+- **Trend Analysis** — 30-day slope analysis per metric
+- **Cross-Domain Cascades** — "poor sleep → reduced productivity → missed deadlines"
+
+### 📊 Analytics & Visualization
+- Consistency heatmaps, momentum charts, burnout timeline
+- Behavioral pattern recognition
+- Correlation mapping (sleep ↔ spending, workouts ↔ productivity)
+
+### 🤖 AI Coach (Gemini-Powered)
+- Grounded in your real deterministic data — never hallucinates metrics
+- Conversational memory (last 4 messages carried as context)
+- Falls back to local reasoning when Gemini is unavailable
+
+### 🎙️ Voice Intelligence
+- MediaRecorder-based recording (works on all browsers including Safari)
+- Backend transcription pipeline via Spring Boot
+- Typed fallback when backend is unreachable
+- Smart intent routing: "log 7h sleep stress 4" → auto-saved to Health
+
+### 📁 Data Import & Integrations
+- Upload CSV, Excel, PDF, JSON files
+- OCR-based bank statement parsing
+- GitHub integration (real repo + commit sync)
+- Fitbit, Plaid, LeetCode mock integrations
+
+### 🎯 Goals & Gamification
+- SMART goal tracking across all three domains
+- AI-powered goal velocity analysis
+- XP, badges, streaks, active challenges
+
+### 🔐 Security
+- JWT authentication (stateless)
+- PII stripped before AI calls
+- Cloud sync with conflict resolution (Spring Boot + PostgreSQL)
+- Rate limiting on transcription and AI endpoints
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + Vite, Framer Motion, Recharts |
+| Styling | Vanilla CSS (Glassmorphism dark UI) |
+| Backend | Spring Boot 3.2, Java 23 |
+| Database | PostgreSQL 15 + Hibernate JPA |
+| AI | Google Gemini 2.0 Flash |
+| Auth | JWT (JJWT library) |
+| File Parsing | Apache PDFBox, Commons CSV |
+| Voice | MediaRecorder API + backend Whisper-ready pipeline |
+
+---
+
+## 📁 Project Structure
+
+```
+BeyondSelf/
+├── src/                    # React frontend
+│   ├── pages/              # Dashboard, Health, Finance, Career, etc.
+│   ├── engines/            # Deterministic intelligence engines
+│   ├── services/           # AI, sync, transcription, voice parser
+│   ├── context/            # AuthContext, DataContext (global state)
+│   └── components/         # UI components, charts, recommendations
+├── backend/                # Spring Boot backend
+│   └── src/main/java/com/digitaltwin/backend/
+│       ├── controller/     # REST endpoints
+│       ├── service/        # Business logic
+│       ├── security/       # JWT filter + config
+│       └── repository/     # JPA repositories
+├── setup.sh                # One-command setup script
+└── README.md
+```
+
+---
+
+## 🔧 Troubleshooting
+
+**Port 8080 already in use:**
+```bash
+lsof -ti :8080 | xargs kill -9
+mvn spring-boot:run
+```
+
+**PostgreSQL connection refused:**
+```bash
+# Mac
+brew services start postgresql@15
+# Ubuntu
+sudo systemctl start postgresql
+```
+
+**Cannot connect to database 'digitaltwin':**
+```bash
+createdb -U postgres digitaltwin
+```
+
+**Gemini AI not responding:**
+The app has a built-in fallback — it will use deterministic reasoning instead. To enable live AI, set `GEMINI_API_KEY`.
+
+---
+
+## 📄 License
+MIT
