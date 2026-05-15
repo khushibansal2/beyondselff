@@ -44,59 +44,14 @@ function buildSystemPrompt(context) {
   const stressFactor = context?.healthScore?.factors?.find(f => f.name === 'Stress Level');
   const crossDomain = context?.crossDomain || [];
   const urgentAlerts = context?.urgentAlerts || [];
-  const anomalies = context?.anomalies || [];
-  const feedbackHistory = context?.feedbackHistory || [];
-  const trendReport = context?.trendReport || null;
-  const goalIntelligence = context?.goalIntelligence || null;
 
   const crossDomainSummary = crossDomain.length > 0
     ? crossDomain.map(cd => `- ${cd.trigger} → ${cd.effect} (${cd.mechanism})`).join('\n')
     : 'No active cross-domain cascades detected.';
 
-  const anomaliesSummary = anomalies.length > 0
-    ? anomalies.map(a => `- ${a.title} (${a.severity}): ${a.description} (Baseline: ${a.baseline}, Current: ${a.current})`).join('\n')
-    : 'No unusual anomalies detected recently.';
-
   const alertSummary = urgentAlerts.length > 0
     ? urgentAlerts.map(a => `- ${a.text}`).join('\n')
     : 'No urgent alerts.';
-
-  const feedbackSummary = feedbackHistory.length > 0
-    ? feedbackHistory.slice(0, 5).map(f => `- User ${f.action.toUpperCase()}ED recommendation category '${f.category}'`).join('\n')
-    : 'No prior recommendation feedback.';
-
-  // Trend intelligence summary for coach grounding
-  const trendSummary = (() => {
-    if (!trendReport || !trendReport.hasTrends) return 'Not enough history for trend analysis yet.';
-    if (trendReport.sparseData) return 'Sparse data — trends are early-stage estimates only.';
-    const lines = trendReport.trends
-      .filter(t => t.trendType !== 'insufficient_data' && t.trendType !== 'stable')
-      .slice(0, 6)
-      .map(t => `- ${t.label}: ${t.trendType.replace(/_/g, ' ')} (slope ${t.slope ?? 'N/A'}, ${t.seriesLen} logs, ${t.confidence}% confidence)`);
-    if (trendReport.burnoutTrend) {
-      lines.unshift(`- Burnout trajectory: ${trendReport.burnoutTrend.trendType.replace(/_/g, ' ')} — ${trendReport.burnoutTrend.summary}`);
-    }
-    return lines.length > 0 ? lines.join('\n') : 'All key metrics are currently stable.';
-  })();
-
-  const forecastLines = trendReport?.forecastSummary?.slice(0, 4)
-    .map(f => `- [${f.severity.toUpperCase()}] ${f.text}`)
-    .join('\n') || 'No forecast alerts.';
-
-  // Goal intelligence summary
-  const goalSummary = (() => {
-    if (!goalIntelligence || !goalIntelligence.goals || goalIntelligence.goals.length === 0) return 'No active goals.';
-    return goalIntelligence.goals.map(g => {
-      let line = `- "${g.title}": ${g.progress}% done. Status: ${g.status} (${g.probabilityOfSuccess}% success probability). ETA: ${g.etaText}.`;
-      if (g.risks && g.risks.length > 0) {
-        line += ` Risks: ${g.risks.map(r => r.text).join(' ')}`;
-      }
-      if (g.simulatorImpact) {
-        line += ` Simulator shows: ${g.simulatorImpact}.`;
-      }
-      return line;
-    }).join('\n');
-  })();
 
   return `You are a Digital Twin AI Life Coach. You have access to the user's REAL computed scores from a deterministic engine. 
 
@@ -124,57 +79,8 @@ ${crossDomainSummary}
 URGENT ALERTS:
 ${alertSummary}
 
-BEHAVIORAL TREND INTELLIGENCE (from real historical logs — NOT guessed):
-${trendSummary}
-
-FORECAST SIGNALS:
-${forecastLines}
-(When asked about improvement, trends, or trajectory, reference these patterns DIRECTLY. Always name the time window and metric. Never invent trend data.)
-
-GOAL INTELLIGENCE:
-${goalSummary}
-(When asked about goals, probability of success, or risks, reference this deterministic analysis. DO NOT invent fake forecasts or completion dates.)
-
-RECENT USER FEEDBACK ON RECOMMENDATIONS:
-${feedbackSummary}
-(Use this to understand what advice the user likes/dislikes.)
-
-ADVANCED BEHAVIORAL ANALYTICS:
-${context.behavioralAnalytics?.correlations?.map(c => `- ${c.domainA} vs ${c.domainB}: ${c.description} (${c.strength} correlation)`).join('\n') || 'Not enough data for correlations.'}
-- Consistency Score: ${context.behavioralAnalytics?.consistency?.score}/100 (${context.behavioralAnalytics?.consistency?.status})
-- Volatility index: ${context.behavioralAnalytics?.consistency?.volatility}
-- Recovery Momentum: ${context.behavioralAnalytics?.recoveryMomentum > 0 ? '+' : ''}${context.behavioralAnalytics?.recoveryMomentum} (positive means recovering)
-
-REAL-WORLD INTEGRATIONS / IMPORTED DATA:
-${Object.keys(context.integrations || {}).filter(k => context.integrations[k].connected).length > 0 
-  ? Object.keys(context.integrations).filter(k => context.integrations[k].connected).map(k => {
-      const isStale = Date.now() - context.integrations[k].lastSync > 86400000;
-      return `- ${k}: Connected (Last Synced: ${new Date(context.integrations[k].lastSync).toLocaleString()} - ${isStale ? 'STALE' : 'LIVE'})`;
-    }).join('\n')
-  : 'No active real-world data integrations. Relying solely on manual logs.'}
-(Reference this when discussing external data, such as Fitbit, Plaid, or GitHub activity.)
-
-RECENT CHAT HISTORY (FOR CONVERSATIONAL CONTEXT):
-${context.recentHistory && context.recentHistory.length > 0 ? context.recentHistory.join('\n') : 'No recent history.'}
-(Use the above to understand follow-up questions like "What about burnout?", but prioritize answering the CURRENT message).
-
-YOUR PERSONALITY: Use this data to give grounded, personalized, and emotionally intelligent coaching. Reference real correlations, burnout cycles, consistency metrics, and recovery momentum. Never fabricate numbers.`;
+Use this data to give grounded, personalized, and emotionally intelligent coaching. If asked about burnout, explain which factors are causing it from the data above. If asked about finance, reference the actual finance score.`;
 }
-
-// Helper to get Auth Header
-const getAuthHeaders = () => {
-  const auth = localStorage.getItem('dt_auth');
-  if (auth) {
-    try {
-      const { token } = JSON.parse(auth);
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-    } catch (e) {}
-  }
-  return { 'Content-Type': 'application/json' };
-};
 
 /**
  * Send a chat message to the AI Coach.
@@ -187,7 +93,7 @@ export async function chatWithAI(message, context = {}) {
   try {
     const res = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message,
         context: stripPII(context),
@@ -225,7 +131,7 @@ export async function generateNarrative(computedData, type = 'dashboard') {
   try {
     const res = await fetch(`${API_BASE}/narrative`, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         computedData: stripPII(computedData),
         type,
@@ -250,7 +156,7 @@ export async function explainInsight(insightData) {
   try {
     const res = await fetch(`${API_BASE}/explain`, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ insightData: stripPII(insightData) }),
     });
 
@@ -334,11 +240,6 @@ function generateFallbackResponse(message, context) {
     const risk = burnout.risk;
     const factors = burnout.factors || [];
     if (risk != null) {
-      let response = "";
-      const alerts = [...(context.urgentAlerts || []), ...(context.anomalies || []).map(a => ({ text: `Anomaly detected: ${a.title} - ${a.description}` }))].map(u => u.text);
-      if (alerts.length > 0) {
-        response += `\n\nI must also alert you to the following: ${alerts[0]}`;
-      }
       const intros = [
         `Your burnout risk is currently ${risk}% (${burnout.level || 'moderate'}). `,
         `I'm tracking your burnout risk at ${risk}%. `,
@@ -347,7 +248,7 @@ function generateFallbackResponse(message, context) {
       const factorText = factors.length > 0
         ? `The main contributing factors your system detected are: ${factors.map(f => `${f.name} (${f.value})`).join(', ')}.`
         : '';
-      return `${intros[rotationIndex]}${factorText} ${risk > 60 ? 'This is in the critical range — your data suggests reducing your total daily work hours and prioritising sleep recovery as the highest-impact changes.' : risk > 30 ? 'Moderate burnout risk detected. Small consistent improvements in sleep and exercise typically reduce this within 2–3 weeks.' : 'Your burnout risk is low. Keep maintaining your current recovery habits.'}${response}`;
+      return `${intros[rotationIndex]}${factorText} ${risk > 60 ? 'This is in the critical range — your data suggests reducing your total daily work hours and prioritising sleep recovery as the highest-impact changes.' : risk > 30 ? 'Moderate burnout risk detected. Small consistent improvements in sleep and exercise typically reduce this within 2–3 weeks.' : 'Your burnout risk is low. Keep maintaining your current recovery habits.'}`;
     }
   }
 

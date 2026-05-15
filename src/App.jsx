@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
-import { VoiceController } from './components/ui/VoiceController';
 import Sidebar from './components/layout/Sidebar';
 import Landing from './pages/Landing';
 import { Login, Signup } from './pages/Auth';
@@ -17,6 +16,9 @@ import Coach from './pages/Coach';
 import Gamification from './pages/Gamification';
 import Upload from './pages/Upload';
 import Settings from './pages/Settings';
+
+import NeuralCore from './pages/NeuralCore';
+
 
 function ProtectedRoute() {
   const { user, loading } = useAuth();
@@ -44,9 +46,8 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <DataProvider>
-          <ToastContainer />
-          <VoiceController />
-          <Routes>
+        <ToastContainer />
+        <Routes>
           <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="/finance" element={<Finance />} />
             <Route path="/career" element={<Career />} />
             <Route path="/goals" element={<Goals />} />
+            <Route path="/neural-core" element={<NeuralCore />} />
             <Route path="/simulator" element={<Simulator />} />
             <Route path="/insights" element={<Insights />} />
             <Route path="/coach" element={<Coach />} />

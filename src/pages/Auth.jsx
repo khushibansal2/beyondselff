@@ -11,14 +11,16 @@ export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const result = await login(email, password);
-    if (result.success) navigate('/dashboard');
-    else setError(result.error);
-    setLoading(false);
+    setTimeout(() => {
+      const result = login(email, password);
+      if (result.success) navigate('/dashboard');
+      else setError(result.error);
+      setLoading(false);
+    }, 800);
   };
 
   const demoAccounts = [
@@ -60,21 +62,13 @@ export function Login() {
           </form>
 
           <div className="mt-6 pt-6 border-t border-white/[0.06]">
-            <p className="text-xs text-slate-500 mb-3 text-center">⚡ Quick Demo Access <span className="text-slate-600">(no backend needed)</span></p>
+            <p className="text-xs text-slate-500 mb-3 text-center">Quick Demo Access</p>
             <div className="grid grid-cols-1 gap-2">
               {demoAccounts.map(d => (
-                <button key={d.email}
-                  onClick={async () => {
-                    setLoading(true); setError('');
-                    const result = await login(d.email, 'demo123');
-                    if (result.success) navigate('/dashboard');
-                    else setError(result.error);
-                    setLoading(false);
-                  }}
-                  className="text-left text-xs p-2.5 rounded-xl bg-white/[0.03] hover:bg-blue-500/10 border border-white/[0.06] hover:border-blue-500/20 transition-all flex justify-between items-center group"
-                >
-                  <span className="text-slate-300 group-hover:text-white">{d.name}</span>
-                  <span className="text-slate-600 text-[10px] group-hover:text-blue-400">Click to login →</span>
+                <button key={d.email} onClick={() => { setEmail(d.email); setPassword('demo123'); }}
+                  className="text-left text-xs p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all flex justify-between items-center">
+                  <span className="text-slate-300">{d.name}</span>
+                  <span className="text-slate-600">{d.email}</span>
                 </button>
               ))}
             </div>
@@ -98,23 +92,17 @@ export function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
     setError('');
-    const result = await signup(name, email, password);
-    if (result.success) {
-      if (result.isOffline) {
-        // Show a friendly offline notice but still navigate
-        navigate('/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
-    } else {
-      setError(result.error);
-    }
-    setLoading(false);
+    setTimeout(() => {
+      const result = signup(name, email, password);
+      if (result.success) navigate('/dashboard');
+      else setError(result.error);
+      setLoading(false);
+    }, 800);
   };
 
   return (

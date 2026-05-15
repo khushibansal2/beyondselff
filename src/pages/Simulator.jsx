@@ -5,7 +5,6 @@ import { useData } from '../context/DataContext';
 import { runSimulation } from '../engines/simulatorEngine';
 import { generateNarrative } from '../services/aiService';
 import { GlassCard, PageHeader, ScoreRing } from '../components/ui/Components';
-import { ForecastRow } from '../components/ui/TrendComponents';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
 
 const scenarios = [
@@ -20,7 +19,6 @@ const scenarios = [
 export default function Simulator() {
   const { user } = useAuth();
   const { health, finance, career, computed, updateAICache, simulatorState, updateSimulatorState, aiCache } = useData();
-  const trendReport = computed?.trendReport || null;
   const [selected, setSelected] = useState(simulatorState?.selected || []);
   const [months, setMonths] = useState(simulatorState?.months || 3);
   const [aiNarrative, setAiNarrative] = useState(aiCache?.lastSimulation?.narrative || null);
@@ -215,108 +213,6 @@ export default function Simulator() {
               )}
             </GlassCard>
           </div>
-
-          {/* Real-World Trend Conflict Panel */}
-          {selected.length > 0 && trendReport?.hasTrends && (() => {
-            const conflicts = [];
-            const declining = trendReport.trends.filter(t =>
-              ['declining','accelerating_decline','volatile'].includes(t.trendType)
-            );
-
-            declining.forEach(t => {
-              if (t.domain === 'health' && selected.some(s => ['sleep1','workout2'].includes(s))) return; // scenario addresses it
-              if (t.domain === 'finance' && selected.some(s => ['cutExp','sidehustle'].includes(s))) return;
-              if (t.domain === 'career' && selected.some(s => ['study2','dsa3'].includes(s))) return;
-              conflicts.push(t);
-            });
-
-            if (trendReport.burnoutTrend?.trendType === 'burnout_escalation' &&
-                !selected.some(s => ['sleep1','workout2'].includes(s))) {
-              conflicts.push(trendReport.burnoutTrend);
-            }
-
-            if (conflicts.length === 0) return null;
-            return (
-              <div className="mb-6 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-                <h3 className="text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
-                  ⚠️ Real-World Trend Conflicts
-                </h3>
-                <p className="text-xs text-slate-400 mb-3">
-                  Your simulation projects improvement, but your <strong>actual logged behavior</strong> shows conflicting trends that may undermine the projection:
-                </p>
-                <div className="space-y-1.5">
-                  {conflicts.slice(0, 4).map((c, i) => (
-                    <ForecastRow key={i} forecast={{ severity: 'attention', text: c.summary || `${c.label} is ${c.trendType?.replace(/_/g,' ')} in your real data.` }} index={i} />
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* NEW: Trajectory Differences Visualization */}
-          {selected.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-6">
-              <GlassCard>
-                <h3 className="text-sm font-semibold mb-4 text-center text-slate-300">📊 Scenario Comparison Analytics</h3>
-                
-                <div className="grid lg:grid-cols-2 gap-6">
-                  {/* Burnout Risk Curve */}
-                  <div className="h-48 w-full p-2 border border-white/5 rounded-xl bg-black/10">
-                    <h4 className="text-[10px] text-slate-400 mb-2 uppercase tracking-wider font-semibold">Burnout Risk Projection ({months}m)</h4>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[
-                        { month: 'Now', baseline: simulate.baseline.burnout, simulated: simulate.baseline.burnout },
-                        { month: `+${Math.max(1, Math.round(months/2))}m`, baseline: Math.min(100, simulate.baseline.burnout + (months * 2)), simulated: (simulate.baseline.burnout + simulate.simulated.burnout)/2 },
-                        { month: `+${months}m`, baseline: Math.min(100, simulate.baseline.burnout + (months * 4)), simulated: simulate.simulated.burnout }
-                      ]}>
-                        <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis domain={[0, 100]} hide />
-                        <Tooltip content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="bg-slate-900 border border-white/10 p-2 rounded text-xs">
-                                <p className="text-red-400 mb-1">Baseline: {payload[0].value.toFixed(1)}%</p>
-                                <p className="text-blue-400">Simulated: {payload[1].value.toFixed(1)}%</p>
-                              </div>
-                            )
-                          }
-                          return null;
-                        }} />
-                        <Legend wrapperStyle={{ fontSize: '10px' }} />
-                        <Line type="monotone" dataKey="baseline" name="Baseline Trajectory" stroke="#ef4444" strokeWidth={2} strokeDasharray="3 3" dot={false} />
-                        <Line type="monotone" dataKey="simulated" name="Simulated Path" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Volatility & Momentum Comparison */}
-                  <div className="p-4 border border-white/5 rounded-xl bg-black/10 flex flex-col justify-center">
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-slate-400">Volatility Index</span>
-                          <span className={simulate.simulated.burnout < simulate.baseline.burnout ? 'text-emerald-400' : 'text-red-400'}>
-                            {simulate.simulated.burnout < simulate.baseline.burnout ? '-38%' : '+12%'}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-slate-500">Scenario {simulate.simulated.burnout < simulate.baseline.burnout ? 'reduces' : 'increases'} behavioral volatility over the next {months} months.</p>
-                      </div>
-                      
-                      <div className="pt-3 border-t border-white/5">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-slate-400">Recovery Path</span>
-                          <span className={simulate.deltas.health > 0 ? 'text-emerald-400' : 'text-slate-500'}>
-                            {simulate.deltas.health > 0 ? 'Accelerating' : 'Stalling'}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-slate-500">Projected momentum of physical and mental recovery.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          )}
 
           {/* AI Analysis, Timeline, Cascades */}
           {selected.length > 0 && (

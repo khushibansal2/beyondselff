@@ -1,21 +1,22 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateNarrative } from '../services/aiService';
-import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader } from '../components/ui/Components';
-import { AdaptiveRecommendations } from '../components/ui/AdaptiveRecommendations';
-import { TrendBadge, ForecastRow } from '../components/ui/TrendComponents';
+import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';
-import { PROVIDERS } from '../services/integrationService';
+import { computeHealthScore } from '../engines/healthScoreEngine';
+import { computeFinanceScore } from '../engines/financeScoreEngine';
+import { computeCareerScore } from '../engines/careerScoreEngine';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { health, finance, career, timeline, computed, aiCache, updateAICache, anomalies = [], integrations } = useData();
+  const { health, finance, career, timeline, computed, aiCache, updateAICache, anomalies = [] } = useData();
   const [aiNarrative, setAiNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const [checkedTasks, setCheckedTasks] = useState({});
 
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
@@ -27,16 +28,57 @@ export default function Dashboard() {
   const lifeBalance = computed?.balance || 0;
   const burnoutRisk = computed?.burnout?.risk || 0;
   const weakestDomain = computed?.weakestDomain?.name || 'health';
-  const trendReport = computed?.trendReport || null;
-  const domainTrends = trendReport?.domainSummary || {};
-  const goalIntelligence = computed?.goalIntelligence || null;
+
+  // Always compute explainable factors directly from raw data — independent of computed.hasData
+  const explainFactors = useMemo(() => ({
+    health: computeHealthScore(health || {}, []).factors,
+    finance: computeFinanceScore(finance || {}, []).factors,
+    career: computeCareerScore(career || {}, []).factors,
+  }), [health, finance, career]);
+
+  // Deterministic Today's Action Plan — generated from real domain data
+  const actionPlan = useMemo(() => {
+    const tasks = [];
+    const savingsRate = f.income > 0 ? Math.round(((f.income - f.expenses) / f.income) * 100) : 0;
+    // Health tasks
+    if (h.sleepAvg > 0 && h.sleepAvg < 7)
+      tasks.push({ id: 'sleep', icon: '😴', text: `Go to bed ${Math.max(0.5, 7 - h.sleepAvg).toFixed(1)}h earlier tonight`, domain: 'health', color: '#8b5cf6', time: '0 min effort', link: '/health' });
+    if (h.workoutsPerWeek >= 0 && h.workoutsPerWeek < 3)
+      tasks.push({ id: 'workout', icon: '💪', text: 'Do a 20-min home workout session', domain: 'health', color: '#10b981', time: '20 min', link: '/health' });
+    if (h.waterIntake > 0 && h.waterIntake < 7)
+      tasks.push({ id: 'water', icon: '💧', text: `Drink ${8 - Math.round(h.waterIntake)} more glasses of water today`, domain: 'health', color: '#06b6d4', time: 'All day', link: '/health' });
+    if (h.stressLevel > 6)
+      tasks.push({ id: 'stress', icon: '🧘', text: 'Take a 15-min meditation or walk break', domain: 'health', color: '#f43f5e', time: '15 min', link: '/health' });
+    // Finance tasks
+    if (savingsRate < 20 && f.income > 0)
+      tasks.push({ id: 'savings', icon: '💰', text: `Review subscriptions (₹${f.subscriptions}) — cancel one unused service`, domain: 'finance', color: '#f59e0b', time: '10 min', link: '/finance' });
+    if (f.debt > 0)
+      tasks.push({ id: 'debt', icon: '🏦', text: 'Make a debt repayment transfer today', domain: 'finance', color: '#ef4444', time: '5 min', link: '/finance' });
+    // Career tasks
+    if (c.dsaPractice < 3)
+      tasks.push({ id: 'dsa', icon: '🧩', text: `Solve ${Math.max(1, 3 - c.dsaPractice)} DSA problems on LeetCode`, domain: 'career', color: '#3b82f6', time: '45 min', link: '/career' });
+    if (c.studyHoursDaily < 4)
+      tasks.push({ id: 'study', icon: '📚', text: 'Block a 2-hour focused study session', domain: 'career', color: '#8b5cf6', time: '2 hours', link: '/career' });
+    if (c.skills.length < 5)
+      tasks.push({ id: 'skill', icon: '🎯', text: 'Add one new skill to your profile today', domain: 'career', color: '#06b6d4', time: '5 min', link: '/career' });
+    // Default if no data
+    if (tasks.length === 0) {
+      tasks.push(
+        { id: 'log-health', icon: '❤️', text: 'Log your health data to unlock insights', domain: 'health', color: '#10b981', time: '2 min', link: '/health' },
+        { id: 'log-finance', icon: '💰', text: 'Log your income and expenses', domain: 'finance', color: '#f59e0b', time: '2 min', link: '/finance' },
+        { id: 'log-career', icon: '📚', text: 'Log your study hours and skills', domain: 'career', color: '#3b82f6', time: '2 min', link: '/career' },
+      );
+    }
+    // Return top 3 highest priority tasks
+    return tasks.slice(0, 3);
+  }, [h, f, c]);
   
   // Use deterministic alerts from lifeBalanceEngine via DataContext
   const urgentAlerts = [
     ...(computed?.urgentAlerts || []),
     ...anomalies.map(a => ({
-      icon: a.severity === 'urgent' ? '🚨' : a.severity === 'alert' ? '⚠️' : a.severity === 'attention' ? '🟡' : '👁️',
-      text: `${a.status === 'monitoring' ? '[Monitoring] ' : ''}${a.title}: ${a.description} (${a.trend === 'up' ? '📈' : '📉'})`
+      icon: a.severity === 'critical' ? '🚨' : '⚠️',
+      text: `${a.title}: ${a.description} (${a.trend === 'up' ? '📈' : '📉'})`
     }))
   ];
   const positiveSignals = computed?.positiveSignals || [];
@@ -139,35 +181,10 @@ export default function Dashboard() {
             </div>
           )}
           {positiveSignals.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-2">
               {positiveSignals.map((p, i) => (
                 <span key={i} className="text-[10px] text-emerald-300/80 px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">{p.icon} {p.text}</span>
               ))}
-            </div>
-          )}
-
-          {/* Connected Providers Status */}
-          {integrations && Object.keys(integrations).some(k => integrations[k].connected) && (
-            <div className="pt-3 border-t border-white/5 flex flex-wrap gap-3 items-center">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Live Data Sources:</span>
-              {Object.keys(integrations).filter(k => integrations[k].connected).map(k => {
-                const p = PROVIDERS[Object.keys(PROVIDERS).find(pk => PROVIDERS[pk].id === k)];
-                const status = integrations[k];
-                const isStale = Date.now() - status.lastSync > 86400000; // 24 hours
-                return (
-                  <div key={k} className="flex items-center gap-1.5 px-2 py-1 rounded bg-black/20 border border-white/5">
-                    <span className="text-[10px]">{p?.icon}</span>
-                    <span className="text-[9px] text-slate-400">{p?.name}</span>
-                    {status.syncing ? (
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse ml-1"></span>
-                    ) : status.error ? (
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 ml-1" title={status.error}></span>
-                    ) : (
-                      <span className={`w-1.5 h-1.5 rounded-full ml-1 ${isStale ? 'bg-amber-400' : 'bg-emerald-400'}`} title={isStale ? 'Sync recommended' : 'Up to date'}></span>
-                    )}
-                  </div>
-                );
-              })}
             </div>
           )}
         </div>
@@ -229,152 +246,36 @@ export default function Dashboard() {
         </GlassCard>
       </div>
 
-      {/* Goal Intelligence Strip */}
-      {goalIntelligence && goalIntelligence.goals.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6">
-          <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
-                🎯 Goal Intelligence
-                <span className="text-[10px] text-slate-500 font-normal">Predictive Tracking</span>
-              </h3>
-              <Link to="/insights" className="text-[10px] text-blue-400 hover:text-blue-300">Detailed View →</Link>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {goalIntelligence.goals.slice(0, 3).map(g => (
-                <div key={g.id} className={`p-3 rounded-xl border bg-black/20 ${g.statusColor === 'emerald' ? 'border-emerald-500/20' : g.statusColor === 'red' ? 'border-red-500/20' : g.statusColor === 'blue' ? 'border-blue-500/20' : 'border-amber-500/20'}`}>
-                  <div className="flex justify-between items-start mb-2">
-                     <p className="text-xs font-bold text-white truncate pr-2">{g.title}</p>
-                     <span className={`text-[9px] px-1.5 py-0.5 rounded flex-shrink-0 ${g.statusColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : g.statusColor === 'red' ? 'bg-red-500/10 text-red-400' : g.statusColor === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                       {g.status}
-                     </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 mb-2">
-                    <span>ETA: <strong className="text-white">{g.etaText}</strong></span>
-                    <span>{g.probabilityOfSuccess}% Conf.</span>
-                  </div>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 mb-2 overflow-hidden">
-                    <div className={`h-1.5 rounded-full ${g.statusColor === 'emerald' ? 'bg-emerald-400' : g.statusColor === 'red' ? 'bg-red-400' : g.statusColor === 'blue' ? 'bg-blue-400' : 'bg-amber-400'}`} style={{ width: `${g.progress}%` }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Voice Intelligence Strip */}
-      {timeline && timeline.some(t => t.type === 'Voice Log') && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }} className="mb-6">
-          <div className="p-4 rounded-2xl border border-blue-500/10 bg-blue-500/5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-blue-300 flex items-center gap-2">
-                🎙️ Voice Intelligence
-                <span className="text-[10px] text-blue-500/70 font-normal">Recent Transcriptions & Logs</span>
-              </h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {timeline.filter(t => t.type === 'Voice Log').sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3).map((v, i) => (
-                <div key={i} className="p-3 rounded-xl border border-white/[0.05] bg-black/20">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] text-blue-400 capitalize">{v.domain} Update</span>
-                    <span className="text-[9px] text-slate-500">{new Date(v.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                  <p className="text-xs text-slate-300 italic">"{v.text.replace('Voice command: "', '').replace('"', '')}"</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Behavioral Analytics Scorecard */}
-      {computed?.behavioralAnalytics?.hasData && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mb-6">
-          <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
-                🧬 Behavioral Scorecard
-                <span className="text-[10px] text-slate-500 font-normal">Consistency & Volatility</span>
-              </h3>
-              <Link to="/insights" className="text-[10px] text-blue-400 hover:text-blue-300">Detailed View →</Link>
-            </div>
-            
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="p-3 rounded-xl border border-white/[0.05] bg-black/20 flex flex-col justify-between">
-                <span className="text-[10px] text-slate-400 mb-1">Consistency Score</span>
-                <span className={`text-xl font-bold ${computed.behavioralAnalytics.consistency.score > 75 ? 'text-emerald-400' : 'text-amber-400'}`}>{computed.behavioralAnalytics.consistency.score}/100</span>
-                <span className="text-[9px] text-slate-500 mt-1">{computed.behavioralAnalytics.consistency.status}</span>
-              </div>
-              <div className="p-3 rounded-xl border border-white/[0.05] bg-black/20 flex flex-col justify-between">
-                <span className="text-[10px] text-slate-400 mb-1">Recovery Momentum</span>
-                <span className={`text-xl font-bold ${computed.behavioralAnalytics.recoveryMomentum > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
-                  {computed.behavioralAnalytics.recoveryMomentum > 0 ? '+' : ''}{computed.behavioralAnalytics.recoveryMomentum}
-                </span>
-                <span className="text-[9px] text-slate-500 mt-1">Velocity vs last 5 days</span>
-              </div>
-              <div className="p-3 rounded-xl border border-white/[0.05] bg-black/20 flex flex-col justify-between col-span-2">
-                <span className="text-[10px] text-slate-400 mb-1">Top Correlation</span>
-                {computed.behavioralAnalytics.correlations[0] ? (
-                  <div>
-                    <span className="text-xs text-slate-300 block mb-1 truncate">{computed.behavioralAnalytics.correlations[0].description}</span>
-                    <span className="text-[9px] text-slate-500 px-1.5 py-0.5 rounded bg-white/5 uppercase">{computed.behavioralAnalytics.correlations[0].strength}</span>
-                  </div>
-                ) : (
-                  <span className="text-xs text-slate-500 italic">Not enough variance yet</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Trend Intelligence Strip */}
-      {trendReport?.hasTrends && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-6">
-          <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
-                📈 Behavioral Trend Intelligence
-                <span className="text-[10px] text-slate-500 font-normal">from your log history</span>
-              </h3>
-              <Link to="/insights" className="text-[10px] text-blue-400 hover:text-blue-300">Full Analysis →</Link>
-            </div>
-
-            {/* Domain trend badges */}
-            <div className="flex flex-wrap gap-3 mb-3">
-              {Object.entries(domainTrends).map(([domain, t]) => (
-                <div key={domain} className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-slate-500 capitalize">{domain}:</span>
-                  <TrendBadge trendType={t.trendType} icon={t.icon} label={t.label} color={t.color} />
-                </div>
-              ))}
-              {trendReport.burnoutTrend && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-slate-500">Burnout:</span>
-                  <TrendBadge
-                    trendType={trendReport.burnoutTrend.trendType}
-                    icon={trendReport.burnoutTrend.icon}
-                    label={trendReport.burnoutTrend.label}
-                    color={trendReport.burnoutTrend.color}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Top forecast signals */}
-            {trendReport.forecastSummary?.length > 0 && (
-              <div className="space-y-1.5">
-                {trendReport.forecastSummary.slice(0, 3).map((f, i) => (
-                  <ForecastRow key={i} forecast={f} index={i} />
-                ))}
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
+      {/* Explainable AI Score Panels — always visible, shows defaults if no data logged */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
+        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+          <span className="text-lg">🔍</span> Explainable AI — Why Your Scores
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Advanced Feature</span>
+        </h3>
+        <div className="grid md:grid-cols-3 gap-4">
+          <ExplainableScorePanel
+            title="Health Score"
+            score={healthScore}
+            factors={explainFactors.health}
+            color="#10b981"
+            icon="❤️"
+          />
+          <ExplainableScorePanel
+            title="Finance Score"
+            score={financeScore}
+            factors={explainFactors.finance}
+            color="#f59e0b"
+            icon="💰"
+          />
+          <ExplainableScorePanel
+            title="Career Score"
+            score={careerScore}
+            factors={explainFactors.career}
+            color="#3b82f6"
+            icon="🎯"
+          />
+        </div>
+      </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-8">
         {/* Metrics + Chart */}
@@ -470,6 +371,85 @@ export default function Dashboard() {
         </GlassCard>
       </div>
 
+      {/* Today's Action Plan */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-6">
+        <GlassCard>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+              <span className="text-lg">📋</span> Today's Action Plan
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI-generated from your data</span>
+            </h3>
+            <span className="text-[10px] text-slate-500">
+              {Object.values(checkedTasks).filter(Boolean).length}/{actionPlan.length} done
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full h-1.5 rounded-full bg-white/5 mb-4">
+            <motion.div
+              animate={{ width: `${(Object.values(checkedTasks).filter(Boolean).length / actionPlan.length) * 100}%` }}
+              transition={{ duration: 0.5 }}
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400"
+            />
+          </div>
+
+          <div className="space-y-3">
+            {actionPlan.map((task, i) => {
+              const done = !!checkedTasks[task.id];
+              return (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                    done ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60' : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                  }`}
+                  onClick={() => setCheckedTasks(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
+                >
+                  {/* Checkbox */}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                    done ? 'border-emerald-400 bg-emerald-500/20' : 'border-white/20'
+                  }`}>
+                    {done && <span className="text-[10px] text-emerald-400">✓</span>}
+                  </div>
+
+                  <span className="text-lg flex-shrink-0">{task.icon}</span>
+
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-medium ${done ? 'line-through text-slate-500' : 'text-slate-200'}`}>{task.text}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full capitalize"
+                        style={{ color: task.color, background: task.color + '15' }}>{task.domain}</span>
+                      <span className="text-[9px] text-slate-600">⏱ {task.time}</span>
+                    </div>
+                  </div>
+
+                  <Link to={task.link} onClick={e => e.stopPropagation()}
+                    className="text-[10px] px-2 py-1 rounded-lg bg-white/5 text-slate-500 hover:text-white hover:bg-white/10 transition-all flex-shrink-0">
+                    Go →
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <AnimatePresence>
+            {Object.values(checkedTasks).filter(Boolean).length === actionPlan.length && actionPlan.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center"
+              >
+                <p className="text-sm text-emerald-400 font-semibold">🎉 All tasks complete! +50 XP earned</p>
+                <p className="text-[10px] text-emerald-500/60 mt-0.5">Come back tomorrow for a new plan</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </GlassCard>
+      </motion.div>
+
       {/* Quick Actions */}
       <GlassCard>
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>⚡ Quick Actions</h3>
@@ -488,15 +468,6 @@ export default function Dashboard() {
           ))}
         </div>
       </GlassCard>
-
-      {/* Adaptive Recommendations Feed */}
-      <div className="mt-6">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-          🧠 Your Top Recommendations
-          <span className="text-[10px] text-indigo-300 font-normal bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">Adaptive · Learns from you</span>
-        </h3>
-        <AdaptiveRecommendations />
-      </div>
     </div>
   );
 }

@@ -84,12 +84,10 @@ export const demoUsers = {
   }
 };
 
-// 30-day trend data generator — safe for new/empty users
+// 30-day trend data generator
 export function generateTrendData(user, days = 30) {
   const data = [];
-  const base = { sleepAvg: 6.5, stressLevel: 5, moodAvg: 6, workoutsPerWeek: 2, waterIntake: 6, ...((user && user.health) || {}) };
-  const finance = { expenses: 10000, ...((user && user.finance) || {}) };
-  const career = { studyHoursDaily: 3, workoutsPerWeek: 2, ...((user && user.career) || {}) };
+  const base = { ...user.health };
   for (let i = days; i >= 0; i--) {
     const date = new Date(); date.setDate(date.getDate() - i);
     const noise = () => (Math.random() - 0.5) * 2;
@@ -99,9 +97,9 @@ export function generateTrendData(user, days = 30) {
       stress: Math.max(1, Math.min(10, base.stressLevel + noise())),
       mood: Math.max(1, Math.min(10, base.moodAvg + noise())),
       productivity: Math.max(1, Math.min(10, (10 - base.stressLevel) + noise() * 1.5)),
-      spending: Math.max(100, finance.expenses / 30 + noise() * 200),
-      studyHours: Math.max(0, career.studyHoursDaily + noise()),
-      workoutDone: Math.random() > (1 - base.workoutsPerWeek / 7),
+      spending: Math.max(100, user.finance.expenses / 30 + noise() * 200),
+      studyHours: Math.max(0, user.career.studyHoursDaily + noise()),
+      workoutDone: Math.random() > (1 - user.health.workoutsPerWeek / 7),
       water: Math.max(1, Math.min(12, base.waterIntake + noise())),
     });
   }
@@ -155,12 +153,11 @@ export function calcBurnoutRisk(h, c) {
   return Math.min(100, risk);
 }
 
-// Generate AI insights based on cross-domain data — null safe
+// Generate AI insights based on cross-domain data
 export function generateInsights(user) {
   const insights = [];
-  const h = { sleepAvg: 7, stressLevel: 5, moodAvg: 6, workoutsPerWeek: 2, waterIntake: 6, ...((user && user.health) || {}) };
-  const f = { income: 20000, expenses: 15000, savings: 5000, subscriptions: 2000, debt: 0, investments: 0, ...((user && user.finance) || {}) };
-  const c = { studyHoursDaily: 3, codingHoursDaily: 2, dsaPractice: 1, projectsCompleted: 1, skills: [], ...((user && user.career) || {}) };
+  const { health: h, finance: f, career: c } = user;
+
   if (h.sleepAvg < 6 && c.studyHoursDaily > 6) {
     insights.push({ type: 'warning', icon: '⚠️', title: 'Sleep-Productivity Link', text: `Your ${h.sleepAvg}hr average sleep is likely reducing study efficiency by ~30%. Sleeping 7+ hours could achieve more in fewer study hours.`, domains: ['health','career'], confidence: 87 });
   }

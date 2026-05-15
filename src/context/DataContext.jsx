@@ -12,15 +12,8 @@
  * - No duplicated state, no isolated page state
  */
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
-import { evaluateAnomalies } from '../engines/anomalyEngine';
-import { analyzeTrends } from '../engines/trendEngine';
-import { analyzeGoalIntelligence } from '../engines/goalIntelligenceEngine';
-import { computeAnalytics } from '../engines/analyticsEngine';
-import { PROVIDERS, syncProviderData, normalizeAndMergeMetrics } from '../services/integrationService';
-import { queueCloudSync, fetchCloudState, forceImmediateSync } from '../services/syncService';
-import { showToast } from '../components/ui/Components';
 
 const DataContext = createContext(null);
 
@@ -34,10 +27,6 @@ const EMPTY_STATE = {
   career: {},
   goals: [],
   timeline: [],
-  anomalies: [],
-  metricHistory: [],
-  feedbackHistory: [],
-  _revision: 0,
 
   // Records from backend (imported data)
   records: {
@@ -66,14 +55,10 @@ const EMPTY_STATE = {
   // Simulator state persistence
   simulatorState: { selected: [], months: 3 },
 
-  // Integrations state
-  integrations: {}, // e.g. { 'health_fitbit': { connected: true, lastSync: 1620000000 } }
-
   // Metadata
   dataSource: 'none', // 'none' | 'demo' | 'imported' | 'mixed'
   lastUpdated: null,
   importHistory: [],
-  syncStatus: 'idle', // 'idle' | 'saving' | 'synced' | 'error' | 'offline'
 };
 
 // Action types
@@ -89,13 +74,10 @@ const ACTIONS = {
   UPDATE_GAMIFICATION: 'UPDATE_GAMIFICATION',
   UPDATE_AI_CACHE: 'UPDATE_AI_CACHE',
   UPDATE_SIMULATOR_STATE: 'UPDATE_SIMULATOR_STATE',
-  RECORD_FEEDBACK: 'RECORD_FEEDBACK',
   RESET: 'RESET',
   HYDRATE: 'HYDRATE',
-  SET_SYNC_STATUS: 'SET_SYNC_STATUS',
-  SET_REVISION: 'SET_REVISION',
-  UPDATE_INTEGRATION: 'UPDATE_INTEGRATION',
 };
+
 
 function dataReducer(state, action) {
   switch (action.type) {
@@ -145,20 +127,9 @@ function dataReducer(state, action) {
 
     case ACTIONS.UPDATE_DOMAIN: {
       const { domain, data } = action.payload;
-      console.log(`[DataContext] UPDATE_DOMAIN: ${domain}`, data);
-      
-      const newDomainState = { ...state[domain], ...data };
-      const historyEntry = { date: Date.now(), domain, oldState: state[domain] || {}, newState: newDomainState };
-      
-      console.log(`[DataContext] Previous Anomalies Count: ${state.anomalies?.length || 0}`);
-      const newAnomalies = evaluateAnomalies(state, domain, data, state.anomalies || [], state.metricHistory || []);
-      console.log(`[DataContext] Next Anomalies Count: ${newAnomalies.length}`);
-      
       return {
         ...state,
-        [domain]: newDomainState,
-        anomalies: newAnomalies,
-        metricHistory: [...(state.metricHistory || []), historyEntry].slice(-50), // keep last 50 events
+        [domain]: { ...state[domain], ...data },
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
         _revision: (state._revision || 0) + 1,
@@ -263,49 +234,8 @@ function dataReducer(state, action) {
       };
     }
 
-    case ACTIONS.UPDATE_INTEGRATION: {
-      const { providerId, data } = action.payload;
-      return {
-        ...state,
-        integrations: {
-          ...(state.integrations || {}),
-          [providerId]: { ...((state.integrations || {})[providerId] || {}), ...data }
-        },
-        _revision: (state._revision || 0) + 1,
-        lastUpdated: new Date().toISOString(),
-      };
-    }
-
-    case ACTIONS.RECORD_FEEDBACK: {
-      const { recId, action: feedbackAction, category } = action.payload;
-      const historyEntry = {
-        id: `fb-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-        recId,
-        action: feedbackAction,
-        category,
-        timestamp: Date.now()
-      };
-      
-      console.log(`[DataContext] RECORD_FEEDBACK: ${feedbackAction} for ${recId}`);
-      
-      return {
-        ...state,
-        feedbackHistory: [historyEntry, ...(state.feedbackHistory || [])],
-        lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
-      };
-    }
-
     case ACTIONS.RESET: {
       return { ...EMPTY_STATE };
-    }
-
-    case ACTIONS.SET_SYNC_STATUS: {
-      return { ...state, syncStatus: action.payload };
-    }
-
-    case ACTIONS.SET_REVISION: {
-      return { ...state, _revision: action.payload };
     }
 
     case ACTIONS.HYDRATE: {
@@ -347,10 +277,6 @@ function migrateSchema(data) {
   }
   
   if (!migrated.simulatorState) migrated.simulatorState = { selected: [], months: 3 };
-  if (!migrated.anomalies) migrated.anomalies = [];
-  if (!migrated.metricHistory) migrated.metricHistory = [];
-  if (!migrated.feedbackHistory) migrated.feedbackHistory = [];
-  if (!migrated.integrations) migrated.integrations = {};
 
   return migrated;
 }
@@ -402,21 +328,7 @@ function loadPersistedState() {
 }
 
 function persistState(state) {
-  if (!state.userId) return;
   storageAdapter.save(state.userId, state);
-  
-  // Exclude non-persistent UI states
-  const stateToSave = { ...state };
-  delete stateToSave.syncStatus;
-  
-  if (state.dataSource !== 'none') {
-    queueCloudSync(stateToSave, (syncResult) => {
-      // In a pure function like persistState we can't dispatch easily without passing dispatch, 
-      // but we can rely on a global event or the caller if we refactor.
-      // Wait, we can't easily dispatch from persistState since it's outside the component.
-      // I'll leave the actual dispatching to an effect inside the component.
-    });
-  }
 }
 
 import { useAuth } from './AuthContext';
@@ -427,72 +339,23 @@ export function DataProvider({ children }) {
     return loadPersistedState() || EMPTY_STATE;
   });
 
-  // Keep a ref to always-current state for async callbacks (integration sync, etc.)
-  const stateRef = useRef(state);
-  useEffect(() => { stateRef.current = state; }, [state]);
-
   // Sync with AuthContext on login/logout
   useEffect(() => {
-    registerAuthCallback(async (authUser) => {
+    registerAuthCallback((authUser) => {
       if (!authUser) {
         dispatch({ type: ACTIONS.RESET });
       } else {
-        // Optimistically set user data
         dispatch({ 
           type: ACTIONS.SET_USER_DATA, 
           payload: { userData: authUser, source: authUser.persona === 'New User' ? 'none' : 'demo' } 
         });
-
-        // Try to fetch from cloud
-        dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'saving' });
-        const cloudRes = await fetchCloudState();
-        
-        if (cloudRes.success) {
-          dispatch({ type: ACTIONS.HYDRATE, payload: { ...cloudRes.state, _revision: cloudRes.state._revision + 1 } });
-          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'synced' });
-          showToast('Digital Twin restored from cloud', 'success');
-        } else if (cloudRes.isNew) {
-          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'synced' });
-        } else {
-          dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'offline' });
-          showToast('Offline mode active. Changes will sync later.', 'info');
-        }
       }
     });
   }, [registerAuthCallback]);
 
   // Persist on every state change (debounced effect)
   useEffect(() => {
-    if (!state.userId) return;
-    
-    // Save locally
-    const timer = setTimeout(() => {
-      storageAdapter.save(state.userId, state);
-      
-      const stateToSave = { ...state };
-      delete stateToSave.syncStatus;
-      delete stateToSave.behavioralAnalytics;
-      
-      if (state.dataSource !== 'none') {
-        queueCloudSync(stateToSave, (syncResult) => {
-          if (syncResult.status === 'conflict') {
-            showToast('Sync conflict detected. Resolving...', 'warning');
-            dispatch({ 
-              type: ACTIONS.HYDRATE, 
-              payload: { ...syncResult.latestState, _revision: syncResult.newRevision + 1 } 
-            });
-          } else if (syncResult.status === 'success') {
-            dispatch({ type: ACTIONS.SET_REVISION, payload: syncResult.newRevision });
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'synced' });
-          } else if (syncResult.status === 'saving') {
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'saving' });
-          } else {
-            dispatch({ type: ACTIONS.SET_SYNC_STATUS, payload: 'offline' });
-          }
-        });
-      }
-    }, 300);
-    
+    const timer = setTimeout(() => persistState(state), 300);
     return () => clearTimeout(timer);
   }, [state]);
 
@@ -538,45 +401,16 @@ export function DataProvider({ children }) {
 
     try {
       const lifeBalance = computeLifeBalance(userData, state.records);
-      const trendReport = analyzeTrends(state.metricHistory || [], userData);
-      
-      const burnoutRisk = lifeBalance?.burnout?.risk || 0;
-      const goalIntelligence = analyzeGoalIntelligence(
-        state.goals || [], 
-        userData, 
-        trendReport,
-        burnoutRisk
-      );
-
-      const behavioralAnalytics = computeAnalytics(state.metricHistory || [], userData, state.goals || []);
-
       return {
         ...lifeBalance,
         lifeBalance,
         hasData: true,
-        anomalies: state.anomalies || [],
-        feedbackHistory: state.feedbackHistory || [],
-        trendReport,
-        goalIntelligence,
-        behavioralAnalytics,
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);
-      return { lifeBalance: null, hasData: false, trendReport: null, goalIntelligence: null };
+      return { lifeBalance: null, hasData: false };
     }
-  }, [state.health, state.finance, state.career, state.records, state.anomalies, state.feedbackHistory, state.metricHistory, state.goals, state.simulatorState]);
-
-  const addTimelineEvent = useCallback((event) => {
-    dispatch({ type: ACTIONS.ADD_TIMELINE_EVENT, payload: event });
-  }, []);
-
-  const recordFeedback = useCallback((recId, action, category) => {
-    dispatch({ type: ACTIONS.RECORD_FEEDBACK, payload: { recId, action, category } });
-  }, []);
-
-  const resetData = useCallback(() => {
-    dispatch({ type: ACTIONS.RESET });
-  }, []);
+  }, [state.health, state.finance, state.career, state.records]);
 
   // Action dispatchers
   const actions = useMemo(() => ({
@@ -608,8 +442,9 @@ export function DataProvider({ children }) {
       dispatch({ type: ACTIONS.DELETE_GOAL, payload: goalId });
     },
 
-    addTimelineEvent,
-    recordFeedback,
+    addTimelineEvent: (event) => {
+      dispatch({ type: ACTIONS.ADD_TIMELINE_EVENT, payload: { ...event, date: event.date || new Date().toISOString() } });
+    },
 
     updateGamification: (data) => {
       dispatch({ type: ACTIONS.UPDATE_GAMIFICATION, payload: data });
@@ -626,64 +461,6 @@ export function DataProvider({ children }) {
     reset: () => {
       dispatch({ type: ACTIONS.RESET });
     },
-
-    toggleIntegration: (providerId, connect) => {
-      dispatch({ 
-        type: ACTIONS.UPDATE_INTEGRATION, 
-        payload: { providerId, data: { connected: connect, lastSync: connect ? Date.now() : null } } 
-      });
-      if (connect) showToast(`Connected to ${PROVIDERS[Object.keys(PROVIDERS).find(k => PROVIDERS[k].id === providerId)]?.name || 'Provider'}`, 'success');
-      else showToast('Integration disconnected', 'info');
-    },
-
-    triggerIntegrationSync: async (providerId) => {
-      // Mark as syncing
-      dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: true, error: null } } });
-      try {
-        const payload = await syncProviderData(providerId, null);
-        // Merge into metric history
-        const currentHistory = stateRef.current?.metricHistory || [];
-        const newHistory = normalizeAndMergeMetrics(currentHistory, [payload]);
-        
-        // Apply sync result
-        dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: false, lastSync: Date.now(), connected: true, error: null } } });
-        
-        // Update metric history
-        dispatch({ type: ACTIONS.SET_USER_DATA, payload: { userData: { metricHistory: newHistory }, source: 'mixed' } });
-        
-        // If today's data, update live domain
-        const today = new Date().toISOString().split('T')[0];
-        if (payload.date === today) {
-          if (payload.metrics.health) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'health', data: payload.metrics.health } });
-          if (payload.metrics.finance) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'finance', data: payload.metrics.finance } });
-          if (payload.metrics.career) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'career', data: payload.metrics.career } });
-        }
-        
-        const providerKey = Object.keys(PROVIDERS).find(k => PROVIDERS[k].id === providerId);
-        showToast(`✅ ${PROVIDERS[providerKey]?.name || 'Provider'} synced successfully`, 'success');
-      } catch (err) {
-        dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: false, error: err.message } } });
-        showToast(`⚠️ Sync failed: ${err.message}`, 'error');
-      }
-    },
-    
-    // A better approach for triggerIntegrationSync: pass the current state to a helper, or just use `dispatch` directly.
-    applyIntegrationSync: (providerId, payload, newHistory) => {
-      dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'metricHistory', records: newHistory } });
-      dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: { syncing: false, lastSync: Date.now(), error: null } } });
-      
-      const today = new Date().toISOString().split('T')[0];
-      if (payload.date === today) {
-        if (payload.metrics.health) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'health', data: payload.metrics.health } });
-        if (payload.metrics.finance) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'finance', data: payload.metrics.finance } });
-        if (payload.metrics.career) dispatch({ type: ACTIONS.UPDATE_DOMAIN, payload: { domain: 'career', data: payload.metrics.career } });
-      }
-    },
-    
-    setIntegrationStatus: (providerId, statusObj) => {
-      dispatch({ type: ACTIONS.UPDATE_INTEGRATION, payload: { providerId, data: statusObj } });
-    }
-
   }), []);
 
   const value = useMemo(() => ({
@@ -716,3 +493,4 @@ export function useData() {
 }
 
 export default DataContext;
+

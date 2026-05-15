@@ -8,9 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import com.digitaltwin.backend.util.AuthUtil;
 
 /**
  * AI Proxy Controller — Routes AI requests to Gemini via backend
@@ -28,34 +25,14 @@ public class AIProxyController {
         this.geminiService = geminiService;
     }
 
-    // Rate limiting map: userId -> Next Allowed Time
-    private final Map<String, Long> rateLimits = new ConcurrentHashMap<>();
-
-    private void enforceRateLimit(String authHeader) {
-        String userId = AuthUtil.getUserIdFromToken(authHeader);
-        long now = System.currentTimeMillis();
-        long nextAllowed = rateLimits.getOrDefault(userId, 0L);
-        if (now < nextAllowed) {
-            throw new RuntimeException("Rate limit exceeded. Please wait.");
-        }
-        // Max 1 request every 2 seconds per user
-        rateLimits.put(userId, now + 2000);
-    }
-
     /**
      * POST /api/ai/chat
      * Sends a user message + computed context to Gemini and returns the AI response.
      */
     @PostMapping("/chat")
-    public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, Object> request,
-                                                    @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, Object> request) {
         try {
-            enforceRateLimit(authHeader);
             String message = (String) request.getOrDefault("message", "");
-            if (message.length() > 1000) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Message too long"));
-            }
-
             Map<String, Object> context = (Map<String, Object>) request.getOrDefault("context", Map.of());
             String systemPrompt = (String) request.getOrDefault("systemPrompt", "");
 
@@ -81,10 +58,8 @@ public class AIProxyController {
      * Generates an emotionally intelligent narrative summary from computed data.
      */
     @PostMapping("/narrative")
-    public ResponseEntity<Map<String, Object>> narrative(@RequestBody Map<String, Object> request,
-                                                         @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Map<String, Object>> narrative(@RequestBody Map<String, Object> request) {
         try {
-            enforceRateLimit(authHeader);
             Map<String, Object> computedData = (Map<String, Object>) request.getOrDefault("computedData", Map.of());
             String narrativeType = (String) request.getOrDefault("type", "dashboard");
 
@@ -110,10 +85,8 @@ public class AIProxyController {
      * Generates an explainable AI explanation for a specific insight or recommendation.
      */
     @PostMapping("/explain")
-    public ResponseEntity<Map<String, Object>> explain(@RequestBody Map<String, Object> request,
-                                                       @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Map<String, Object>> explain(@RequestBody Map<String, Object> request) {
         try {
-            enforceRateLimit(authHeader);
             Map<String, Object> insightData = (Map<String, Object>) request.getOrDefault("insightData", Map.of());
             String explanation = geminiService.explainInsight(insightData);
             return ResponseEntity.ok(Map.of(

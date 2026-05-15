@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { chatWithAI } from '../services/aiService';
 import { createVoiceRecognition } from '../services/voiceService';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { GlassCard, PageHeader, SecurityBadge } from '../components/ui/Components';
 
 // Max messages kept in persistent history (prevents localStorage bloat)
@@ -24,16 +23,15 @@ const quickQuestions = [
 export default function Coach() {
   const { user } = useAuth();
   const { computed, aiCache, updateAICache } = useData();
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState('');
+  const [feedback, setFeedback] = useState({}); // { msgIndex: 'up' | 'down' }
   const endRef = useRef(null);
   const recognitionRef = useRef(null);
-  const pendingVoiceQuery = useRef(null); // holds voice query until messages load
 
   // ---- Safely read deterministic state ----
   const hs  = computed?.healthScore?.score  ?? 0;
@@ -50,15 +48,28 @@ export default function Coach() {
   // ---- Voice recognition ----
   useEffect(() => {
     recognitionRef.current = createVoiceRecognition(
-      ({ finalTranscript }) => { if (finalTranscript) setInput(prev => (prev + ' ' + finalTranscript).trim()); },
-      (err) => { console.error('Speech recognition error:', err); setIsListening(false); },
-      () => { setIsListening(false); }
+      ({ finalTranscript, interimTranscript }) => {
+        if (finalTranscript) {
+          setInput(prev => (prev + ' ' + finalTranscript).trim());
+          setLiveTranscript('');
+        } else if (interimTranscript) {
+          setLiveTranscript(interimTranscript);
+        }
+      },
+      (err) => { console.error('Speech recognition error:', err); setIsListening(false); setLiveTranscript(''); },
+      () => { setIsListening(false); setLiveTranscript(''); }
     );
   }, []);
 
   const toggleListening = () => {
     if (!recognitionRef.current) { alert('Speech recognition is not supported in your browser.'); return; }
-    if (isListening) { recognitionRef.current.stop(); } else { recognitionRef.current.start(); setIsListening(true); }
+    if (isListening) {
+      recognitionRef.current.stop();
+      setLiveTranscript('');
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
   };
 
   // ---- Initialize / restore chat history (bounded to HISTORY_LIMIT) ----
@@ -83,31 +94,6 @@ export default function Coach() {
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  // Handle incoming voice queries from the global VoiceController
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const query = params.get('q');
-    if (query) {
-      // Clear the URL immediately so we don't re-trigger on refresh
-      navigate('/coach', { replace: true });
-      if (messages.length > 0 && !typing) {
-        sendMessage(query);
-      } else {
-        // Messages haven't initialized yet — store and fire when ready
-        pendingVoiceQuery.current = query;
-      }
-    }
-  }, [location.search]);
-
-  // Fire pending voice query once messages load
-  useEffect(() => {
-    if (pendingVoiceQuery.current && messages.length > 0 && !typing) {
-      const q = pendingVoiceQuery.current;
-      pendingVoiceQuery.current = null;
-      sendMessage(q);
-    }
-  }, [messages.length, typing]);
-
   const sendMessage = async (text) => {
     if (!text.trim() || typing) return;
 
@@ -116,14 +102,11 @@ export default function Coach() {
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
+    setLiveTranscript('');
     setTyping(true);
 
-    // Pass full computed context + simulation history + recent chat history for continuity
-    const contextWithSim = { 
-      ...computed, 
-      lastSimulation: aiCache.lastSimulation,
-      recentHistory: messages.slice(-4).map(m => `${m.role === 'user' ? 'User' : 'Coach'}: ${m.text}`)
-    };
+    // Pass full computed context + simulation history if available
+    const contextWithSim = { ...computed, lastSimulation: aiCache.lastSimulation };
     const result = await chatWithAI(text.trim(), contextWithSim);
 
     const aiMsg = {
@@ -143,6 +126,18 @@ export default function Coach() {
     setMessages(bounded);
     updateAICache({ coachHistory: bounded });
     setTyping(false);
+  };
+
+  const handleFeedback = (msgIndex, vote) => {
+    const key = String(msgIndex);
+    const existing = feedback[key];
+    const newFeedback = { ...feedback, [key]: existing === vote ? null : vote };
+    setFeedback(newFeedback);
+    // Persist liked messages for adaptive learning signal
+    const likedTexts = messages
+      .filter((m, i) => m.role === 'ai' && newFeedback[String(i)] === 'up')
+      .map(m => m.text.slice(0, 100));
+    updateAICache({ feedbackPreferences: likedTexts });
   };
 
   const formatTime = (d) => {
@@ -214,12 +209,38 @@ export default function Coach() {
                     {msg.source === 'rate-limited' && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Rate Limited</span>
                     )}
+                    {feedback[String(i)] === 'up' && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">✨ AI learning your preferences</span>
+                    )}
                   </span>
                 </div>
               )}
               {msg.text}
-              <div className={`text-[9px] mt-2 ${msg.role === 'user' ? 'text-blue-400/50 text-right' : 'text-slate-600'}`}>
-                {formatTime(msg.timestamp)}
+              <div className={`flex items-center justify-between mt-2`}>
+                <span className={`text-[9px] ${msg.role === 'user' ? 'text-blue-400/50' : 'text-slate-600'}`}>{formatTime(msg.timestamp)}</span>
+                {msg.role === 'ai' && i > 0 && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] text-slate-600 mr-1">Helpful?</span>
+                    <button
+                      onClick={() => handleFeedback(i, 'up')}
+                      className={`text-sm px-1.5 py-0.5 rounded-lg transition-all ${
+                        feedback[String(i)] === 'up'
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'text-slate-600 hover:text-emerald-400 hover:bg-emerald-500/10'
+                      }`}
+                      title="This was helpful"
+                    >👍</button>
+                    <button
+                      onClick={() => handleFeedback(i, 'down')}
+                      className={`text-sm px-1.5 py-0.5 rounded-lg transition-all ${
+                        feedback[String(i)] === 'down'
+                          ? 'bg-red-500/20 text-red-400'
+                          : 'text-slate-600 hover:text-red-400 hover:bg-red-500/10'
+                      }`}
+                      title="This wasn't helpful"
+                    >👎</button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -240,17 +261,29 @@ export default function Coach() {
         <div ref={endRef} />
       </div>
 
+      {/* Live Voice Transcript Preview */}
+      {isListening && liveTranscript && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-300 italic flex items-center gap-2"
+        >
+          <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
+          Hearing: "{liveTranscript}"
+        </motion.div>
+      )}
+
       {/* Input */}
       <div className="flex gap-2 flex-shrink-0">
         <button onClick={toggleListening}
           className={`p-3 rounded-xl border flex items-center justify-center transition-all flex-shrink-0 ${isListening ? 'bg-red-500/20 border-red-500/40 text-red-400 animate-pulse' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}`}
-          title="Voice Input">
+          title={isListening ? 'Stop listening' : 'Voice Input — speak your question'}>
           {isListening ? '🛑' : '🎤'}
         </button>
         <input type="text" value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && sendMessage(input)}
           className="input-premium flex-1"
-          placeholder="Ask about burnout, sleep, finances, career, recovery..."
+          placeholder={isListening ? '🎤 Listening... speak your question' : 'Ask about burnout, sleep, finances, career, recovery...'}
           disabled={typing} />
         <button onClick={() => sendMessage(input)} disabled={!input.trim() || typing}
           className="btn-primary px-6">Send</button>

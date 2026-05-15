@@ -7,12 +7,12 @@ import { GlassCard, PageHeader, Badge, AchievementPopup, showToast } from '../co
 
 export default function Gamification() {
   const { user } = useAuth();
-  const { computed, gamification, updateGamification, health, finance, career, goals } = useData();
+  const { computed, gamification, updateGamification } = useData();
   const [showPopup, setShowPopup] = useState(null);
 
-  const h = health || {};
-  const f = finance || {};
-  const c = career || {};
+  const h = user?.health || {};
+  const f = user?.finance || {};
+  const c = user?.career || {};
 
   const lifeBalance = computed?.balance || 0;
 
@@ -33,7 +33,7 @@ export default function Gamification() {
   }, [h, f, c, lifeBalance]);
 
   const unlockedCount = badges.filter(b => b.unlocked).length;
-  const completedGoals = (goals || []).filter(g => g.progress >= 100).length;
+  const completedGoals = (user?.goals || []).filter(g => g.progress >= 100).length;
   
   // Use active challenges from DataContext gamification state
   const activeChallenges = new Set(gamification?.activeChallenges || []);

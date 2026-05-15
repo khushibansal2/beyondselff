@@ -5,14 +5,138 @@ import { useData } from '../context/DataContext';
 import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
 import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
-import { AdaptiveRecommendations } from '../components/ui/AdaptiveRecommendations';
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, Legend } from 'recharts';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'];
 
+// ---- Investment Robo-Advisor ----
+function RoboAdvisor({ f, savingsRate }) {
+  const surplus = Math.max(0, (f.income || 0) - (f.expenses || 0));
+
+  // Determine risk profile deterministically
+  const hasDebt = (f.debt || 0) > 0;
+  const debtRatio = f.income > 0 ? (f.debt || 0) / f.income : 0;
+
+  const profile = (() => {
+    if (savingsRate >= 30 && !hasDebt) return 'aggressive';
+    if (savingsRate >= 15 && debtRatio < 0.5) return 'moderate';
+    return 'conservative';
+  })();
+
+  const profiles = {
+    conservative: {
+      label: 'Conservative', color: '#10b981', emoji: '🛡️',
+      reason: `Your savings rate is ${savingsRate}%${hasDebt ? ` and you carry debt of ₹${(f.debt || 0).toLocaleString()}` : ''}. A conservative allocation prioritizes capital protection and stable returns while you build your financial foundation.`,
+      assets: [
+        { name: 'Fixed Deposits (FD)', pct: 40, color: '#10b981', risk: 'Very Low', returns: '6–7% p.a.' },
+        { name: 'Government Bonds', pct: 25, color: '#3b82f6', risk: 'Low', returns: '7–8% p.a.' },
+        { name: 'Gold / SGB', pct: 15, color: '#f59e0b', risk: 'Low-Med', returns: '8–10% p.a.' },
+        { name: 'Index Funds (Stocks)', pct: 15, color: '#8b5cf6', risk: 'Medium', returns: '10–12% p.a.' },
+        { name: 'Emergency Reserve', pct: 5, color: '#f43f5e', risk: 'None', returns: 'Liquid' },
+      ],
+    },
+    moderate: {
+      label: 'Moderate', color: '#f59e0b', emoji: '⚖️',
+      reason: `Your savings rate of ${savingsRate}% is healthy${hasDebt ? ' with manageable debt' : ' with no major debt'}. A balanced allocation grows your wealth while keeping risk in check through diversification.`,
+      assets: [
+        { name: 'Index Funds (Stocks)', pct: 40, color: '#8b5cf6', risk: 'Medium', returns: '10–12% p.a.' },
+        { name: 'Fixed Deposits (FD)', pct: 25, color: '#10b981', risk: 'Very Low', returns: '6–7% p.a.' },
+        { name: 'Government Bonds', pct: 20, color: '#3b82f6', risk: 'Low', returns: '7–8% p.a.' },
+        { name: 'Gold / SGB', pct: 10, color: '#f59e0b', risk: 'Low-Med', returns: '8–10% p.a.' },
+        { name: 'Emergency Reserve', pct: 5, color: '#f43f5e', risk: 'None', returns: 'Liquid' },
+      ],
+    },
+    aggressive: {
+      label: 'Aggressive', color: '#8b5cf6', emoji: '🚀',
+      reason: `Excellent! Savings rate of ${savingsRate}% with zero debt gives you high risk capacity. An aggressive portfolio maximizes long-term wealth compounding through equity-heavy allocation.`,
+      assets: [
+        { name: 'Index + Mid-cap Stocks', pct: 60, color: '#8b5cf6', risk: 'High', returns: '12–15% p.a.' },
+        { name: 'Government Bonds', pct: 20, color: '#3b82f6', risk: 'Low', returns: '7–8% p.a.' },
+        { name: 'Gold / SGB', pct: 10, color: '#f59e0b', risk: 'Low-Med', returns: '8–10% p.a.' },
+        { name: 'Fixed Deposits (FD)', pct: 5, color: '#10b981', risk: 'Very Low', returns: '6–7% p.a.' },
+        { name: 'Emergency Reserve', pct: 5, color: '#f43f5e', risk: 'None', returns: 'Liquid' },
+      ],
+    },
+  };
+
+  const p = profiles[profile];
+
+  return (
+    <GlassCard glow="glow-purple">
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{p.emoji}</span>
+          <div>
+            <h3 className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+              Investment Robo-Advisor
+            </h3>
+            <p className="text-[10px] text-slate-500">AI-computed allocation based on your financial data</p>
+          </div>
+        </div>
+        <span className="text-xs px-3 py-1 rounded-full font-semibold border"
+          style={{ color: p.color, borderColor: p.color + '40', background: p.color + '15' }}>
+          {p.label} Profile
+        </span>
+      </div>
+
+      {/* Reasoning */}
+      <div className="mt-4 mb-5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] text-xs text-slate-400 leading-relaxed">
+        <span className="text-slate-300 font-medium">Why this profile? </span>{p.reason}
+      </div>
+
+      {/* Investable surplus */}
+      <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/[0.06]">
+        <div className="text-center">
+          <p className="text-xs text-slate-500">Monthly Investable Surplus</p>
+          <p className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'var(--font-display)' }}>₹{surplus.toLocaleString()}</p>
+        </div>
+        <div className="flex-1 h-px bg-white/[0.04]" />
+        <p className="text-[10px] text-slate-600 italic max-w-[160px] text-right">Allocate this monthly to build long-term wealth</p>
+      </div>
+
+      {/* Allocation bars */}
+      <div className="space-y-3">
+        {p.assets.map((a, i) => {
+          const amount = Math.round(surplus * a.pct / 100);
+          return (
+            <motion.div key={a.name} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}>
+              <div className="flex items-center justify-between mb-1 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: a.color }} />
+                  <span className="text-xs text-slate-300 font-medium truncate">{a.name}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 text-slate-500 flex-shrink-0">{a.risk}</span>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0 text-right">
+                  <span className="text-[10px] text-slate-500">{a.returns}</span>
+                  <span className="text-xs font-bold" style={{ color: a.color }}>₹{amount.toLocaleString()}</span>
+                  <span className="text-[10px] text-slate-600 w-8">{a.pct}%</span>
+                </div>
+              </div>
+              <div className="w-full h-2 rounded-full bg-white/5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${a.pct}%` }}
+                  transition={{ duration: 1, delay: i * 0.08, ease: 'easeOut' }}
+                  className="h-full rounded-full"
+                  style={{ background: `linear-gradient(90deg, ${a.color}cc, ${a.color})` }}
+                />
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      <p className="text-[9px] text-slate-600 italic mt-4 text-center">
+        ⚠️ This is a deterministic suggestion based on your data. Consult a SEBI-registered advisor before investing.
+      </p>
+    </GlassCard>
+  );
+}
+
+
 export default function Finance() {
   const { user } = useAuth();
-  const { finance, computed, updateDomain, addTimelineEvent, anomalies = [] } = useData();
+  const { finance, computed, updateDomain, addTimelineEvent } = useData();
   const [tab, setTab] = useState('overview');
   
   // Use data from context
@@ -21,7 +145,7 @@ export default function Finance() {
   
   const trendData = useMemo(() => generateTrendData(user || {}, 30), [user]);
   
-  const [form, setForm] = useState({ income: '', expense: '', category: 'food', amount: '', savings: '', investments: '', debt: '' });
+  const [form, setForm] = useState({ income: '', expense: '', category: 'food', amount: '' });
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
 
@@ -53,7 +177,7 @@ export default function Finance() {
       hasUpdate = true;
       addTimelineEvent({
         type: 'Income Updated',
-        text: `Logged new monthly income: ₹${updated.income.toLocaleString()}`,
+        text: `Logged new monthly income: ₹${updated.income}`,
         sentiment: 'positive',
         domain: 'finance'
       });
@@ -70,14 +194,10 @@ export default function Finance() {
         domain: 'finance'
       });
     }
-
-    if (form.savings) { updated.savings = parseInt(form.savings); hasUpdate = true; }
-    if (form.investments) { updated.investments = parseInt(form.investments); hasUpdate = true; }
-    if (form.debt) { updated.debt = parseInt(form.debt); hasUpdate = true; }
     
     if (hasUpdate) {
       updateDomain('finance', updated);
-      setForm({ income: '', expense: '', category: 'food', amount: '', savings: '', investments: '', debt: '' });
+      setForm({ income: '', expense: '', category: 'food', amount: '' });
       showToast('Financial data updated', 'success');
     }
   };
@@ -114,7 +234,13 @@ export default function Finance() {
     }
   };
 
-
+  const recommendations = [
+    { icon: '💳', title: 'Spending Optimization', text: savingsRate < 20 ? `Your savings rate is ${savingsRate}%. Target 20-30% by cutting ₹${Math.round((f.expenses * 0.2))} in non-essential spending. Start with subscriptions (₹${f.subscriptions}).` : `Great savings rate of ${savingsRate}%! Consider investing the surplus for compound growth.`, confidence: 87, risk: savingsRate < 10 ? 'high' : 'low' },
+    { icon: '📈', title: 'Investment Allocation', text: f.investments === 0 ? 'Start investing! Recommended: 60% index funds, 20% bonds, 20% emergency fund. Even ₹1000/month grows significantly over time.' : `Current investments: ₹${f.investments}. Diversify into: 50% equity, 30% debt, 20% gold for stability.`, confidence: 82, risk: 'medium' },
+    { icon: '🛡️', title: 'Emergency Fund', text: f.savings < f.expenses * 3 ? `Emergency fund (₹${f.savings}) covers only ${(f.savings / Math.max(1, f.expenses)).toFixed(1)} months. Build to 3-6 months.` : 'Your emergency fund is solid. Consider moving surplus to investments.', confidence: 91, risk: f.savings < f.expenses ? 'high' : 'low' },
+    { icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) are ${Math.round(f.subscriptions/Math.max(1, f.income)*100)}% of income. Review and cut unused.` : 'Subscription spending is reasonable. Review annually.', confidence: 85, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
+    ...(emotionalSpending ? [{ icon: '😰', title: 'Emotional Spending Alert', text: `Your stress level (${user?.health?.stressLevel || 0}/10) correlates with increased spending. Implement a 24-hour wait rule before purchases over ₹500.`, confidence: 79, risk: 'high' }] : []),
+  ];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
@@ -122,8 +248,6 @@ export default function Finance() {
     }
     return null;
   };
-
-  const financeAnomalies = anomalies.filter(a => a.affectedDomain === 'finance' || a.type === 'spending_spike');
 
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
@@ -176,35 +300,6 @@ export default function Finance() {
             </GlassCard>
           </div>
 
-          {/* Detected Anomalies */}
-          {financeAnomalies.length > 0 && (
-            <GlassCard glow="glow-rose">
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">🚨 Detected Anomalies</h3>
-              <div className="space-y-3">
-                {financeAnomalies.map(a => (
-                  <div key={a.id} className={`p-4 rounded-xl border text-xs ${a.severity === 'urgent' || a.severity === 'alert' ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-sm">{a.severity === 'urgent' || a.severity === 'alert' ? '🚨' : '⚠️'} {a.status === 'monitoring' ? '[Monitoring] ' : ''}{a.title}</h4>
-                      <span className="text-[10px] uppercase font-bold tracking-wider opacity-70 px-2 py-0.5 rounded-full bg-white/10">{a.severity}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 mb-2">
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Baseline</span>
-                        <span className="font-medium text-white">₹{a.baseline?.toLocaleString()}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Current Transaction</span>
-                        <span className="font-medium text-rose-400">₹{a.current?.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <p className="text-slate-300">{a.description}</p>
-                    <p className="text-slate-400 mt-1 italic text-[10px]">Recommended: {a.recommendedAction}</p>
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
-          )}
-
           {/* Financial Anxiety Check */}
           {(f.debt > 0 || savingsRate < 5 || emotionalSpending) && (
             <GlassCard glow="glow-rose">
@@ -243,22 +338,40 @@ export default function Finance() {
           </div>
           
           <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-4">
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Income (₹)</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Savings (₹)</label><input type="number" value={form.savings} onChange={e => setForm(p => ({ ...p, savings: e.target.value }))} className="input-premium" placeholder="₹5000" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Investments (₹)</label><input type="number" value={form.investments} onChange={e => setForm(p => ({ ...p, investments: e.target.value }))} className="input-premium" placeholder="₹2000" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Total Debt (₹)</label><input type="number" value={form.debt} onChange={e => setForm(p => ({ ...p, debt: e.target.value }))} className="input-premium" placeholder="₹0" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium"><option value="food">Food &amp; Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills &amp; Utilities</option><option value="healthcare">Healthcare</option><option value="education">Education</option><option value="other">Other</option></select></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Amount (₹)</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
-            <div className="md:col-span-2 flex items-center justify-between gap-4">
-              <p className="text-xs text-slate-500">💡 Log income monthly; add expenses as they occur</p>
-              <button type="submit" className="btn-primary">Save Entry ✓</button>
-            </div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
+            <div className="flex items-end"><button type="submit" className="btn-primary w-full">Save Entry ✓</button></div>
           </form>
         </GlassCard>
       )}
 
       {tab === 'recommendations' && (
-        <AdaptiveRecommendations domain="finance" />
+        <div className="space-y-6">
+          <RoboAdvisor f={f} savingsRate={savingsRate} />
+          <h3 className="text-sm font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+            <span>💡</span> Spending Optimizations
+          </h3>
+          {recommendations.map((r, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+              <GlassCard>
+                <div className="flex items-start gap-4">
+                  <span className="text-3xl">{r.icon}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{r.title}</h4>
+                      <div className="flex gap-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}% AI Match</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
+                  </div>
+                </div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
       )}
     </div>
   );

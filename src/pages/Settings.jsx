@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { PROVIDERS } from '../services/integrationService';
 import { GlassCard, PageHeader, SecurityBadge, showToast } from '../components/ui/Components';
 
 export default function Settings() {
   const { user, logout } = useAuth();
-  const { health, finance, career, goals, timeline, gamification, computed, aiCache, updateAICache, toggleIntegration, triggerIntegrationSync, integrations } = useData();
+  const { health, finance, career, goals, timeline, gamification, computed, aiCache, updateAICache } = useData();
   const [notifications, setNotifications] = useState({ insights: true, goals: true, burnout: true, weekly: false });
   const [privacy, setPrivacy] = useState({ anonymizeAI: true, localOnly: true, shareData: false });
   const [dangerConfirm, setDangerConfirm] = useState(false);
@@ -81,62 +80,6 @@ export default function Settings() {
             <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Account Type</p>
             <p className="text-xs text-slate-300">Demo Account • Full access</p>
           </div>
-        </div>
-      </GlassCard>
-
-      {/* Connected Integrations */}
-      <GlassCard className="mb-6">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🔌 Connected Integrations</h3>
-        <p className="text-xs text-slate-400 mb-4">Connect external providers to automatically sync your real-world behavior.</p>
-        <div className="space-y-3">
-          {Object.values(PROVIDERS).map(provider => {
-            const integration = integrations?.[provider.id] || {};
-            const isConnected = integration.connected;
-            const isSyncing = integration.syncing;
-            
-            return (
-              <div key={provider.id} className={`p-4 rounded-xl border ${isConnected ? 'border-blue-500/30 bg-blue-500/5' : 'border-white/[0.06] bg-white/[0.02]'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{provider.icon}</span>
-                    <div>
-                      <h4 className="text-sm font-bold text-white">{provider.name}</h4>
-                      <p className="text-[10px] text-slate-400 capitalize">{provider.category} Integration</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isConnected && (
-                      <button 
-                        onClick={() => triggerIntegrationSync(provider.id)} 
-                        disabled={isSyncing}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-all disabled:opacity-50"
-                      >
-                        {isSyncing ? 'Syncing...' : 'Sync Now'}
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => toggleIntegration(provider.id, !isConnected)}
-                      className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${isConnected ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-white/10 text-slate-300 hover:bg-white/5'}`}
-                    >
-                      {isConnected ? 'Disconnect' : 'Connect'}
-                    </button>
-                  </div>
-                </div>
-                {isConnected && (
-                  <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px]">
-                    <span className="text-slate-500">
-                      Last synced: {integration.lastSync ? new Date(integration.lastSync).toLocaleString() : 'Never'}
-                    </span>
-                    {integration.error ? (
-                      <span className="text-red-400">⚠️ {integration.error}</span>
-                    ) : (
-                      <span className="text-emerald-400">🟢 Connected</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
         </div>
       </GlassCard>
 

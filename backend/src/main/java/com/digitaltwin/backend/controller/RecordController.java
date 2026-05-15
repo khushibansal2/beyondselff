@@ -9,7 +9,6 @@ import com.digitaltwin.backend.repository.HealthRecordRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.digitaltwin.backend.util.AuthUtil;
 import java.util.List;
 
 @RestController
@@ -27,20 +26,17 @@ public class RecordController {
     }
 
     @GetMapping("/health/import/{importId}")
-    public ResponseEntity<List<HealthRecord>> getHealthRecordsByImport(@PathVariable Long importId, @RequestHeader("Authorization") String authHeader) {
-        AuthUtil.getUserIdFromToken(authHeader);
+    public ResponseEntity<List<HealthRecord>> getHealthRecordsByImport(@PathVariable Long importId) {
         return ResponseEntity.ok(healthRepo.findByImportId(importId));
     }
 
     @GetMapping("/finance/import/{importId}")
-    public ResponseEntity<List<FinanceRecord>> getFinanceRecordsByImport(@PathVariable Long importId, @RequestHeader("Authorization") String authHeader) {
-        AuthUtil.getUserIdFromToken(authHeader);
+    public ResponseEntity<List<FinanceRecord>> getFinanceRecordsByImport(@PathVariable Long importId) {
         return ResponseEntity.ok(financeRepo.findByImportId(importId));
     }
 
     @GetMapping("/career/import/{importId}")
-    public ResponseEntity<List<CareerRecord>> getCareerRecordsByImport(@PathVariable Long importId, @RequestHeader("Authorization") String authHeader) {
-        AuthUtil.getUserIdFromToken(authHeader);
+    public ResponseEntity<List<CareerRecord>> getCareerRecordsByImport(@PathVariable Long importId) {
         return ResponseEntity.ok(careerRepo.findByImportId(importId));
     }
 }

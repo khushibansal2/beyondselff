@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
+import { AnomalyBell } from '../ui/Components';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
@@ -22,7 +23,7 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { computed, syncStatus } = useData();
+  const { computed, anomalies = [] } = useData();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -76,6 +77,9 @@ export default function Sidebar() {
                     </Link>
                   );
                 })}
+                <div className="mt-2 border-t border-white/[0.05] pt-2">
+                  <AnomalyBell anomalies={anomalies} collapsed={false} />
+                </div>
               </nav>
               <div className="p-4 border-t border-white/[0.06]">
                 <div className="flex items-center gap-3 mb-3">
@@ -138,6 +142,9 @@ export default function Sidebar() {
               </Link>
             );
           })}
+          <div className="mt-2 border-t border-white/[0.05] pt-2">
+            <AnomalyBell anomalies={anomalies} collapsed={collapsed} />
+          </div>
         </nav>
 
         {/* User */}
@@ -157,17 +164,6 @@ export default function Sidebar() {
             </button>
             {!collapsed && <button onClick={handleLogout} className="text-xs text-red-400 hover:text-red-300 py-1.5 px-3 rounded-lg hover:bg-red-500/10 transition-all">Logout</button>}
           </div>
-          
-          {/* Sync Status Indicator */}
-          {!collapsed && (
-            <div className="mt-2 flex items-center justify-center gap-1.5 text-[10px]">
-              {syncStatus === 'saving' && <><span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" /><span className="text-blue-400">Saving...</span></>}
-              {syncStatus === 'synced' && <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /><span className="text-emerald-400">Cloud Synced</span></>}
-              {syncStatus === 'offline' && <><span className="w-1.5 h-1.5 rounded-full bg-amber-400" /><span className="text-amber-400">Offline</span></>}
-              {syncStatus === 'error' && <><span className="w-1.5 h-1.5 rounded-full bg-red-400" /><span className="text-red-400">Sync Error</span></>}
-              {(syncStatus === 'idle' || !syncStatus) && <><span className="w-1.5 h-1.5 rounded-full bg-slate-500" /><span className="text-slate-500">Local Only</span></>}
-            </div>
-          )}
         </div>
       </motion.aside>
 

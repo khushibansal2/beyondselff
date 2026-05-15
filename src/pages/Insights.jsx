@@ -5,45 +5,12 @@ import { useData } from '../context/DataContext';
 import { generateInsights, generateTrendData, generateCorrelations } from '../data/demoData';
 import { GlassCard, PageHeader, InsightCard, ScoreRing, showToast } from '../components/ui/Components';
 import AIExplainer from '../components/ui/AIExplainer';
-import { TrendCard, ForecastRow } from '../components/ui/TrendComponents';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine, LineChart, Line, YAxis, Legend } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine } from 'recharts';
 import { Link } from 'react-router-dom';
-import { PROVIDERS } from '../services/integrationService';
-
-// Simple Calendar Heatmap Component
-function ActivityHeatmap({ data, colorMap, title }) {
-  // data: array of { date, value }
-  return (
-    <div className="p-3 rounded-xl border border-white/5 bg-black/10">
-      <h4 className="text-[10px] text-slate-400 mb-2 uppercase tracking-wider font-semibold">{title}</h4>
-      <div className="flex flex-wrap gap-1">
-        {data.slice(-30).map((d, i) => {
-          let opacity = Math.min(1, Math.max(0.1, d.value / (colorMap.max || 10)));
-          return (
-            <div 
-              key={i} 
-              title={`${d.date}: ${d.value}`}
-              className="w-3 h-3 rounded-[2px]" 
-              style={{ backgroundColor: colorMap.color, opacity: d.value > 0 ? opacity : 0.05 }}
-            />
-          );
-        })}
-      </div>
-      <div className="flex justify-between items-center mt-2 px-1">
-        <span className="text-[8px] text-slate-600">30 Days Ago</span>
-        <span className="text-[8px] text-slate-600">Today</span>
-      </div>
-    </div>
-  );
-}
 
 const severityConfig = {
-  urgent: { border: 'border-red-500/30', bg: 'bg-red-500/5', badge: 'bg-red-500/15 text-red-300', pulse: 'bg-red-400', label: '🚨 Urgent Pattern' },
   critical: { border: 'border-red-500/30', bg: 'bg-red-500/5', badge: 'bg-red-500/15 text-red-300', pulse: 'bg-red-400', label: '🚨 Critical Pattern' },
-  alert: { border: 'border-orange-500/30', bg: 'bg-orange-500/5', badge: 'bg-orange-500/15 text-orange-300', pulse: 'bg-orange-400', label: '⚠️ Alert' },
   warning: { border: 'border-amber-500/30', bg: 'bg-amber-500/5', badge: 'bg-amber-500/15 text-amber-300', pulse: 'bg-amber-400', label: '⚠️ Warning Pattern' },
-  attention: { border: 'border-yellow-500/30', bg: 'bg-yellow-500/5', badge: 'bg-yellow-500/15 text-yellow-300', pulse: 'bg-yellow-400', label: '🟡 Attention Needed' },
-  watch: { border: 'border-blue-500/30', bg: 'bg-blue-500/5', badge: 'bg-blue-500/15 text-blue-300', pulse: 'bg-blue-400', label: '👁️ Monitoring' },
   positive: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/5', badge: 'bg-emerald-500/15 text-emerald-300', pulse: 'bg-emerald-400', label: '✅ Positive Pattern' },
 };
 
@@ -62,7 +29,7 @@ function PatternCard({ pattern, index }) {
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="relative flex-shrink-0 mt-0.5">
               <span className="text-2xl">{pattern.icon || '⚡'}</span>
-              {['critical', 'urgent', 'alert'].includes(pattern.severity) && (
+              {pattern.severity === 'critical' && (
                 <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${cfg.pulse} animate-pulse`} />
               )}
             </div>
@@ -117,7 +84,7 @@ function PatternCard({ pattern, index }) {
 
 export default function Insights() {
   const { user } = useAuth();
-  const { computed, health, finance, career, anomalies = [], integrations } = useData();
+  const { computed, health, finance, career } = useData();
 
   const h = health || {};
   const f = finance || {};
@@ -128,12 +95,10 @@ export default function Insights() {
   const careerScore = computed?.careerScore?.score || 0;
   const balance = computed?.balance || 0;
   const burnout = computed?.burnout?.risk || 0;
-  const trendReport = computed?.trendReport || null;
-  const goalIntelligence = computed?.goalIntelligence || null;
 
   // Use deterministic cross-domain engine patterns directly (Step 2.3 & 2.5)
   const patterns = useMemo(() => {
-    const cdPatterns = (computed?.crossDomain || []).map(cd => ({
+    return (computed?.crossDomain || []).map(cd => ({
       ...cd,
       title: cd.id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Cascade',
       icon: cd.severity === 'positive' ? '✅' : cd.severity === 'critical' ? '🚨' : '⚡',
@@ -141,28 +106,13 @@ export default function Insights() {
       domains: [cd.from, cd.to],
       confidence: 100 // Deterministically computed
     }));
-
-    const anomalyPatterns = anomalies.map(a => ({
-      id: a.id,
-      severity: a.severity,
-      title: `${a.status === 'monitoring' ? '[Monitoring] ' : ''}Anomaly: ${a.title}`,
-      icon: a.trend === 'up' ? '📈' : '📉',
-      description: a.description,
-      trigger: a.triggerReason,
-      mechanism: `Baseline was ${a.baseline}, now ${a.current}. ${a.recommendedAction}`,
-      domains: [a.affectedDomain],
-      confidence: 100
-    }));
-
-    return [...anomalyPatterns, ...cdPatterns];
-  }, [computed?.crossDomain, anomalies]);
+  }, [computed?.crossDomain]);
 
   const currentState = useMemo(() => ({ ...user, health: h, finance: f, career: c, timeline: computed?.timeline || [] }), [user, h, f, c, computed?.timeline]);
 
   const insights = useMemo(() => generateInsights(currentState), [currentState]);
   const trendData = useMemo(() => generateTrendData(currentState, 14), [currentState]);
-  const behavioralAnalytics = computed?.behavioralAnalytics;
-  const correlations = behavioralAnalytics?.correlations || [];
+  const correlations = useMemo(() => generateCorrelations(trendData), [trendData]);
 
   const criticalCount = patterns.filter(p => p.severity === 'critical').length;
   const warningCount = patterns.filter(p => p.severity === 'warning').length;
@@ -186,56 +136,6 @@ export default function Insights() {
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
       <PageHeader title="Cross-Domain Intelligence" subtitle="AI-explained patterns across your health, finances, and career." icon="🧠" />
-
-      {/* ── NEW: Connected Intelligence Section ── */}
-      {integrations && Object.keys(integrations).some(k => integrations[k].connected) && (
-        <div className="mb-6">
-          <h2 className="text-sm font-bold flex items-center gap-2 mb-4" style={{ fontFamily: 'var(--font-display)' }}>
-            🌐 Connected Intelligence
-            <span className="text-[10px] font-normal text-slate-500">Real-World Ingestion</span>
-          </h2>
-          <div className="grid lg:grid-cols-3 gap-4">
-            {Object.keys(integrations).filter(k => integrations[k].connected).map(k => {
-              const p = PROVIDERS[Object.keys(PROVIDERS).find(pk => PROVIDERS[pk].id === k)];
-              const status = integrations[k];
-              const isStale = Date.now() - status.lastSync > 86400000;
-              return (
-                <GlassCard key={k} className="flex flex-col gap-3 relative overflow-hidden group">
-                  <div className={`absolute top-0 right-0 w-16 h-16 rounded-bl-[4rem] transition-all duration-500 opacity-20 ${isStale ? 'bg-amber-500 group-hover:opacity-40' : 'bg-emerald-500 group-hover:opacity-40'}`}></div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl">{p?.icon}</span>
-                    <div>
-                      <h3 className="text-xs font-semibold text-white uppercase tracking-wider">{p?.name}</h3>
-                      <p className="text-[10px] text-slate-500 capitalize">{p?.category} Sync</p>
-                    </div>
-                  </div>
-                  <div className="mt-2 space-y-1">
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="text-slate-400">Sync Status:</span>
-                      {status.syncing ? (
-                        <span className="text-blue-400 animate-pulse">Syncing...</span>
-                      ) : status.error ? (
-                        <span className="text-red-400" title={status.error}>Error</span>
-                      ) : (
-                        <span className={isStale ? 'text-amber-400' : 'text-emerald-400'}>{isStale ? 'Stale' : 'Live'}</span>
-                      )}
-                    </div>
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="text-slate-400">Last Synced:</span>
-                      <span className="text-slate-300">{status.lastSync ? new Date(status.lastSync).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never'}</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-white/5">
-                    <p className="text-[10px] text-slate-400 leading-relaxed italic">
-                      {p?.category === 'health' ? 'Powering burnout timelines & recovery momentum.' : p?.category === 'finance' ? 'Feeding volatility analysis & behavioral heatmaps.' : 'Driving career velocity & goal trajectories.'}
-                    </p>
-                  </div>
-                </GlassCard>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* 14-Day Pattern Report Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -296,152 +196,6 @@ export default function Insights() {
         )}
       </div>
 
-      {/* ── Goal Intelligence Section ── */}
-      {goalIntelligence && goalIntelligence.goals.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-              🎯 Goal Intelligence
-              <span className="text-[10px] font-normal text-slate-500">Predictive analysis based on real trends</span>
-            </h2>
-          </div>
-          
-          <div className="grid lg:grid-cols-2 gap-4">
-            {goalIntelligence.goals.map(g => (
-              <GlassCard key={g.id} className={`border-t-2 ${g.statusColor === 'emerald' ? 'border-t-emerald-500' : g.statusColor === 'red' ? 'border-t-red-500' : g.statusColor === 'blue' ? 'border-t-blue-500' : 'border-t-amber-500'}`}>
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">{g.title}</h3>
-                    <p className="text-[10px] text-slate-400 capitalize">{g.domain} Domain</p>
-                  </div>
-                  <span className={`text-[10px] font-semibold px-2 py-1 rounded-md ${g.statusColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : g.statusColor === 'red' ? 'bg-red-500/10 text-red-400' : g.statusColor === 'blue' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                    {g.status}
-                  </span>
-                </div>
-
-                <div className="mb-4">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">Progress</span>
-                    <span className="font-medium">{g.progress}%</span>
-                  </div>
-                  <div className="w-full bg-black/40 rounded-full h-2 overflow-hidden">
-                    <div className={`h-full rounded-full ${g.statusColor === 'emerald' ? 'bg-emerald-400' : g.statusColor === 'red' ? 'bg-red-400' : g.statusColor === 'blue' ? 'bg-blue-400' : 'bg-amber-400'}`} style={{ width: `${g.progress}%` }}></div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                    <p className="text-[10px] text-slate-500 mb-1">Success Probability</p>
-                    <p className={`text-lg font-bold ${g.probabilityOfSuccess >= 70 ? 'text-emerald-400' : g.probabilityOfSuccess < 40 ? 'text-red-400' : 'text-amber-400'}`}>
-                      {g.probabilityOfSuccess}%
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                    <p className="text-[10px] text-slate-500 mb-1">Estimated Completion</p>
-                    <p className="text-sm font-bold text-slate-200">
-                      {g.etaText}
-                    </p>
-                  </div>
-                </div>
-
-                {g.risks && g.risks.length > 0 && (
-                  <div className="mb-4 space-y-2">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Active Risks</p>
-                    {g.risks.map((r, i) => (
-                      <div key={i} className="flex gap-2 text-xs p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300">
-                        <span className="flex-shrink-0">⚠️</span>
-                        <span>{r.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {g.suggestions && g.suggestions.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Adaptive Recommendations</p>
-                    {g.suggestions.map((s, i) => (
-                      <div key={i} className="flex gap-2 text-xs p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-300">
-                        <span className="flex-shrink-0">💡</span>
-                        <span>{s}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {g.simulatorImpact && (
-                   <div className="mt-3 flex gap-2 text-xs p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300">
-                      <span className="flex-shrink-0">🔮</span>
-                      <span>{g.simulatorImpact}</span>
-                   </div>
-                )}
-              </GlassCard>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Behavioral Trend Intelligence Section ── */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-bold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-            📈 Behavioral Trend Intelligence
-            <span className="text-[10px] font-normal text-slate-500">Deterministic · Based on your log history</span>
-          </h2>
-        </div>
-
-        {!trendReport || !trendReport.hasTrends ? (
-          <GlassCard className="text-center py-8">
-            <span className="text-3xl block mb-2">📊</span>
-            <p className="font-semibold mb-1">Building Your Trend Baseline</p>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto">
-              {trendReport?.sparseData
-                ? 'Keep logging your health, finance, and career data. Trends become reliable after 3+ entries per domain.'
-                : 'Log data across domains to start seeing behavioral trends.'}
-            </p>
-          </GlassCard>
-        ) : (
-          <div className="space-y-4">
-            {/* Burnout cross-domain trend — highlighted at top */}
-            {trendReport.burnoutTrend && (
-              <TrendCard trend={trendReport.burnoutTrend} index={0} />
-            )}
-
-            {/* Forecast summary signals */}
-            {trendReport.forecastSummary?.length > 0 && (
-              <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-                <h3 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">🔮 Forecast Signals</h3>
-                <div className="space-y-2">
-                  {trendReport.forecastSummary.map((f, i) => <ForecastRow key={i} forecast={f} index={i} />)}
-                </div>
-              </div>
-            )}
-
-            {/* Individual metric trend cards */}
-            <div className="grid md:grid-cols-2 gap-3">
-              {trendReport.trends
-                .filter(t => t.trendType !== 'stable' && t.trendType !== 'insufficient_data')
-                .map((t, i) => <TrendCard key={t.id} trend={t} index={i} />)}
-            </div>
-
-            {/* Stable/monitoring metrics — collapsed table */}
-            {trendReport.trends.filter(t => t.trendType === 'stable' || t.trendType === 'plateau').length > 0 && (
-              <div className="p-4 rounded-2xl border border-white/5 bg-white/[0.01]">
-                <h3 className="text-xs font-semibold text-slate-500 mb-2">Stable Metrics</h3>
-                <div className="flex flex-wrap gap-2">
-                  {trendReport.trends
-                    .filter(t => t.trendType === 'stable' || t.trendType === 'plateau')
-                    .map(t => (
-                      <span key={t.id} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/5">
-                        {t.icon} {t.label} ({t.trendType})
-                      </span>
-                    ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* Scores + Burnout */}
       <div className="grid md:grid-cols-3 gap-4 mb-8">
         <GlassCard className="flex flex-col items-center gap-3" glow="glow-purple">
@@ -479,135 +233,22 @@ export default function Insights() {
 
         <div>
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-            🔄 Real Behavioral Correlations
+            🔄 Habit Correlations
           </h3>
           <div className="space-y-3">
-            {correlations.length === 0 ? (
-               <div className="p-4 rounded-xl bg-white/[0.02] text-center text-xs text-slate-500">
-                 <span className="block text-2xl mb-2">📊</span>Need more data to detect correlations.
-               </div>
-            ) : correlations.map((corr, i) => (
+            {correlations.map((corr, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                className={`p-3 rounded-xl text-xs border ${corr.type === 'positive' ? 'border-emerald-500/20 bg-emerald-500/5' : corr.type === 'negative' ? 'border-red-500/20 bg-red-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
-                <p className="text-slate-300 mb-2">{corr.description}</p>
+                className={`p-3 rounded-xl text-xs border ${corr.type === 'positive' ? 'border-emerald-500/20 bg-emerald-500/5' : corr.type === 'negative' ? 'border-red-500/20 bg-red-500/5' : 'border-slate-500/20 bg-slate-500/5'}`}>
+                <p className="text-slate-300 mb-2">{corr.pattern}</p>
                 <div className="flex justify-between items-center">
-                  <div className="flex gap-1">
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{corr.domainA}</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{corr.domainB}</span>
-                  </div>
-                  <span className="text-[10px] text-slate-500">Strength: {corr.strength}</span>
+                  <div className="flex gap-1">{corr.domains.map(d => <span key={d} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{d}</span>)}</div>
+                  <span className="text-[10px] text-slate-500">Strength: {Math.round(corr.strength * 100)}%</span>
                 </div>
               </motion.div>
             ))}
           </div>
         </div>
       </div>
-
-      {/* ── NEW: Behavioral Analytics Intelligence ── */}
-      {behavioralAnalytics && behavioralAnalytics.hasData && (
-        <div className="mb-8">
-          <h2 className="text-sm font-bold flex items-center gap-2 mb-4" style={{ fontFamily: 'var(--font-display)' }}>
-            🧬 Behavioral Analytics Intelligence
-            <span className="text-[10px] font-normal text-slate-500">Consistency, Volatility, Momentum</span>
-          </h2>
-          
-          <div className="grid lg:grid-cols-3 gap-4">
-            <GlassCard className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Consistency</h3>
-              <div className="flex items-end gap-2">
-                <span className={`text-4xl font-bold ${behavioralAnalytics.consistency.score > 75 ? 'text-emerald-400' : behavioralAnalytics.consistency.score > 50 ? 'text-amber-400' : 'text-red-400'}`}>{behavioralAnalytics.consistency.score}</span>
-                <span className="text-xs text-slate-500 mb-1">/100</span>
-              </div>
-              <p className="text-xs text-slate-400">{behavioralAnalytics.consistency.status}</p>
-              <div className="mt-2 text-[10px] text-slate-500 p-2 rounded-lg bg-black/20 border border-white/5">
-                Volatility Index: <span className="text-white">{behavioralAnalytics.consistency.volatility}</span>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Recovery Momentum</h3>
-              <div className="flex items-end gap-2">
-                <span className={`text-4xl font-bold ${behavioralAnalytics.recoveryMomentum > 0 ? 'text-emerald-400' : behavioralAnalytics.recoveryMomentum < 0 ? 'text-red-400' : 'text-slate-400'}`}>
-                  {behavioralAnalytics.recoveryMomentum > 0 ? '+' : ''}{behavioralAnalytics.recoveryMomentum}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                {behavioralAnalytics.recoveryMomentum > 0 ? 'Burnout risk is decreasing over the last 5 days.' : behavioralAnalytics.recoveryMomentum < 0 ? 'Burnout risk is accelerating.' : 'Stable burnout risk velocity.'}
-              </p>
-            </GlassCard>
-            
-            <GlassCard className="flex flex-col gap-3 col-span-1 lg:col-span-1">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Burnout Timeline</h3>
-              {behavioralAnalytics.burnoutTimeline.length > 0 ? (
-                <div className="h-24 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={behavioralAnalytics.burnoutTimeline.slice(-14)}>
-                      <defs>
-                        <linearGradient id="boGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="date" hide />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="burnoutRisk" stroke="#f59e0b" fill="url(#boGradient)" strokeWidth={2} name="Burnout Risk" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="text-xs text-slate-500 py-4 text-center">Not enough data</div>
-              )}
-            </GlassCard>
-            
-            {/* Heatmaps Row */}
-            <GlassCard className="col-span-1 lg:col-span-3">
-               <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Behavioral Consistency Heatmaps</h3>
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <ActivityHeatmap 
-                    title="Sleep Regularity" 
-                    data={behavioralAnalytics.burnoutTimeline.map(b => ({ date: b.date, value: b.recovery > 0 ? 8 : 4 }))}
-                    colorMap={{ color: '#8b5cf6', max: 10 }}
-                  />
-                  <ActivityHeatmap 
-                    title="Stress Intensity" 
-                    data={behavioralAnalytics.burnoutTimeline.map(b => ({ date: b.date, value: b.stress }))}
-                    colorMap={{ color: '#f43f5e', max: 10 }}
-                  />
-                  <ActivityHeatmap 
-                    title="Study Behavior" 
-                    data={(computed?.metricHistory || []).map(m => ({ date: m.date, value: m.career?.studyHoursDaily || 0 }))}
-                    colorMap={{ color: '#3b82f6', max: 8 }}
-                  />
-                  <ActivityHeatmap 
-                    title="Workout Streaks" 
-                    data={(computed?.metricHistory || []).map(m => ({ date: m.date, value: m.health?.workoutsPerWeek > 0 ? 1 : 0 }))}
-                    colorMap={{ color: '#10b981', max: 1 }}
-                  />
-               </div>
-            </GlassCard>
-
-            {/* Goal Trajectories Chart */}
-            {behavioralAnalytics.goalTrajectories.length > 0 && (
-              <GlassCard className="col-span-1 lg:col-span-3">
-                 <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Goal Trajectories & Velocity</h3>
-                 <div className="h-40 w-full p-2 border border-white/5 rounded-xl bg-black/10">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={behavioralAnalytics.goalTrajectories[0].history.slice(-14)}>
-                        <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis domain={[0, 100]} hide />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Legend wrapperStyle={{ fontSize: '10px' }} />
-                        {behavioralAnalytics.goalTrajectories.map((g, i) => (
-                           <Line key={g.id} type="monotone" dataKey="progress" data={g.history.slice(-14)} name={g.name} stroke={['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'][i%4]} strokeWidth={2} dot={{ r: 2 }} />
-                        ))}
-                      </LineChart>
-                    </ResponsiveContainer>
-                 </div>
-              </GlassCard>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Daily Reflection */}
       <GlassCard glow="glow-cyan">

@@ -34,7 +34,7 @@ export default function Upload() {
     if (!user || !token) return;
     try {
       const res = await fetch(`http://localhost:8080/api/uploads/history`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': token }
       });
       if (res.ok) {
         setImportHistory(await res.json());
@@ -60,7 +60,7 @@ export default function Upload() {
     try {
       const res = await fetch('http://localhost:8080/api/uploads', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { 'Authorization': token },
         body: formData,
       });
       
@@ -96,7 +96,7 @@ export default function Upload() {
     try {
       showToast(`Fetching ${preview.valid} records from ${preview.name}...`, 'info');
       const res = await fetch(`http://localhost:8080/api/records/${preview.domain}/import/${preview.id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': token }
       });
       if (!res.ok) throw new Error("Failed to fetch parsed records.");
       const records = await res.json();
@@ -176,7 +176,7 @@ export default function Upload() {
         showToast(`Syncing with GitHub...`, 'info');
         const res = await fetch(`http://localhost:8080/api/sync/github?githubUsername=${username}`, { 
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': token }
         });
         
         if (!res.ok) throw new Error(await res.text());
@@ -358,10 +358,7 @@ export default function Upload() {
               <button 
                 onClick={async () => {
                   if (h.id) {
-                    await fetch(`http://localhost:8080/api/uploads/${h.id}`, { 
-                      method: 'DELETE',
-                      headers: { 'Authorization': `Bearer ${token}` }
-                    });
+                    await fetch(`http://localhost:8080/api/uploads/${h.id}`, { method: 'DELETE' });
                     fetchHistory();
                     showToast('Import deleted', 'info');
                   }

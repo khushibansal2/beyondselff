@@ -11,46 +11,23 @@ export function AuthProvider({ children }) {
   const [onAuthChange, setOnAuthChange] = useState(null);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const saved = localStorage.getItem('dt_auth');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          const { token: t, user: savedUser } = parsed;
-          
-          // Try the real backend first
-          try {
-            const res = await fetch('http://localhost:8080/api/auth/me', {
-              headers: { 'Authorization': `Bearer ${t}` },
-              signal: AbortSignal.timeout(3000) // 3s timeout — don't block forever
-            });
-            if (res.ok) {
-              const u = await res.json();
-              setUser(u);
-              setToken(t);
-              localStorage.setItem('dt_auth', JSON.stringify({ user: u, token: t }));
-            } else {
-              // Token invalid — clear it
-              localStorage.removeItem('dt_auth');
-            }
-          } catch (networkErr) {
-            // Backend is down — restore from localStorage so the app still works offline
-            if (savedUser && t) {
-              console.warn('[Auth] Backend unreachable — restoring from local cache (offline mode)');
-              setUser(savedUser);
-              setToken(t);
-            } else {
-              localStorage.removeItem('dt_auth');
-            }
-          }
-        } catch (e) {
-          console.error('[Auth] Restore failed:', e);
+    const saved = localStorage.getItem('dt_auth');
+    if (saved) {
+      try {
+        const { user: u, token: t } = JSON.parse(saved);
+        // Check token expiry
+        const payload = JSON.parse(atob(t.replace('dt_jwt_', '')));
+        if (payload.exp > Date.now()) {
+          setUser(u);
+          setToken(t);
+        } else {
           localStorage.removeItem('dt_auth');
         }
+      } catch {
+        localStorage.removeItem('dt_auth');
       }
-      setLoading(false);
-    };
-    initAuth();
+    }
+    setLoading(false);
   }, []);
 
   // When user changes, notify DataContext
@@ -60,68 +37,48 @@ export function AuthProvider({ children }) {
     }
   }, [user, loading, onAuthChange]);
 
-  const login = async (email, password) => {
-    // 1. Try demo users first (works even without backend)
-    const demoMatch = Object.values(demoUsers).find(
-      u => u.email === email && u.password === password
-    );
-    if (demoMatch) {
-      const { password: _pw, ...safeUser } = demoMatch;
-      const fakeToken = `demo_${safeUser.id}_${Date.now()}`;
-      setUser(safeUser);
-      setToken(fakeToken);
-      localStorage.setItem('dt_auth', JSON.stringify({ user: safeUser, token: fakeToken }));
+  const login = (email, password) => {
+    const found = Object.values(demoUsers).find(u => u.email === email && u.password === password);
+    if (found) {
+      const jwt = 'dt_jwt_' + btoa(JSON.stringify({ id: found.id, email: found.email, exp: Date.now() + 86400000 }));
+      setUser(found);
+      setToken(jwt);
+      localStorage.setItem('dt_auth', JSON.stringify({ user: found, token: jwt }));
       return { success: true, isDemo: true };
     }
-
-    // 2. Try real backend
-    try {
-      const res = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        signal: AbortSignal.timeout(5000)
-      });
-      if (!res.ok) {
-        const err = await res.text();
-        return { success: false, error: err || 'Invalid credentials' };
-      }
-      const data = await res.json();
-      setUser(data.user);
-      setToken(data.token);
-      localStorage.setItem('dt_auth', JSON.stringify(data));
+    // Custom signup
+    const customUsers = JSON.parse(localStorage.getItem('dt_custom_users') || '[]');
+    const customFound = customUsers.find(u => u.email === email && u.password === password);
+    if (customFound) {
+      const jwt = 'dt_jwt_' + btoa(JSON.stringify({ id: customFound.id, email, exp: Date.now() + 86400000 }));
+      setUser(customFound);
+      setToken(jwt);
+      localStorage.setItem('dt_auth', JSON.stringify({ user: customFound, token: jwt }));
       return { success: true, isDemo: false };
-    } catch (e) {
-      return { success: false, error: 'Cannot reach server. Try demo accounts: arjun@demo.com / demo123' };
     }
+    return { success: false, error: 'Invalid credentials' };
   };
 
-  const signup = async (name, email, password) => {
-    try {
-      const res = await fetch('http://localhost:8080/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-        signal: AbortSignal.timeout(5000)
-      });
-      if (!res.ok) {
-        const err = await res.text();
-        return { success: false, error: err || 'Signup failed' };
-      }
-      const data = await res.json();
-      setUser(data.user);
-      setToken(data.token);
-      localStorage.setItem('dt_auth', JSON.stringify(data));
-      return { success: true, isNew: true };
-    } catch (e) {
-      // Offline signup: create a local-only account
-      const localUser = { id: `local_${Date.now()}`, name, email, persona: 'New User', avatar: '👤', role: 'user' };
-      const fakeToken = `local_${localUser.id}`;
-      setUser(localUser);
-      setToken(fakeToken);
-      localStorage.setItem('dt_auth', JSON.stringify({ user: localUser, token: fakeToken }));
-      return { success: true, isNew: true, isOffline: true };
+  const signup = (name, email, password) => {
+    const exists = Object.values(demoUsers).find(u => u.email === email);
+    const customUsers = JSON.parse(localStorage.getItem('dt_custom_users') || '[]');
+    if (exists || customUsers.find(u => u.email === email)) {
+      return { success: false, error: 'Email already exists' };
     }
+    const newUser = {
+      id: 'user-' + Date.now(), name, email, password, avatar: '👤', role: 'user', persona: 'New User',
+      health: {},
+      finance: {},
+      career: {},
+      goals: [], timeline: []
+    };
+    customUsers.push(newUser);
+    localStorage.setItem('dt_custom_users', JSON.stringify(customUsers));
+    const jwt = 'dt_jwt_' + btoa(JSON.stringify({ id: newUser.id, email, exp: Date.now() + 86400000 }));
+    setUser(newUser);
+    setToken(jwt);
+    localStorage.setItem('dt_auth', JSON.stringify({ user: newUser, token: jwt }));
+    return { success: true, isNew: true };
   };
 
   const logout = () => {

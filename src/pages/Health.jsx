@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast, SecurityBadge } from '../components/ui/Components';
-import { AdaptiveRecommendations } from '../components/ui/AdaptiveRecommendations';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export default function Health() {
@@ -15,7 +14,7 @@ export default function Health() {
   const score = computed?.healthScore?.score || 0;
   const burnout = computed?.burnout?.risk || 0;
   const trendData = useMemo(() => generateTrendData(user, 30), [user]);
-  const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
+  const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -33,21 +32,20 @@ export default function Health() {
     if (form.mood) { updated.moodAvg = Number(form.mood); changes++; }
     if (form.water) { updated.waterIntake = parseInt(form.water, 10); changes++; }
     if (form.calories) { updated.calories = parseInt(form.calories, 10); changes++; }
-    if (form.weight) { updated.weight = parseFloat(form.weight); changes++; }
-    if (form.bmi) { updated.bmi = parseFloat(form.bmi); changes++; }
-    if (form.workout) {
-      // Count a workout session if >= 20 minutes, increment weekly count
-      const mins = parseInt(form.workout, 10);
-      if (mins >= 20) { updated.workoutsPerWeek = Math.min(7, (h.workoutsPerWeek || 0) + 1); }
-      changes++;
-    }
+    if (form.workout) { changes++; }
     if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
     updateDomain('health', updated);
-    setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
+    setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
     showToast(`Health data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
   };
 
-
+  const recommendations = [
+    { icon: '😴', title: 'Sleep Optimization', text: h.sleepAvg < 7 ? `Increase sleep from ${h.sleepAvg}h to 7-8h. Try: wind-down routine at 10pm, no caffeine after 2pm, dim lights 1h before bed.` : 'Great sleep habits! Maintain 7-8h consistently for optimal recovery.', confidence: 88, risk: h.sleepAvg < 6 ? 'high' : 'low' },
+    { icon: '🏃', title: 'Workout Plan', text: h.workoutsPerWeek < 3 ? `Increase from ${h.workoutsPerWeek} to 4 workouts/week. Start with 20-min sessions: Mon/Wed/Fri cardio, Sat strength.` : `${h.workoutsPerWeek} workouts/week is excellent. Add variety with yoga or swimming for recovery.`, confidence: 85, risk: 'medium' },
+    { icon: '🧘', title: 'Stress Recovery', text: h.stressLevel > 7 ? `Critical: stress at ${h.stressLevel}/10. Immediate actions: 5-min breathing exercises, 15-min daily walks, social connection time.` : 'Stress levels are manageable. Maintain balance with regular breaks and mindfulness.', confidence: 82, risk: h.stressLevel > 7 ? 'high' : 'low' },
+    { icon: '💧', title: 'Hydration Plan', text: h.waterIntake < 8 ? `Increase from ${h.waterIntake} to 8 glasses. Set hourly reminders. Keep a bottle on your desk.` : 'Great hydration! Continue maintaining 8+ glasses daily.', confidence: 90, risk: 'low' },
+    { icon: '🥗', title: 'Nutrition Guidance', text: h.calories > 2500 ? `Current ${h.calories} cal may be high. Focus on whole foods, reduce processed snacks, meal prep on Sundays.` : 'Caloric intake is reasonable. Ensure balanced macros: 30% protein, 40% carbs, 30% fats.', confidence: 75, risk: 'medium' },
+  ];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
@@ -157,11 +155,9 @@ export default function Health() {
               { key: 'sleep', label: 'Sleep (hours)', placeholder: '7.5', type: 'number', min: 0, max: 14, step: '0.5' },
               { key: 'mood', label: 'Mood (1-10)', placeholder: '7', type: 'number', min: 1, max: 10 },
               { key: 'stress', label: 'Stress (1-10)', placeholder: '4', type: 'number', min: 1, max: 10 },
-              { key: 'workout', label: 'Workout (minutes, ≥20 = 1 session)', placeholder: '30', type: 'number', min: 0 },
+              { key: 'workout', label: 'Workout (minutes)', placeholder: '30', type: 'number', min: 0 },
               { key: 'water', label: 'Water (glasses)', placeholder: '8', type: 'number', min: 0, max: 20 },
-              { key: 'calories', label: 'Calories consumed', placeholder: '2200', type: 'number', min: 0 },
-              { key: 'weight', label: 'Weight (kg)', placeholder: '65', type: 'number', min: 20, max: 300, step: '0.1' },
-              { key: 'bmi', label: 'BMI (optional)', placeholder: '22.5', type: 'number', min: 10, max: 60, step: '0.1' },
+              { key: 'calories', label: 'Calories', placeholder: '2200', type: 'number', min: 0 },
             ].map(f => (
               <div key={f.key}>
                 <label className="text-xs text-slate-400 mb-1.5 block">{f.label}</label>
@@ -245,7 +241,27 @@ export default function Health() {
       )}
 
       {tab === 'recommendations' && (
-        <AdaptiveRecommendations domain="health" />
+        <div className="space-y-4">
+          {recommendations.map((r, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+              <GlassCard>
+                <div className="flex items-start gap-4">
+                  <span className="text-3xl flex-shrink-0">{r.icon}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <h4 className="font-semibold">{r.title}</h4>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}% confidence</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
+                  </div>
+                </div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -1,27 +1,35 @@
 /**
- * Voice Input Service using Web Speech API (Phase 3.3)
+ * Voice Input Service using Web Speech API
  */
 export function createVoiceRecognition(onResult, onError, onEnd) {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
   if (!SpeechRecognition) {
     return null;
   }
 
   const recognition = new SpeechRecognition();
+
   recognition.continuous = false;
   recognition.interimResults = true;
-  recognition.lang = 'en-US';
+  recognition.lang = "en-IN";
+
+  recognition.onstart = () => {
+    console.log("Voice recognition started");
+  };
 
   recognition.onresult = (event) => {
-    let interimTranscript = '';
-    let finalTranscript = '';
+    let interimTranscript = "";
+    let finalTranscript = "";
 
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+
       if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript;
+        finalTranscript += transcript;
       } else {
-        interimTranscript += event.results[i][0].transcript;
+        interimTranscript += transcript;
       }
     }
 
@@ -29,11 +37,19 @@ export function createVoiceRecognition(onResult, onError, onEnd) {
   };
 
   recognition.onerror = (event) => {
-    if (onError) onError(event.error);
+    console.error("Speech recognition error:", event.error);
+
+    if (onError) {
+      onError(event.error);
+    }
   };
 
   recognition.onend = () => {
-    if (onEnd) onEnd();
+    console.log("Voice recognition ended");
+
+    if (onEnd) {
+      onEnd();
+    }
   };
 
   return recognition;

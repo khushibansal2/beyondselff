@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
-import { AdaptiveRecommendations } from '../components/ui/AdaptiveRecommendations';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
 export default function Career() {
@@ -44,7 +43,13 @@ export default function Career() {
 
   const placementReadiness = Math.round((c.dsaPractice >= 3 ? 25 : c.dsaPractice * 8) + (c.projectsCompleted >= 4 ? 25 : c.projectsCompleted * 6) + (c.skills.length >= 5 ? 25 : c.skills.length * 5) + (c.codingHoursDaily >= 4 ? 25 : c.codingHoursDaily * 6));
 
-
+  const recommendations = [
+    { icon: '🧩', title: 'Skill Gap Analysis', text: c.skills.length < 5 ? `You have ${c.skills.length} skills. Top companies expect 5-7+ skills. Add: ${['TypeScript','Docker','AWS','System Design','MongoDB'].filter(s => !c.skills.includes(s)).slice(0,3).join(', ')}.` : 'Strong skill set! Focus on deepening expertise in 2-3 core skills.', confidence: 86, risk: c.skills.length < 4 ? 'high' : 'low' },
+    { icon: '📚', title: 'DSA Strategy', text: c.dsaPractice < 3 ? `Increase from ${c.dsaPractice} to 3-5 problems/day. Focus: Arrays → Strings → Trees → Graphs → DP. Use spaced repetition.` : 'Excellent DSA practice! Add timed mock contests to simulate interview pressure.', confidence: 89, risk: c.dsaPractice < 2 ? 'high' : 'low' },
+    { icon: '🚀', title: 'Project Portfolio', text: c.projectsCompleted < 4 ? `${c.projectsCompleted} projects isn't enough. Build: 1 full-stack app, 1 ML/AI project, 1 open-source contribution.` : `${c.projectsCompleted} projects is strong! Add READMEs, demos, and deploy them for visibility.`, confidence: 84, risk: 'medium' },
+    { icon: '🎯', title: 'Placement Readiness', text: `Readiness score: ${placementReadiness}%. ${placementReadiness < 60 ? 'Focus on DSA and projects to increase interview chances.' : 'You\'re well-prepared. Practice mock interviews to build confidence.'}`, confidence: 81, risk: placementReadiness < 50 ? 'high' : 'low' },
+    { icon: '⏰', title: 'Study Efficiency', text: (health?.sleepAvg || 7) < 6 ? `Low sleep (${health?.sleepAvg || 7}h) is reducing your study efficiency. Even with ${c.studyHoursDaily}h of study, effective learning may be only ${Math.round(c.studyHoursDaily * 0.6)}h.` : 'Good sleep supports effective learning. Your study hours are productive.', confidence: 78, risk: (health?.sleepAvg || 7) < 6 ? 'high' : 'low' },
+  ];
 
   const roadmap = [
     { phase: 'Foundation', items: ['Data Structures & Algorithms', 'Object-Oriented Programming', 'Database Management', 'Git & Version Control'], status: c.dsaPractice >= 2 ? 'done' : 'active' },
@@ -121,7 +126,19 @@ export default function Career() {
       )}
 
       {tab === 'recommendations' && (
-        <AdaptiveRecommendations domain="career" />
+        <div className="space-y-4">
+          {recommendations.map((r, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+              <GlassCard>
+                <div className="flex items-start gap-4"><span className="text-3xl">{r.icon}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2"><h4 className="font-semibold">{r.title}</h4>
+                      <div className="flex gap-2"><span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span><span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}%</span></div></div>
+                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p></div></div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
       )}
 
       {tab === 'roadmap' && (

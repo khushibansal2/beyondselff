@@ -254,3 +254,163 @@ export function ProgressBar({ value, max = 100, color = '#3b82f6', label, showPe
     </div>
   );
 }
+
+// ---- Explainable Score Panel ----
+// Shows the factor breakdown for any domain score with bars + status badges.
+export function ExplainableScorePanel({ title, score, factors = [], color = '#3b82f6', icon }) {
+  const [open, setOpen] = useState(false);
+
+  const statusColor = (s) => {
+    if (s === 'good') return { text: 'text-emerald-400', bg: 'bg-emerald-500/10', bar: '#10b981' };
+    if (s === 'warning') return { text: 'text-amber-400', bg: 'bg-amber-500/10', bar: '#f59e0b' };
+    return { text: 'text-red-400', bg: 'bg-red-500/10', bar: '#ef4444' };
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+      {/* Header — always visible */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          {icon && <span className="text-xl">{icon}</span>}
+          <div className="text-left">
+            <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">{title}</p>
+            <p className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color }}>{score}<span className="text-sm text-slate-500 font-normal">/100</span></p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">🔍 Why this score?</span>
+          <span className={`text-slate-400 text-xs transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>▼</span>
+        </div>
+      </button>
+
+      {/* Factor Breakdown — animated open/close */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 space-y-3 border-t border-white/[0.05]">
+              <p className="text-[10px] text-slate-500 pt-3 uppercase tracking-wider font-semibold">Factor Breakdown — Explainable AI</p>
+              {factors.length === 0 && (
+                <p className="text-xs text-slate-500 text-center py-2">Log data to see factor breakdown.</p>
+              )}
+              {factors.map((f, i) => {
+                const sc = statusColor(f.status);
+                const barWidth = Math.round(f.rawScore ?? 0);
+                return (
+                  <motion.div key={f.name} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-300 font-medium">{f.name}</span>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} capitalize font-medium`}>{f.status}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-500">{f.value}{f.unit ? ` ${f.unit}` : ''}</span>
+                        <span className="text-[10px] text-slate-600">• {Math.round((f.weight ?? 0) * 100)}% weight</span>
+                        <span className={`text-[10px] font-bold ${sc.text}`}>+{f.contribution ?? 0}pts</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-white/5">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${barWidth}%` }}
+                        transition={{ duration: 0.8, delay: i * 0.06 }}
+                        className="h-full rounded-full"
+                        style={{ background: sc.bar }}
+                      />
+                    </div>
+                  </motion.div>
+                );
+              })}
+              <p className="text-[9px] text-slate-600 italic pt-1">Scores computed deterministically from your logged data. No AI guessing.</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ---- Anomaly Notification Bell ----
+export function AnomalyBell({ anomalies = [], collapsed = false }) {
+  const [open, setOpen] = useState(false);
+  const active = anomalies.filter(a => a.status !== 'resolved');
+  const count = active.length;
+
+  const severityStyle = (s) => {
+    if (s === 'critical') return 'border-red-500/30 bg-red-500/5 text-red-300';
+    if (s === 'high') return 'border-orange-500/30 bg-orange-500/5 text-orange-300';
+    return 'border-amber-500/30 bg-amber-500/5 text-amber-300';
+  };
+  const severityIcon = (s) => s === 'critical' ? '🚨' : s === 'high' ? '⚠️' : '📌';
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        title="Anomaly Alerts"
+        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm w-full ${
+          open ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
+        }`}
+      >
+        <span className="text-lg relative flex-shrink-0">
+          🔔
+          {count > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+              {count > 9 ? '9+' : count}
+            </span>
+          )}
+        </span>
+        {!collapsed && (
+          <span className="font-medium flex-1 text-left">
+            Alerts
+            {count > 0 && <span className="ml-2 text-[10px] text-red-400">({count} active)</span>}
+          </span>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-0 mt-1 z-50 glass-strong rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            style={{ minWidth: '300px', maxWidth: '360px' }}
+          >
+            <div className="p-3 border-b border-white/[0.06] flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-300">🔍 Anomaly Alerts</span>
+              <button onClick={() => setOpen(false)} className="text-slate-500 hover:text-white text-xs">✕</button>
+            </div>
+            <div className="max-h-72 overflow-y-auto p-2 space-y-2">
+              {active.length === 0 ? (
+                <p className="text-xs text-slate-500 text-center py-4">✅ No anomalies detected. All systems normal.</p>
+              ) : active.map((a, i) => (
+                <div key={a.id || i} className={`p-3 rounded-xl border text-xs ${severityStyle(a.severity)}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span>{severityIcon(a.severity)}</span>
+                    <span className="font-semibold">{a.title}</span>
+                    <span className="ml-auto capitalize text-[9px] opacity-70 px-1.5 py-0.5 rounded-full bg-white/5">{a.severity}</span>
+                  </div>
+                  <p className="text-slate-400 text-[11px] mb-1.5 leading-relaxed">{a.description}</p>
+                  {a.recommendedAction && (
+                    <p className="text-[10px] opacity-80 italic">💡 {a.recommendedAction}</p>
+                  )}
+                  <p className="text-[9px] text-slate-600 mt-1">{a.detectedAt ? new Date(a.detectedAt).toLocaleString() : ''}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
