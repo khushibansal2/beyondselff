@@ -61,12 +61,26 @@ Before you start, make sure you have the following installed on your machine:
 ### 1. Database Setup (PostgreSQL)
 The backend requires a PostgreSQL database to store user records, goals, and sync history.
 
-1. Start PostgreSQL (if it's not already running).
-2. Create a new database named `digitaltwin`:
+**For Mac Users (via Homebrew):**
+1. Install PostgreSQL (if not already installed):
+   ```bash
+   brew install postgresql@14
+   ```
+2. Start the database service:
+   ```bash
+   brew services start postgresql@14
+   ```
+3. Open the PostgreSQL terminal interface:
+   ```bash
+   psql postgres
+   ```
+4. Create the required database (press Enter after typing):
    ```sql
    CREATE DATABASE digitaltwin;
    ```
-*(Note: If your PostgreSQL username/password is different from the default, you will need to update `DB_USERNAME` and `DB_PASSWORD` in the backend properties.)*
+5. Type `\q` and press Enter to exit.
+
+*(Note: The backend defaults to using your Mac's username with no password. If your setup is different, update `DB_USERNAME` and `DB_PASSWORD` in the backend properties.)*
 
 ### 2. Backend Setup (Spring Boot)
 1. Open a terminal and navigate to the backend folder:
