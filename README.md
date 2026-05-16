@@ -52,27 +52,61 @@ Chat with a highly contextual AI coach grounded entirely in your deterministic d
 ## 🚀 Running the Project Locally
 
 ### Prerequisites
+Before you start, make sure you have the following installed on your machine:
 * **Node.js** (v18+)
-* **Java** (JDK 23)
+* **Java** (JDK 21 or higher)
 * **Maven** (v3.9+)
-* Gemini API Key
+* **PostgreSQL** (running on port 5432)
 
-### 1. Start the Backend
-Navigate to the backend directory, add your API key, and start the Spring Boot server:
-```bash
-cd backend
-# Edit src/main/resources/application.properties and insert your gemini.api.key
-mvn spring-boot:run
-```
-*The backend will run on `http://localhost:8080`*
+### 1. Database Setup (PostgreSQL)
+The backend requires a PostgreSQL database to store user records, goals, and sync history.
 
-### 2. Start the Frontend
-Open a new terminal window, navigate to the root directory, install dependencies, and start the Vite development server:
-```bash
-npm install
-npm run dev
-```
-*The frontend will run on `http://localhost:5173`*
+1. Start PostgreSQL (if it's not already running).
+2. Create a new database named `digitaltwin`:
+   ```sql
+   CREATE DATABASE digitaltwin;
+   ```
+*(Note: If your PostgreSQL username/password is different from the default, you will need to update `DB_USERNAME` and `DB_PASSWORD` in the backend properties.)*
+
+### 2. Backend Setup (Spring Boot)
+1. Open a terminal and navigate to the backend folder:
+   ```bash
+   cd backend
+   ```
+2. Set up your environment variables (or copy `.env.example` to `.env`):
+   ```bash
+   export GEMINI_API_KEY="your-new-gemini-api-key-here"
+   export DB_USERNAME="your-postgres-username"
+   ```
+3. Clean and build the backend dependencies:
+   ```bash
+   mvn clean install
+   ```
+4. Start the backend server:
+   ```bash
+   mvn spring-boot:run
+   ```
+*The backend will now be running on `http://localhost:8080`.*
+
+### 3. Frontend Setup (React/Vite)
+1. Open a **new** terminal window and navigate to the main project folder:
+   ```bash
+   cd BeyondSelf-Complete # (or wherever you cloned the repo)
+   ```
+2. Install all the necessary Node modules (this will install all the AI/TensorFlow dependencies):
+   ```bash
+   npm install
+   ```
+3. Start the React development server:
+   ```bash
+   npm run dev
+   ```
+*The frontend will run on `http://localhost:5173`.*
+
+### 4. Final Verification
+* Open your browser and go to the frontend URL (`http://localhost:5173`).
+* Log in or continue as a demo user.
+* To test the real integrations, go to **Settings -> Integrations** and connect your GitHub or upload a CSV file to see the AI engines process real deterministic data!
 
 ---
 
