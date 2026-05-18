@@ -7,6 +7,8 @@ import { GlassCard, PageHeader, InsightCard, ScoreRing, showToast } from '../com
 import AIExplainer from '../components/ui/AIExplainer';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine } from 'recharts';
 import { Link } from 'react-router-dom';
+import LifeStressHeatmap from '../components/ui/Heatmap';
+import ReportCardModal from '../components/ui/ReportCardModal';
 
 const severityConfig = {
   critical: { border: 'border-red-500/30', bg: 'bg-red-500/5', badge: 'bg-red-500/15 text-red-300', pulse: 'bg-red-400', label: '🚨 Critical Pattern' },
@@ -85,6 +87,7 @@ function PatternCard({ pattern, index }) {
 export default function Insights() {
   const { user } = useAuth();
   const { computed, health, finance, career } = useData();
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const h = health || {};
   const f = finance || {};
@@ -112,6 +115,7 @@ export default function Insights() {
 
   const insights = useMemo(() => generateInsights(currentState), [currentState]);
   const trendData = useMemo(() => generateTrendData(currentState, 14), [currentState]);
+  const trendData30 = useMemo(() => generateTrendData(currentState, 30), [currentState]);
   const correlations = useMemo(() => generateCorrelations(trendData), [trendData]);
 
   const criticalCount = patterns.filter(p => p.severity === 'critical').length;
@@ -250,6 +254,11 @@ export default function Insights() {
         </div>
       </div>
 
+      {/* Life Stress Heatmap */}
+      <div className="mb-6">
+        <LifeStressHeatmap trendData={trendData30} />
+      </div>
+
       {/* Daily Reflection */}
       <GlassCard glow="glow-cyan">
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>📝 Today's AI Reflection</h3>
@@ -268,33 +277,35 @@ export default function Insights() {
         </div>
         <div className="mt-4 flex items-center justify-between">
           <p className="text-[10px] text-slate-600">Analysis based on your data patterns</p>
-          <button onClick={() => {
-            const reportLines = [
-              `BeyondSelf Insights Report — ${new Date().toLocaleDateString()}`,
-              `==============================================`,
-              `Life Balance: ${balance}/100`,
-              `Health: ${healthScore}/100  |  Finance: ${financeScore}/100  |  Career: ${careerScore}/100`,
-              `Burnout Risk: ${burnout}%`,
-              '',
-              'Cross-Domain Patterns:',
-              ...patterns.map(p => `  [${p.severity.toUpperCase()}] ${p.title}: ${p.effect}`),
-              '',
-              'Today\'s Reflections:',
-              ...[(h.sleepAvg||0)<6?'Sleep deficit detected':'Sleep healthy', (h.stressLevel||0)>7?'Stress critically high':'Stress manageable'],
-            ];
-            const blob = new Blob([reportLines.join('\n')], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `beyondself_report_${new Date().toISOString().slice(0,10)}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Full report exported', 'success');
-          }} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">Export Report →</button>
+          <button onClick={() => setShowReportModal(true)} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition-colors border border-white/20 flex items-center gap-2">
+            <span>📄</span> View Weekly Report Card
+          </button>
         </div>
       </GlassCard>
+
+      {showReportModal && (
+        <ReportCardModal 
+          onClose={() => setShowReportModal(false)}
+          data={{
+            healthScore,
+            financeScore,
+            careerScore,
+            balance,
+            burnout,
+            sleepAvg: h.sleepAvg,
+            stressLevel: h.stressLevel,
+            coachNote: (h.sleepAvg || 0) < 6 
+              ? "I noticed a significant drop in your sleep quality this week, which correlates tightly with the spike in your stress levels. Next week, let's prioritize a hard cutoff time for work."
+              : "You've maintained excellent balance this week! Your sleep schedule is supporting strong coding productivity.",
+            actionItems: [
+              (h.sleepAvg || 0) < 6 ? "Set a hard 'devices off' alarm for 10:00 PM." : "Maintain your current 7+ hour sleep routine.",
+              (h.stressLevel || 0) > 7 ? "Schedule two 15-minute screen-free breaks during study blocks." : "Attempt one new advanced DSA problem daily.",
+              f.income > 0 && f.expenses / f.income > 0.9 ? "Review dining subscriptions to cut discretionary spending by 10%." : "Transfer surplus funds to your emergency savings goal."
+            ],
+            patterns
+          }}
+        />
+      )}
     </div>
   );
 }

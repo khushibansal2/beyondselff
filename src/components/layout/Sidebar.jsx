@@ -15,6 +15,7 @@ const navItems = [
   { path: '/insights', label: 'Insights', icon: '🧠' },
   { path: '/coach', label: 'AI Coach', icon: '💬' },
   { path: '/gamification', label: 'Rewards', icon: '⭐' },
+  { path: '/sustainability', label: 'Sustainability', icon: '🌿' },
   { path: '/upload', label: 'Data Import', icon: '📂' },
   { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];

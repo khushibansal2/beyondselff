@@ -14,6 +14,7 @@ import Simulator from './pages/Simulator';
 import Insights from './pages/Insights';
 import Coach from './pages/Coach';
 import Gamification from './pages/Gamification';
+import Sustainability from './pages/Sustainability';
 import Upload from './pages/Upload';
 import Settings from './pages/Settings';
 
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/insights" element={<Insights />} />
             <Route path="/coach" element={<Coach />} />
             <Route path="/gamification" element={<Gamification />} />
+            <Route path="/sustainability" element={<Sustainability />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

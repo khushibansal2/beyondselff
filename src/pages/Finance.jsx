@@ -6,132 +6,11 @@ import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
 import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, Legend } from 'recharts';
+import RoboAdvisor from '../components/ui/RoboAdvisor';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'];
 
-// ---- Investment Robo-Advisor ----
-function RoboAdvisor({ f, savingsRate }) {
-  const surplus = Math.max(0, (f.income || 0) - (f.expenses || 0));
-
-  // Determine risk profile deterministically
-  const hasDebt = (f.debt || 0) > 0;
-  const debtRatio = f.income > 0 ? (f.debt || 0) / f.income : 0;
-
-  const profile = (() => {
-    if (savingsRate >= 30 && !hasDebt) return 'aggressive';
-    if (savingsRate >= 15 && debtRatio < 0.5) return 'moderate';
-    return 'conservative';
-  })();
-
-  const profiles = {
-    conservative: {
-      label: 'Conservative', color: '#10b981', emoji: '🛡️',
-      reason: `Your savings rate is ${savingsRate}%${hasDebt ? ` and you carry debt of ₹${(f.debt || 0).toLocaleString()}` : ''}. A conservative allocation prioritizes capital protection and stable returns while you build your financial foundation.`,
-      assets: [
-        { name: 'Fixed Deposits (FD)', pct: 40, color: '#10b981', risk: 'Very Low', returns: '6–7% p.a.' },
-        { name: 'Government Bonds', pct: 25, color: '#3b82f6', risk: 'Low', returns: '7–8% p.a.' },
-        { name: 'Gold / SGB', pct: 15, color: '#f59e0b', risk: 'Low-Med', returns: '8–10% p.a.' },
-        { name: 'Index Funds (Stocks)', pct: 15, color: '#8b5cf6', risk: 'Medium', returns: '10–12% p.a.' },
-        { name: 'Emergency Reserve', pct: 5, color: '#f43f5e', risk: 'None', returns: 'Liquid' },
-      ],
-    },
-    moderate: {
-      label: 'Moderate', color: '#f59e0b', emoji: '⚖️',
-      reason: `Your savings rate of ${savingsRate}% is healthy${hasDebt ? ' with manageable debt' : ' with no major debt'}. A balanced allocation grows your wealth while keeping risk in check through diversification.`,
-      assets: [
-        { name: 'Index Funds (Stocks)', pct: 40, color: '#8b5cf6', risk: 'Medium', returns: '10–12% p.a.' },
-        { name: 'Fixed Deposits (FD)', pct: 25, color: '#10b981', risk: 'Very Low', returns: '6–7% p.a.' },
-        { name: 'Government Bonds', pct: 20, color: '#3b82f6', risk: 'Low', returns: '7–8% p.a.' },
-        { name: 'Gold / SGB', pct: 10, color: '#f59e0b', risk: 'Low-Med', returns: '8–10% p.a.' },
-        { name: 'Emergency Reserve', pct: 5, color: '#f43f5e', risk: 'None', returns: 'Liquid' },
-      ],
-    },
-    aggressive: {
-      label: 'Aggressive', color: '#8b5cf6', emoji: '🚀',
-      reason: `Excellent! Savings rate of ${savingsRate}% with zero debt gives you high risk capacity. An aggressive portfolio maximizes long-term wealth compounding through equity-heavy allocation.`,
-      assets: [
-        { name: 'Index + Mid-cap Stocks', pct: 60, color: '#8b5cf6', risk: 'High', returns: '12–15% p.a.' },
-        { name: 'Government Bonds', pct: 20, color: '#3b82f6', risk: 'Low', returns: '7–8% p.a.' },
-        { name: 'Gold / SGB', pct: 10, color: '#f59e0b', risk: 'Low-Med', returns: '8–10% p.a.' },
-        { name: 'Fixed Deposits (FD)', pct: 5, color: '#10b981', risk: 'Very Low', returns: '6–7% p.a.' },
-        { name: 'Emergency Reserve', pct: 5, color: '#f43f5e', risk: 'None', returns: 'Liquid' },
-      ],
-    },
-  };
-
-  const p = profiles[profile];
-
-  return (
-    <GlassCard glow="glow-purple">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{p.emoji}</span>
-          <div>
-            <h3 className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-              Investment Robo-Advisor
-            </h3>
-            <p className="text-[10px] text-slate-500">AI-computed allocation based on your financial data</p>
-          </div>
-        </div>
-        <span className="text-xs px-3 py-1 rounded-full font-semibold border"
-          style={{ color: p.color, borderColor: p.color + '40', background: p.color + '15' }}>
-          {p.label} Profile
-        </span>
-      </div>
-
-      {/* Reasoning */}
-      <div className="mt-4 mb-5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] text-xs text-slate-400 leading-relaxed">
-        <span className="text-slate-300 font-medium">Why this profile? </span>{p.reason}
-      </div>
-
-      {/* Investable surplus */}
-      <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/[0.06]">
-        <div className="text-center">
-          <p className="text-xs text-slate-500">Monthly Investable Surplus</p>
-          <p className="text-xl font-bold text-emerald-400" style={{ fontFamily: 'var(--font-display)' }}>₹{surplus.toLocaleString()}</p>
-        </div>
-        <div className="flex-1 h-px bg-white/[0.04]" />
-        <p className="text-[10px] text-slate-600 italic max-w-[160px] text-right">Allocate this monthly to build long-term wealth</p>
-      </div>
-
-      {/* Allocation bars */}
-      <div className="space-y-3">
-        {p.assets.map((a, i) => {
-          const amount = Math.round(surplus * a.pct / 100);
-          return (
-            <motion.div key={a.name} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}>
-              <div className="flex items-center justify-between mb-1 gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: a.color }} />
-                  <span className="text-xs text-slate-300 font-medium truncate">{a.name}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 text-slate-500 flex-shrink-0">{a.risk}</span>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0 text-right">
-                  <span className="text-[10px] text-slate-500">{a.returns}</span>
-                  <span className="text-xs font-bold" style={{ color: a.color }}>₹{amount.toLocaleString()}</span>
-                  <span className="text-[10px] text-slate-600 w-8">{a.pct}%</span>
-                </div>
-              </div>
-              <div className="w-full h-2 rounded-full bg-white/5">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${a.pct}%` }}
-                  transition={{ duration: 1, delay: i * 0.08, ease: 'easeOut' }}
-                  className="h-full rounded-full"
-                  style={{ background: `linear-gradient(90deg, ${a.color}cc, ${a.color})` }}
-                />
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      <p className="text-[9px] text-slate-600 italic mt-4 text-center">
-        ⚠️ This is a deterministic suggestion based on your data. Consult a SEBI-registered advisor before investing.
-      </p>
-    </GlassCard>
-  );
-}
+// Removed old RoboAdvisor component to use the new dynamic one from components/ui/RoboAdvisor
 
 
 export default function Finance() {
@@ -348,7 +227,7 @@ export default function Finance() {
 
       {tab === 'recommendations' && (
         <div className="space-y-6">
-          <RoboAdvisor f={f} savingsRate={savingsRate} />
+          <RoboAdvisor financeData={f} />
           <h3 className="text-sm font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
             <span>💡</span> Spending Optimizations
           </h3>

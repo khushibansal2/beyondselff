@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateTrendData } from '../data/demoData';
+import { analyzeMealImage } from '../services/visionService';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast, SecurityBadge } from '../components/ui/Components';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -15,6 +16,7 @@ export default function Health() {
   const burnout = computed?.burnout?.risk || 0;
   const trendData = useMemo(() => generateTrendData(user, 30), [user]);
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
+  const [visionLoading, setVisionLoading] = useState(false);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -37,6 +39,40 @@ export default function Health() {
     updateDomain('health', updated);
     setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
     showToast(`Health data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
+  };
+
+  const handleMealScan = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    let apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      apiKey = window.prompt("To use REAL Computer Vision, please enter your Gemini API Key.\n(It will be stored locally in your browser)");
+      if (apiKey) {
+        localStorage.setItem('gemini_api_key', apiKey);
+      } else {
+        e.target.value = '';
+        return; // User cancelled
+      }
+    }
+
+    setVisionLoading(true);
+    showToast("Analyzing meal...", "info");
+
+    try {
+      const result = await analyzeMealImage(file, apiKey);
+      setForm(prev => ({ ...prev, calories: result.calories.toString() }));
+      showToast(`Detected: ${result.foodName} (${result.calories} kcal). Macros: ${result.protein}g P / ${result.carbs}g C / ${result.fat}g F`, "success", 6000);
+    } catch (error) {
+      console.error(error);
+      showToast(error.message || "Failed to analyze image.", "error");
+      if (error.message.includes("API key")) {
+        localStorage.removeItem('gemini_api_key'); // clear invalid key
+      }
+    } finally {
+      setVisionLoading(false);
+      e.target.value = '';
+    }
   };
 
   const recommendations = [
@@ -149,7 +185,26 @@ export default function Health() {
 
       {tab === 'log' && (
         <GlassCard>
-          <h3 className="text-sm font-semibold mb-4">Log Today's Health Data</h3>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/[0.06] pb-4">
+            <h3 className="text-sm font-semibold">Log Today's Health Data</h3>
+            <div className="relative w-full md:w-auto">
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleMealScan} 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                disabled={visionLoading}
+                title="Upload meal photo"
+              />
+              <button className={`w-full md:w-auto text-xs px-4 py-2 rounded-xl border flex items-center justify-center gap-2 transition-all ${visionLoading ? 'bg-orange-500/20 border-orange-500/30 text-orange-300' : 'bg-orange-500/10 border-orange-500/20 text-orange-400 hover:bg-orange-500/20'}`}>
+                {visionLoading ? (
+                  <><div className="w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" /> Scanning AI Vision...</>
+                ) : (
+                  <><span>👁️</span> Scan Meal (AI Vision)</>
+                )}
+              </button>
+            </div>
+          </div>
           <form onSubmit={handleLog} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { key: 'sleep', label: 'Sleep (hours)', placeholder: '7.5', type: 'number', min: 0, max: 14, step: '0.5' },
