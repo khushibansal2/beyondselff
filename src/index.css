@@ -3,39 +3,40 @@
 
 @import "tailwindcss";
 
-/* ===== CSS VARIABLES — Notion Dark Palette ===== */
+/* ===== CSS VARIABLES — Premium Dark Palette ===== */
 :root {
-  --color-bg-primary: #191919;
-  --color-bg-secondary: #202020;
-  --color-bg-surface: #252525;
-  --color-bg-elevated: #2b2b2b;
-  --color-bg-hover: #2f2f2f;
-  --color-bg-active: #333333;
-  --color-accent: #2383E2;
-  --color-accent-hover: #1B6EC2;
-  --color-accent-soft: rgba(35, 131, 226, 0.12);
-  --color-success: #2E9E6B;
-  --color-success-soft: rgba(46, 158, 107, 0.12);
-  --color-warning: #D9730D;
-  --color-warning-soft: rgba(217, 115, 13, 0.12);
-  --color-danger: #E03E3E;
-  --color-danger-soft: rgba(224, 62, 62, 0.12);
-  --color-purple: #9065B0;
-  --color-purple-soft: rgba(144, 101, 176, 0.12);
-  --color-text-primary: #EBEBEB;
-  --color-text-secondary: #9B9B9B;
-  --color-text-muted: #5C5C5C;
-  --color-border: rgba(255, 255, 255, 0.055);
-  --color-border-hover: rgba(255, 255, 255, 0.09);
+  --color-bg-primary: #09090b;
+  --color-bg-secondary: #0f0f11;
+  --color-bg-surface: #141416;
+  --color-bg-elevated: #1a1a1e;
+  --color-bg-hover: #1f1f24;
+  --color-bg-active: #26262c;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-soft: rgba(59, 130, 246, 0.10);
+  --color-success: #22c55e;
+  --color-success-soft: rgba(34, 197, 94, 0.10);
+  --color-warning: #f59e0b;
+  --color-warning-soft: rgba(245, 158, 11, 0.10);
+  --color-danger: #ef4444;
+  --color-danger-soft: rgba(239, 68, 68, 0.10);
+  --color-purple: #a78bfa;
+  --color-purple-soft: rgba(167, 139, 250, 0.10);
+  --color-text-primary: #f0f0f3;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #52525b;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-hover: rgba(255, 255, 255, 0.10);
   --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
-  --spacing-page: 40px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --spacing-page: 48px;
   --spacing-page-mobile: 20px;
-  --transition-fast: 120ms ease;
-  --transition-base: 200ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ===== BASE STYLES ===== */
@@ -60,17 +61,17 @@ body {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   letter-spacing: -0.011em;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* ===== SCROLLBAR — Notion thin style ===== */
+/* ===== SCROLLBAR — Thin, minimal ===== */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -78,20 +79,20 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
 }
 
-/* ===== CARD SYSTEM — Flat, Notion-style ===== */
+/* ===== CARD SYSTEM — Premium flat ===== */
 .notion-card {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  transition: background var(--transition-base), border-color var(--transition-base);
+  transition: background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .notion-card:hover {
@@ -99,12 +100,12 @@ body {
   border-color: var(--color-border-hover);
 }
 
-/* Keep glass-card class name for compatibility but restyle as flat */
+/* Glass-card class for compatibility — premium flat style */
 .glass-card {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  transition: background var(--transition-base), border-color var(--transition-base);
+  transition: background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .glass-card:hover {
@@ -123,9 +124,51 @@ body {
   border: 1px solid var(--color-border);
 }
 
+/* ===== DASHBOARD PREMIUM CARD ===== */
+.dash-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  transition: background var(--transition-base), border-color var(--transition-base), transform var(--transition-base);
+}
+
+.dash-card:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-hover);
+}
+
+.dash-card-interactive {
+  cursor: pointer;
+}
+
+.dash-card-interactive:hover {
+  transform: translateY(-1px);
+}
+
+/* ===== HERO CARD ===== */
+.dash-hero {
+  background: linear-gradient(135deg, var(--color-bg-surface) 0%, rgba(59, 130, 246, 0.03) 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+}
+
 /* ===== GLOW EFFECTS — All removed, no-op ===== */
 .glow-blue, .glow-purple, .glow-cyan, .glow-emerald, .glow-rose, .glow-amber {
-  /* Intentionally empty — glows removed for Notion aesthetic */
+  /* Intentionally empty — glows removed */
 }
 
 /* ===== GRADIENT TEXT — Replaced with accent color ===== */
@@ -144,7 +187,7 @@ body {
 
 /* ===== ANIMATIONS — Minimal, calm ===== */
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -153,7 +196,12 @@ body {
   to { transform: rotate(360deg); }
 }
 
-.animate-fade-in-up { animation: fade-in-up 0.3s ease-out forwards; }
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
 
 /* Keep animate-pulse and animate-spin for loading states */
 .animate-pulse-glow { animation: none; }
@@ -166,12 +214,12 @@ body {
 .score-ring { transform: rotate(-90deg); }
 .score-ring circle { transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1); }
 
-/* ===== FORM STYLES — Notion-clean ===== */
+/* ===== FORM STYLES — Clean ===== */
 .input-premium {
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 8px 12px;
+  padding: 10px 14px;
   color: var(--color-text-primary);
   font-family: var(--font-primary);
   font-size: 14px;
@@ -183,7 +231,7 @@ body {
 
 .input-premium:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-accent-soft);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
   background: var(--color-bg-primary);
 }
 
@@ -198,18 +246,18 @@ select.input-premium option {
   color: var(--color-text-primary);
 }
 
-/* ===== BUTTON STYLES — Flat, Notion-like ===== */
+/* ===== BUTTON STYLES — Premium ===== */
 .btn-primary {
   background: var(--color-accent);
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-family: var(--font-primary);
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
-  transition: background var(--transition-fast), opacity var(--transition-fast);
+  transition: background var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
 }
 
 .btn-primary:hover {
@@ -217,7 +265,8 @@ select.input-premium option {
 }
 
 .btn-primary:active {
-  opacity: 0.85;
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 .btn-primary:disabled {
@@ -230,7 +279,7 @@ select.input-premium option {
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-family: var(--font-primary);
   font-weight: 500;
   font-size: 14px;
@@ -248,7 +297,7 @@ select.input-premium option {
   color: var(--color-text-secondary);
   border: none;
   border-radius: var(--radius-md);
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-family: var(--font-primary);
   font-weight: 500;
   font-size: 14px;
@@ -266,7 +315,7 @@ select.input-premium option {
   color: var(--color-text-secondary);
   border: none;
   border-radius: var(--radius-md);
-  padding: 6px;
+  padding: 8px;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
   display: inline-flex;
@@ -285,7 +334,7 @@ select.input-premium option {
   bottom: 80px;
   right: 24px;
   z-index: 100;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 500;
@@ -294,9 +343,9 @@ select.input-premium option {
   background: var(--color-bg-surface);
 }
 
-.toast-success { background: var(--color-success-soft); border-color: rgba(46,158,107,0.2); color: #4ADE80; }
-.toast-error { background: var(--color-danger-soft); border-color: rgba(224,62,62,0.2); color: #F87171; }
-.toast-info { background: var(--color-accent-soft); border-color: rgba(35,131,226,0.2); color: #60A5FA; }
+.toast-success { background: var(--color-success-soft); border-color: rgba(34,197,94,0.2); color: #4ADE80; }
+.toast-error { background: var(--color-danger-soft); border-color: rgba(239,68,68,0.2); color: #F87171; }
+.toast-info { background: var(--color-accent-soft); border-color: rgba(59,130,246,0.2); color: #60A5FA; }
 
 /* ===== ACHIEVEMENT POPUP ===== */
 @keyframes achievement-pop {
@@ -313,7 +362,7 @@ select.input-premium option {
   padding: var(--spacing-page-mobile);
   padding-bottom: 96px;
   min-height: 100vh;
-  max-width: 960px;
+  max-width: 1120px;
 }
 
 @media (min-width: 768px) {
@@ -326,28 +375,54 @@ select.input-premium option {
 .section-label {
   font-family: var(--font-primary);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--color-text-muted);
 }
 
 .heading-page {
   font-family: var(--font-primary);
   font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
-/* ===== NOTION-STYLE SECTION HEADER ===== */
+/* ===== SECTION HEADER ===== */
 .notion-section-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+/* ===== DASHBOARD SECTION SPACING ===== */
+.dash-section {
+  margin-bottom: 36px;
+}
+
+.dash-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-section-title .dash-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 /* ===== SELECTION ===== */

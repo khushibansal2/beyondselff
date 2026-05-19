@@ -27,7 +27,7 @@ function ProtectedRoute() {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <div className="flex min-h-screen bg-[#191919]">
+    <div className="flex min-h-screen bg-[#09090b]">
       <Sidebar />
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="hidden lg:block">
