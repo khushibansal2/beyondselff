@@ -64,26 +64,26 @@ export default function Career() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <GlassCard className="flex justify-center col-span-2 md:col-span-1" glow="glow-blue">
-              <ScoreRing score={score} color="auto" label="Career Score" size={100} />
+        <div className="space-y-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+            <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
+              <ScoreRing score={score} color="auto" label="Career Score" size={120} />
             </GlassCard>
             <MetricCard icon="📚" label="Study/day" value={`${c.studyHoursDaily}h`} color="#3b82f6" />
             <MetricCard icon="💻" label="Coding/day" value={`${c.codingHoursDaily}h`} color="#8b5cf6" />
-            <MetricCard icon="🧩" label="DSA/day" value={c.dsaPractice} color="#06b6d4" />
+            <MetricCard icon="🧩" label="DSA/day" value={c.dsaPractice} color="#0ea5e9" />
             <MetricCard icon="🚀" label="Projects" value={c.projectsCompleted} color="#10b981" />
             <MetricCard icon="🎯" label="Placement" value={`${placementReadiness}%`} color="#f59e0b" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
             <GlassCard>
-              <h3 className="text-sm font-semibold mb-4">Skill Radar</h3>
-              <div className="h-64">
+              <h3 className="dash-section-title mb-6">Skill Radar</h3>
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={skillRadar}>
-                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#a1a1aa', fontSize: 11 }} />
                     <Radar name="Skills" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2} />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -91,20 +91,22 @@ export default function Career() {
             </GlassCard>
 
             <GlassCard>
-              <h3 className="text-sm font-semibold mb-4">Skills Portfolio</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
+              <h3 className="dash-section-title mb-6">Skills Portfolio</h3>
+              <div className="flex flex-wrap gap-2.5 mb-6">
                 {c.skills.map(s => (
-                  <span key={s} className="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium">{s}</span>
+                  <span key={s} className="px-3.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[12px] text-[#a1a1aa] font-medium tracking-wide">
+                    {s}
+                  </span>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <div className="p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] text-center">
-                  <p className="text-2xl font-bold text-blue-400">{c.coursesActive}</p>
-                  <p className="text-[10px] text-[#9B9B9B]">Active Courses</p>
+              <div className="grid grid-cols-2 gap-5 mt-auto">
+                <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04] text-center">
+                  <p className="text-3xl font-bold text-blue-400 mb-1">{c.coursesActive}</p>
+                  <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wide">Active Courses</p>
                 </div>
-                <div className="p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] text-center">
-                  <p className="text-2xl font-bold text-[#9065B0]">{c.gpa}</p>
-                  <p className="text-[10px] text-[#9B9B9B]">GPA</p>
+                <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04] text-center">
+                  <p className="text-3xl font-bold text-[#a78bfa] mb-1">{c.gpa}</p>
+                  <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wide">GPA</p>
                 </div>
               </div>
             </GlassCard>
@@ -114,27 +116,37 @@ export default function Career() {
 
       {tab === 'log' && (
         <GlassCard>
-          <h3 className="text-sm font-semibold mb-4">Log Today's Career Data</h3>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-4">
-            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Study Hours</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium" placeholder="4" step="0.5" /></div>
-            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Coding Hours</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium" placeholder="3" step="0.5" /></div>
-            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium" placeholder="3" /></div>
-            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Add New Skill</label><input type="text" value={form.skill} onChange={e => setForm(p => ({ ...p, skill: e.target.value }))} className="input-premium" placeholder="e.g. Docker" /></div>
-            <div className="md:col-span-2"><button type="submit" className="btn-primary">Save Career Data ✓</button></div>
+          <div className="border-b border-white/[0.04] pb-6 mb-8">
+            <h3 className="dash-section-title mb-0">Log Today's Career Data</h3>
+          </div>
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-6">
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Study Hours</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Coding Hours</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Add New Skill</label><input type="text" value={form.skill} onChange={e => setForm(p => ({ ...p, skill: e.target.value }))} className="input-premium w-full" placeholder="e.g. Docker" /></div>
+            <div className="md:col-span-2 mt-2"><button type="submit" className="btn-primary w-full py-[14px]">Save Career Data</button></div>
           </form>
         </GlassCard>
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {recommendations.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <GlassCard>
-                <div className="flex items-start gap-4"><span className="text-3xl">{r.icon}</span>
+                <div className="flex items-start gap-6">
+                  <span className="text-4xl flex-shrink-0">{r.icon}</span>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2"><h4 className="font-semibold">{r.title}</h4>
-                      <div className="flex gap-2"><span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#E03E3E]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#D9730D]' : 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]'}`}>Risk: {r.risk}</span><span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#9B9B9B]">{r.confidence}%</span></div></div>
-                    <p className="text-sm text-[#9B9B9B] leading-relaxed">{r.text}</p></div></div>
+                    <div className="flex items-center justify-between mb-3 gap-4">
+                      <h4 className="text-[15px] font-semibold text-[#f0f0f3]">{r.title}</h4>
+                      <div className="flex gap-3 flex-shrink-0">
+                        <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#ef4444]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#f59e0b]' : 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]'}`}>Risk: {r.risk}</span>
+                        <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-[#a1a1aa]">{r.confidence}% confidence</span>
+                      </div>
+                    </div>
+                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">{r.text}</p>
+                  </div>
+                </div>
               </GlassCard>
             </motion.div>
           ))}
@@ -142,21 +154,21 @@ export default function Career() {
       )}
 
       {tab === 'roadmap' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {roadmap.map((phase, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
-              <GlassCard className={phase.status === 'locked' ? 'opacity-50' : ''}>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${phase.status === 'done' ? 'bg-emerald-500/20 text-[#2E9E6B]' : phase.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-slate-600'}`}>
+              <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>
+                <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/[0.04]">
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 ${phase.status === 'done' ? 'bg-emerald-500/10 text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>
                     {phase.status === 'done' ? '✓' : i + 1}
                   </span>
-                  <h4 className="font-semibold">{phase.phase}</h4>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full ml-auto ${phase.status === 'done' ? 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-600'}`}>{phase.status}</span>
+                  <h4 className="font-semibold text-[#f0f0f3] text-[15px]">{phase.phase}</h4>
+                  <span className={`text-[11px] font-medium px-3 py-1 rounded-lg ml-auto capitalize ${phase.status === 'done' ? 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>{phase.status}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 ml-11">
+                <div className="grid md:grid-cols-2 gap-4 ml-12">
                   {phase.items.map(item => (
-                    <div key={item} className="text-xs text-[#9B9B9B] flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                    <div key={item} className="text-[13px] text-[#a1a1aa] flex items-center gap-3">
+                      <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-[#52525b]'}`} />
                       {item}
                     </div>
                   ))}

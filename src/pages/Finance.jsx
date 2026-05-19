@@ -134,43 +134,43 @@ export default function Finance() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <GlassCard className="flex justify-center col-span-2 md:col-span-1" glow="glow-amber">
-              <ScoreRing score={score} color="auto" label="Finance Score" size={100} />
+        <div className="space-y-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+            <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
+              <ScoreRing score={score} color="auto" label="Finance Score" size={120} />
             </GlassCard>
-            <MetricCard icon="💵" label="Income" value={`₹${f.income.toLocaleString()}`} color="#10b981" />
+            <MetricCard icon="💵" label="Income" value={`₹${f.income.toLocaleString()}`} color="#22c55e" />
             <MetricCard icon="💸" label="Expenses" value={`₹${f.expenses.toLocaleString()}`} color="#f43f5e" />
             <MetricCard icon="🏦" label="Savings" value={`₹${f.savings.toLocaleString()}`} color="#3b82f6" />
-            <MetricCard icon="📈" label="Investments" value={`₹${f.investments.toLocaleString()}`} color="#8b5cf6" />
+            <MetricCard icon="📈" label="Investments" value={`₹${f.investments.toLocaleString()}`} color="#a78bfa" />
             <MetricCard icon="🔄" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} color="#f59e0b" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
             <GlassCard>
-              <h3 className="text-sm font-semibold mb-4">Expense Breakdown</h3>
-              <div className="h-52 flex items-center justify-center">
+              <h3 className="dash-section-title mb-6">Expense Breakdown</h3>
+              <div className="h-72 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={expenseBreakdown} cx="50%" cy="50%" outerRadius={80} innerRadius={50} dataKey="value" paddingAngle={2}>
-                      {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    <Pie data={expenseBreakdown} cx="50%" cy="50%" outerRadius={110} innerRadius={70} dataKey="value" paddingAngle={3}>
+                      {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="rgba(255,255,255,0.05)" />)}
                     </Pie>
-                    <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} contentStyle={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px' }} />
-                    <Legend formatter={(v) => <span className="text-xs text-[#9B9B9B]">{v}</span>} />
+                    <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} contentStyle={{ background: '#141416', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '12px' }} />
+                    <Legend formatter={(v) => <span className="text-[13px] text-[#a1a1aa] font-medium ml-1">{v}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </GlassCard>
 
             <GlassCard>
-              <h3 className="text-sm font-semibold mb-4">Spending Trend (30 days)</h3>
-              <div className="h-52">
+              <h3 className="dash-section-title mb-6">Spending Trend (30 days)</h3>
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>
                     <defs>
-                      <linearGradient id="spendG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient>
+                      <linearGradient id="spendG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 10 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 11 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="spending" stroke="#f43f5e" fill="url(#spendG)" strokeWidth={2} name="Spending" />
                   </AreaChart>
@@ -181,12 +181,30 @@ export default function Finance() {
 
           {/* Financial Anxiety Check */}
           {(f.debt > 0 || savingsRate < 5 || emotionalSpending) && (
-            <GlassCard glow="glow-rose">
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">🚨 Financial Anxiety Detection</h3>
-              <div className="grid md:grid-cols-3 gap-3">
-                {f.debt > 0 && <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-xs"><p className="font-medium text-[#E03E3E]">Debt: ₹{f.debt.toLocaleString()}</p><p className="text-[#9B9B9B] mt-1">Prioritize debt repayment. Allocate 20% of income to clearing debt.</p></div>}
-                {savingsRate < 5 && <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs"><p className="font-medium text-[#D9730D]">Low Savings Rate: {savingsRate}%</p><p className="text-[#9B9B9B] mt-1">Aim for 20% minimum. Start with small automated transfers.</p></div>}
-                {emotionalSpending && <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs"><p className="font-medium text-[#9065B0]">Emotional Spending Risk</p><p className="text-[#9B9B9B] mt-1">High stress levels linked to impulsive purchases. Use 24-hour wait rule.</p></div>}
+            <GlassCard className="border-red-500/10 bg-red-500/[0.02]">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
+                <h3 className="text-[13px] font-bold text-red-300 uppercase tracking-wider mb-0">Financial Anxiety Detection</h3>
+              </div>
+              <div className="grid md:grid-cols-3 gap-5">
+                {f.debt > 0 && (
+                  <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04]">
+                    <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Debt: ₹{f.debt.toLocaleString()}</p>
+                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">Prioritize debt repayment. Allocate 20% of income to clearing debt to reduce financial stress.</p>
+                  </div>
+                )}
+                {savingsRate < 5 && (
+                  <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04]">
+                    <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Low Savings Rate: {savingsRate}%</p>
+                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">Aim for 20% minimum. Start with small automated transfers on payday.</p>
+                  </div>
+                )}
+                {emotionalSpending && (
+                  <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04]">
+                    <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Emotional Spending Risk</p>
+                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">High stress levels linked to impulsive purchases. Use a 24-hour wait rule for non-essentials.</p>
+                  </div>
+                )}
               </div>
             </GlassCard>
           )}
@@ -195,8 +213,8 @@ export default function Finance() {
 
       {tab === 'log' && (
         <GlassCard>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-[rgba(255,255,255,0.055)] pb-4">
-            <h3 className="text-sm font-semibold">Log Financial Data</h3>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-white/[0.04] pb-6">
+            <h3 className="dash-section-title mb-0">Log Financial Data</h3>
             <div className="relative w-full md:w-auto">
               <input 
                 type="file" 
@@ -206,9 +224,9 @@ export default function Finance() {
                 disabled={ocrLoading}
                 title="Upload receipt image"
               />
-              <button className={`w-full md:w-auto text-xs px-4 py-2 rounded-xl border flex items-center justify-center gap-2 transition-all ${ocrLoading ? 'bg-blue-500/20 border-blue-500/30 text-blue-300' : 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20'}`}>
+              <button className={`w-full md:w-auto text-[13px] px-5 py-2.5 rounded-xl border flex items-center justify-center gap-2 transition-all font-medium ${ocrLoading ? 'bg-blue-500/20 border-blue-500/30 text-blue-300' : 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20'}`}>
                 {ocrLoading ? (
-                  <><div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> Scanning ({ocrProgress}%)...</>
+                  <><div className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> Scanning ({ocrProgress}%)...</>
                 ) : (
                   <><span>📸</span> Scan Receipt (AI OCR)</>
                 )}
@@ -216,40 +234,45 @@ export default function Finance() {
             </div>
           </div>
           
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-4">
-            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
-            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
-            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
-            <div className="flex items-end"><button type="submit" className="btn-primary w-full">Save Entry ✓</button></div>
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-6">
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium w-full" placeholder="₹25000" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium w-full"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium w-full" placeholder="₹500" /></div>
+            <div className="flex items-end mt-2"><button type="submit" className="btn-primary w-full py-[14px]">Save Entry</button></div>
           </form>
         </GlassCard>
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-6">
+        <div className="space-y-8">
           <RoboAdvisor financeData={f} />
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <span>💡</span> Spending Optimizations
-          </h3>
-          {recommendations.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-              <GlassCard>
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl">{r.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{r.title}</h4>
-                      <div className="flex gap-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#E03E3E]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#D9730D]' : 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]'}`}>Risk: {r.risk}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#9B9B9B]">{r.confidence}% AI Match</span>
+          
+          <div className="pt-4">
+            <h3 className="dash-section-title mb-6 flex items-center gap-2">
+              <span>💡</span> Spending Optimizations
+            </h3>
+            <div className="space-y-6">
+              {recommendations.map((r, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+                  <GlassCard>
+                    <div className="flex items-start gap-6">
+                      <span className="text-4xl flex-shrink-0">{r.icon}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-3 gap-4">
+                          <h4 className="text-[15px] font-semibold text-[#f0f0f3]">{r.title}</h4>
+                          <div className="flex gap-3 flex-shrink-0">
+                            <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#ef4444]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#f59e0b]' : 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]'}`}>Risk: {r.risk}</span>
+                            <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-[#a1a1aa]">{r.confidence}% AI Match</span>
+                          </div>
+                        </div>
+                        <p className="text-[13px] text-[#a1a1aa] leading-relaxed">{r.text}</p>
                       </div>
                     </div>
-                    <p className="text-sm text-[#9B9B9B] leading-relaxed">{r.text}</p>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
