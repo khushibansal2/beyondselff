@@ -55,8 +55,8 @@
   --radius-3xl: 28px;
 
   /* Spacing */
-  --spacing-page: 56px;
-  --spacing-page-mobile: 20px;
+  --spacing-page: 64px;
+  --spacing-page-mobile: 24px;
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -529,12 +529,19 @@ select.input-premium option {
   padding: var(--spacing-page-mobile);
   padding-bottom: 96px;
   min-height: 100vh;
-  max-width: 1120px;
+  max-width: 1200px;
   position: relative;
   z-index: 1;
 }
 
 @media (min-width: 768px) {
+  .page-container {
+    padding: 40px;
+    padding-bottom: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
   .page-container {
     padding: var(--spacing-page);
     padding-bottom: var(--spacing-page);
@@ -579,7 +586,7 @@ select.input-premium option {
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
   gap: 10px;

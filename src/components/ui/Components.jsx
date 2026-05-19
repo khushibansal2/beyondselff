@@ -52,7 +52,7 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
       animate={animate ? { opacity: 1, y: 0 } : false}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       onClick={onClick}
-      className={`glass-card p-8 lg:p-10 ${glow} ${onClick ? 'cursor-pointer dash-card-interactive' : ''} ${className}`}
+      className={`glass-card p-9 lg:p-12 ${glow} ${onClick ? 'cursor-pointer dash-card-interactive' : ''} ${className}`}
     >
       {children}
     </motion.div>
@@ -62,14 +62,14 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
 export function MetricCard({ icon, label, value, change, color = '#6366f1', delay = 0 }) {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="glass-card p-6 lg:p-7 flex items-center gap-5 group transition-all duration-300 hover:translate-y-[-2px]"
+      className="glass-card p-7 lg:p-8 flex items-center gap-5 group transition-all duration-300 hover:translate-y-[-2px]"
     >
       <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110 border border-white/[0.06]"
         style={{ background: `${color}12`, boxShadow: `0 0 20px ${color}15` }}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold mb-1.5">{label}</p>
+        <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold mb-2">{label}</p>
         <p className="text-[20px] font-bold tracking-tight truncate">{value}</p>
       </div>
       {change !== undefined && (
@@ -107,9 +107,9 @@ export function InsightCard({ insight, index = 0 }) {
 
 export function PageHeader({ title, subtitle, icon }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mb-12">
-      <h1 className="text-[32px] md:text-[38px] font-bold gradient-text tracking-[-0.03em] leading-none">{title}</h1>
-      {subtitle && <p className="text-[#71717a] text-[15px] mt-3 leading-relaxed">{subtitle}</p>}
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mb-14">
+      <h1 className="text-[34px] md:text-[40px] font-bold gradient-text tracking-[-0.03em] leading-none">{title}</h1>
+      {subtitle && <p className="text-[#71717a] text-[15px] mt-4 leading-relaxed max-w-2xl">{subtitle}</p>}
     </motion.div>
   );
 }
