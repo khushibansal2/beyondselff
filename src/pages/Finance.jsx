@@ -129,13 +129,13 @@ export default function Finance() {
   };
 
   return (
-    <div className="page-container min-h-screen">
-      <PageHeader title="Financial Health" subtitle="Track spending, optimize savings, and build financial resilience." icon="💰" />
+    <div className="page-container min-h-screen pb-20">
+      <PageHeader title="Financial Intelligence" subtitle="Track your net worth, expenses, and AI-driven optimizations." icon="💰" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+        <div className="space-y-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
             <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
               <ScoreRing score={score} color="auto" label="Finance Score" size={120} />
             </GlassCard>
@@ -146,7 +146,7 @@ export default function Finance() {
             <MetricCard icon="🔄" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} color="#f59e0b" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
             <GlassCard>
               <h3 className="dash-section-title mb-6">Expense Breakdown</h3>
               <div className="h-72 flex items-center justify-center">
@@ -182,25 +182,25 @@ export default function Finance() {
           {/* Financial Anxiety Check */}
           {(f.debt > 0 || savingsRate < 5 || emotionalSpending) && (
             <GlassCard className="border-red-500/10 bg-red-500/[0.02]">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-8">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
                 <h3 className="text-[13px] font-bold text-red-300 uppercase tracking-wider mb-0">Financial Anxiety Detection</h3>
               </div>
-              <div className="grid md:grid-cols-3 gap-5">
+              <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
                 {f.debt > 0 && (
-                  <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04]">
+                  <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
                     <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Debt: ₹{f.debt.toLocaleString()}</p>
                     <p className="text-[13px] text-[#a1a1aa] leading-relaxed">Prioritize debt repayment. Allocate 20% of income to clearing debt to reduce financial stress.</p>
                   </div>
                 )}
                 {savingsRate < 5 && (
-                  <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04]">
+                  <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
                     <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Low Savings Rate: {savingsRate}%</p>
                     <p className="text-[13px] text-[#a1a1aa] leading-relaxed">Aim for 20% minimum. Start with small automated transfers on payday.</p>
                   </div>
                 )}
                 {emotionalSpending && (
-                  <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04]">
+                  <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
                     <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Emotional Spending Risk</p>
                     <p className="text-[13px] text-[#a1a1aa] leading-relaxed">High stress levels linked to impulsive purchases. Use a 24-hour wait rule for non-essentials.</p>
                   </div>
@@ -234,7 +234,7 @@ export default function Finance() {
             </div>
           </div>
           
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-6">
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-8">
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium w-full" placeholder="₹25000" /></div>
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium w-full"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium w-full" placeholder="₹500" /></div>
@@ -244,14 +244,14 @@ export default function Finance() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-8">
+        <div className="space-y-12">
           <RoboAdvisor financeData={f} />
           
           <div className="pt-4">
-            <h3 className="dash-section-title mb-6 flex items-center gap-2">
+            <h3 className="dash-section-title mb-8 flex items-center gap-2">
               <span>💡</span> Spending Optimizations
             </h3>
-            <div className="space-y-6">
+            <div className="space-y-8">
               {recommendations.map((r, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
                   <GlassCard>
