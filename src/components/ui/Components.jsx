@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState, useCallback } from 'react';
 
-export function ScoreRing({ score, size = 130, strokeWidth = 7, color = '#3b82f6', label, delay = 0 }) {
+export function ScoreRing({ score, size = 130, strokeWidth = 7, color = '#6366f1', label, delay = 0 }) {
   const [animatedScore, setAnimatedScore] = useState(0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -29,15 +29,15 @@ export function ScoreRing({ score, size = 130, strokeWidth = 7, color = '#3b82f6
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: delay / 1000, duration: 0.4, ease: 'easeOut' }} className="flex flex-col items-center gap-3">
+    <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: delay / 1000, duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }} className="flex flex-col items-center gap-3">
       <div className="relative" style={{ width: size, height: size }}>
         <svg className="score-ring" width={size} height={size}>
           <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={strokeWidth} />
-          <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={getColor(animatedScore)} strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" style={{ filter: `drop-shadow(0 0 6px ${getColor(animatedScore)}30)` }} />
+          <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={getColor(animatedScore)} strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" style={{ filter: `drop-shadow(0 0 8px ${getColor(animatedScore)}40)` }} />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-2xl font-bold tabular-nums tracking-tight" style={{ color: getColor(animatedScore) }}>{animatedScore}</span>
-          <span className="text-[10px] text-[#52525b] font-medium mt-0.5">/ 100</span>
+          <span className="text-[10px] text-[#3f3f46] font-medium mt-0.5">/ 100</span>
         </div>
       </div>
       {label && <span className="text-[12px] text-[#a1a1aa] font-medium tracking-wide">{label}</span>}
@@ -48,31 +48,32 @@ export function ScoreRing({ score, size = 130, strokeWidth = 7, color = '#3b82f6
 export function GlassCard({ children, className = '', glow = '', onClick, animate = true }) {
   return (
     <motion.div
-      initial={animate ? { opacity: 0, y: 10 } : false}
+      initial={animate ? { opacity: 0, y: 12 } : false}
       animate={animate ? { opacity: 1, y: 0 } : false}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       onClick={onClick}
-      className={`glass-card p-8 lg:p-10 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`glass-card p-8 lg:p-10 ${glow} ${onClick ? 'cursor-pointer dash-card-interactive' : ''} ${className}`}
     >
       {children}
     </motion.div>
   );
 }
 
-export function MetricCard({ icon, label, value, change, color = '#3b82f6', delay = 0 }) {
+export function MetricCard({ icon, label, value, change, color = '#6366f1', delay = 0 }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: delay / 1000, duration: 0.3 }}
-      className="glass-card p-6 lg:p-7 flex items-center gap-5 group hover:border-white/[0.10] transition-all"
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="glass-card p-6 lg:p-7 flex items-center gap-5 group transition-all duration-300 hover:translate-y-[-2px]"
     >
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 transition-transform group-hover:scale-105" style={{ background: `${color}10` }}>
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 transition-all duration-300 group-hover:scale-110 border border-white/[0.06]"
+        style={{ background: `${color}12`, boxShadow: `0 0 20px ${color}15` }}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-[#52525b] uppercase tracking-[0.06em] font-semibold mb-1">{label}</p>
-        <p className="text-[18px] font-bold tracking-tight truncate">{value}</p>
+        <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold mb-1.5">{label}</p>
+        <p className="text-[20px] font-bold tracking-tight truncate">{value}</p>
       </div>
       {change !== undefined && (
-        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg flex-shrink-0 ${change >= 0 ? 'text-[#22c55e] bg-[rgba(34,197,94,0.08)]' : 'text-[#ef4444] bg-[rgba(239,68,68,0.08)]'}`}>
+        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg flex-shrink-0 ${change >= 0 ? 'text-[#22c55e] bg-[rgba(34,197,94,0.10)]' : 'text-[#ef4444] bg-[rgba(239,68,68,0.10)]'}`}>
           {change >= 0 ? '↑' : '↓'} {Math.abs(change)}%
         </span>
       )}
@@ -81,20 +82,22 @@ export function MetricCard({ icon, label, value, change, color = '#3b82f6', dela
 }
 
 export function InsightCard({ insight, index = 0 }) {
-  const borderMap = { critical: 'border-l-[#ef4444]', alert: 'border-l-[#f59e0b]', warning: 'border-l-[#f97316]', positive: 'border-l-[#22c55e]', info: 'border-l-[#3b82f6]' };
+  const borderMap = { critical: 'border-l-[#ef4444]', alert: 'border-l-[#f59e0b]', warning: 'border-l-[#f97316]', positive: 'border-l-[#22c55e]', info: 'border-l-[#6366f1]' };
+  const glowMap = { critical: 'rgba(239,68,68,0.06)', alert: 'rgba(245,158,11,0.06)', warning: 'rgba(249,115,22,0.06)', positive: 'rgba(34,197,94,0.06)', info: 'rgba(99,102,241,0.06)' };
   return (
-    <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.06 }}
-      className={`p-6 lg:p-7 rounded-2xl bg-[#141416] border border-white/[0.06] border-l-[3px] ${borderMap[insight.type] || borderMap.info} hover:bg-[#1a1a1e] hover:border-white/[0.08] transition-all`}>
+    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
+      className={`p-6 lg:p-7 rounded-2xl border border-white/[0.06] border-l-[3px] ${borderMap[insight.type] || borderMap.info} hover:border-white/[0.10] transition-all duration-300 hover:translate-y-[-1px]`}
+      style={{ background: `linear-gradient(135deg, ${glowMap[insight.type] || glowMap.info}, rgba(255,255,255,0.02))`, backdropFilter: 'blur(20px)' }}>
       <div className="flex items-start gap-5">
         <span className="text-lg flex-shrink-0 mt-0.5">{insight.icon}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2">
             <h4 className="font-semibold text-[13px] truncate text-[#f0f0f3]">{insight.title}</h4>
-            <span className="text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] text-[#71717a] flex-shrink-0 tabular-nums font-medium">{insight.confidence}%</span>
+            <span className="text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#71717a] flex-shrink-0 tabular-nums font-medium">{insight.confidence}%</span>
           </div>
           <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{insight.text}</p>
           <div className="flex gap-2 mt-3">
-            {insight.domains.map(d => <span key={d} className="text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] text-[#52525b] capitalize font-medium">{d}</span>)}
+            {insight.domains.map(d => <span key={d} className="text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.04] text-[#52525b] capitalize font-medium">{d}</span>)}
           </div>
         </div>
       </div>
@@ -104,8 +107,8 @@ export function InsightCard({ insight, index = 0 }) {
 
 export function PageHeader({ title, subtitle, icon }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-12">
-      <h1 className="text-[32px] md:text-[36px] font-bold text-[#f0f0f3] tracking-tight leading-none">{title}</h1>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mb-12">
+      <h1 className="text-[32px] md:text-[38px] font-bold gradient-text tracking-[-0.03em] leading-none">{title}</h1>
       {subtitle && <p className="text-[#71717a] text-[15px] mt-3 leading-relaxed">{subtitle}</p>}
     </motion.div>
   );
@@ -121,7 +124,7 @@ export function TabBar({ tabs, active, onChange }) {
           {active === t.id && (
             <motion.div
               layoutId="tab-underline"
-              className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3b82f6]"
+              className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500"
               transition={{ type: 'spring', stiffness: 350, damping: 30 }}
             />
           )}
@@ -138,7 +141,7 @@ export function LoadingScreen() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-8 h-8 rounded-full border-2 border-transparent border-t-[#3b82f6] mx-auto mb-4"
+          className="w-8 h-8 rounded-full border-2 border-transparent border-t-indigo-500 mx-auto mb-4"
         />
         <p className="text-[13px] text-[#52525b] font-medium">Loading...</p>
       </div>
@@ -149,7 +152,7 @@ export function LoadingScreen() {
 export function Badge({ badge, size = 'md' }) {
   const sizes = { sm: 'w-10 h-10 text-lg', md: 'w-12 h-12 text-2xl', lg: 'w-16 h-16 text-3xl' };
   return (
-    <div className={`${sizes[size]} rounded-xl flex items-center justify-center transition-all ${badge.unlocked ? 'bg-[#1a1a1e] border border-white/[0.08]' : 'bg-[#141416] border border-white/[0.04] opacity-30 grayscale'}`}>
+    <div className={`${sizes[size]} rounded-xl flex items-center justify-center transition-all ${badge.unlocked ? 'bg-white/[0.04] border border-white/[0.08] shadow-lg' : 'bg-white/[0.02] border border-white/[0.04] opacity-30 grayscale'}`}>
       {badge.icon}
     </div>
   );
@@ -157,10 +160,11 @@ export function Badge({ badge, size = 'md' }) {
 
 export function AchievementPopup({ badge, onClose }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.25 }} className="bg-[#141416] border border-white/[0.08] p-10 rounded-2xl text-center max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md" onClick={onClose}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+        className="glass-card p-10 text-center max-w-sm mx-4" onClick={e => e.stopPropagation()}>
         <div className="text-5xl mb-5">{badge.icon}</div>
-        <h3 className="text-lg font-bold mb-2 text-[#3b82f6]">Achievement Unlocked!</h3>
+        <h3 className="text-lg font-bold mb-2 gradient-text">Achievement Unlocked!</h3>
         <p className="text-base font-semibold mb-1 text-[#f0f0f3]">{badge.name}</p>
         <p className="text-sm text-[#a1a1aa]">{badge.desc}</p>
         <button onClick={onClose} className="btn-primary mt-8 w-full">Awesome! 🎉</button>
@@ -196,7 +200,7 @@ export function ToastContainer() {
     <div className="fixed bottom-20 lg:bottom-6 right-6 z-[100] space-y-2">
       <AnimatePresence>
         {items.map(t => (
-          <motion.div key={t.id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }} className={`toast toast-${t.type}`}>
+          <motion.div key={t.id} initial={{ opacity: 0, x: 30, scale: 0.95 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 30, scale: 0.95 }} className={`toast toast-${t.type}`}>
             {t.type === 'success' && '✓ '}{t.type === 'error' && '✕ '}{t.type === 'info' && 'ℹ '}{t.message}
           </motion.div>
         ))}
@@ -247,7 +251,7 @@ export function SecurityBadge({ compact = false }) {
 }
 
 // Progress bar
-export function ProgressBar({ value, max = 100, color = '#3b82f6', label, showPercent = true, height = 'h-1.5' }) {
+export function ProgressBar({ value, max = 100, color = '#6366f1', label, showPercent = true, height = 'h-1.5' }) {
   const pct = Math.round((value / max) * 100);
   return (
     <div>
@@ -259,24 +263,25 @@ export function ProgressBar({ value, max = 100, color = '#3b82f6', label, showPe
       )}
       <div className={`w-full ${height} rounded-full bg-white/[0.04]`}>
         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
-          className={`${height} rounded-full`} style={{ background: color }} />
+          className={`${height} rounded-full`} style={{ background: color, boxShadow: `0 0 10px ${color}30` }} />
       </div>
     </div>
   );
 }
 
 // ---- Explainable Score Panel ----
-export function ExplainableScorePanel({ title, score, factors = [], color = '#3b82f6', icon }) {
+export function ExplainableScorePanel({ title, score, factors = [], color = '#6366f1', icon }) {
   const [open, setOpen] = useState(false);
 
   const statusColor = (s) => {
-    if (s === 'good') return { text: 'text-[#22c55e]', bg: 'bg-[rgba(34,197,94,0.08)]', bar: '#22c55e' };
-    if (s === 'warning') return { text: 'text-[#f59e0b]', bg: 'bg-[rgba(245,158,11,0.08)]', bar: '#f59e0b' };
-    return { text: 'text-[#ef4444]', bg: 'bg-[rgba(239,68,68,0.08)]', bar: '#ef4444' };
+    if (s === 'good') return { text: 'text-[#22c55e]', bg: 'bg-[rgba(34,197,94,0.10)]', bar: '#22c55e' };
+    if (s === 'warning') return { text: 'text-[#f59e0b]', bg: 'bg-[rgba(245,158,11,0.10)]', bar: '#f59e0b' };
+    return { text: 'text-[#ef4444]', bg: 'bg-[rgba(239,68,68,0.10)]', bar: '#ef4444' };
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-[#141416] overflow-hidden hover:border-white/[0.08] transition-colors">
+    <div className="rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/[0.10] transition-all duration-300"
+      style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(20px)' }}>
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between p-6 lg:p-8 hover:bg-white/[0.02] transition-colors"
@@ -284,12 +289,12 @@ export function ExplainableScorePanel({ title, score, factors = [], color = '#3b
         <div className="flex items-center gap-5">
           {icon && <span className="text-xl">{icon}</span>}
           <div className="text-left">
-            <p className="text-[10px] text-[#52525b] uppercase tracking-[0.06em] font-semibold">{title}</p>
+            <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">{title}</p>
             <p className="text-2xl font-bold mt-1" style={{ color }}>{score}<span className="text-sm text-[#3f3f46] font-normal ml-0.5">/100</span></p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[11px] px-3 py-1.5 rounded-lg bg-white/[0.04] text-[#71717a] font-medium hover:text-[#a1a1aa] transition-colors">Why?</span>
+          <span className="text-[11px] px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#71717a] font-medium hover:text-[#a1a1aa] transition-colors">Why?</span>
           <span className={`text-[#52525b] text-xs transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▼</span>
         </div>
       </button>
@@ -300,7 +305,7 @@ export function ExplainableScorePanel({ title, score, factors = [], color = '#3b
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
             <div className="px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 border-t border-white/[0.04]">
@@ -330,7 +335,7 @@ export function ExplainableScorePanel({ title, score, factors = [], color = '#3b
                         animate={{ width: `${barWidth}%` }}
                         transition={{ duration: 0.6, delay: i * 0.04 }}
                         className="h-full rounded-full"
-                        style={{ background: sc.bar }}
+                        style={{ background: sc.bar, boxShadow: `0 0 8px ${sc.bar}30` }}
                       />
                     </div>
                   </motion.div>
@@ -363,14 +368,14 @@ export function AnomalyBell({ anomalies = [], collapsed = false }) {
       <button
         onClick={() => setOpen(o => !o)}
         title="Anomaly Alerts"
-        className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-[13px] w-full ${
+        className={`relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-[13px] w-full ${
           open ? 'bg-white/[0.06] text-white' : 'text-[#71717a] hover:text-[#a1a1aa] hover:bg-white/[0.03]'
         }`}
       >
         <span className="text-sm relative flex-shrink-0">
           🔔
           {count > 0 && (
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#ef4444] text-white text-[7px] font-bold flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#ef4444] text-white text-[7px] font-bold flex items-center justify-center animate-pulse">
               {count > 9 ? '9+' : count}
             </span>
           )}
@@ -386,12 +391,12 @@ export function AnomalyBell({ anomalies = [], collapsed = false }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="absolute left-0 mt-1 z-50 bg-[#141416] rounded-xl border border-white/[0.08] overflow-hidden shadow-2xl"
-            style={{ minWidth: '300px', maxWidth: '360px' }}
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute left-0 mt-1 z-50 rounded-2xl border border-white/[0.08] overflow-hidden"
+            style={{ minWidth: '300px', maxWidth: '360px', background: 'rgba(20,20,22,0.95)', backdropFilter: 'blur(24px)', boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }}
           >
             <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
               <span className="text-xs font-semibold text-[#f0f0f3]">Anomaly Alerts</span>
@@ -401,7 +406,7 @@ export function AnomalyBell({ anomalies = [], collapsed = false }) {
               {active.length === 0 ? (
                 <p className="text-xs text-[#52525b] text-center py-6">✓ No anomalies detected.</p>
               ) : active.map((a, i) => (
-                <div key={a.id || i} className={`p-4 rounded-lg border border-white/[0.04] border-l-[3px] text-xs ${severityStyle(a.severity)}`}>
+                <div key={a.id || i} className={`p-4 rounded-xl border border-white/[0.04] border-l-[3px] text-xs ${severityStyle(a.severity)}`}>
                   <div className="flex items-center gap-2 mb-1.5">
                     <span>{severityIcon(a.severity)}</span>
                     <span className="font-medium text-[#f0f0f3]">{a.title}</span>
