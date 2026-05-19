@@ -52,7 +52,7 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
       animate={animate ? { opacity: 1, y: 0 } : false}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       onClick={onClick}
-      className={`glass-card p-7 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`glass-card p-8 lg:p-10 ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
       {children}
     </motion.div>
@@ -62,9 +62,9 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
 export function MetricCard({ icon, label, value, change, color = '#3b82f6', delay = 0 }) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: delay / 1000, duration: 0.3 }}
-      className="glass-card p-5 flex items-center gap-4 group hover:border-white/[0.10] transition-all"
+      className="glass-card p-6 lg:p-7 flex items-center gap-5 group hover:border-white/[0.10] transition-all"
     >
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg flex-shrink-0 transition-transform group-hover:scale-105" style={{ background: `${color}10` }}>
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 transition-transform group-hover:scale-105" style={{ background: `${color}10` }}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -84,8 +84,8 @@ export function InsightCard({ insight, index = 0 }) {
   const borderMap = { critical: 'border-l-[#ef4444]', alert: 'border-l-[#f59e0b]', warning: 'border-l-[#f97316]', positive: 'border-l-[#22c55e]', info: 'border-l-[#3b82f6]' };
   return (
     <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.06 }}
-      className={`p-5 rounded-xl bg-[#141416] border border-white/[0.06] border-l-[3px] ${borderMap[insight.type] || borderMap.info} hover:bg-[#1a1a1e] hover:border-white/[0.08] transition-all`}>
-      <div className="flex items-start gap-4">
+      className={`p-6 lg:p-7 rounded-2xl bg-[#141416] border border-white/[0.06] border-l-[3px] ${borderMap[insight.type] || borderMap.info} hover:bg-[#1a1a1e] hover:border-white/[0.08] transition-all`}>
+      <div className="flex items-start gap-5">
         <span className="text-lg flex-shrink-0 mt-0.5">{insight.icon}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2 gap-2">
@@ -276,12 +276,12 @@ export function ExplainableScorePanel({ title, score, factors = [], color = '#3b
   };
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#141416] overflow-hidden hover:border-white/[0.08] transition-colors">
+    <div className="rounded-2xl border border-white/[0.06] bg-[#141416] overflow-hidden hover:border-white/[0.08] transition-colors">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between p-6 hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center justify-between p-6 lg:p-8 hover:bg-white/[0.02] transition-colors"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           {icon && <span className="text-xl">{icon}</span>}
           <div className="text-left">
             <p className="text-[10px] text-[#52525b] uppercase tracking-[0.06em] font-semibold">{title}</p>
@@ -303,8 +303,8 @@ export function ExplainableScorePanel({ title, score, factors = [], color = '#3b
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-6 pb-6 space-y-4 border-t border-white/[0.04]">
-              <p className="text-[10px] text-[#52525b] pt-4 uppercase tracking-[0.06em] font-semibold">Factor Breakdown</p>
+            <div className="px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 border-t border-white/[0.04]">
+              <p className="text-[10px] text-[#52525b] pt-5 uppercase tracking-[0.06em] font-semibold">Factor Breakdown</p>
               {factors.length === 0 && (
                 <p className="text-xs text-[#52525b] text-center py-3">Log data to see factor breakdown.</p>
               )}

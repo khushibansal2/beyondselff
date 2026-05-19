@@ -147,11 +147,11 @@ export default function Dashboard() {
   const sleepCascade = crossDomain.find(cd => cd.id === 'sleep-productivity');
 
   return (
-    <div className="page-container min-h-screen">
+    <div className="page-container min-h-screen pb-20">
       <PageHeader title="Dashboard" subtitle={`Welcome back, ${user?.name || 'User'}. Here's your AI-powered life overview.`} />
 
       {/* Digital Twin Summary Banner */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-14">
         <div className="dash-hero">
           <div className="flex items-start gap-5 mb-6">
             <div className="w-12 h-12 rounded-xl bg-[rgba(59,130,246,0.08)] flex items-center justify-center text-xl flex-shrink-0">🧬</div>
@@ -195,7 +195,7 @@ export default function Dashboard() {
 
       {/* 14-Day Pattern Alert */}
       {sleepCascade && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-10">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-14">
           <div className="rounded-xl border border-red-500/10 bg-red-500/[0.02] overflow-hidden">
             <div className="flex items-center gap-3 px-6 py-3 border-b border-red-500/8 bg-red-500/[0.03]">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
@@ -231,7 +231,7 @@ export default function Dashboard() {
       )}
 
       {/* Score Rings */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-5 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-16">
         <GlassCard className="flex justify-center py-8">
           <ScoreRing score={healthScore} color="auto" label="Health" delay={0} size={130} />
         </GlassCard>
@@ -250,22 +250,22 @@ export default function Dashboard() {
       </div>
 
       {/* Explainable AI Score Panels */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-12">
-        <h3 className="dash-section-title mb-6">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-16">
+        <h3 className="dash-section-title mb-8">
           🔍 Explainable AI — Score Breakdown
           <span className="dash-badge bg-[rgba(59,130,246,0.08)] text-[#3b82f6]">Advanced</span>
         </h3>
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           <ExplainableScorePanel title="Health Score" score={healthScore} factors={explainFactors.health} color="#22c55e" icon="❤️" />
           <ExplainableScorePanel title="Finance Score" score={financeScore} factors={explainFactors.finance} color="#f59e0b" icon="💰" />
           <ExplainableScorePanel title="Career Score" score={careerScore} factors={explainFactors.career} color="#3b82f6" icon="🎯" />
         </div>
       </motion.div>
 
-      <div className="grid lg:grid-cols-3 gap-6 mb-12">
+      <div className="grid lg:grid-cols-3 gap-8 lg:gap-10 mb-16">
         {/* Metrics + Chart */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <MetricCard icon="😴" label="Avg Sleep" value={`${h.sleepAvg || 0}h`} change={h.sleepAvg >= 7 ? 5 : -12} color="#a78bfa" delay={0} />
             <MetricCard icon="😰" label="Stress" value={`${h.stressLevel || 0}/10`} change={h.stressLevel <= 5 ? 8 : -15} color="#f43f5e" delay={100} />
             <MetricCard icon="💵" label="Savings" value={`${computed?.financeScore?.summary?.savingsRate || 0}%`} change={f.income > f.expenses ? 5 : -10} color="#22c55e" delay={200} />
@@ -295,11 +295,11 @@ export default function Dashboard() {
         </div>
 
         {/* AI Insights */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h3 className="dash-section-title">
             🧠 AI Insights
           </h3>
-          <div className="space-y-4 max-h-[520px] overflow-y-auto pr-1">
+          <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
             {insights.map((insight, i) => <InsightCard key={i} insight={insight} index={i} />)}
             {insights.length === 0 && (
               <div className="p-8 rounded-xl bg-[#141416] text-center text-[13px] text-[#52525b] border border-white/[0.06]">
@@ -311,13 +311,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-12">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-16">
         {/* Activity Timeline */}
         <GlassCard>
-          <h3 className="dash-section-title mb-6">
+          <h3 className="dash-section-title mb-8">
             📅 Recent Activity
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {(timeline || []).slice(0, 6).map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                 className="flex items-start gap-4 text-[13px]">
@@ -339,10 +339,10 @@ export default function Dashboard() {
 
         {/* Habit Correlations */}
         <GlassCard>
-          <h3 className="dash-section-title mb-6">
+          <h3 className="dash-section-title mb-8">
             🔗 Habit Correlations
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-5">
             {correlations.slice(0, 5).map((c, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
                 className={`p-4 rounded-xl text-[12px] border ${c.type === 'positive' ? 'border-emerald-500/10 bg-emerald-500/[0.02]' : c.type === 'negative' ? 'border-red-500/10 bg-red-500/[0.02]' : 'border-white/[0.06] bg-white/[0.01]'}`}>
@@ -360,9 +360,9 @@ export default function Dashboard() {
       </div>
 
       {/* Today's Action Plan */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-10">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-16">
         <GlassCard>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <h3 className="dash-section-title mb-0">
               📋 Today's Action Plan
               <span className="dash-badge bg-[rgba(34,197,94,0.06)] text-[#22c55e]">AI-generated</span>
@@ -373,7 +373,7 @@ export default function Dashboard() {
           </div>
 
           {/* Progress bar */}
-          <div className="w-full h-1.5 rounded-full bg-white/[0.04] mb-6">
+          <div className="w-full h-1.5 rounded-full bg-white/[0.04] mb-8">
             <motion.div
               animate={{ width: `${(Object.values(checkedTasks).filter(Boolean).length / actionPlan.length) * 100}%` }}
               transition={{ duration: 0.5 }}
@@ -381,7 +381,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {actionPlan.map((task, i) => {
               const done = !!checkedTasks[task.id];
               return (

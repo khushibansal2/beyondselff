@@ -59,13 +59,13 @@ export default function Career() {
   ];
 
   return (
-    <div className="page-container min-h-screen">
-      <PageHeader title="Career & Growth" subtitle="Track skills, prepare for placements, and accelerate your career." icon="🎯" />
+    <div className="page-container min-h-screen pb-20">
+      <PageHeader title="Career Intelligence" subtitle="Track skills, map out learning paths, and optimize your career trajectory." icon="🎯" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
+        <div className="space-y-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
             <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
               <ScoreRing score={score} color="auto" label="Career Score" size={120} />
             </GlassCard>
@@ -76,7 +76,7 @@ export default function Career() {
             <MetricCard icon="🎯" label="Placement" value={`${placementReadiness}%`} color="#f59e0b" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
             <GlassCard>
               <h3 className="dash-section-title mb-6">Skill Radar</h3>
               <div className="h-72">
@@ -99,13 +99,13 @@ export default function Career() {
                   </span>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-5 mt-auto">
-                <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04] text-center">
-                  <p className="text-3xl font-bold text-blue-400 mb-1">{c.coursesActive}</p>
+              <div className="grid grid-cols-2 gap-6 lg:gap-8 mt-auto">
+                <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04] text-center">
+                  <p className="text-3xl font-bold text-blue-400 mb-2">{c.coursesActive}</p>
                   <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wide">Active Courses</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-[#141416] border border-white/[0.04] text-center">
-                  <p className="text-3xl font-bold text-[#a78bfa] mb-1">{c.gpa}</p>
+                <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04] text-center">
+                  <p className="text-3xl font-bold text-[#a78bfa] mb-2">{c.gpa}</p>
                   <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wide">GPA</p>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function Career() {
           <div className="border-b border-white/[0.04] pb-6 mb-8">
             <h3 className="dash-section-title mb-0">Log Today's Career Data</h3>
           </div>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-6">
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-8">
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Study Hours</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" /></div>
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Coding Hours</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" /></div>
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" /></div>
@@ -130,7 +130,7 @@ export default function Career() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {recommendations.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <GlassCard>
@@ -154,18 +154,18 @@ export default function Career() {
       )}
 
       {tab === 'roadmap' && (
-        <div className="space-y-6">
+        <div className="space-y-10">
           {roadmap.map((phase, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
               <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>
-                <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/[0.04]">
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 ${phase.status === 'done' ? 'bg-emerald-500/10 text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>
+                <div className="flex items-center gap-5 mb-6 pb-5 border-b border-white/[0.04]">
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-[13px] font-bold flex-shrink-0 ${phase.status === 'done' ? 'bg-emerald-500/10 text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>
                     {phase.status === 'done' ? '✓' : i + 1}
                   </span>
                   <h4 className="font-semibold text-[#f0f0f3] text-[15px]">{phase.phase}</h4>
                   <span className={`text-[11px] font-medium px-3 py-1 rounded-lg ml-auto capitalize ${phase.status === 'done' ? 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>{phase.status}</span>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4 ml-12">
+                <div className="grid md:grid-cols-2 gap-5 ml-[60px]">
                   {phase.items.map(item => (
                     <div key={item} className="text-[13px] text-[#a1a1aa] flex items-center gap-3">
                       <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-[#52525b]'}`} />
