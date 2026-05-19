@@ -85,7 +85,7 @@ export default function Health() {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
-      return <div className="glass-strong p-3 rounded-xl text-xs"><p className="text-slate-400 mb-1">{label}</p>{payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: {p.value?.toFixed?.(1) || p.value}</p>)}</div>;
+      return <div className="bg-[#252525] border border-[rgba(255,255,255,0.06)] p-3 rounded-xl text-xs"><p className="text-[#9B9B9B] mb-1">{label}</p>{payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: {p.value?.toFixed?.(1) || p.value}</p>)}</div>;
     }
     return null;
   };
@@ -101,7 +101,7 @@ export default function Health() {
   ];
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="Health & Wellness" subtitle="Track, understand, and optimize your physical and mental wellbeing." icon="❤️" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
@@ -161,10 +161,10 @@ export default function Health() {
               <div className="flex items-center gap-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold" style={{ fontFamily: 'var(--font-display)', color: h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#10b981' }}>{h.bmi}</p>
-                  <p className="text-[10px] text-slate-500 mt-1">BMI</p>
+                  <p className="text-[10px] text-[#9B9B9B] mt-1">BMI</p>
                 </div>
-                <div className="flex-1 text-xs text-slate-400">
-                  <p className="mb-1">Category: <strong className={h.bmi < 18.5 ? 'text-amber-400' : h.bmi > 25 ? 'text-amber-400' : 'text-emerald-400'}>{h.bmi < 18.5 ? 'Underweight' : h.bmi > 30 ? 'Obese' : h.bmi > 25 ? 'Overweight' : 'Normal'}</strong></p>
+                <div className="flex-1 text-xs text-[#9B9B9B]">
+                  <p className="mb-1">Category: <strong className={h.bmi < 18.5 ? 'text-[#D9730D]' : h.bmi > 25 ? 'text-[#D9730D]' : 'text-[#2E9E6B]'}>{h.bmi < 18.5 ? 'Underweight' : h.bmi > 30 ? 'Obese' : h.bmi > 25 ? 'Overweight' : 'Normal'}</strong></p>
                   <p>Target range: 18.5–24.9</p>
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default function Health() {
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">🔥 Burnout Risk</h3>
               <div className="flex items-center gap-6">
                 <ScoreRing score={burnout} color={burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#10b981'} label="" size={70} strokeWidth={6} />
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-[#9B9B9B]">
                   <p className="font-medium text-sm mb-1" style={{ color: burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#10b981' }}>{burnout > 60 ? 'High Risk' : burnout > 30 ? 'Moderate' : 'Low Risk'}</p>
                   <p>{burnout > 60 ? 'Reduce work hours and prioritize sleep immediately.' : burnout > 30 ? 'Monitor closely. Add breaks.' : 'Sustainable pace. Keep it up!'}</p>
                 </div>
@@ -185,7 +185,7 @@ export default function Health() {
 
       {tab === 'log' && (
         <GlassCard>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/[0.06] pb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-[rgba(255,255,255,0.055)] pb-4">
             <h3 className="text-sm font-semibold">Log Today's Health Data</h3>
             <div className="relative w-full md:w-auto">
               <input 
@@ -215,7 +215,7 @@ export default function Health() {
               { key: 'calories', label: 'Calories', placeholder: '2200', type: 'number', min: 0 },
             ].map(f => (
               <div key={f.key}>
-                <label className="text-xs text-slate-400 mb-1.5 block">{f.label}</label>
+                <label className="text-xs text-[#9B9B9B] mb-1.5 block">{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} className="input-premium" placeholder={f.placeholder} step={f.step || 'any'} min={f.min} max={f.max} />
               </div>
             ))}
@@ -236,7 +236,7 @@ export default function Health() {
               {wellnessFactors.map((wf, i) => (
                 <motion.div key={wf.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-slate-300 flex items-center gap-2"><span>{wf.icon}</span>{wf.label}</span>
+                    <span className="text-xs text-[#EBEBEB] flex items-center gap-2"><span>{wf.icon}</span>{wf.label}</span>
                     <span className="text-xs font-bold" style={{ color: wf.color }}>{wf.score}%</span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-white/5">
@@ -253,19 +253,19 @@ export default function Health() {
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">💔 Emotional Wellness Analysis</h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div className={`p-4 rounded-xl border ${h.moodAvg < 4 ? 'border-red-500/20 bg-red-500/5' : h.moodAvg < 6 ? 'border-amber-500/20 bg-amber-500/5' : 'border-emerald-500/20 bg-emerald-500/5'}`}>
-                <p className="text-xs text-slate-400 mb-1">Emotional State</p>
+                <p className="text-xs text-[#9B9B9B] mb-1">Emotional State</p>
                 <p className="font-semibold text-sm">{h.moodAvg < 4 ? '😔 Needs Attention' : h.moodAvg < 6 ? '😐 Moderate' : '😊 Good'}</p>
-                <p className="text-xs text-slate-500 mt-2">{h.moodAvg < 4 ? 'Consider taking a recovery day and connecting with friends.' : 'Your emotional wellbeing is stable.'}</p>
+                <p className="text-xs text-[#9B9B9B] mt-2">{h.moodAvg < 4 ? 'Consider taking a recovery day and connecting with friends.' : 'Your emotional wellbeing is stable.'}</p>
               </div>
               <div className={`p-4 rounded-xl border ${h.stressLevel > 7 ? 'border-red-500/20 bg-red-500/5' : 'border-blue-500/20 bg-blue-500/5'}`}>
-                <p className="text-xs text-slate-400 mb-1">Burnout Pattern</p>
+                <p className="text-xs text-[#9B9B9B] mb-1">Burnout Pattern</p>
                 <p className="font-semibold text-sm">{h.stressLevel > 7 && h.sleepAvg < 6 ? '🚨 High Risk' : h.stressLevel > 5 ? '⚠️ Watch Closely' : '✅ Sustainable Pace'}</p>
-                <p className="text-xs text-slate-500 mt-2">{h.stressLevel > 7 ? 'Your stress + sleep pattern suggests burnout risk.' : 'Current pace is sustainable.'}</p>
+                <p className="text-xs text-[#9B9B9B] mt-2">{h.stressLevel > 7 ? 'Your stress + sleep pattern suggests burnout risk.' : 'Current pace is sustainable.'}</p>
               </div>
               <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-500/5">
-                <p className="text-xs text-slate-400 mb-1">Recovery Suggestion</p>
+                <p className="text-xs text-[#9B9B9B] mb-1">Recovery Suggestion</p>
                 <p className="font-semibold text-sm">🧘 {h.stressLevel > 6 ? 'Active Recovery Needed' : 'Maintain Balance'}</p>
-                <p className="text-xs text-slate-500 mt-2">{h.stressLevel > 6 ? 'Try 10-min meditation, a nature walk, or journaling today.' : 'Keep up your current routines.'}</p>
+                <p className="text-xs text-[#9B9B9B] mt-2">{h.stressLevel > 6 ? 'Try 10-min meditation, a nature walk, or journaling today.' : 'Keep up your current routines.'}</p>
               </div>
             </div>
           </GlassCard>
@@ -274,21 +274,21 @@ export default function Health() {
           <GlassCard glow="glow-cyan">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">📝 Daily Health Summary</h3>
             <div className="grid md:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-white/[0.02]">
-                <p className="text-slate-500 mb-1">Energy Level</p>
-                <p className="text-slate-300">{h.sleepAvg >= 7 && h.stressLevel < 6 ? '⚡ High — well rested and low stress' : h.sleepAvg >= 5.5 ? '🔋 Moderate — could use more sleep' : '🪫 Low — sleep deprivation detected'}</p>
+              <div className="p-3 rounded-xl bg-[#252525]">
+                <p className="text-[#9B9B9B] mb-1">Energy Level</p>
+                <p className="text-[#EBEBEB]">{h.sleepAvg >= 7 && h.stressLevel < 6 ? '⚡ High — well rested and low stress' : h.sleepAvg >= 5.5 ? '🔋 Moderate — could use more sleep' : '🪫 Low — sleep deprivation detected'}</p>
               </div>
-              <div className="p-3 rounded-xl bg-white/[0.02]">
-                <p className="text-slate-500 mb-1">Recovery Status</p>
-                <p className="text-slate-300">{h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅ Good recovery balance' : '⚠️ Recovery may be insufficient'}</p>
+              <div className="p-3 rounded-xl bg-[#252525]">
+                <p className="text-[#9B9B9B] mb-1">Recovery Status</p>
+                <p className="text-[#EBEBEB]">{h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅ Good recovery balance' : '⚠️ Recovery may be insufficient'}</p>
               </div>
-              <div className="p-3 rounded-xl bg-white/[0.02]">
-                <p className="text-slate-500 mb-1">Immune Health</p>
-                <p className="text-slate-300">{h.sleepAvg >= 7 && h.waterIntake >= 6 ? '🛡️ Strong — sleep and hydration support immunity' : '⚠️ Weakened — improve sleep and hydration'}</p>
+              <div className="p-3 rounded-xl bg-[#252525]">
+                <p className="text-[#9B9B9B] mb-1">Immune Health</p>
+                <p className="text-[#EBEBEB]">{h.sleepAvg >= 7 && h.waterIntake >= 6 ? '🛡️ Strong — sleep and hydration support immunity' : '⚠️ Weakened — improve sleep and hydration'}</p>
               </div>
-              <div className="p-3 rounded-xl bg-white/[0.02]">
-                <p className="text-slate-500 mb-1">Cognitive Performance</p>
-                <p className="text-slate-300">{h.sleepAvg >= 7 && h.stressLevel < 7 ? '🧠 Optimal — focus should be sharp' : '🧠 Reduced — ' + (h.sleepAvg < 6 ? 'sleep deficit' : 'high stress') + ' impacting cognition'}</p>
+              <div className="p-3 rounded-xl bg-[#252525]">
+                <p className="text-[#9B9B9B] mb-1">Cognitive Performance</p>
+                <p className="text-[#EBEBEB]">{h.sleepAvg >= 7 && h.stressLevel < 7 ? '🧠 Optimal — focus should be sharp' : '🧠 Reduced — ' + (h.sleepAvg < 6 ? 'sleep deficit' : 'high stress') + ' impacting cognition'}</p>
               </div>
             </div>
           </GlassCard>
@@ -306,11 +306,11 @@ export default function Health() {
                     <div className="flex items-center justify-between mb-2 gap-2">
                       <h4 className="font-semibold">{r.title}</h4>
                       <div className="flex gap-2 flex-shrink-0">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}% confidence</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#E03E3E]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#D9730D]' : 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]'}`}>Risk: {r.risk}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#9B9B9B]">{r.confidence}% confidence</span>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
+                    <p className="text-sm text-[#9B9B9B] leading-relaxed">{r.text}</p>
                   </div>
                 </div>
               </GlassCard>

@@ -72,7 +72,7 @@ export default function LifeStressHeatmap({ trendData }) {
     <div className="glass-card p-5">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h3 className="text-sm font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
             <span className="text-lg">🗺️</span> Life Stress Heatmap
           </h3>
           <p className="text-[10px] text-slate-400 mt-1">Visualize behavioral correlations over 30 days</p>

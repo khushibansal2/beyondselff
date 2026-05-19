@@ -23,7 +23,7 @@ function PatternCard({ pattern, index }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.12 }}
-      className={`rounded-2xl border ${cfg.border} ${cfg.bg} overflow-hidden`}
+      className={`rounded-lg border ${cfg.border} ${cfg.bg} overflow-hidden`}
     >
       {/* Header */}
       <button onClick={() => setExpanded(e => !e)} className="w-full p-5 text-left">
@@ -44,7 +44,7 @@ function PatternCard({ pattern, index }) {
               <h3 className="text-sm font-semibold text-white">{pattern.title}</h3>
             </div>
           </div>
-          <span className="text-slate-500 text-xs flex-shrink-0">{expanded ? '▲' : '▼'}</span>
+          <span className="text-[#9B9B9B] text-xs flex-shrink-0">{expanded ? '▲' : '▼'}</span>
         </div>
       </button>
 
@@ -53,12 +53,12 @@ function PatternCard({ pattern, index }) {
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
             <div className="px-5 pb-5 space-y-4">
               {/* Description */}
-              <div className="p-4 rounded-xl bg-black/20 border border-white/[0.05]">
-                <p className="text-xs text-slate-300 leading-relaxed mb-2">
+              <div className="p-4 rounded-xl bg-black/20 border border-[rgba(255,255,255,0.04)]">
+                <p className="text-xs text-[#EBEBEB] leading-relaxed mb-2">
                   <span className="font-semibold text-white block mb-1">Trigger: {pattern.trigger}</span>
                   {pattern.description || pattern.effect}
                 </p>
-                <p className="text-xs text-slate-500 italic border-t border-white/[0.05] pt-2 mt-2">
+                <p className="text-xs text-[#9B9B9B] italic border-t border-[rgba(255,255,255,0.04)] pt-2 mt-2">
                   Mechanism: {pattern.mechanism}
                 </p>
               </div>
@@ -70,7 +70,7 @@ function PatternCard({ pattern, index }) {
               <div className="flex items-center gap-2 pt-2 mt-1">
                 <span className="text-[10px] text-slate-600">Domains affected:</span>
                 {pattern.domains?.map(d => (
-                  <span key={d} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 capitalize">{d}</span>
+                  <span key={d} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#9B9B9B] capitalize">{d}</span>
                 ))}
                 <Link to="/coach" className="ml-auto text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
                   Ask AI Coach →
@@ -128,8 +128,8 @@ export default function Insights() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
       return (
-        <div className="glass-strong p-3 rounded-xl text-xs">
-          <p className="text-slate-400 mb-1">{label}</p>
+        <div className="bg-[#252525] border border-[rgba(255,255,255,0.06)] p-3 rounded-xl text-xs">
+          <p className="text-[#9B9B9B] mb-1">{label}</p>
           {payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: {p.value?.toFixed?.(1)}</p>)}
         </div>
       );
@@ -138,12 +138,12 @@ export default function Insights() {
   };
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="Cross-Domain Intelligence" subtitle="AI-explained patterns across your health, finances, and career." icon="🧠" />
 
       {/* 14-Day Pattern Report Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="mb-6 p-5 rounded-2xl border border-white/[0.06]"
+        className="mb-6 p-5 rounded-lg border border-[rgba(255,255,255,0.055)]"
         style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.05) 100%)' }}>
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div>
@@ -151,14 +151,14 @@ export default function Insights() {
               <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
               <span className="text-[10px] text-purple-300 font-medium uppercase tracking-wider">Deterministic AI Analysis</span>
             </div>
-            <h2 className="text-base font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+            <h2 className="text-base font-bold">
               {patterns.length} Pattern{patterns.length !== 1 ? 's' : ''} Detected in Your Data
             </h2>
           </div>
           <div className="flex gap-3">
-            {criticalCount > 0 && <div className="text-center"><p className="text-lg font-bold text-red-400">{criticalCount}</p><p className="text-[9px] text-slate-500">Critical</p></div>}
-            {warningCount > 0 && <div className="text-center"><p className="text-lg font-bold text-amber-400">{warningCount}</p><p className="text-[9px] text-slate-500">Warnings</p></div>}
-            {positiveCount > 0 && <div className="text-center"><p className="text-lg font-bold text-emerald-400">{positiveCount}</p><p className="text-[9px] text-slate-500">Positive</p></div>}
+            {criticalCount > 0 && <div className="text-center"><p className="text-lg font-bold text-[#E03E3E]">{criticalCount}</p><p className="text-[9px] text-[#9B9B9B]">Critical</p></div>}
+            {warningCount > 0 && <div className="text-center"><p className="text-lg font-bold text-[#D9730D]">{warningCount}</p><p className="text-[9px] text-[#9B9B9B]">Warnings</p></div>}
+            {positiveCount > 0 && <div className="text-center"><p className="text-lg font-bold text-[#2E9E6B]">{positiveCount}</p><p className="text-[9px] text-[#9B9B9B]">Positive</p></div>}
           </div>
         </div>
 
@@ -193,7 +193,7 @@ export default function Insights() {
           <GlassCard className="text-center py-10">
             <span className="text-4xl block mb-3">✨</span>
             <p className="font-semibold mb-1">No Cross-Domain Cascades Detected</p>
-            <p className="text-xs text-slate-500">Your data looks balanced across all domains. Keep it up!</p>
+            <p className="text-xs text-[#9B9B9B]">Your data looks balanced across all domains. Keep it up!</p>
           </GlassCard>
         ) : (
           patterns.map((p, i) => <PatternCard key={p.id} pattern={p} index={i} />)
@@ -204,31 +204,31 @@ export default function Insights() {
       <div className="grid md:grid-cols-3 gap-4 mb-8">
         <GlassCard className="flex flex-col items-center gap-3" glow="glow-purple">
           <ScoreRing score={balance} color="auto" label="Life Balance" size={100} strokeWidth={7} />
-          <p className="text-xs text-slate-400 text-center">{balance >= 75 ? 'Excellent balance' : balance >= 50 ? 'Needs attention in weak areas' : 'Significant imbalance detected'}</p>
+          <p className="text-xs text-[#9B9B9B] text-center">{balance >= 75 ? 'Excellent balance' : balance >= 50 ? 'Needs attention in weak areas' : 'Significant imbalance detected'}</p>
         </GlassCard>
         <GlassCard className={`flex flex-col items-center gap-3 ${burnout > 60 ? 'glow-rose' : ''}`}>
           <ScoreRing score={burnout} color={burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#10b981'} label="Burnout Risk" size={100} strokeWidth={7} />
-          <p className="text-xs text-slate-400 text-center">{burnout > 60 ? '🚨 Immediate action required' : burnout > 30 ? '⚠️ Monitor and prevent' : '✅ Sustainable pace'}</p>
+          <p className="text-xs text-[#9B9B9B] text-center">{burnout > 60 ? '🚨 Immediate action required' : burnout > 30 ? '⚠️ Monitor and prevent' : '✅ Sustainable pace'}</p>
         </GlassCard>
         <GlassCard className="flex flex-col items-center gap-3">
           <div className="flex gap-4">
             <ScoreRing score={happinessScore} color="#f59e0b" label="Happiness" size={80} strokeWidth={6} />
             <ScoreRing score={successScore} color="#3b82f6" label="Success" size={80} strokeWidth={6} />
           </div>
-          <p className="text-xs text-slate-400 text-center">{successScore > happinessScore + 20 ? '⚠️ Success outpacing happiness' : '✅ Happiness and success aligned'}</p>
+          <p className="text-xs text-[#9B9B9B] text-center">{successScore > happinessScore + 20 ? '⚠️ Success outpacing happiness' : '✅ Happiness and success aligned'}</p>
         </GlassCard>
       </div>
 
       {/* AI Insights + Correlations */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         <div>
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
             🔗 Cross-Domain Insights
           </h3>
           <div className="space-y-3">
             {insights.map((insight, i) => <InsightCard key={i} insight={insight} index={i} />)}
             {insights.length === 0 && (
-              <div className="p-4 rounded-xl bg-white/[0.02] text-center text-xs text-slate-500">
+              <div className="p-4 rounded-xl bg-[#252525] text-center text-xs text-[#9B9B9B]">
                 <span className="block text-2xl mb-2">✨</span>No critical insights right now.
               </div>
             )}
@@ -236,17 +236,17 @@ export default function Insights() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
             🔄 Habit Correlations
           </h3>
           <div className="space-y-3">
             {correlations.map((corr, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
                 className={`p-3 rounded-xl text-xs border ${corr.type === 'positive' ? 'border-emerald-500/20 bg-emerald-500/5' : corr.type === 'negative' ? 'border-red-500/20 bg-red-500/5' : 'border-slate-500/20 bg-slate-500/5'}`}>
-                <p className="text-slate-300 mb-2">{corr.pattern}</p>
+                <p className="text-[#EBEBEB] mb-2">{corr.pattern}</p>
                 <div className="flex justify-between items-center">
-                  <div className="flex gap-1">{corr.domains.map(d => <span key={d} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{d}</span>)}</div>
-                  <span className="text-[10px] text-slate-500">Strength: {Math.round(corr.strength * 100)}%</span>
+                  <div className="flex gap-1">{corr.domains.map(d => <span key={d} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-[#9B9B9B] capitalize">{d}</span>)}</div>
+                  <span className="text-[10px] text-[#9B9B9B]">Strength: {Math.round(corr.strength * 100)}%</span>
                 </div>
               </motion.div>
             ))}
@@ -261,7 +261,7 @@ export default function Insights() {
 
       {/* Daily Reflection */}
       <GlassCard glow="glow-cyan">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>📝 Today's AI Reflection</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">📝 Today's AI Reflection</h3>
         <div className="grid md:grid-cols-2 gap-2">
           {[
             (h.sleepAvg || 0) < 6 ? '😴 Sleep deficit detected — tonight aim for 7+ hours' : '✅ Sleep pattern is healthy',
@@ -272,7 +272,7 @@ export default function Insights() {
             (h.sleepAvg || 0) < 6 ? '🧠 Study efficiency LOW — sleep deficit cuts retention by ~30%' : '🧠 Study efficiency HIGH — good sleep supporting learning',
           ].map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.08 }}
-              className="text-xs text-slate-400 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">{r}</motion.div>
+              className="text-xs text-[#9B9B9B] p-3 rounded-xl bg-[#252525] border border-white/[0.04]">{r}</motion.div>
           ))}
         </div>
         <div className="mt-4 flex items-center justify-between">

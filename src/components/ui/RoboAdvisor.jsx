@@ -91,7 +91,7 @@ export default function RoboAdvisor({ financeData }) {
         <GlassCard className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
-              <h3 className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)' }}>Portfolio Visualizer</h3>
+              <h3 className="text-lg font-bold">Portfolio Visualizer</h3>
               <p className="text-xs text-slate-400 mt-1">Total Assets: ₹{totalValue.toLocaleString()}</p>
             </div>
             
@@ -151,7 +151,7 @@ export default function RoboAdvisor({ financeData }) {
           
           {/* Rebalancing Engine */}
           <GlassCard glow={rebalanceActions.length > 0 ? "glow-amber" : "glow-emerald"}>
-            <h3 className="text-sm font-bold flex items-center gap-2 mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
               <span>⚖️</span> Rebalancing Actions
             </h3>
             
@@ -191,7 +191,7 @@ export default function RoboAdvisor({ financeData }) {
 
           {/* Tax Saving */}
           <GlassCard glow="glow-blue">
-            <h3 className="text-sm font-bold flex items-center gap-2 mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+            <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
               <span>🛡️</span> Tax Optimization
             </h3>
             <p className="text-xs text-slate-400 mb-4">Estimated Tax Bracket: <strong className="text-white">{taxBracket}</strong></p>

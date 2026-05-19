@@ -31,7 +31,7 @@ export default function ReportCardModal({ onClose, data }) {
           <div className="border-b-4 border-slate-900 pb-6 mb-8 flex justify-between items-end">
             <div>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-sm mb-1">BeyondSelf AI</p>
-              <h1 className="text-4xl font-black text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>Weekly Report Card</h1>
+              <h1 className="text-4xl font-black text-slate-900">Weekly Report Card</h1>
             </div>
             <div className="text-right">
               <p className="text-xl font-bold text-slate-900">{user?.name}</p>

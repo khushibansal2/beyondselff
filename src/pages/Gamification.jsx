@@ -74,7 +74,7 @@ export default function Gamification() {
   };
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="Rewards & Achievements" subtitle="Track your streaks, earn badges, and level up your life." icon="⭐" />
 
       <AnimatePresence>
@@ -84,45 +84,45 @@ export default function Gamification() {
       {/* Level & Points */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <GlassCard glow="glow-amber" className="text-center col-span-2 md:col-span-1">
-          <p className="text-4xl font-bold gradient-text-warm" style={{ fontFamily: 'var(--font-display)' }}>Level {level}</p>
+          <p className="text-4xl font-bold gradient-text-warm">Level {level}</p>
           <div className="w-full h-2 rounded-full bg-white/5 mt-3 mb-2">
             <motion.div initial={{ width: 0 }} animate={{ width: `${(xpInLevel / 300) * 100}%` }} transition={{ duration: 1 }}
               className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500" />
           </div>
-          <p className="text-xs text-slate-500">{xpInLevel}/300 XP to next level</p>
+          <p className="text-xs text-[#9B9B9B]">{xpInLevel}/300 XP to next level</p>
         </GlassCard>
 
         <GlassCard className="text-center">
-          <p className="text-4xl font-bold text-blue-400" style={{ fontFamily: 'var(--font-display)' }}>{totalPoints}</p>
-          <p className="text-xs text-slate-500 mt-2">Total Points</p>
+          <p className="text-4xl font-bold text-blue-400">{totalPoints}</p>
+          <p className="text-xs text-[#9B9B9B] mt-2">Total Points</p>
         </GlassCard>
 
         <GlassCard className="text-center">
-          <p className="text-4xl font-bold text-emerald-400" style={{ fontFamily: 'var(--font-display)' }}>{unlockedCount}/{badges.length}</p>
-          <p className="text-xs text-slate-500 mt-2">Badges Earned</p>
+          <p className="text-4xl font-bold text-[#2E9E6B]">{unlockedCount}/{badges.length}</p>
+          <p className="text-xs text-[#9B9B9B] mt-2">Badges Earned</p>
         </GlassCard>
 
         <GlassCard className="text-center">
-          <p className="text-4xl font-bold text-purple-400" style={{ fontFamily: 'var(--font-display)' }}>{activeChallenges.size}</p>
-          <p className="text-xs text-slate-500 mt-2">Active Challenges</p>
+          <p className="text-4xl font-bold text-[#9065B0]">{activeChallenges.size}</p>
+          <p className="text-xs text-[#9B9B9B] mt-2">Active Challenges</p>
         </GlassCard>
       </div>
 
       {/* Motivational */}
       <GlassCard className="mb-8 !p-4" glow="glow-purple">
-        <p className="text-sm text-slate-300 text-center">{motivationalMessage()}</p>
+        <p className="text-sm text-[#EBEBEB] text-center">{motivationalMessage()}</p>
       </GlassCard>
 
       {/* Streaks */}
       <GlassCard className="mb-8">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🔥 Active Streaks</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🔥 Active Streaks</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {streaks.map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.08 }}
-              className="text-center p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+              className="text-center p-4 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)]">
               <span className="text-2xl block mb-2">{s.icon}</span>
-              <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>{s.value}<span className="text-xs text-slate-500 font-normal"> days</span></p>
-              <p className="text-[10px] text-slate-500 mt-1">{s.label}</p>
+              <p className="text-2xl font-bold text-white">{s.value}<span className="text-xs text-[#9B9B9B] font-normal"> days</span></p>
+              <p className="text-[10px] text-[#9B9B9B] mt-1">{s.label}</p>
               <div className="w-full h-1 rounded-full bg-white/5 mt-2">
                 <div className="h-full rounded-full" style={{ width: `${(s.value / s.max) * 100}%`, background: s.color }} />
               </div>
@@ -133,7 +133,7 @@ export default function Gamification() {
 
       {/* Badges */}
       <GlassCard className="mb-8">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🏅 Achievement Badges</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🏅 Achievement Badges</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {badges.map((b, i) => (
             <motion.div key={b.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
@@ -141,9 +141,9 @@ export default function Gamification() {
               className={`p-4 rounded-xl text-center cursor-pointer transition-all ${b.unlocked ? 'bg-white/[0.03] border border-amber-500/20 hover:border-amber-500/40' : 'bg-white/[0.01] border border-white/[0.04] opacity-50'}`}>
               <div className="flex justify-center mb-2"><Badge badge={b} /></div>
               <p className="text-xs font-medium">{b.name}</p>
-              <p className="text-[10px] text-slate-500 mt-1">{b.desc}</p>
+              <p className="text-[10px] text-[#9B9B9B] mt-1">{b.desc}</p>
               {b.unlocked ? (
-                <span className="text-[9px] text-amber-400 mt-1 block">✨ Unlocked • +100 XP</span>
+                <span className="text-[9px] text-[#D9730D] mt-1 block">✨ Unlocked • +100 XP</span>
               ) : (
                 <span className="text-[9px] text-slate-600 mt-1 block">🔒 Locked</span>
               )}
@@ -154,24 +154,24 @@ export default function Gamification() {
 
       {/* Challenges */}
       <GlassCard>
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🎮 AI-Generated Challenges</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🎮 AI-Generated Challenges</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {allChallenges.map((ch, i) => {
             const isActive = activeChallenges.has(ch.id);
             return (
               <motion.div key={ch.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                className={`p-4 rounded-xl border transition-all ${isActive ? 'bg-blue-500/5 border-blue-500/30' : 'bg-white/[0.02] border-white/[0.06] hover:border-blue-500/30'}`}>
+                className={`p-4 rounded-xl border transition-all ${isActive ? 'bg-blue-500/5 border-blue-500/30' : 'bg-[#252525] border-[rgba(255,255,255,0.055)] hover:border-blue-500/30'}`}>
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl">{ch.icon}</span>
                   <div>
                     <p className="text-sm font-medium">{ch.title}</p>
-                    <p className="text-[10px] text-slate-500">{ch.duration}</p>
+                    <p className="text-[10px] text-[#9B9B9B]">{ch.duration}</p>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400 mb-3">{ch.desc}</p>
+                <p className="text-xs text-[#9B9B9B] mb-3">{ch.desc}</p>
                 {isActive && (
                   <div className="mb-3">
-                    <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                    <div className="flex justify-between text-[10px] text-[#9B9B9B] mb-1">
                       <span>Progress</span><span>{Math.floor(Math.random() * 60 + 20)}%</span>
                     </div>
                     <div className="w-full h-1.5 rounded-full bg-white/5">
@@ -181,9 +181,9 @@ export default function Gamification() {
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-amber-400">+{ch.reward} XP</span>
+                  <span className="text-[10px] text-[#D9730D]">+{ch.reward} XP</span>
                   <button onClick={() => toggleChallenge(ch.id)}
-                    className={`text-[10px] px-3 py-1 rounded-full transition-all ${isActive ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20'}`}>
+                    className={`text-[10px] px-3 py-1 rounded-full transition-all ${isActive ? 'bg-[rgba(224,62,62,0.1)] border border-red-500/20 text-[#E03E3E] hover:bg-red-500/20' : 'bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20'}`}>
                     {isActive ? 'Abandon' : 'Start Challenge'}
                   </button>
                 </div>

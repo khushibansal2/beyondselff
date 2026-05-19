@@ -143,43 +143,43 @@ export default function Settings() {
   const providerList = Object.values(PROVIDERS);
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="Settings & Integrations" subtitle="Connect providers, manage data, and control privacy." icon="⚙️" />
 
       {/* Profile */}
       <GlassCard className="mb-6">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>👤 Profile</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">👤 Profile</h3>
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-3xl">{user?.avatar || '👤'}</div>
+          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-3xl">{user?.avatar || '👤'}</div>
           <div>
-            <p className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)' }}>{user?.name}</p>
-            <p className="text-sm text-slate-400">{user?.email}</p>
-            <p className="text-xs text-slate-500 mt-1">Persona: {user?.persona}</p>
+            <p className="text-lg font-bold">{user?.name}</p>
+            <p className="text-sm text-[#9B9B9B]">{user?.email}</p>
+            <p className="text-xs text-[#9B9B9B] mt-1">Persona: {user?.persona}</p>
           </div>
         </div>
         <div className="grid md:grid-cols-2 gap-3">
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Session</p>
-            <p className="text-xs text-slate-300 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-400" />Active • JWT authenticated</p>
+          <div className="p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)]">
+            <p className="text-[10px] text-[#9B9B9B] uppercase tracking-wider mb-1">Session</p>
+            <p className="text-xs text-[#EBEBEB] flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-400" />Active • JWT authenticated</p>
           </div>
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Account Type</p>
-            <p className="text-xs text-slate-300">{user?.email?.includes('demo') ? 'Demo Account' : 'Full Account'} • Full access</p>
+          <div className="p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)]">
+            <p className="text-[10px] text-[#9B9B9B] uppercase tracking-wider mb-1">Account Type</p>
+            <p className="text-xs text-[#EBEBEB]">{user?.email?.includes('demo') ? 'Demo Account' : 'Full Account'} • Full access</p>
           </div>
         </div>
       </GlassCard>
 
       {/* ── Integrations ─────────────────────────────────────────────────── */}
       <GlassCard className="mb-6" glow="glow-blue">
-        <h3 className="text-sm font-semibold mb-1 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🔌 Data Integrations</h3>
-        <p className="text-[11px] text-slate-500 mb-4">Connect providers to sync real data into your intelligence engines.</p>
+        <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">🔌 Data Integrations</h3>
+        <p className="text-[11px] text-[#9B9B9B] mb-4">Connect providers to sync real data into your intelligence engines.</p>
 
         {/* GitHub username input */}
         <AnimatePresence>
           {showGithubInput && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-              className="mb-4 p-3 rounded-xl bg-white/[0.04] border border-blue-500/20">
-              <p className="text-xs text-slate-400 mb-2">🐙 GitHub Username (for real commit sync)</p>
+              className="mb-4 p-3 rounded-xl bg-[#2b2b2b] border border-blue-500/20">
+              <p className="text-xs text-[#9B9B9B] mb-2">🐙 GitHub Username (for real commit sync)</p>
               <div className="flex gap-2">
                 <input
                   id="github-username-input"
@@ -194,7 +194,7 @@ export default function Settings() {
                   Save
                 </button>
                 <button onClick={() => setShowGithubInput(false)}
-                  className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 text-xs hover:bg-white/10 transition-all">
+                  className="px-3 py-1.5 rounded-lg bg-white/5 text-[#9B9B9B] text-xs hover:bg-white/10 transition-all">
                   Cancel
                 </button>
               </div>
@@ -211,13 +211,13 @@ export default function Settings() {
 
             return (
               <div key={provider.id} id={`provider-${provider.id}`}
-                className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.10] transition-all">
+                className="p-4 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] hover:border-white/[0.10] transition-all">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{provider.icon}</span>
                     <div>
                       <p className="text-sm font-medium">{provider.name}</p>
-                      <p className="text-[10px] text-slate-500 capitalize">{provider.category} • {
+                      <p className="text-[10px] text-[#9B9B9B] capitalize">{provider.category} • {
                         status === 'never' ? 'Never synced' :
                         status === 'success' ? `Last sync: ${new Date(ps.lastSync).toLocaleString()}` :
                         status === 'error' ? `Error: ${ps.errorMessage?.slice(0, 40)}` :
@@ -227,7 +227,7 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-                    <span className="text-[10px] text-slate-400">{connected ? 'Connected' : 'Not connected'}</span>
+                    <span className="text-[10px] text-[#9B9B9B]">{connected ? 'Connected' : 'Not connected'}</span>
                   </div>
                 </div>
 
@@ -240,24 +240,24 @@ export default function Settings() {
 
                 {/* GitHub notice */}
                 {provider.id === PROVIDERS.CAREER.id && !githubUsername && (
-                  <p className="text-[10px] text-amber-400/80 mb-2">
+                  <p className="text-[10px] text-[#D9730D]/80 mb-2">
                     ⚠️ Set your GitHub username before syncing
                   </p>
                 )}
 
                 {/* Provider-specific notes */}
                 {provider.id === PROVIDERS.HEALTH.id && (
-                  <p className="text-[10px] text-slate-500 mb-2">Reads from your uploaded health CSVs or backend records</p>
+                  <p className="text-[10px] text-[#9B9B9B] mb-2">Reads from your uploaded health CSVs or backend records</p>
                 )}
                 {provider.id === PROVIDERS.FINANCE.id && (
-                  <p className="text-[10px] text-slate-500 mb-2">Reads from your uploaded bank statement CSVs or backend records</p>
+                  <p className="text-[10px] text-[#9B9B9B] mb-2">Reads from your uploaded bank statement CSVs or backend records</p>
                 )}
 
                 <div className="flex gap-2 mt-2">
                   {/* GitHub: show username button */}
                   {provider.id === PROVIDERS.CAREER.id && (
                     <button onClick={() => setShowGithubInput(v => !v)}
-                      className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 hover:bg-white/10 transition-all">
+                      className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 text-[#9B9B9B] hover:bg-white/10 transition-all">
                       {githubUsername ? `@${githubUsername}` : '+ Set Username'}
                     </button>
                   )}
@@ -277,7 +277,7 @@ export default function Settings() {
 
                   {connected && (
                     <button onClick={() => handleDisconnect(provider)}
-                      className="text-[11px] px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all">
+                      className="text-[11px] px-3 py-1.5 rounded-lg bg-[rgba(224,62,62,0.1)] text-[#E03E3E] hover:bg-red-500/20 transition-all">
                       Disconnect
                     </button>
                   )}
@@ -289,18 +289,18 @@ export default function Settings() {
 
         {/* Sync log */}
         {syncLog.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-white/[0.06]">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Sync History (this session)</p>
+          <div className="mt-4 pt-3 border-t border-[rgba(255,255,255,0.055)]">
+            <p className="text-[10px] text-[#9B9B9B] uppercase tracking-wider mb-2">Sync History (this session)</p>
             <div className="space-y-1.5">
               {syncLog.map((entry, i) => (
                 <div key={i} className="flex items-center gap-2 text-[11px]">
                   <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${entry.status === 'success' ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                  <span className="text-slate-400">{entry.time}</span>
-                  <span className="text-slate-300">{entry.providerName}</span>
+                  <span className="text-[#9B9B9B]">{entry.time}</span>
+                  <span className="text-[#EBEBEB]">{entry.providerName}</span>
                   {entry.status === 'success' ? (
-                    <span className="text-emerald-400/70">{entry.recordCount ? `${entry.recordCount} records` : 'synced'} via {entry.source}</span>
+                    <span className="text-[#2E9E6B]/70">{entry.recordCount ? `${entry.recordCount} records` : 'synced'} via {entry.source}</span>
                   ) : (
-                    <span className="text-red-400/70 truncate">{entry.error}</span>
+                    <span className="text-[#E03E3E]/70 truncate">{entry.error}</span>
                   )}
                 </div>
               ))}
@@ -309,17 +309,17 @@ export default function Settings() {
         )}
 
         {/* Instructions */}
-        <div className="mt-4 pt-3 border-t border-white/[0.06]">
-          <p className="text-[10px] text-slate-500 leading-relaxed">
-            💡 <strong className="text-slate-400">Health & Finance:</strong> Upload a CSV first via Data Import, then Sync here to re-pull the latest records into all engines.<br />
-            💡 <strong className="text-slate-400">GitHub:</strong> Enter your GitHub username — the platform fetches your real repo count and commit activity.
+        <div className="mt-4 pt-3 border-t border-[rgba(255,255,255,0.055)]">
+          <p className="text-[10px] text-[#9B9B9B] leading-relaxed">
+            💡 <strong className="text-[#9B9B9B]">Health & Finance:</strong> Upload a CSV first via Data Import, then Sync here to re-pull the latest records into all engines.<br />
+            💡 <strong className="text-[#9B9B9B]">GitHub:</strong> Enter your GitHub username — the platform fetches your real repo count and commit activity.
           </p>
         </div>
       </GlassCard>
 
       {/* Security & Privacy */}
       <GlassCard className="mb-6" glow="glow-emerald">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🔐 Security & Privacy</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🔐 Security & Privacy</h3>
         <SecurityBadge />
         <div className="mt-4 space-y-3">
           {[
@@ -327,12 +327,12 @@ export default function Settings() {
             { key: 'localOnly',   label: 'Local-only data storage',           desc: 'Data stays on device — not sent to cloud',          icon: '💾' },
             { key: 'shareData',   label: 'Share anonymized insights',          desc: 'Help improve AI with anonymized patterns',           icon: '🌐' },
           ].map(item => (
-            <div key={item.key} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <div key={item.key} className="flex items-center justify-between p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)]">
               <div className="flex items-center gap-3">
                 <span className="text-lg">{item.icon}</span>
                 <div>
                   <p className="text-sm font-medium">{item.label}</p>
-                  <p className="text-[10px] text-slate-500">{item.desc}</p>
+                  <p className="text-[10px] text-[#9B9B9B]">{item.desc}</p>
                 </div>
               </div>
               <button onClick={() => { setPrivacy(p => ({ ...p, [item.key]: !p[item.key] })); showToast('Privacy setting updated', 'success'); }}
@@ -346,7 +346,7 @@ export default function Settings() {
           {[{ icon: '🔒', label: 'AES-256 Encrypted' }, { icon: '🛡️', label: 'RBAC Protected' }, { icon: '🔑', label: 'JWT Sessions' }, { icon: '📋', label: 'GDPR Compliant' }].map(badge => (
             <div key={badge.label} className="p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 text-center">
               <span className="text-sm block">{badge.icon}</span>
-              <p className="text-[9px] text-emerald-400/70 mt-1">{badge.label}</p>
+              <p className="text-[9px] text-[#2E9E6B]/70 mt-1">{badge.label}</p>
             </div>
           ))}
         </div>
@@ -354,7 +354,7 @@ export default function Settings() {
 
       {/* Notifications */}
       <GlassCard className="mb-6">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🔔 Notifications</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🔔 Notifications</h3>
         <div className="space-y-3">
           {[
             { key: 'insights', label: 'AI Insight Alerts',  desc: 'Get notified when AI detects important patterns' },
@@ -362,10 +362,10 @@ export default function Settings() {
             { key: 'burnout',  label: 'Burnout Warnings',    desc: 'Critical alerts when burnout risk is high' },
             { key: 'weekly',   label: 'Weekly Summary',      desc: 'Receive a weekly life balance summary' },
           ].map(item => (
-            <div key={item.key} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+            <div key={item.key} className="flex items-center justify-between p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)]">
               <div>
                 <p className="text-sm font-medium">{item.label}</p>
-                <p className="text-[10px] text-slate-500">{item.desc}</p>
+                <p className="text-[10px] text-[#9B9B9B]">{item.desc}</p>
               </div>
               <button onClick={() => { setNotifications(p => ({ ...p, [item.key]: !p[item.key] })); showToast('Notification preference saved', 'success'); }}
                 className={`w-11 h-6 rounded-full transition-all relative ${notifications[item.key] ? 'bg-blue-500' : 'bg-white/10'}`}>
@@ -378,29 +378,29 @@ export default function Settings() {
 
       {/* Data Management */}
       <GlassCard>
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🗃️ Data Management</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🗃️ Data Management</h3>
         <div className="space-y-3">
-          <button onClick={exportAllData} className="w-full p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-left text-sm hover:bg-white/[0.04] transition-all flex items-center justify-between">
+          <button onClick={exportAllData} className="w-full p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] text-left text-sm hover:bg-[#2b2b2b] transition-all flex items-center justify-between">
             <div className="flex items-center gap-2"><span>📥</span> Export All Data</div>
-            <span className="text-xs text-slate-500">JSON</span>
+            <span className="text-xs text-[#9B9B9B]">JSON</span>
           </button>
-          <button onClick={clearCache} className="w-full p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-left text-sm hover:bg-white/[0.04] transition-all flex items-center justify-between">
+          <button onClick={clearCache} className="w-full p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] text-left text-sm hover:bg-[#2b2b2b] transition-all flex items-center justify-between">
             <div className="flex items-center gap-2"><span>🧹</span> Clear AI Cache</div>
-            <span className="text-xs text-slate-500">Remove temporary data</span>
+            <span className="text-xs text-[#9B9B9B]">Remove temporary data</span>
           </button>
-          <div className="pt-3 border-t border-white/[0.06]">
+          <div className="pt-3 border-t border-[rgba(255,255,255,0.055)]">
             {dangerConfirm ? (
               <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
-                <p className="text-sm text-red-400 mb-3">⚠️ This will permanently delete all your data. Are you sure?</p>
+                <p className="text-sm text-[#E03E3E] mb-3">⚠️ This will permanently delete all your data. Are you sure?</p>
                 <div className="flex gap-2">
                   <button onClick={() => { localStorage.clear(); showToast('All data cleared', 'error'); setDangerConfirm(false); }}
-                    className="text-xs px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all">Yes, Delete Everything</button>
+                    className="text-xs px-4 py-2 rounded-lg bg-red-500/20 text-[#E03E3E] hover:bg-red-500/30 transition-all">Yes, Delete Everything</button>
                   <button onClick={() => setDangerConfirm(false)}
-                    className="text-xs px-4 py-2 rounded-lg bg-white/5 text-slate-400 hover:bg-white/10 transition-all">Cancel</button>
+                    className="text-xs px-4 py-2 rounded-lg bg-white/5 text-[#9B9B9B] hover:bg-white/10 transition-all">Cancel</button>
                 </div>
               </div>
             ) : (
-              <button onClick={() => setDangerConfirm(true)} className="text-xs text-red-500/70 hover:text-red-400 transition-all">
+              <button onClick={() => setDangerConfirm(true)} className="text-xs text-red-500/70 hover:text-[#E03E3E] transition-all">
                 🗑️ Delete All Data
               </button>
             )}

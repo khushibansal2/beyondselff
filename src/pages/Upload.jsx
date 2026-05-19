@@ -211,31 +211,31 @@ export default function Upload() {
   };
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="Data Import Center" subtitle="Upload files or connect apps to feed your Digital Twin with real data." icon="📂" />
 
       <SecurityBadge />
 
       {/* File Upload Zone */}
       <GlassCard className="mt-6 mb-6">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>📤 Upload File</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">📤 Upload File</h3>
         <div
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={e => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
-          className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${dragOver ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/10 hover:border-white/20'}`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer ${dragOver ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/10 hover:border-white/20'}`}
           onClick={() => document.getElementById('file-input').click()}
         >
           {uploading ? (
             <div className="flex flex-col items-center gap-3">
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-10 h-10 border-2 border-white/20 border-t-blue-500 rounded-full" />
-              <p className="text-sm text-slate-400">Parsing {uploadedFile?.name}...</p>
+              <p className="text-sm text-[#9B9B9B]">Parsing {uploadedFile?.name}...</p>
             </div>
           ) : (
             <>
               <span className="text-4xl block mb-3">📁</span>
-              <p className="text-sm text-slate-300 mb-1">Drop your file here or click to browse</p>
-              <p className="text-xs text-slate-500">Supports CSV, Excel, PDF, JSON</p>
+              <p className="text-sm text-[#EBEBEB] mb-1">Drop your file here or click to browse</p>
+              <p className="text-xs text-[#9B9B9B]">Supports CSV, Excel, PDF, JSON</p>
             </>
           )}
         </div>
@@ -244,10 +244,10 @@ export default function Upload() {
         {/* Supported formats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
           {fileTypes.map(ft => (
-            <div key={ft.type} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
+            <div key={ft.type} className="p-3 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] text-center">
               <span className="text-xl block mb-1">{ft.icon}</span>
               <p className="text-xs font-medium">{ft.label}</p>
-              <p className="text-[9px] text-slate-500 mt-1">{ft.desc}</p>
+              <p className="text-[9px] text-[#9B9B9B] mt-1">{ft.desc}</p>
             </div>
           ))}
         </div>
@@ -260,17 +260,17 @@ export default function Upload() {
             <GlassCard className="mb-6 glow-blue">
               <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">📋 Preview: {preview.name}</h3>
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-white/[0.02] text-center">
+                <div className="p-3 rounded-xl bg-[#252525] text-center">
                   <p className="text-lg font-bold text-blue-400">{preview.records}</p>
-                  <p className="text-[10px] text-slate-500">Records Found</p>
+                  <p className="text-[10px] text-[#9B9B9B]">Records Found</p>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.02] text-center">
-                  <p className="text-lg font-bold text-purple-400">{preview.columns.length}</p>
-                  <p className="text-[10px] text-slate-500">Columns</p>
+                <div className="p-3 rounded-xl bg-[#252525] text-center">
+                  <p className="text-lg font-bold text-[#9065B0]">{preview.columns.length}</p>
+                  <p className="text-[10px] text-[#9B9B9B]">Columns</p>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.02] text-center">
-                  <p className="text-lg font-bold text-emerald-400">{preview.size}</p>
-                  <p className="text-[10px] text-slate-500">File Size</p>
+                <div className="p-3 rounded-xl bg-[#252525] text-center">
+                  <p className="text-lg font-bold text-[#2E9E6B]">{preview.size}</p>
+                  <p className="text-[10px] text-[#9B9B9B]">File Size</p>
                 </div>
               </div>
 
@@ -278,9 +278,9 @@ export default function Upload() {
                 {preview.sampleRows && preview.sampleRows.length > 0 ? (
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-white/[0.06]">
+                      <tr className="border-b border-[rgba(255,255,255,0.055)]">
                         {Object.keys(preview.sampleRows[0]).map(col => (
-                          <th key={col} className="text-left py-2 px-3 text-slate-500 uppercase tracking-wider">{col}</th>
+                          <th key={col} className="text-left py-2 px-3 text-[#9B9B9B] uppercase tracking-wider">{col}</th>
                         ))}
                       </tr>
                     </thead>
@@ -288,14 +288,14 @@ export default function Upload() {
                       {preview.sampleRows.map((row, i) => (
                         <tr key={i} className="border-b border-white/[0.03]">
                           {Object.values(row).map((val, j) => (
-                            <td key={j} className="py-2 px-3 text-slate-300">{val}</td>
+                            <td key={j} className="py-2 px-3 text-[#EBEBEB]">{val}</td>
                           ))}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 ) : (
-                  <p className="text-xs text-slate-500 text-center py-4">No readable data found in this file.</p>
+                  <p className="text-xs text-[#9B9B9B] text-center py-4">No readable data found in this file.</p>
                 )}
               </div>
 
@@ -310,23 +310,23 @@ export default function Upload() {
 
       {/* API Connections */}
       <GlassCard className="mb-6">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🔗 Connect Apps</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🔗 Connect Apps</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {mockApiSources.map(api => {
             const connected = connectedApis.has(api.name);
             return (
               <motion.div key={api.name} whileHover={{ scale: 1.01 }}
-                className={`p-4 rounded-xl border transition-all ${connected ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                className={`p-4 rounded-xl border transition-all ${connected ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-[rgba(255,255,255,0.055)] bg-[#252525]'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{api.icon}</span>
                     <span className="text-sm font-medium">{api.name}</span>
                   </div>
-                  {connected && <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Connected</span>}
+                  {connected && <span className="text-[9px] px-2 py-0.5 rounded-full bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]">Connected</span>}
                 </div>
-                <p className="text-xs text-slate-500 mb-3">{api.desc}</p>
+                <p className="text-xs text-[#9B9B9B] mb-3">{api.desc}</p>
                 <button onClick={() => toggleApi(api.name)}
-                  className={`text-xs px-4 py-1.5 rounded-lg w-full transition-all ${connected ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'}`}>
+                  className={`text-xs px-4 py-1.5 rounded-lg w-full transition-all ${connected ? 'bg-[rgba(224,62,62,0.1)] text-[#E03E3E] hover:bg-red-500/20' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'}`}>
                   {connected ? 'Disconnect' : 'Connect'}
                 </button>
               </motion.div>
@@ -337,22 +337,22 @@ export default function Upload() {
 
       {/* Import History */}
       <GlassCard>
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>📜 Import History</h3>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">📜 Import History</h3>
         <div className="space-y-2">
           {importHistory.length === 0 ? (
-            <p className="text-xs text-slate-500 text-center py-4">No data imported yet.</p>
+            <p className="text-xs text-[#9B9B9B] text-center py-4">No data imported yet.</p>
           ) : importHistory.map((h, i) => (
             <motion.div key={h.id || i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] text-sm">
+              className="flex items-center gap-3 p-3 rounded-xl bg-[#252525] text-sm">
               <span className="text-lg">{h.fileType === 'csv' ? '📊' : h.fileType === 'xlsx' ? '📗' : '📄'}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-slate-300 truncate">{h.originalFilename || h.file}</p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-[#EBEBEB] truncate">{h.originalFilename || h.file}</p>
+                <p className="text-[10px] text-[#9B9B9B]">
                   {h.uploadedAt ? new Date(h.uploadedAt).toLocaleDateString() : h.date} • {h.recordCount || h.records} records 
                   {h.detectedDomain && <span className="ml-2 capitalize opacity-70">({h.detectedDomain})</span>}
                 </p>
               </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full ${h.status === 'SUCCESS' || h.status === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${h.status === 'SUCCESS' || h.status === 'success' ? 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]' : 'bg-[rgba(217,115,13,0.1)] text-[#D9730D]'}`}>
                 {(h.status || '').toLowerCase() === 'success' ? '✓ Imported' : '⚠ ' + h.status}
               </span>
               <button 
@@ -363,7 +363,7 @@ export default function Upload() {
                     showToast('Import deleted', 'info');
                   }
                 }}
-                className="text-[10px] text-red-400 opacity-50 hover:opacity-100 transition-opacity ml-2"
+                className="text-[10px] text-[#E03E3E] opacity-50 hover:opacity-100 transition-opacity ml-2"
               >
                 Delete
               </button>

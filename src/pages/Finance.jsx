@@ -123,13 +123,13 @@ export default function Finance() {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
-      return <div className="glass-strong p-3 rounded-xl text-xs"><p className="text-slate-400 mb-1">{label}</p>{payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: ₹{p.value?.toFixed?.(0)}</p>)}</div>;
+      return <div className="bg-[#252525] border border-[rgba(255,255,255,0.06)] p-3 rounded-xl text-xs"><p className="text-[#9B9B9B] mb-1">{label}</p>{payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: ₹{p.value?.toFixed?.(0)}</p>)}</div>;
     }
     return null;
   };
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="Financial Health" subtitle="Track spending, optimize savings, and build financial resilience." icon="💰" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
@@ -156,7 +156,7 @@ export default function Finance() {
                       {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} contentStyle={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px' }} />
-                    <Legend formatter={(v) => <span className="text-xs text-slate-400">{v}</span>} />
+                    <Legend formatter={(v) => <span className="text-xs text-[#9B9B9B]">{v}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -184,9 +184,9 @@ export default function Finance() {
             <GlassCard glow="glow-rose">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">🚨 Financial Anxiety Detection</h3>
               <div className="grid md:grid-cols-3 gap-3">
-                {f.debt > 0 && <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-xs"><p className="font-medium text-red-400">Debt: ₹{f.debt.toLocaleString()}</p><p className="text-slate-400 mt-1">Prioritize debt repayment. Allocate 20% of income to clearing debt.</p></div>}
-                {savingsRate < 5 && <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs"><p className="font-medium text-amber-400">Low Savings Rate: {savingsRate}%</p><p className="text-slate-400 mt-1">Aim for 20% minimum. Start with small automated transfers.</p></div>}
-                {emotionalSpending && <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs"><p className="font-medium text-purple-400">Emotional Spending Risk</p><p className="text-slate-400 mt-1">High stress levels linked to impulsive purchases. Use 24-hour wait rule.</p></div>}
+                {f.debt > 0 && <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-xs"><p className="font-medium text-[#E03E3E]">Debt: ₹{f.debt.toLocaleString()}</p><p className="text-[#9B9B9B] mt-1">Prioritize debt repayment. Allocate 20% of income to clearing debt.</p></div>}
+                {savingsRate < 5 && <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs"><p className="font-medium text-[#D9730D]">Low Savings Rate: {savingsRate}%</p><p className="text-[#9B9B9B] mt-1">Aim for 20% minimum. Start with small automated transfers.</p></div>}
+                {emotionalSpending && <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs"><p className="font-medium text-[#9065B0]">Emotional Spending Risk</p><p className="text-[#9B9B9B] mt-1">High stress levels linked to impulsive purchases. Use 24-hour wait rule.</p></div>}
               </div>
             </GlassCard>
           )}
@@ -195,7 +195,7 @@ export default function Finance() {
 
       {tab === 'log' && (
         <GlassCard>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/[0.06] pb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-[rgba(255,255,255,0.055)] pb-4">
             <h3 className="text-sm font-semibold">Log Financial Data</h3>
             <div className="relative w-full md:w-auto">
               <input 
@@ -217,9 +217,9 @@ export default function Finance() {
           </div>
           
           <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-4">
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
+            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
+            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
+            <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
             <div className="flex items-end"><button type="submit" className="btn-primary w-full">Save Entry ✓</button></div>
           </form>
         </GlassCard>
@@ -228,7 +228,7 @@ export default function Finance() {
       {tab === 'recommendations' && (
         <div className="space-y-6">
           <RoboAdvisor financeData={f} />
-          <h3 className="text-sm font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
             <span>💡</span> Spending Optimizations
           </h3>
           {recommendations.map((r, i) => (
@@ -240,11 +240,11 @@ export default function Finance() {
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-semibold">{r.title}</h4>
                       <div className="flex gap-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}% AI Match</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#E03E3E]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#D9730D]' : 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]'}`}>Risk: {r.risk}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#9B9B9B]">{r.confidence}% AI Match</span>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
+                    <p className="text-sm text-[#9B9B9B] leading-relaxed">{r.text}</p>
                   </div>
                 </div>
               </GlassCard>
