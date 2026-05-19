@@ -2,8 +2,27 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
+import { ScoreRing, GlassCard, PageHeader, TabBar, showToast } from '../components/ui/Components';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { BookOpen, Code2, Puzzle, Rocket, Target, GraduationCap } from 'lucide-react';
+
+function CareerMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="glass-card p-6 flex flex-col items-center text-center gap-3 group hover:translate-y-[-2px] transition-all duration-300"
+    >
+      <div className="w-11 h-11 rounded-2xl flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110"
+        style={{ background: `${color}12`, boxShadow: `0 0 20px ${color}15` }}>
+        <Icon size={20} style={{ color }} />
+      </div>
+      <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">{label}</p>
+      <p className="text-[22px] font-bold tracking-tight leading-none">{value}</p>
+      {subtitle && <p className="text-[10px] text-[#3f3f46]">{subtitle}</p>}
+    </motion.div>
+  );
+}
 
 export default function Career() {
   const { user } = useAuth();
@@ -59,21 +78,21 @@ export default function Career() {
   ];
 
   return (
-    <div className="page-container min-h-screen pb-20">
-      <PageHeader title="Career Intelligence" subtitle="Track skills, map out learning paths, and optimize your career trajectory." icon="🎯" />
+    <div className="page-container min-h-screen pb-20 bg-mesh">
+      <PageHeader title="Career Intelligence" subtitle="Track skills, map out learning paths, and optimize your career trajectory." />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
         <div className="space-y-16">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-7 lg:gap-8">
-            <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
-              <ScoreRing score={score} color="auto" label="Career Score" size={120} />
-            </GlassCard>
-            <MetricCard icon="📚" label="Study/day" value={`${c.studyHoursDaily}h`} color="#3b82f6" />
-            <MetricCard icon="💻" label="Coding/day" value={`${c.codingHoursDaily}h`} color="#8b5cf6" />
-            <MetricCard icon="🧩" label="DSA/day" value={c.dsaPractice} color="#0ea5e9" />
-            <MetricCard icon="🚀" label="Projects" value={c.projectsCompleted} color="#10b981" />
-            <MetricCard icon="🎯" label="Placement" value={`${placementReadiness}%`} color="#f59e0b" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+            <div className="glass-card p-7 flex justify-center col-span-2 sm:col-span-3 lg:col-span-1" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
+              <ScoreRing score={score} color="auto" label="Career" size={110} />
+            </div>
+            <CareerMetric icon={BookOpen} color="#3b82f6" label="Study/day" value={`${c.studyHoursDaily}h`} subtitle="focused" delay={50} />
+            <CareerMetric icon={Code2} color="#8b5cf6" label="Coding/day" value={`${c.codingHoursDaily}h`} subtitle="hands-on" delay={100} />
+            <CareerMetric icon={Puzzle} color="#0ea5e9" label="DSA/day" value={c.dsaPractice} subtitle="problems" delay={150} />
+            <CareerMetric icon={Rocket} color="#10b981" label="Projects" value={c.projectsCompleted} subtitle="completed" delay={200} />
+            <CareerMetric icon={Target} color="#f59e0b" label="Placement" value={`${placementReadiness}%`} subtitle="readiness" delay={250} />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
@@ -92,21 +111,22 @@ export default function Career() {
 
             <GlassCard>
               <h3 className="dash-section-title mb-8">Skills Portfolio</h3>
-              <div className="flex flex-wrap gap-2.5 mb-6">
+              <div className="flex flex-wrap gap-2.5 mb-8">
                 {c.skills.map(s => (
-                  <span key={s} className="px-3.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[12px] text-[#a1a1aa] font-medium tracking-wide">
+                  <span key={s} className="px-4 py-2 rounded-xl border border-white/[0.06] text-[12px] text-[#a1a1aa] font-medium tracking-wide hover:border-white/[0.12] hover:text-[#e4e4e7] transition-all duration-200 cursor-default" style={{ background: 'rgba(255,255,255,0.03)' }}>
                     {s}
                   </span>
                 ))}
+                {c.skills.length === 0 && <p className="text-[12px] text-[#52525b]">No skills added yet. Log data to add skills.</p>}
               </div>
-              <div className="grid grid-cols-2 gap-7 lg:gap-10 mt-auto">
-                <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04] text-center">
-                  <p className="text-3xl font-bold text-blue-400 mb-2">{c.coursesActive}</p>
-                  <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wide">Active Courses</p>
+              <div className="grid grid-cols-2 gap-5 mt-auto">
+                <div className="p-6 rounded-2xl border border-white/[0.06] text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <p className="text-3xl font-bold text-blue-400 mb-2 tracking-tight">{c.coursesActive}</p>
+                  <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">Active Courses</p>
                 </div>
-                <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04] text-center">
-                  <p className="text-3xl font-bold text-[#a78bfa] mb-2">{c.gpa}</p>
-                  <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wide">GPA</p>
+                <div className="p-6 rounded-2xl border border-white/[0.06] text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <p className="text-3xl font-bold text-[#a78bfa] mb-2 tracking-tight">{c.gpa}</p>
+                  <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">GPA</p>
                 </div>
               </div>
             </GlassCard>
@@ -158,14 +178,14 @@ export default function Career() {
           {roadmap.map((phase, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
               <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>
-                <div className="flex items-center gap-5 mb-6 pb-5 border-b border-white/[0.04]">
+                <div className="flex items-center gap-5 mb-8 pb-6 border-b border-white/[0.04]">
                   <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-[13px] font-bold flex-shrink-0 ${phase.status === 'done' ? 'bg-emerald-500/10 text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>
                     {phase.status === 'done' ? '✓' : i + 1}
                   </span>
                   <h4 className="font-semibold text-[#f0f0f3] text-[15px]">{phase.phase}</h4>
-                  <span className={`text-[11px] font-medium px-3 py-1 rounded-lg ml-auto capitalize ${phase.status === 'done' ? 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>{phase.status}</span>
+                  <span className={`text-[10px] font-semibold px-3 py-1 rounded-lg ml-auto capitalize tracking-wider uppercase ${phase.status === 'done' ? 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>{phase.status}</span>
                 </div>
-                <div className="grid md:grid-cols-2 gap-5 ml-[60px]">
+                <div className="grid sm:grid-cols-2 gap-4 ml-[60px]">
                   {phase.items.map(item => (
                     <div key={item} className="text-[13px] text-[#a1a1aa] flex items-center gap-3">
                       <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-[#52525b]'}`} />
