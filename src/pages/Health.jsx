@@ -4,8 +4,27 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateTrendData } from '../data/demoData';
 import { analyzeMealImage } from '../services/visionService';
-import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast, SecurityBadge } from '../components/ui/Components';
+import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge } from '../components/ui/Components';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed } from 'lucide-react';
+
+function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="glass-card p-6 flex flex-col items-center text-center gap-3 group hover:translate-y-[-2px] transition-all duration-300"
+    >
+      <div className="w-11 h-11 rounded-2xl flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110"
+        style={{ background: `${color}12`, boxShadow: `0 0 20px ${color}15` }}>
+        <Icon size={20} style={{ color }} />
+      </div>
+      <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">{label}</p>
+      <p className="text-[22px] font-bold tracking-tight leading-none">{value}</p>
+      {subtitle && <p className="text-[10px] text-[#3f3f46]">{subtitle}</p>}
+    </motion.div>
+  );
+}
 
 export default function Health() {
   const { user } = useAuth();
@@ -85,7 +104,12 @@ export default function Health() {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
-      return <div className="bg-[#252525] border border-[rgba(255,255,255,0.06)] p-3 rounded-xl text-xs"><p className="text-[#9B9B9B] mb-1">{label}</p>{payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: {p.value?.toFixed?.(1) || p.value}</p>)}</div>;
+      return (
+        <div className="border border-white/[0.10] p-4 rounded-2xl text-xs" style={{ background: 'rgba(12,12,15,0.92)', backdropFilter: 'blur(20px)', boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }}>
+          <p className="text-[#71717a] mb-2 font-medium">{label}</p>
+          {payload.map(p => <p key={p.name} className="py-0.5" style={{ color: p.color }}>{p.name}: {p.value?.toFixed?.(1) || p.value}</p>)}
+        </div>
+      );
     }
     return null;
   };
@@ -101,22 +125,23 @@ export default function Health() {
   ];
 
   return (
-    <div className="page-container min-h-screen pb-20">
-      <PageHeader title="Health & Wellness" subtitle="Track, understand, and optimize your physical and mental wellbeing." icon="❤️" />
+    <div className="page-container min-h-screen pb-20 bg-mesh">
+      <PageHeader title="Health & Wellness" subtitle="Track, understand, and optimize your physical and mental wellbeing." />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
         <div className="space-y-16">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-7 lg:gap-8">
-            <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
-              <ScoreRing score={score} color="auto" label="Health Score" size={120} />
-            </GlassCard>
-            <MetricCard icon="😴" label="Avg Sleep" value={`${h.sleepAvg}h`} color="#a78bfa" />
-            <MetricCard icon="😰" label="Stress" value={`${h.stressLevel}/10`} color="#f43f5e" />
-            <MetricCard icon="😊" label="Mood" value={`${h.moodAvg}/10`} color="#f59e0b" />
-            <MetricCard icon="💪" label="Workouts/wk" value={h.workoutsPerWeek} color="#10b981" />
-            <MetricCard icon="💧" label="Water" value={`${h.waterIntake} gl`} color="#0ea5e9" />
-            <MetricCard icon="🔥" label="Calories" value={h.calories} color="#f97316" />
+          {/* Score + Metrics Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-5">
+            <div className="glass-card p-7 flex justify-center col-span-2 sm:col-span-3 lg:col-span-1" style={{ boxShadow: '0 0 30px rgba(249,115,22,0.06)' }}>
+              <ScoreRing score={score} color="auto" label="Health" size={110} />
+            </div>
+            <HealthMetric icon={Moon} color="#a78bfa" label="Avg Sleep" value={`${h.sleepAvg}h`} subtitle="per night" delay={50} />
+            <HealthMetric icon={Flame} color="#f43f5e" label="Stress" value={`${h.stressLevel}/10`} subtitle={h.stressLevel > 6 ? 'High' : 'Normal'} delay={100} />
+            <HealthMetric icon={Smile} color="#f59e0b" label="Mood" value={`${h.moodAvg}/10`} subtitle="avg rating" delay={150} />
+            <HealthMetric icon={Dumbbell} color="#10b981" label="Workouts" value={h.workoutsPerWeek} subtitle="per week" delay={200} />
+            <HealthMetric icon={Droplets} color="#0ea5e9" label="Water" value={`${h.waterIntake}`} subtitle="glasses/day" delay={250} />
+            <HealthMetric icon={UtensilsCrossed} color="#f97316" label="Calories" value={h.calories} subtitle="kcal/day" delay={300} />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
@@ -155,33 +180,33 @@ export default function Health() {
           </div>
 
           {/* BMI & Burnout Risk */}
-          <div className="grid md:grid-cols-2 gap-10 lg:gap-12">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
             <GlassCard>
-              <h3 className="dash-section-title mb-6">⚖️ Body Metrics</h3>
+              <h3 className="dash-section-title mb-8">⚖️ Body Metrics</h3>
               <div className="flex items-center gap-8">
-                <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-                  <p className="text-4xl font-bold" style={{ fontFamily: 'var(--font-display)', color: h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#22c55e' }}>{h.bmi}</p>
-                  <p className="text-[11px] text-[#71717a] mt-2 font-medium tracking-wide uppercase">BMI Index</p>
+                <div className="text-center p-7 rounded-2xl border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <p className="text-4xl font-bold tracking-tight" style={{ color: h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#22c55e' }}>{h.bmi}</p>
+                  <p className="text-[10px] text-[#52525b] mt-3 font-semibold tracking-wider uppercase">BMI</p>
                 </div>
-                <div className="flex-1 text-[13px] text-[#a1a1aa] space-y-2">
-                  <p className="flex justify-between items-center pb-2 border-b border-white/[0.04]">
+                <div className="flex-1 text-[13px] text-[#a1a1aa] space-y-4">
+                  <div className="flex justify-between items-center pb-3 border-b border-white/[0.04]">
                     <span>Category</span>
                     <strong className={`font-semibold ${h.bmi < 18.5 ? 'text-[#f59e0b]' : h.bmi > 25 ? 'text-[#f59e0b]' : 'text-[#22c55e]'}`}>{h.bmi < 18.5 ? 'Underweight' : h.bmi > 30 ? 'Obese' : h.bmi > 25 ? 'Overweight' : 'Normal'}</strong>
-                  </p>
-                  <p className="flex justify-between items-center">
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span>Target range</span>
                     <span className="text-[#f0f0f3] font-medium">18.5 – 24.9</span>
-                  </p>
+                  </div>
                 </div>
               </div>
             </GlassCard>
             
-            <GlassCard className={burnout > 60 ? 'border-red-500/20 bg-red-500/[0.02]' : ''}>
-              <h3 className="dash-section-title mb-6">🔥 Burnout Risk</h3>
+            <GlassCard className={burnout > 60 ? 'border-red-500/20' : ''} style={burnout > 60 ? { background: 'rgba(239,68,68,0.02)' } : {}}>
+              <h3 className="dash-section-title mb-8">🔥 Burnout Risk</h3>
               <div className="flex items-center gap-8">
-                <ScoreRing score={burnout} color={burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e'} label="" size={96} strokeWidth={6} />
+                <ScoreRing score={burnout} color={burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e'} label="" size={100} strokeWidth={6} />
                 <div className="text-[13px] text-[#a1a1aa] flex-1">
-                  <p className="font-semibold text-[15px] mb-2" style={{ color: burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e' }}>{burnout > 60 ? 'High Risk' : burnout > 30 ? 'Moderate' : 'Low Risk'}</p>
+                  <p className="font-semibold text-[16px] mb-3" style={{ color: burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e' }}>{burnout > 60 ? 'High Risk' : burnout > 30 ? 'Moderate' : 'Low Risk'}</p>
                   <p className="leading-relaxed">{burnout > 60 ? 'Reduce work hours and prioritize sleep immediately.' : burnout > 30 ? 'Monitor closely. Add more breaks to your routine.' : 'Pace is sustainable. Keep up the good work!'}</p>
                 </div>
               </div>
@@ -238,17 +263,17 @@ export default function Health() {
         <div className="space-y-16">
           {/* Wellness Breakdown */}
           <GlassCard>
-            <h3 className="dash-section-title mb-8">🧘 Wellness Factor Breakdown</h3>
-            <div className="space-y-6">
+            <h3 className="dash-section-title mb-10">🧘 Wellness Factor Breakdown</h3>
+            <div className="space-y-7">
               {wellnessFactors.map((wf, i) => (
                 <motion.div key={wf.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <span className="text-[13px] text-[#f0f0f3] flex items-center gap-3 font-medium"><span className="text-lg">{wf.icon}</span>{wf.label}</span>
-                    <span className="text-[13px] font-bold" style={{ color: wf.color }}>{wf.score}%</span>
+                    <span className="text-[13px] font-bold tabular-nums" style={{ color: wf.color }}>{wf.score}%</span>
                   </div>
-                  <div className="w-full h-2.5 rounded-full bg-white/[0.04]">
+                  <div className="w-full h-2 rounded-full bg-white/[0.04]">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${wf.score}%` }} transition={{ duration: 1, delay: i * 0.1 }}
-                      className="h-full rounded-full" style={{ background: wf.color }} />
+                      className="h-full rounded-full" style={{ background: wf.color, boxShadow: `0 0 10px ${wf.color}30` }} />
                   </div>
                 </motion.div>
               ))}
@@ -280,23 +305,19 @@ export default function Health() {
           {/* Daily Summary */}
           <GlassCard>
             <h3 className="dash-section-title mb-8">📝 Daily Health Summary</h3>
-            <div className="grid md:grid-cols-2 gap-7 lg:gap-10">
-              <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
-                <p className="text-[12px] text-[#71717a] font-medium mb-2 uppercase tracking-wide">Energy Level</p>
-                <p className="text-[14px] font-medium text-[#f0f0f3]">{h.sleepAvg >= 7 && h.stressLevel < 6 ? '⚡ High — well rested and low stress' : h.sleepAvg >= 5.5 ? '🔋 Moderate — could use more sleep' : '🪫 Low — sleep deprivation detected'}</p>
-              </div>
-              <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
-                <p className="text-[12px] text-[#71717a] font-medium mb-2 uppercase tracking-wide">Recovery Status</p>
-                <p className="text-[14px] font-medium text-[#f0f0f3]">{h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅ Good recovery balance' : '⚠️ Recovery may be insufficient'}</p>
-              </div>
-              <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
-                <p className="text-[12px] text-[#71717a] font-medium mb-2 uppercase tracking-wide">Immune Health</p>
-                <p className="text-[14px] font-medium text-[#f0f0f3]">{h.sleepAvg >= 7 && h.waterIntake >= 6 ? '🛡️ Strong — sleep and hydration support immunity' : '⚠️ Weakened — improve sleep and hydration'}</p>
-              </div>
-              <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
-                <p className="text-[12px] text-[#71717a] font-medium mb-2 uppercase tracking-wide">Cognitive Performance</p>
-                <p className="text-[14px] font-medium text-[#f0f0f3]">{h.sleepAvg >= 7 && h.stressLevel < 7 ? '🧠 Optimal — focus should be sharp' : '🧠 Reduced — ' + (h.sleepAvg < 6 ? 'sleep deficit' : 'high stress') + ' impacting cognition'}</p>
-              </div>
+            <div className="grid sm:grid-cols-2 gap-5">
+              {[
+                { label: 'Energy Level', text: h.sleepAvg >= 7 && h.stressLevel < 6 ? '⚡ High — well rested and low stress' : h.sleepAvg >= 5.5 ? '🔋 Moderate — could use more sleep' : '🪫 Low — sleep deprivation detected' },
+                { label: 'Recovery Status', text: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅ Good recovery balance' : '⚠️ Recovery may be insufficient' },
+                { label: 'Immune Health', text: h.sleepAvg >= 7 && h.waterIntake >= 6 ? '🛡️ Strong — sleep and hydration support immunity' : '⚠️ Weakened — improve sleep and hydration' },
+                { label: 'Cognitive Performance', text: h.sleepAvg >= 7 && h.stressLevel < 7 ? '🧠 Optimal — focus should be sharp' : '🧠 Reduced — ' + (h.sleepAvg < 6 ? 'sleep deficit' : 'high stress') + ' impacting cognition' },
+              ].map((item, i) => (
+                <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                  className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <p className="text-[10px] text-[#52525b] font-semibold mb-3 uppercase tracking-wider">{item.label}</p>
+                  <p className="text-[13px] font-medium text-[#e4e4e7] leading-relaxed">{item.text}</p>
+                </motion.div>
+              ))}
             </div>
           </GlassCard>
         </div>
