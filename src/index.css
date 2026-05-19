@@ -50,9 +50,9 @@
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
-  --radius-3xl: 28px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-3xl: 32px;
 
   /* Spacing */
   --spacing-page: 64px;
@@ -529,7 +529,9 @@ select.input-premium option {
   padding: var(--spacing-page-mobile);
   padding-bottom: 96px;
   min-height: 100vh;
-  max-width: 1200px;
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
   position: relative;
   z-index: 1;
 }
@@ -581,12 +583,12 @@ select.input-premium option {
 }
 
 .dash-section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-transform: none;
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;

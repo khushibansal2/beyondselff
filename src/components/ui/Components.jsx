@@ -52,7 +52,7 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
       animate={animate ? { opacity: 1, y: 0 } : false}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       onClick={onClick}
-      className={`glass-card p-9 lg:p-12 ${glow} ${onClick ? 'cursor-pointer dash-card-interactive' : ''} ${className}`}
+      className={`glass-card p-7 lg:p-8 ${glow} ${onClick ? 'cursor-pointer dash-card-interactive' : ''} ${className}`}
     >
       {children}
     </motion.div>
@@ -116,15 +116,15 @@ export function PageHeader({ title, subtitle, icon }) {
 
 export function TabBar({ tabs, active, onChange }) {
   return (
-    <div className="flex gap-0 border-b border-white/[0.06] mb-8 overflow-x-auto">
+    <div className="flex gap-1 border-b border-white/[0.06] mb-12 overflow-x-auto -mt-4">
       {tabs.map(t => (
         <button key={t.id} onClick={() => onChange(t.id)}
-          className={`relative px-5 py-3 text-[13px] font-medium transition-colors whitespace-nowrap ${active === t.id ? 'text-[#f0f0f3]' : 'text-[#52525b] hover:text-[#a1a1aa]'}`}>
-          {t.icon && <span className="mr-2">{t.icon}</span>}{t.label}
+          className={`relative px-5 py-3.5 text-[14px] font-medium transition-colors whitespace-nowrap ${active === t.id ? 'text-[#f0f0f3]' : 'text-[#52525b] hover:text-[#a1a1aa]'}`}>
+          {t.icon && <span className="mr-2 text-[13px]">{t.icon}</span>}{t.label}
           {active === t.id && (
             <motion.div
               layoutId="tab-underline"
-              className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500"
+              className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
               transition={{ type: 'spring', stiffness: 350, damping: 30 }}
             />
           )}

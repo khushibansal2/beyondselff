@@ -2,10 +2,10 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { generateTrendData } from '../data/demoData';
+import { generateTrendData, generateInsights } from '../data/demoData';
 import { analyzeMealImage } from '../services/visionService';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge } from '../components/ui/Components';
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed } from 'lucide-react';
 
 function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
@@ -13,15 +13,15 @@ function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) 
     <motion.div
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="glass-card p-6 flex flex-col items-center text-center gap-3 group hover:translate-y-[-2px] transition-all duration-300"
+      className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-6 flex flex-col items-center text-center justify-center gap-2.5 min-h-[160px] group hover:translate-y-[-2px] hover:border-white/[0.10] transition-all duration-300"
     >
-      <div className="w-11 h-11 rounded-2xl flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110"
-        style={{ background: `${color}12`, boxShadow: `0 0 20px ${color}15` }}>
-        <Icon size={20} style={{ color }} />
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110"
+        style={{ background: `${color}14`, boxShadow: `0 0 24px ${color}18` }}>
+        <Icon size={22} style={{ color }} />
       </div>
-      <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">{label}</p>
-      <p className="text-[22px] font-bold tracking-tight leading-none">{value}</p>
-      {subtitle && <p className="text-[10px] text-[#3f3f46]">{subtitle}</p>}
+      <p className="text-[10px] text-[#52525b] uppercase tracking-[0.1em] font-semibold mt-1">{label}</p>
+      <p className="text-[24px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
+      {subtitle && <p className="text-[11px] text-[#3f3f46] font-medium">{subtitle}</p>}
     </motion.div>
   );
 }
@@ -36,6 +36,17 @@ export default function Health() {
   const trendData = useMemo(() => generateTrendData(user, 30), [user]);
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
   const [visionLoading, setVisionLoading] = useState(false);
+
+  const currentState = useMemo(() => ({
+    health: h,
+    finance: computed?.financeScore?.raw || { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0 },
+    career: computed?.careerScore?.raw || { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0 }
+  }), [h, computed]);
+
+  const healthInsights = useMemo(() => {
+    const all = generateInsights(currentState);
+    return all.filter(ins => ins.domains.includes('health')).slice(0, 2);
+  }, [currentState]);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -130,12 +141,20 @@ export default function Health() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-16">
-          {/* Score + Metrics Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-5">
-            <div className="glass-card p-7 flex justify-center col-span-2 sm:col-span-3 lg:col-span-1" style={{ boxShadow: '0 0 30px rgba(249,115,22,0.06)' }}>
-              <ScoreRing score={score} color="auto" label="Health" size={110} />
-            </div>
+        <div className="space-y-10">
+          {/* ── Score + Metrics Row ── */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 lg:gap-5">
+            {/* Health Score Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-6 flex flex-col items-center justify-center text-center min-h-[160px] col-span-2 sm:col-span-3 lg:col-span-1"
+              style={{ boxShadow: '0 0 30px rgba(249,115,22,0.05)' }}
+            >
+              <ScoreRing score={score} color="auto" label="" size={90} strokeWidth={7} />
+              <span className="text-[11px] text-[#52525b] uppercase tracking-[0.08em] font-semibold mt-2">Health Score</span>
+            </motion.div>
+
             <HealthMetric icon={Moon} color="#a78bfa" label="Avg Sleep" value={`${h.sleepAvg}h`} subtitle="per night" delay={50} />
             <HealthMetric icon={Flame} color="#f43f5e" label="Stress" value={`${h.stressLevel}/10`} subtitle={h.stressLevel > 6 ? 'High' : 'Normal'} delay={100} />
             <HealthMetric icon={Smile} color="#f59e0b" label="Mood" value={`${h.moodAvg}/10`} subtitle="avg rating" delay={150} />
@@ -144,17 +163,32 @@ export default function Health() {
             <HealthMetric icon={UtensilsCrossed} color="#f97316" label="Calories" value={h.calories} subtitle="kcal/day" delay={300} />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
+          {/* ── Charts Row ── */}
+          <div className="grid lg:grid-cols-2 gap-5 lg:gap-6">
             <GlassCard>
-              <h3 className="dash-section-title mb-8">Sleep & Mood Trends (30 days)</h3>
-              <div className="h-80">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+                <h3 className="dash-section-title" style={{ marginBottom: 0 }}>Sleep & Mood Trends (30 Days)</h3>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
+                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#a78bfa' }} />
+                    <span>Sleep (hrs)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
+                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#f59e0b' }} />
+                    <span>Mood (1-10)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="h-72 lg:h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>
                     <defs>
-                      <linearGradient id="sleepH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#a78bfa" stopOpacity={0.2}/><stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/></linearGradient>
-                      <linearGradient id="moodH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/><stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/></linearGradient>
+                      <linearGradient id="sleepH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#a78bfa" stopOpacity={0.15}/><stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/></linearGradient>
+                      <linearGradient id="moodH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15}/><stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/></linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 11 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="url(#sleepH)" strokeWidth={2} name="Sleep" />
                     <Area type="monotone" dataKey="mood" stroke="#f59e0b" fill="url(#moodH)" strokeWidth={2} name="Mood" />
@@ -164,50 +198,108 @@ export default function Health() {
             </GlassCard>
 
             <GlassCard>
-              <h3 className="dash-section-title mb-8">Stress & Water Intake</h3>
-              <div className="h-80">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+                <h3 className="dash-section-title" style={{ marginBottom: 0 }}>Stress & Water Intake</h3>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
+                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#f43f5e' }} />
+                    <span>Stress (1-10)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
+                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#0ea5e9' }} />
+                    <span>Water (glasses)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="h-72 lg:h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={trendData.slice(-14)} maxBarSize={32}>
-                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 11 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} />
-                    <YAxis hide />
+                  <BarChart data={trendData.slice(-14)} maxBarSize={16}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="stress" fill="#f43f5e" radius={[4, 4, 0, 0]} name="Stress" opacity={0.8} />
-                    <Bar dataKey="water" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Water" opacity={0.8} />
+                    <Bar dataKey="stress" fill="#f43f5e" radius={[3, 3, 0, 0]} name="Stress" opacity={0.85} />
+                    <Bar dataKey="water" fill="#0ea5e9" radius={[3, 3, 0, 0]} name="Water" opacity={0.85} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </GlassCard>
           </div>
 
-          {/* BMI & Burnout Risk */}
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
-            <GlassCard>
-              <h3 className="dash-section-title mb-8">⚖️ Body Metrics</h3>
-              <div className="flex items-center gap-8">
-                <div className="text-center p-7 rounded-2xl border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                  <p className="text-4xl font-bold tracking-tight" style={{ color: h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#22c55e' }}>{h.bmi}</p>
-                  <p className="text-[10px] text-[#52525b] mt-3 font-semibold tracking-wider uppercase">BMI</p>
+          {/* ── Bottom Analytics Row ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
+            {/* Body Metrics */}
+            <GlassCard className="flex flex-col justify-between h-full">
+              <div>
+                <h3 className="dash-section-title">Body Metrics</h3>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {[
+                    { label: 'BMI', val: h.bmi || 24.5, unit: '', color: (h.bmi || 24.5) < 18.5 || (h.bmi || 24.5) > 25 ? '#f59e0b' : '#22c55e', sub: 'Normal' },
+                    { label: 'Weight', val: h.weight || 70, unit: 'kg', color: '#f0f0f3', sub: null },
+                    { label: 'Body Fat', val: h.bodyFat || 18, unit: '%', color: '#f0f0f3', sub: null },
+                    { label: 'Muscle Mass', val: h.muscleMass || 32, unit: 'kg', color: '#f0f0f3', sub: null },
+                  ].map(m => (
+                    <div key={m.label} className="p-3.5 rounded-2xl border border-white/[0.04] bg-white/[0.02] text-center flex flex-col justify-center min-h-[85px]">
+                      <p className="text-[8px] text-[#52525b] uppercase tracking-wider font-semibold mb-1">{m.label}</p>
+                      <p className="text-[18px] font-bold tracking-tight leading-none" style={{ color: m.color }}>
+                        {m.val}<span className="text-[9px] text-[#52525b] font-normal ml-0.5">{m.unit}</span>
+                      </p>
+                      {m.sub && <p className="text-[8px] text-[#22c55e] mt-1 font-medium">{m.sub}</p>}
+                    </div>
+                  ))}
                 </div>
-                <div className="flex-1 text-[13px] text-[#a1a1aa] space-y-4">
-                  <div className="flex justify-between items-center pb-3 border-b border-white/[0.04]">
-                    <span>Category</span>
-                    <strong className={`font-semibold ${h.bmi < 18.5 ? 'text-[#f59e0b]' : h.bmi > 25 ? 'text-[#f59e0b]' : 'text-[#22c55e]'}`}>{h.bmi < 18.5 ? 'Underweight' : h.bmi > 30 ? 'Obese' : h.bmi > 25 ? 'Overweight' : 'Normal'}</strong>
+              </div>
+              <div className="pt-5 mt-5 border-t border-white/[0.04] flex items-center justify-between text-[11px]">
+                <span className="text-[#52525b]">Target BMI range</span>
+                <span className="text-[#a1a1aa] font-semibold">18.5 - 24.9</span>
+                <span className="text-[#22c55e] font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-lg text-[9px] uppercase tracking-wide">Normal</span>
+              </div>
+            </GlassCard>
+
+            {/* Burnout Risk */}
+            <GlassCard className={`flex flex-col justify-between h-full ${burnout > 60 ? 'border-red-500/15' : ''}`} style={burnout > 60 ? { background: 'rgba(239,68,68,0.02)' } : {}}>
+              <div>
+                <h3 className="dash-section-title">Burnout Risk</h3>
+                <div className="flex items-center gap-5 mt-1">
+                  <div className="flex-shrink-0">
+                    <ScoreRing score={burnout} color={burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e'} label="" size={90} strokeWidth={7} />
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>Target range</span>
-                    <span className="text-[#f0f0f3] font-medium">18.5 – 24.9</span>
+                  <div className="flex-1">
+                    <p className="font-bold text-[15px] mb-1.5" style={{ color: burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e' }}>
+                      {burnout > 60 ? 'High Risk' : burnout > 30 ? 'Moderate Risk' : 'Low Risk'}
+                    </p>
+                    <p className="leading-relaxed text-[12px] text-[#71717a]">
+                      {burnout > 60 ? 'Reduce work hours and prioritize sleep immediately.' : burnout > 30 ? 'Monitor closely. Add more breaks to your routine.' : 'Pace is sustainable. Keep up the good work!'}
+                    </p>
                   </div>
                 </div>
               </div>
             </GlassCard>
-            
-            <GlassCard className={burnout > 60 ? 'border-red-500/20' : ''} style={burnout > 60 ? { background: 'rgba(239,68,68,0.02)' } : {}}>
-              <h3 className="dash-section-title mb-8">🔥 Burnout Risk</h3>
-              <div className="flex items-center gap-8">
-                <ScoreRing score={burnout} color={burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e'} label="" size={100} strokeWidth={6} />
-                <div className="text-[13px] text-[#a1a1aa] flex-1">
-                  <p className="font-semibold text-[16px] mb-3" style={{ color: burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e' }}>{burnout > 60 ? 'High Risk' : burnout > 30 ? 'Moderate' : 'Low Risk'}</p>
-                  <p className="leading-relaxed">{burnout > 60 ? 'Reduce work hours and prioritize sleep immediately.' : burnout > 30 ? 'Monitor closely. Add more breaks to your routine.' : 'Pace is sustainable. Keep up the good work!'}</p>
+
+            {/* Health Insights */}
+            <GlassCard className="flex flex-col justify-between h-full">
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="dash-section-title" style={{ marginBottom: 0 }}>Health Insights</h3>
+                  <button onClick={() => setTab('recommendations')} className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors tracking-wide">View all</button>
+                </div>
+                
+                <div className="space-y-3 w-full">
+                  {healthInsights.map((insight, i) => (
+                    <div key={i} className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.04] border border-white/[0.06] text-base flex-shrink-0">
+                        {insight.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-[12px] text-[#f0f0f3] truncate mb-0.5">{insight.title}</h4>
+                        <p className="text-[11px] text-[#71717a] leading-relaxed line-clamp-2">{insight.text}</p>
+                      </div>
+                      <span className="text-[#3f3f46] group-hover:text-[#71717a] transition-colors mt-1 text-sm">›</span>
+                    </div>
+                  ))}
+                  {healthInsights.length === 0 && (
+                    <p className="text-[12px] text-[#52525b] text-center py-8">No active insights. Keep logging your data.</p>
+                  )}
                 </div>
               </div>
             </GlassCard>
