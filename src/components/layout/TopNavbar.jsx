@@ -1,6 +1,5 @@
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useData } from '../../context/DataContext';
 
 const routeNames = {
   '/dashboard': 'Dashboard',
@@ -24,24 +23,19 @@ export default function TopNavbar() {
   const pageName = routeNames[location.pathname] || 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-[rgba(255,255,255,0.04)] bg-[#191919]">
-      <div className="flex items-center justify-between h-11 px-6">
-        {/* Left: Breadcrumb-style page title */}
+    <header className="sticky top-0 z-30 w-full border-b border-white/[0.06]" style={{ background: 'rgba(9,9,11,0.8)', backdropFilter: 'blur(20px)' }}>
+      <div className="flex items-center justify-between h-12 px-6">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[12px] text-[#5C5C5C]">BeyondSelf</span>
-          <span className="text-[12px] text-[#5C5C5C]">/</span>
-          <h2 className="text-[13px] font-medium text-[#EBEBEB] truncate">
-            {pageName}
-          </h2>
+          <span className="text-[12px] text-[#3f3f46]">BeyondSelf</span>
+          <span className="text-[12px] text-[#3f3f46]">/</span>
+          <h2 className="text-[13px] font-medium text-[#f0f0f3] truncate">{pageName}</h2>
         </div>
-
-        {/* Right: Minimal info */}
         <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-[#2f2f2f] flex items-center justify-center text-[10px]">
+          <div className="hidden lg:flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[10px]">
               {user?.avatar || '👤'}
             </div>
-            <span className="text-[12px] text-[#9B9B9B] truncate max-w-[120px]">{user?.name}</span>
+            <span className="text-[12px] text-[#71717a] truncate max-w-[120px]">{user?.name}</span>
           </div>
         </div>
       </div>

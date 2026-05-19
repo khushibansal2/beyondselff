@@ -10,6 +10,11 @@ import { generateTrendData, generateCorrelations, generateInsights } from '../da
 import { computeHealthScore } from '../engines/healthScoreEngine';
 import { computeFinanceScore } from '../engines/financeScoreEngine';
 import { computeCareerScore } from '../engines/careerScoreEngine';
+import {
+  Brain, Dna, Search, ClipboardList, Zap, CalendarDays, Link2,
+  Moon, Flame, PiggyBank, BookOpen, Heart, DollarSign, GraduationCap,
+  MessageSquare, AlertTriangle, BedDouble, Smartphone
+} from 'lucide-react';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -135,7 +140,7 @@ export default function Dashboard() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
       return (
-        <div className="bg-[#141416] border border-white/[0.08] p-4 rounded-xl text-xs shadow-2xl">
+        <div className="border border-white/[0.10] p-4 rounded-2xl text-xs" style={{ background: 'rgba(12,12,15,0.92)', backdropFilter: 'blur(20px)', boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)' }}>
           <p className="text-[#71717a] mb-2 font-medium">{label}</p>
           {payload.map(p => <p key={p.name} className="py-0.5" style={{ color: p.color }}>{p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}</p>)}
         </div>
@@ -147,18 +152,20 @@ export default function Dashboard() {
   const sleepCascade = crossDomain.find(cd => cd.id === 'sleep-productivity');
 
   return (
-    <div className="page-container min-h-screen pb-20">
+    <div className="page-container min-h-screen pb-20 bg-mesh">
       <PageHeader title="Dashboard" subtitle={`Welcome back, ${user?.name || 'User'}. Here's your AI-powered life overview.`} />
 
       {/* Digital Twin Summary Banner */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-14">
         <div className="dash-hero">
           <div className="flex items-start gap-5 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-[rgba(59,130,246,0.08)] flex items-center justify-center text-xl flex-shrink-0">🧬</div>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0" style={{ boxShadow: '0 0 20px rgba(99,102,241,0.15)' }}>
+              <Dna size={22} className="text-indigo-400" />
+            </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-[15px] font-semibold text-[#f0f0f3]">Digital Twin Analysis</h3>
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[rgba(59,130,246,0.08)] text-[#3b82f6] font-semibold">Live</span>
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />Live</span>
               </div>
               {narrativeLoading ? (
                 <div className="flex items-center gap-3 text-[13px] text-[#71717a] mt-3">
@@ -199,7 +206,7 @@ export default function Dashboard() {
           <div className="rounded-xl border border-red-500/10 bg-red-500/[0.02] overflow-hidden">
             <div className="flex items-center gap-3 px-6 py-3 border-b border-red-500/8 bg-red-500/[0.03]">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
-              <span className="text-[11px] text-red-300 font-semibold uppercase tracking-wider">🧠 AI Pattern Detected</span>
+              <span className="text-[11px] text-red-300 font-semibold uppercase tracking-wider flex items-center gap-2"><Brain size={13} /> AI Pattern Detected</span>
               <span className="ml-auto text-[10px] text-[#52525b] font-medium">Deterministic • Cross-domain</span>
             </div>
             <div className="p-7">
@@ -210,19 +217,19 @@ export default function Dashboard() {
               <div className="space-y-3 mb-6">
                 <p className="section-label mb-3">Recommended Recovery Path</p>
                 {[
-                  { icon: '😴', action: `Increase sleep by ${Math.max(1, (7 - h.sleepAvg)).toFixed(1)} hours`, impact: `Avoid ${sleepCascade.computedImpact?.productivityLoss || 0}% productivity loss` },
-                  { icon: '📱', action: 'Reduce evening screen time', impact: 'Faster sleep onset' },
+                  { lucideIcon: BedDouble, action: `Increase sleep by ${Math.max(1, (7 - h.sleepAvg)).toFixed(1)} hours`, impact: `Avoid ${sleepCascade.computedImpact?.productivityLoss || 0}% productivity loss` },
+                  { lucideIcon: Smartphone, action: 'Reduce evening screen time', impact: 'Faster sleep onset' },
                 ].map((r, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-[#141416] border border-white/[0.04]">
-                    <span className="text-lg flex-shrink-0">{r.icon}</span>
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] transition-all hover:border-white/[0.10]" style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
+                    <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center flex-shrink-0"><r.lucideIcon size={16} className="text-[#a1a1aa]" /></div>
                     <p className="text-[13px] text-[#a1a1aa] flex-1">• {r.action}</p>
                     <span className="text-[10px] text-[#22c55e] bg-[rgba(34,197,94,0.06)] px-3 py-1 rounded-lg flex-shrink-0 whitespace-nowrap font-medium">{r.impact}</span>
                   </div>
                 ))}
               </div>
               <div className="flex gap-3">
-                <Link to="/coach" className="text-[12px] px-5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-[#a1a1aa] hover:text-white hover:bg-white/[0.06] transition-all font-medium">
-                  Ask AI Coach →
+                <Link to="/coach" className="text-[12px] px-5 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:text-white hover:bg-indigo-500/20 transition-all font-medium flex items-center gap-2">
+                  <MessageSquare size={13} /> Ask AI Coach →
                 </Link>
               </div>
             </div>
@@ -252,8 +259,8 @@ export default function Dashboard() {
       {/* Explainable AI Score Panels */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-16">
         <h3 className="dash-section-title mb-8">
-          🔍 Explainable AI — Score Breakdown
-          <span className="dash-badge bg-[rgba(59,130,246,0.08)] text-[#3b82f6]">Advanced</span>
+          <Search size={14} className="text-indigo-400" /> Explainable AI — Score Breakdown
+          <span className="dash-badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Advanced</span>
         </h3>
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           <ExplainableScorePanel title="Health Score" score={healthScore} factors={explainFactors.health} color="#22c55e" icon="❤️" />
@@ -266,15 +273,15 @@ export default function Dashboard() {
         {/* Metrics + Chart */}
         <div className="lg:col-span-2 space-y-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <MetricCard icon="😴" label="Avg Sleep" value={`${h.sleepAvg || 0}h`} change={h.sleepAvg >= 7 ? 5 : -12} color="#a78bfa" delay={0} />
-            <MetricCard icon="😰" label="Stress" value={`${h.stressLevel || 0}/10`} change={h.stressLevel <= 5 ? 8 : -15} color="#f43f5e" delay={100} />
-            <MetricCard icon="💵" label="Savings" value={`${computed?.financeScore?.summary?.savingsRate || 0}%`} change={f.income > f.expenses ? 5 : -10} color="#22c55e" delay={200} />
-            <MetricCard icon="📊" label="Study" value={`${c.studyHoursDaily || 0}h/day`} change={c.studyHoursDaily >= 4 ? 10 : -5} color="#818cf8" delay={300} />
+            <MetricCard icon={<Moon size={20} className="text-violet-400" />} label="Avg Sleep" value={`${h.sleepAvg || 0}h`} change={h.sleepAvg >= 7 ? 5 : -12} color="#a78bfa" delay={0} />
+            <MetricCard icon={<Flame size={20} className="text-rose-400" />} label="Stress" value={`${h.stressLevel || 0}/10`} change={h.stressLevel <= 5 ? 8 : -15} color="#f43f5e" delay={100} />
+            <MetricCard icon={<PiggyBank size={20} className="text-emerald-400" />} label="Savings" value={`${computed?.financeScore?.summary?.savingsRate || 0}%`} change={f.income > f.expenses ? 5 : -10} color="#22c55e" delay={200} />
+            <MetricCard icon={<BookOpen size={20} className="text-indigo-400" />} label="Study" value={`${c.studyHoursDaily || 0}h/day`} change={c.studyHoursDaily >= 4 ? 10 : -5} color="#818cf8" delay={300} />
           </div>
 
           {/* Trend Chart */}
           <GlassCard>
-            <h3 className="dash-section-title mb-6">14-Day Trends</h3>
+            <h3 className="dash-section-title mb-6"><CalendarDays size={14} className="text-indigo-400" /> 14-Day Trends</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData}>
@@ -297,7 +304,7 @@ export default function Dashboard() {
         {/* AI Insights */}
         <div className="space-y-6">
           <h3 className="dash-section-title">
-            🧠 AI Insights
+            <Brain size={14} className="text-purple-400" /> AI Insights
           </h3>
           <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
             {insights.map((insight, i) => <InsightCard key={i} insight={insight} index={i} />)}
@@ -315,7 +322,7 @@ export default function Dashboard() {
         {/* Activity Timeline */}
         <GlassCard>
           <h3 className="dash-section-title mb-8">
-            📅 Recent Activity
+            <CalendarDays size={14} className="text-indigo-400" /> Recent Activity
           </h3>
           <div className="space-y-6">
             {(timeline || []).slice(0, 6).map((item, i) => (
@@ -340,7 +347,7 @@ export default function Dashboard() {
         {/* Habit Correlations */}
         <GlassCard>
           <h3 className="dash-section-title mb-8">
-            🔗 Habit Correlations
+            <Link2 size={14} className="text-cyan-400" /> Habit Correlations
           </h3>
           <div className="space-y-5">
             {correlations.slice(0, 5).map((c, i) => (
@@ -364,8 +371,8 @@ export default function Dashboard() {
         <GlassCard>
           <div className="flex items-center justify-between mb-8">
             <h3 className="dash-section-title mb-0">
-              📋 Today's Action Plan
-              <span className="dash-badge bg-[rgba(34,197,94,0.06)] text-[#22c55e]">AI-generated</span>
+              <ClipboardList size={14} className="text-emerald-400" /> Today's Action Plan
+              <span className="dash-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI-generated</span>
             </h3>
             <span className="text-[12px] text-[#52525b] tabular-nums font-medium">
               {Object.values(checkedTasks).filter(Boolean).length}/{actionPlan.length} done
@@ -390,11 +397,12 @@ export default function Dashboard() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.08 }}
-                  className={`flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${done ? 'border-emerald-500/10 bg-emerald-500/[0.02] opacity-60' : 'border-white/[0.06] bg-[#141416] hover:bg-[#1a1a1e] hover:border-white/[0.10]'
+                  className={`flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 cursor-pointer ${done ? 'border-emerald-500/10 bg-emerald-500/[0.02] opacity-60' : 'border-white/[0.06] hover:border-white/[0.10] hover:translate-y-[-1px]'
                     }`}
+                  style={!done ? { background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' } : {}}
                   onClick={() => setCheckedTasks(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
                 >
-                  <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${done ? 'border-emerald-400 bg-emerald-500/20' : 'border-zinc-700'
+                  <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${done ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'border-zinc-700'
                     }`}>
                     {done && <span className="text-[10px] text-[#22c55e]">✓</span>}
                   </div>
@@ -437,17 +445,20 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <GlassCard>
-        <h3 className="dash-section-title mb-6">⚡ Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <h3 className="dash-section-title mb-6"><Zap size={14} className="text-amber-400" /> Quick Actions</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {[
-            { to: '/health', icon: '❤️', label: 'Log Health', color: '#22c55e' },
-            { to: '/finance', icon: '💰', label: 'Log Expense', color: '#f59e0b' },
-            { to: '/career', icon: '📚', label: 'Log Study', color: '#818cf8' },
-            { to: '/coach', icon: '💬', label: 'Ask AI Coach', color: '#a78bfa' },
+            { to: '/health', LIcon: Heart, label: 'Log Health', color: '#22c55e' },
+            { to: '/finance', LIcon: DollarSign, label: 'Log Expense', color: '#f59e0b' },
+            { to: '/career', LIcon: GraduationCap, label: 'Log Study', color: '#818cf8' },
+            { to: '/coach', LIcon: MessageSquare, label: 'Ask AI Coach', color: '#a78bfa' },
           ].map(action => (
             <Link key={action.to} to={action.to}
-              className="p-6 rounded-xl bg-[#141416] border border-white/[0.06] text-center hover:bg-[#1a1a1e] hover:border-white/[0.10] transition-all group hover:scale-[1.02] active:scale-[0.98]">
-              <span className="text-2xl block mb-3 group-hover:scale-110 transition-transform duration-200">{action.icon}</span>
+              className="p-7 rounded-2xl border border-white/[0.06] text-center hover:border-white/[0.12] transition-all duration-300 group hover:translate-y-[-2px] active:scale-[0.98]"
+              style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
+              <div className="w-12 h-12 rounded-2xl mx-auto mb-4 flex items-center justify-center border border-white/[0.06] transition-all duration-300 group-hover:scale-110" style={{ background: `${action.color}10`, boxShadow: `0 0 20px ${action.color}10` }}>
+                <action.LIcon size={20} style={{ color: action.color }} />
+              </div>
               <p className="text-[12px] font-medium text-[#71717a] group-hover:text-[#f0f0f3] transition-colors">{action.label}</p>
             </Link>
           ))}
