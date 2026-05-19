@@ -101,7 +101,7 @@ export default function Health() {
   ];
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="Health & Wellness" subtitle="Track, understand, and optimize your physical and mental wellbeing." icon="❤️" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 

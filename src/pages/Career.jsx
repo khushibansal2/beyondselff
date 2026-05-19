@@ -59,7 +59,7 @@ export default function Career() {
   ];
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="Career & Growth" subtitle="Track skills, prepare for placements, and accelerate your career." icon="🎯" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 

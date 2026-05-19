@@ -77,7 +77,7 @@ export default function Goals() {
   const activeGoals = (goals || []).filter(g => g.progress < 100).length;
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="SMART Goals" subtitle="Set, track, and achieve goals across health, finance, and career." icon="🏆" />
 
       {/* Stats */}

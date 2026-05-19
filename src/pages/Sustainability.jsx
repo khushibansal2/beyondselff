@@ -60,7 +60,7 @@ export default function Sustainability() {
   };
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="Sustainability Tracking" subtitle="Monitor your carbon footprint and log eco-friendly actions." icon="🌿" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 

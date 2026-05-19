@@ -97,7 +97,7 @@ export default function Simulator() {
       : 'bg-orange-500/10 text-orange-400';
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="What-If Future Simulator" subtitle="Explore how different life choices affect your estimated future trajectory." icon="🔮" />
 
       {/* Guard: require baseline data */}

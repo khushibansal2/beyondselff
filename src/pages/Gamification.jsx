@@ -74,7 +74,7 @@ export default function Gamification() {
   };
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="Rewards & Achievements" subtitle="Track your streaks, earn badges, and level up your life." icon="⭐" />
 
       <AnimatePresence>

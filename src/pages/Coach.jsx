@@ -146,7 +146,7 @@ export default function Coach() {
   };
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+    <div className="page-container bg-mesh min-h-screen flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
       <PageHeader title="AI Life Coach" subtitle="Grounded coaching powered by your Digital Twin's deterministic intelligence." icon="💬" />
 
       {/* Live Context + Explainability Bar */}
