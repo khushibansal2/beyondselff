@@ -72,7 +72,7 @@ export default function Dashboard() {
     // Return top 3 highest priority tasks
     return tasks.slice(0, 3);
   }, [h, f, c]);
-  
+
   // Use deterministic alerts from lifeBalanceEngine via DataContext
   const urgentAlerts = [
     ...(computed?.urgentAlerts || []),
@@ -90,12 +90,12 @@ export default function Dashboard() {
   // Generate fallback data for charts/insights if records are missing
   const trendData = useMemo(() => generateTrendData(currentState, 14), [currentState]);
   const correlations = useMemo(() => generateCorrelations(trendData), [trendData]);
-  
+
   // Convert crossDomain deterministic relationships into insights
   const insights = useMemo(() => {
     // Generate basic insights from demoData for UI population
     const baseInsights = generateInsights(currentState);
-    
+
     // Prepend deterministic cross-domain relationships
     const crossInsights = crossDomain.map(cd => ({
       type: cd.severity === 'critical' ? 'critical' : cd.severity === 'warning' ? 'alert' : 'positive',
@@ -105,7 +105,7 @@ export default function Dashboard() {
       domains: [cd.from, cd.to],
       confidence: 100 // deterministic
     }));
-    
+
     return [...crossInsights, ...baseInsights].slice(0, 5);
   }, [user, crossDomain]);
 
@@ -114,29 +114,29 @@ export default function Dashboard() {
     async function fetchNarrative() {
       // Create a hash to avoid refetching for the same state
       const hash = `${lifeBalance}-${healthScore}-${financeScore}-${careerScore}-${burnoutRisk}`;
-      
+
       if (aiCache.dashboardNarrative && aiCache.dashboardNarrativeHash === hash) {
         setAiNarrative(aiCache.dashboardNarrative);
         return;
       }
-      
+
       if (!computed?.hasData) return;
-      
+
       setNarrativeLoading(true);
       const res = await generateNarrative(computed, 'dashboard');
       setAiNarrative(res.narrative);
       updateAICache({ dashboardNarrative: res.narrative, dashboardNarrativeHash: hash });
       setNarrativeLoading(false);
     }
-    
+
     fetchNarrative();
   }, [computed, aiCache.dashboardNarrative, aiCache.dashboardNarrativeHash, updateAICache, lifeBalance, healthScore, financeScore, careerScore, burnoutRisk]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
       return (
-        <div className="glass-strong p-3 rounded-xl text-xs">
-          <p className="text-slate-400 mb-1">{label}</p>
+        <div className="bg-[#252525] border border-[rgba(255,255,255,0.06)] p-3 rounded-lg text-xs">
+          <p className="text-[#9B9B9B] mb-1">{label}</p>
           {payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}</p>)}
         </div>
       );
@@ -147,27 +147,27 @@ export default function Dashboard() {
   const sleepCascade = crossDomain.find(cd => cd.id === 'sleep-productivity');
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
-      <PageHeader title="Dashboard" subtitle={`Welcome back, ${user?.name || 'User'}. Here's your AI-powered life overview.`} icon="🧬" />
+    <div className="page-container min-h-screen">
+      <PageHeader title="Dashboard" subtitle={`Welcome back, ${user?.name || 'User'}. Here's your AI-powered life overview.`} />
 
       {/* Digital Twin Summary Banner */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-        <div className="glass-card p-5" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.04) 50%, rgba(6,182,212,0.03) 100%)' }}>
+        <div className="glass-card p-5 border-l-[3px] border-l-[#2383E2]">
           <div className="flex items-start gap-4 mb-4">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-xl flex-shrink-0">🧬</div>
+            <div className="w-9 h-9 rounded-md bg-[rgba(35,131,226,0.1)] flex items-center justify-center text-lg flex-shrink-0">🧬</div>
             <div className="flex-1">
-              <h3 className="text-[13px] font-semibold mb-1 text-zinc-200" style={{ fontFamily: 'var(--font-display)' }}>Digital Twin Analysis</h3>
+              <h3 className="text-[13px] font-semibold mb-1 text-[#EBEBEB]">Digital Twin Analysis</h3>
               {narrativeLoading ? (
-                <div className="flex items-center gap-2 text-xs text-zinc-500 mt-2">
+                <div className="flex items-center gap-2 text-xs text-[#9B9B9B] mt-2">
                   <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
                   Generating AI narrative...
                 </div>
               ) : aiNarrative ? (
-                <p className="text-[12px] text-zinc-400 italic leading-relaxed">"{aiNarrative}"</p>
+                <p className="text-[12px] text-[#9B9B9B] leading-relaxed">"{aiNarrative}"</p>
               ) : (
-                <p className="text-[12px] text-zinc-500">
-                  Life balance is <strong className={lifeBalance >= 60 ? 'text-emerald-400' : 'text-amber-400'}>{lifeBalance}/100</strong>.
-                  {' '}Weakest area: <strong className="text-amber-400 capitalize">{weakestDomain}</strong> at {computed?.[`${weakestDomain}Score`]?.score}/100.
+                <p className="text-[12px] text-[#9B9B9B]">
+                  Life balance is <strong className={lifeBalance >= 60 ? 'text-[#2E9E6B]' : 'text-[#D9730D]'}>{lifeBalance}/100</strong>.
+                  {' '}Weakest area: <strong className="text-[#D9730D] capitalize">{weakestDomain}</strong> at {computed?.[`${weakestDomain}Score`]?.score}/100.
                   {burnoutRisk > 50 ? ` Burnout risk at ${burnoutRisk}%.` : ''}
                 </p>
               )}
@@ -176,14 +176,14 @@ export default function Dashboard() {
           {urgentAlerts.length > 0 && (
             <div className="space-y-1.5 mb-3">
               {urgentAlerts.map((u, i) => (
-                <div key={i} className="text-[11px] text-red-300/80 p-2.5 rounded-lg bg-red-500/[0.04] border border-red-500/10">{u.icon} {u.text}</div>
+                <div key={i} className="text-[11px] text-[#E03E3E] p-2.5 rounded-md bg-[rgba(224,62,62,0.06)] border border-[rgba(224,62,62,0.1)]">{u.icon} {u.text}</div>
               ))}
             </div>
           )}
           {positiveSignals.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {positiveSignals.map((p, i) => (
-                <span key={i} className="text-[10px] text-emerald-300/80 px-2 py-1 rounded-lg bg-emerald-500/[0.04] border border-emerald-500/10">{p.icon} {p.text}</span>
+                <span key={i} className="text-[10px] text-[#2E9E6B] px-2 py-1 rounded-md bg-[rgba(46,158,107,0.06)] border border-[rgba(46,158,107,0.1)]">{p.icon} {p.text}</span>
               ))}
             </div>
           )}
@@ -193,16 +193,16 @@ export default function Dashboard() {
       {/* 14-Day Pattern Alert (from Deterministic Cross-Domain) */}
       {sleepCascade && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6">
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.03] overflow-hidden">
+          <div className="rounded-lg border border-red-500/20 bg-red-500/[0.03] overflow-hidden">
             <div className="flex items-center gap-3 px-5 py-2.5 border-b border-red-500/10 bg-red-500/[0.04]">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
               <span className="text-[10px] text-red-300 font-semibold uppercase tracking-wider">🧠 AI Pattern Detected</span>
-              <span className="ml-auto text-[10px] text-zinc-700">Deterministic • Cross-domain</span>
+              <span className="ml-auto text-[10px] text-[#5C5C5C]">Deterministic • Cross-domain</span>
             </div>
             <div className="p-5">
-              <h3 className="text-[13px] font-bold text-zinc-200 mb-2">Sleep–Productivity Cascade Active</h3>
-              <p className="text-[12px] text-zinc-500 leading-relaxed mb-4">
-                Poor sleep quality (<strong className="text-zinc-200">{h.sleepAvg}h avg</strong>) has reduced cognitive consistency, leading to lower coding productivity. {sleepCascade.mechanism}
+              <h3 className="text-[13px] font-bold text-[#EBEBEB] mb-2">Sleep–Productivity Cascade Active</h3>
+              <p className="text-[12px] text-[#9B9B9B] leading-relaxed mb-4">
+                Poor sleep quality (<strong className="text-[#EBEBEB]">{h.sleepAvg}h avg</strong>) has reduced cognitive consistency, leading to lower coding productivity. {sleepCascade.mechanism}
               </p>
               <div className="space-y-2 mb-4">
                 <p className="section-label mb-2">Recommended Recovery Path</p>
@@ -210,15 +210,15 @@ export default function Dashboard() {
                   { icon: '😴', action: `Increase sleep by ${Math.max(1, (7 - h.sleepAvg)).toFixed(1)} hours`, impact: `Avoid ${sleepCascade.computedImpact?.productivityLoss || 0}% productivity loss` },
                   { icon: '📱', action: 'Reduce evening screen time', impact: 'Faster sleep onset' },
                 ].map((r, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.04)]">
                     <span className="text-base flex-shrink-0">{r.icon}</span>
-                    <p className="text-[12px] text-zinc-400 flex-1">• {r.action}</p>
-                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md flex-shrink-0 whitespace-nowrap">{r.impact}</span>
+                    <p className="text-[12px] text-[#9B9B9B] flex-1">• {r.action}</p>
+                    <span className="text-[10px] text-[#2E9E6B] bg-[rgba(46,158,107,0.1)] px-2 py-0.5 rounded-md flex-shrink-0 whitespace-nowrap">{r.impact}</span>
                   </div>
                 ))}
               </div>
               <div className="flex gap-3">
-                <Link to="/coach" className="text-[12px] px-4 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all">
+                <Link to="/coach" className="text-[12px] px-4 py-2 rounded-lg bg-[#2b2b2b] border border-[rgba(255,255,255,0.08)] text-[#9B9B9B] hover:text-white hover:bg-[#2f2f2f] transition-all">
                   Ask AI Coach →
                 </Link>
               </div>
@@ -248,9 +248,9 @@ export default function Dashboard() {
 
       {/* Explainable AI Score Panels — always visible, shows defaults if no data logged */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
-        <h3 className="text-[13px] font-semibold mb-3 flex items-center gap-2 text-zinc-300" style={{ fontFamily: 'var(--font-display)' }}>
-          <span className="text-base">🔍</span> Explainable AI — Score Breakdown
-          <span className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 font-medium">Advanced</span>
+        <h3 className="text-[13px] font-semibold mb-3 flex items-center gap-2 text-[#9B9B9B]">
+          🔍 Explainable AI — Score Breakdown
+          <span className="text-[10px] px-2 py-0.5 rounded bg-[rgba(35,131,226,0.1)] text-[#2383E2] font-medium">Advanced</span>
         </h3>
         <div className="grid md:grid-cols-3 gap-4">
           <ExplainableScorePanel
@@ -289,14 +289,14 @@ export default function Dashboard() {
 
           {/* Trend Chart */}
           <GlassCard>
-            <h3 className="text-[13px] font-semibold mb-4 text-zinc-300" style={{ fontFamily: 'var(--font-display)' }}>14-Day Trends</h3>
+            <h3 className="text-[13px] font-semibold mb-4 text-[#9B9B9B]">14-Day Trends</h3>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData}>
                   <defs>
-                    <linearGradient id="sleepG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/></linearGradient>
-                    <linearGradient id="stressG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient>
-                    <linearGradient id="prodG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
+                    <linearGradient id="sleepG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="stressG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} /><stop offset="95%" stopColor="#f43f5e" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="prodG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>
                   </defs>
                   <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 10 }} tickFormatter={v => v.slice(5)} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
@@ -311,13 +311,13 @@ export default function Dashboard() {
 
         {/* AI Insights */}
         <div className="space-y-3">
-          <h3 className="text-[13px] font-semibold flex items-center gap-2 text-zinc-300" style={{ fontFamily: 'var(--font-display)' }}>
-            <span className="text-base">🧠</span> AI Insights
+          <h3 className="text-[13px] font-semibold flex items-center gap-2 text-[#9B9B9B]">
+            🧠 AI Insights
           </h3>
           <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
             {insights.map((insight, i) => <InsightCard key={i} insight={insight} index={i} />)}
             {insights.length === 0 && (
-              <div className="p-4 rounded-xl bg-white/[0.02] text-center text-[12px] text-zinc-600">
+              <div className="p-4 rounded-xl bg-[#252525] text-center text-[12px] text-[#5C5C5C]">
                 <span className="text-2xl block mb-2">✨</span>
                 All clear! No critical insights right now.
               </div>
@@ -329,8 +329,8 @@ export default function Dashboard() {
       <div className="grid lg:grid-cols-2 gap-5 mb-8">
         {/* Activity Timeline */}
         <GlassCard>
-          <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2 text-zinc-300" style={{ fontFamily: 'var(--font-display)' }}>
-            <span>📅</span> Recent Activity
+          <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2 text-[#9B9B9B]">
+            📅 Recent Activity
           </h3>
           <div className="space-y-3">
             {(timeline || []).slice(0, 6).map((item, i) => (
@@ -338,35 +338,35 @@ export default function Dashboard() {
                 className="flex items-start gap-3 text-[13px]">
                 <div className="flex flex-col items-center flex-shrink-0">
                   <div className={`w-2 h-2 rounded-full mt-1.5 ${item.sentiment === 'positive' ? 'bg-emerald-400' : item.sentiment === 'negative' ? 'bg-red-400' : 'bg-zinc-600'}`} />
-                  {i < 5 && <div className="w-px h-6 bg-white/[0.06] mt-1" />}
+                  {i < 5 && <div className="w-px h-6 bg-[#2f2f2f] mt-1" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-zinc-400">{item.text}</p>
-                  <p className="text-[10px] text-zinc-700 mt-0.5">{item.date} • {item.type}</p>
+                  <p className="text-[#9B9B9B]">{item.text}</p>
+                  <p className="text-[10px] text-[#5C5C5C] mt-0.5">{item.date} • {item.type}</p>
                 </div>
               </motion.div>
             ))}
             {(!timeline || timeline.length === 0) && (
-              <p className="text-[12px] text-zinc-600 text-center py-4">No recent activity yet.</p>
+              <p className="text-[12px] text-[#5C5C5C] text-center py-4">No recent activity yet.</p>
             )}
           </div>
         </GlassCard>
 
         {/* Habit Correlations */}
         <GlassCard>
-          <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2 text-zinc-300" style={{ fontFamily: 'var(--font-display)' }}>
-            <span>🔗</span> Habit Correlations
+          <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2 text-[#9B9B9B]">
+            🔗 Habit Correlations
           </h3>
           <div className="space-y-2.5">
             {correlations.slice(0, 5).map((c, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
                 className={`p-3 rounded-xl text-[12px] border ${c.type === 'positive' ? 'border-emerald-500/15 bg-emerald-500/[0.03]' : c.type === 'negative' ? 'border-red-500/15 bg-red-500/[0.03]' : 'border-zinc-700/30 bg-zinc-800/20'}`}>
                 <div className="flex justify-between items-center">
-                  <p className="text-zinc-400">{c.pattern}</p>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] text-zinc-600 flex-shrink-0 ml-2 tabular-nums">{Math.round(c.strength * 100)}%</span>
+                  <p className="text-[#9B9B9B]">{c.pattern}</p>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#2b2b2b] text-[#5C5C5C] flex-shrink-0 ml-2 tabular-nums">{Math.round(c.strength * 100)}%</span>
                 </div>
                 <div className="flex gap-1.5 mt-1.5">
-                  {c.domains.map(d => <span key={d} className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.04] text-zinc-600 capitalize">{d}</span>)}
+                  {c.domains.map(d => <span key={d} className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#2b2b2b] text-[#5C5C5C] capitalize">{d}</span>)}
                 </div>
               </motion.div>
             ))}
@@ -378,11 +378,11 @@ export default function Dashboard() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-6">
         <GlassCard>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[13px] font-semibold flex items-center gap-2 text-zinc-300" style={{ fontFamily: 'var(--font-display)' }}>
-              <span className="text-base">📋</span> Today's Action Plan
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 font-medium">AI-generated</span>
+            <h3 className="text-[13px] font-semibold flex items-center gap-2 text-[#9B9B9B]">
+              📋 Today's Action Plan
+              <span className="text-[10px] px-2 py-0.5 rounded bg-[rgba(46,158,107,0.1)] text-[#2E9E6B] font-medium">AI-generated</span>
             </h3>
-            <span className="text-[11px] text-zinc-600 tabular-nums">
+            <span className="text-[11px] text-[#5C5C5C] tabular-nums">
               {Object.values(checkedTasks).filter(Boolean).length}/{actionPlan.length} done
             </span>
           </div>
@@ -405,30 +405,28 @@ export default function Dashboard() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.08 }}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                    done ? 'border-emerald-500/15 bg-emerald-500/[0.03] opacity-60' : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1]'
-                  }`}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${done ? 'border-emerald-500/15 bg-emerald-500/[0.03] opacity-60' : 'border-[rgba(255,255,255,0.055)] bg-[#252525] hover:bg-[#2b2b2b] hover:border-[rgba(255,255,255,0.09)]'
+                    }`}
                   onClick={() => setCheckedTasks(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
                 >
-                  <div className={`w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                    done ? 'border-emerald-400 bg-emerald-500/20' : 'border-zinc-700'
-                  }`}>
-                    {done && <span className="text-[10px] text-emerald-400">✓</span>}
+                  <div className={`w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${done ? 'border-emerald-400 bg-emerald-500/20' : 'border-zinc-700'
+                    }`}>
+                    {done && <span className="text-[10px] text-[#2E9E6B]">✓</span>}
                   </div>
 
                   <span className="text-base flex-shrink-0">{task.icon}</span>
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-[12px] font-medium ${done ? 'line-through text-zinc-600' : 'text-zinc-300'}`}>{task.text}</p>
+                    <p className={`text-[12px] font-medium ${done ? 'line-through text-[#5C5C5C]' : 'text-[#EBEBEB]'}`}>{task.text}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[9px] px-1.5 py-0.5 rounded-md capitalize"
                         style={{ color: task.color, background: task.color + '12' }}>{task.domain}</span>
-                      <span className="text-[9px] text-zinc-700">⏱ {task.time}</span>
+                      <span className="text-[9px] text-[#5C5C5C]">⏱ {task.time}</span>
                     </div>
                   </div>
 
                   <Link to={task.link} onClick={e => e.stopPropagation()}
-                    className="text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] text-zinc-600 hover:text-white hover:bg-white/[0.08] transition-all flex-shrink-0">
+                    className="text-[10px] px-2.5 py-1 rounded-lg bg-[#2b2b2b] text-[#5C5C5C] hover:text-white hover:bg-[#333333] transition-all flex-shrink-0">
                     Go →
                   </Link>
                 </motion.div>
@@ -444,7 +442,7 @@ export default function Dashboard() {
                 exit={{ opacity: 0 }}
                 className="mt-4 p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/15 text-center"
               >
-                <p className="text-[13px] text-emerald-400 font-semibold">🎉 All tasks complete! +50 XP earned</p>
+                <p className="text-[13px] text-[#2E9E6B] font-semibold">🎉 All tasks complete! +50 XP earned</p>
                 <p className="text-[10px] text-emerald-500/60 mt-0.5">Come back tomorrow for a new plan</p>
               </motion.div>
             )}
@@ -454,7 +452,7 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <GlassCard>
-        <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2 text-zinc-300" style={{ fontFamily: 'var(--font-display)' }}>⚡ Quick Actions</h3>
+        <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2 text-[#9B9B9B]">⚡ Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { to: '/health', icon: '❤️', label: 'Log Health', color: '#10b981' },
@@ -463,9 +461,9 @@ export default function Dashboard() {
             { to: '/coach', icon: '💬', label: 'Ask AI Coach', color: '#8b5cf6' },
           ].map(action => (
             <Link key={action.to} to={action.to}
-              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center hover:bg-white/[0.05] hover:border-white/[0.1] transition-all group">
+              className="p-4 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] text-center hover:bg-[#2f2f2f] hover:border-[rgba(255,255,255,0.09)] transition-all group">
               <span className="text-2xl block mb-2 group-hover:scale-110 transition-transform duration-200">{action.icon}</span>
-              <p className="text-[12px] font-medium text-zinc-500 group-hover:text-zinc-200 transition-colors">{action.label}</p>
+              <p className="text-[12px] font-medium text-[#9B9B9B] group-hover:text-[#EBEBEB] transition-colors">{action.label}</p>
             </Link>
           ))}
         </div>

@@ -70,29 +70,29 @@ export default function Goals() {
 
   const domainColors = { health: '#10b981', finance: '#f59e0b', career: '#3b82f6' };
   const domainIcons = { health: '❤️', finance: '💰', career: '🎯' };
-  const priorityColors = { high: 'text-red-400 bg-red-500/10', medium: 'text-amber-400 bg-amber-500/10', low: 'text-emerald-400 bg-emerald-500/10' };
+  const priorityColors = { high: 'text-[#E03E3E] bg-[rgba(224,62,62,0.1)]', medium: 'text-[#D9730D] bg-[rgba(217,115,13,0.1)]', low: 'text-[#2E9E6B] bg-[rgba(46,158,107,0.1)]' };
 
   const filteredGoals = (goals || []).filter(g => filter === 'all' || g.domain === filter);
   const completedGoals = (goals || []).filter(g => g.progress >= 100).length;
   const activeGoals = (goals || []).filter(g => g.progress < 100).length;
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="SMART Goals" subtitle="Set, track, and achieve goals across health, finance, and career." icon="🏆" />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <GlassCard className="text-center py-3">
-          <p className="text-2xl font-bold text-blue-400" style={{ fontFamily: 'var(--font-display)' }}>{(goals || []).length}</p>
-          <p className="text-[10px] text-slate-500">Total Goals</p>
+          <p className="text-2xl font-bold text-blue-400">{(goals || []).length}</p>
+          <p className="text-[10px] text-[#9B9B9B]">Total Goals</p>
         </GlassCard>
         <GlassCard className="text-center py-3">
-          <p className="text-2xl font-bold text-amber-400" style={{ fontFamily: 'var(--font-display)' }}>{activeGoals}</p>
-          <p className="text-[10px] text-slate-500">In Progress</p>
+          <p className="text-2xl font-bold text-[#D9730D]">{activeGoals}</p>
+          <p className="text-[10px] text-[#9B9B9B]">In Progress</p>
         </GlassCard>
         <GlassCard className="text-center py-3">
-          <p className="text-2xl font-bold text-emerald-400" style={{ fontFamily: 'var(--font-display)' }}>{completedGoals}</p>
-          <p className="text-[10px] text-slate-500">Completed</p>
+          <p className="text-2xl font-bold text-[#2E9E6B]">{completedGoals}</p>
+          <p className="text-[10px] text-[#9B9B9B]">Completed</p>
         </GlassCard>
       </div>
 
@@ -101,7 +101,7 @@ export default function Goals() {
         <div className="flex gap-2">
           {['all', 'health', 'finance', 'career'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`text-xs px-3 py-1.5 rounded-lg transition-all capitalize ${filter === f ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-white bg-white/[0.02]'}`}>
+              className={`text-xs px-3 py-1.5 rounded-lg transition-all capitalize ${filter === f ? 'bg-white/10 text-white' : 'text-[#9B9B9B] hover:text-white bg-[#252525]'}`}>
               {f === 'all' ? '🌐 All' : `${domainIcons[f]} ${f}`}
             </button>
           ))}
@@ -116,11 +116,11 @@ export default function Goals() {
             <GlassCard className="mb-6">
               <h3 className="text-sm font-semibold mb-4">Create New Goal</h3>
               <form onSubmit={addGoal} className="grid md:grid-cols-2 gap-4">
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Goal Title</label><input type="text" value={newGoal.title} onChange={e => setNewGoal(p => ({ ...p, title: e.target.value }))} className="input-premium" placeholder="e.g. Lose 10kg" required /></div>
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Domain</label><select value={newGoal.domain} onChange={e => setNewGoal(p => ({ ...p, domain: e.target.value }))} className="input-premium"><option value="health">❤️ Health</option><option value="finance">💰 Finance</option><option value="career">🎯 Career</option></select></div>
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Priority</label><select value={newGoal.priority} onChange={e => setNewGoal(p => ({ ...p, priority: e.target.value }))} className="input-premium"><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option></select></div>
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Deadline</label><input type="date" value={newGoal.deadline} onChange={e => setNewGoal(p => ({ ...p, deadline: e.target.value }))} className="input-premium" required /></div>
-                <div className="md:col-span-2"><label className="text-xs text-slate-400 mb-1.5 block">Milestones (comma-separated)</label><input type="text" value={newGoal.milestones} onChange={e => setNewGoal(p => ({ ...p, milestones: e.target.value }))} className="input-premium" placeholder="Milestone 1, Milestone 2, ..." /></div>
+                <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Goal Title</label><input type="text" value={newGoal.title} onChange={e => setNewGoal(p => ({ ...p, title: e.target.value }))} className="input-premium" placeholder="e.g. Lose 10kg" required /></div>
+                <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Domain</label><select value={newGoal.domain} onChange={e => setNewGoal(p => ({ ...p, domain: e.target.value }))} className="input-premium"><option value="health">❤️ Health</option><option value="finance">💰 Finance</option><option value="career">🎯 Career</option></select></div>
+                <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Priority</label><select value={newGoal.priority} onChange={e => setNewGoal(p => ({ ...p, priority: e.target.value }))} className="input-premium"><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option></select></div>
+                <div><label className="text-xs text-[#9B9B9B] mb-1.5 block">Deadline</label><input type="date" value={newGoal.deadline} onChange={e => setNewGoal(p => ({ ...p, deadline: e.target.value }))} className="input-premium" required /></div>
+                <div className="md:col-span-2"><label className="text-xs text-[#9B9B9B] mb-1.5 block">Milestones (comma-separated)</label><input type="text" value={newGoal.milestones} onChange={e => setNewGoal(p => ({ ...p, milestones: e.target.value }))} className="input-premium" placeholder="Milestone 1, Milestone 2, ..." /></div>
                 <div className="md:col-span-2"><button type="submit" className="btn-primary">Create Goal 🎯</button></div>
               </form>
             </GlassCard>
@@ -144,16 +144,16 @@ export default function Goals() {
                       <div>
                         <h4 className="font-semibold text-sm">{g.title}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-slate-500 capitalize">{g.domain} • Due {g.deadline}</span>
+                          <span className="text-[10px] text-[#9B9B9B] capitalize">{g.domain} • Due {g.deadline}</span>
                           {g.priority && <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${priorityColors[g.priority] || ''}`}>{g.priority}</span>}
                         </div>
                       </div>
                     </div>
-                    <button onClick={() => deleteGoal(g.id)} className="text-xs text-slate-600 hover:text-red-400 transition-colors">✕</button>
+                    <button onClick={() => deleteGoal(g.id)} className="text-xs text-slate-600 hover:text-[#E03E3E] transition-colors">✕</button>
                   </div>
 
                   <div className="mb-3">
-                    <div className="flex justify-between text-xs text-slate-400 mb-1">
+                    <div className="flex justify-between text-xs text-[#9B9B9B] mb-1">
                       <span>Progress</span><span>{g.progress}%</span>
                     </div>
                     <div className="w-full h-3 rounded-full bg-white/5">
@@ -166,21 +166,21 @@ export default function Goals() {
                     <button onClick={() => updateProgress(g.id, 10)} className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all">+10%</button>
                     <button onClick={() => updateProgress(g.id, 25)} className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all">+25%</button>
                     <button onClick={() => updateProgress(g.id, -10)} className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all">-10%</button>
-                    {g.progress >= 100 && <span className="text-xs text-emerald-400 ml-auto">✅ Completed!</span>}
+                    {g.progress >= 100 && <span className="text-xs text-[#2E9E6B] ml-auto">✅ Completed!</span>}
                   </div>
 
                   {g.milestones?.length > 0 && (
-                    <div className="border-t border-white/[0.06] pt-3">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Milestones</p>
+                    <div className="border-t border-[rgba(255,255,255,0.055)] pt-3">
+                      <p className="text-[10px] text-[#9B9B9B] uppercase tracking-wider mb-2">Milestones</p>
                       <div className="space-y-1.5">
                         {g.milestones.map((m, mi) => {
                           const done = (mi + 1) / g.milestones.length * 100 <= g.progress;
                           return (
                             <div key={mi} className="flex items-center gap-2 text-xs">
-                              <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[8px] flex-shrink-0 ${done ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-slate-700 text-slate-600'}`}>
+                              <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[8px] flex-shrink-0 ${done ? 'border-emerald-500 bg-emerald-500/20 text-[#2E9E6B]' : 'border-slate-700 text-slate-600'}`}>
                                 {done ? '✓' : mi + 1}
                               </span>
-                              <span className={done ? 'text-slate-300 line-through opacity-60' : 'text-slate-400'}>{m}</span>
+                              <span className={done ? 'text-[#EBEBEB] line-through opacity-60' : 'text-[#9B9B9B]'}>{m}</span>
                             </div>
                           );
                         })}
@@ -196,19 +196,19 @@ export default function Goals() {
 
       {/* AI Suggested Goals */}
       <GlassCard glow="glow-purple">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🤖 AI-Suggested Goals</h3>
-        <p className="text-xs text-slate-400 mb-4">Based on your cross-domain data, here are recommended goals:</p>
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🤖 AI-Suggested Goals</h3>
+        <p className="text-xs text-[#9B9B9B] mb-4">Based on your cross-domain data, here are recommended goals:</p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
           {aiGoalSuggestions.map((sg, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-purple-500/30 transition-all">
+              className="p-4 rounded-xl bg-[#252525] border border-[rgba(255,255,255,0.055)] hover:border-purple-500/30 transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">{sg.icon}</span>
                 <span className="text-xs font-medium">{sg.title}</span>
               </div>
-              <p className="text-[10px] text-slate-500 mb-3 capitalize">{sg.domain}</p>
+              <p className="text-[10px] text-[#9B9B9B] mb-3 capitalize">{sg.domain}</p>
               <button onClick={() => addSuggestedGoal(sg)}
-                className="text-[10px] px-3 py-1 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all w-full">
+                className="text-[10px] px-3 py-1 rounded-lg bg-purple-500/10 text-[#9065B0] hover:bg-purple-500/20 transition-all w-full">
                 + Add This Goal
               </button>
             </motion.div>

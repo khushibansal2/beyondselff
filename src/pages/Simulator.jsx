@@ -91,13 +91,13 @@ export default function Simulator() {
   };
 
   const confidenceColor = simulate.confidence >= 80
-    ? 'bg-emerald-500/10 text-emerald-400'
+    ? 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]'
     : simulate.confidence >= 60
-      ? 'bg-amber-500/10 text-amber-400'
+      ? 'bg-[rgba(217,115,13,0.1)] text-[#D9730D]'
       : 'bg-orange-500/10 text-orange-400';
 
   return (
-    <div className="page-container bg-mesh min-h-screen">
+    <div className="page-container min-h-screen">
       <PageHeader title="What-If Future Simulator" subtitle="Explore how different life choices affect your estimated future trajectory." icon="🔮" />
 
       {/* Guard: require baseline data */}
@@ -105,7 +105,7 @@ export default function Simulator() {
         <GlassCard className="text-center py-16">
           <span className="text-4xl block mb-4">📭</span>
           <h3 className="text-lg font-semibold mb-2">No Baseline Data</h3>
-          <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">The simulator needs your current baseline to project the future. Please log some data in the Health, Finance, or Career tabs first.</p>
+          <p className="text-[#9B9B9B] text-sm max-w-md mx-auto mb-6">The simulator needs your current baseline to project the future. Please log some data in the Health, Finance, or Career tabs first.</p>
         </GlassCard>
       ) : (
         <>
@@ -115,17 +115,17 @@ export default function Simulator() {
               <div className="flex items-center gap-3">
                 <h3 className="text-sm font-semibold">Select Scenarios to Simulate</h3>
                 {selected.length > 0 && (
-                  <button onClick={resetSimulator} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded transition-colors">
+                  <button onClick={resetSimulator} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-[#EBEBEB] px-2 py-1 rounded transition-colors">
                     Reset
                   </button>
                 )}
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-400">Projection Timeline:</span>
+                <span className="text-xs text-[#9B9B9B]">Projection Timeline:</span>
                 <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
                   {[1, 3, 6, 12].map(m => (
                     <button key={m} onClick={() => setMonths(m)}
-                      className={`text-xs px-3 py-1 rounded-md transition-all ${months === m ? 'bg-blue-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}>
+                      className={`text-xs px-3 py-1 rounded-md transition-all ${months === m ? 'bg-blue-500 text-white' : 'text-[#9B9B9B] hover:text-slate-200'}`}>
                       {m}m
                     </button>
                   ))}
@@ -136,9 +136,9 @@ export default function Simulator() {
               {scenarios.map(s => (
                 <motion.button key={s.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => toggleScenario(s.id)}
-                  className={`p-3 rounded-xl border text-left text-xs transition-all ${selected.includes(s.id) ? 'border-blue-500/40 bg-blue-500/10' : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'}`}>
+                  className={`p-3 rounded-xl border text-left text-xs transition-all ${selected.includes(s.id) ? 'border-blue-500/40 bg-blue-500/10' : 'border-[rgba(255,255,255,0.055)] bg-[#252525] hover:bg-[#2b2b2b]'}`}>
                   <span className="text-lg block mb-1">{s.icon}</span>
-                  <span className={selected.includes(s.id) ? 'text-blue-300' : 'text-slate-400'}>{s.label}</span>
+                  <span className={selected.includes(s.id) ? 'text-blue-300' : 'text-[#9B9B9B]'}>{s.label}</span>
                 </motion.button>
               ))}
             </div>
@@ -165,11 +165,11 @@ export default function Simulator() {
                   <div className="flex gap-1.5">
                     {simulate.stabilityTrend && (
                       <span className={`text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap capitalize ${
-                        simulate.stabilityTrend === 'improving' ? 'bg-emerald-500/10 text-emerald-400' :
+                        simulate.stabilityTrend === 'improving' ? 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]' :
                         simulate.stabilityTrend === 'recovery'  ? 'bg-cyan-500/10 text-cyan-400' :
                         simulate.stabilityTrend === 'volatile'  ? 'bg-orange-500/10 text-orange-400' :
-                        simulate.stabilityTrend === 'declining' ? 'bg-red-500/10 text-red-400' :
-                        'bg-slate-500/10 text-slate-400'
+                        simulate.stabilityTrend === 'declining' ? 'bg-[rgba(224,62,62,0.1)] text-[#E03E3E]' :
+                        'bg-slate-500/10 text-[#9B9B9B]'
                       }`}>{simulate.stabilityTrend}</span>
                     )}
                     <span className={`text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap ${confidenceColor}`}
@@ -180,7 +180,7 @@ export default function Simulator() {
                 )}
               </div>
               {selected.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-sm h-32 flex items-center justify-center">Select scenarios above to simulate</div>
+                <div className="text-center py-8 text-[#9B9B9B] text-sm h-32 flex items-center justify-center">Select scenarios above to simulate</div>
               ) : (
                 <>
                   <div className="flex justify-around">
@@ -192,7 +192,7 @@ export default function Simulator() {
                     <ScoreRing score={simulate.simulated.burnout} color={simulate.simulated.burnout > 60 ? '#ef4444' : '#10b981'} label="Burnout Risk" size={80} />
                   </div>
                   {/* Delta summary row */}
-                  <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-white/[0.06]">
+                  <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-[rgba(255,255,255,0.055)]">
                     {[
                       { label: 'Health',  delta: simulate.deltas.health,  color: '#10b981' },
                       { label: 'Finance', delta: simulate.deltas.finance, color: '#f59e0b' },
@@ -203,7 +203,7 @@ export default function Simulator() {
                       const sign = item.delta > 0 ? '+' : '';
                       return (
                         <div key={item.label} className="text-center">
-                          <p className={`text-xs font-bold ${positive ? 'text-emerald-400' : item.delta < 0 ? 'text-red-400' : 'text-slate-500'}`}>{sign}{item.delta}</p>
+                          <p className={`text-xs font-bold ${positive ? 'text-[#2E9E6B]' : item.delta < 0 ? 'text-[#E03E3E]' : 'text-[#9B9B9B]'}`}>{sign}{item.delta}</p>
                           <p className="text-[9px] text-slate-600">{item.label}</p>
                         </div>
                       );
@@ -227,7 +227,7 @@ export default function Simulator() {
                           <XAxis dataKey="month" tickFormatter={v => `Month ${v}`} tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
                           <YAxis hide domain={[0, 100]} />
                           <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px' }} />
-                          <Legend formatter={v => <span className="text-xs text-slate-400 capitalize">{v}</span>} />
+                          <Legend formatter={v => <span className="text-xs text-[#9B9B9B] capitalize">{v}</span>} />
                           <Line type="monotone" dataKey="simulated.h" name="health"  stroke="#10b981" strokeWidth={3} dot={false} />
                           <Line type="monotone" dataKey="simulated.f" name="finance" stroke="#f59e0b" strokeWidth={3} dot={false} />
                           <Line type="monotone" dataKey="simulated.c" name="career"  stroke="#3b82f6" strokeWidth={3} dot={false} />
@@ -248,18 +248,18 @@ export default function Simulator() {
                     <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">🧠 AI Narrative Projection</h3>
                     <div className="space-y-4">
                       {loading ? (
-                        <div className="flex items-center gap-2 text-xs text-slate-400 animate-pulse">
+                        <div className="flex items-center gap-2 text-xs text-[#9B9B9B] animate-pulse">
                           <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                           Simulating cross-domain impacts...
                         </div>
                       ) : (
                         <>
-                          <p className="text-xs text-slate-300 leading-relaxed italic">"{aiNarrative || 'Select scenarios to see your projected future.'}"</p>
-                          <div className="border-t border-white/[0.06] pt-3">
-                            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2 font-semibold">Deterministic Impacts:</p>
+                          <p className="text-xs text-[#EBEBEB] leading-relaxed italic">"{aiNarrative || 'Select scenarios to see your projected future.'}"</p>
+                          <div className="border-t border-[rgba(255,255,255,0.055)] pt-3">
+                            <p className="text-[10px] text-[#9B9B9B] uppercase tracking-wider mb-2 font-semibold">Deterministic Impacts:</p>
                             <div className="space-y-1.5">
                               {simulate.impacts.map((imp, i) => (
-                                <div key={i} className="flex items-start gap-2 text-[11px] text-slate-400">
+                                <div key={i} className="flex items-start gap-2 text-[11px] text-[#9B9B9B]">
                                   <span className="flex-shrink-0 mt-0.5">{imp.type === 'positive' ? '✅' : imp.type === 'negative' ? '📉' : '🚨'}</span>
                                   <span>{imp.text}</span>
                                 </div>
@@ -282,7 +282,7 @@ export default function Simulator() {
                         <span className="text-lg flex-shrink-0">🎯</span>
                         <div>
                           <p className="text-xs font-semibold text-blue-300 mb-1">Dominant Driver</p>
-                          <p className="text-xs text-slate-300">{simulate.dominantDriver.text}</p>
+                          <p className="text-xs text-[#EBEBEB]">{simulate.dominantDriver.text}</p>
                         </div>
                       </div>
                     </GlassCard>
@@ -297,7 +297,7 @@ export default function Simulator() {
                           <p className={`text-xs font-semibold mb-1 ${
                             simulate.recoveryMomentum.strength === 'strong' ? 'text-cyan-300' : 'text-emerald-300'
                           }`}>{simulate.recoveryMomentum.label}</p>
-                          <p className="text-xs text-slate-300">{simulate.recoveryMomentum.description}</p>
+                          <p className="text-xs text-[#EBEBEB]">{simulate.recoveryMomentum.description}</p>
                         </div>
                       </div>
                     </GlassCard>
@@ -309,7 +309,7 @@ export default function Simulator() {
               {simulate.cascades?.length > 0 && (
                 <GlassCard>
                   <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">🔗 Active Cross-Domain Cascades</h3>
-                  <p className="text-[10px] text-slate-500 mb-4">Deterministic chain reactions triggered by your selected scenarios:</p>
+                  <p className="text-[10px] text-[#9B9B9B] mb-4">Deterministic chain reactions triggered by your selected scenarios:</p>
                   <div className="grid md:grid-cols-2 gap-3">
                     {simulate.cascades.map((c, i) => (
                       <div key={i} className={`p-3 rounded-xl border text-xs ${c.direction === 'positive' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-red-500/20 bg-red-500/5'}`}>
@@ -317,9 +317,9 @@ export default function Simulator() {
                           <span>{c.direction === 'positive' ? '✅' : '⚠️'}</span>
                           <span className="font-semibold text-slate-200">{c.name}</span>
                         </div>
-                        <p className="text-slate-400 text-[11px] mb-1">📌 {c.trigger}</p>
-                        <p className={`text-[11px] font-medium mb-1 ${c.direction === 'positive' ? 'text-emerald-400' : 'text-red-400'}`}>→ {c.impact}</p>
-                        <p className="text-slate-500 text-[10px] italic">{c.reason}</p>
+                        <p className="text-[#9B9B9B] text-[11px] mb-1">📌 {c.trigger}</p>
+                        <p className={`text-[11px] font-medium mb-1 ${c.direction === 'positive' ? 'text-[#2E9E6B]' : 'text-[#E03E3E]'}`}>→ {c.impact}</p>
+                        <p className="text-[#9B9B9B] text-[10px] italic">{c.reason}</p>
                       </div>
                     ))}
                   </div>

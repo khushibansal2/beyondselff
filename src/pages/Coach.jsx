@@ -146,14 +146,14 @@ export default function Coach() {
   };
 
   return (
-    <div className="page-container bg-mesh min-h-screen flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+    <div className="page-container min-h-screen flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
       <PageHeader title="AI Life Coach" subtitle="Grounded coaching powered by your Digital Twin's deterministic intelligence." icon="💬" />
 
       {/* Live Context + Explainability Bar */}
       <GlassCard className="mb-4 !p-3" animate={false}>
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+            <div className="flex items-center gap-2 text-[10px] text-[#9B9B9B]">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Live Context • Health {hs}/100 • Finance {fs}/100 • Career {cs}/100 • Burnout {burnoutRisk}%
             </div>
@@ -162,9 +162,9 @@ export default function Coach() {
 
           {/* Active cross-domain alerts row — explainability anchors */}
           {(urgentAlerts.length > 0 || crossDomain.length > 0) && (
-            <div className="flex flex-wrap gap-1.5 pt-1 border-t border-white/[0.05]">
+            <div className="flex flex-wrap gap-1.5 pt-1 border-t border-[rgba(255,255,255,0.04)]">
               {urgentAlerts.slice(0, 2).map((a, i) => (
-                <span key={i} className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 flex items-center gap-1">
+                <span key={i} className="text-[9px] px-2 py-0.5 rounded-full bg-[rgba(224,62,62,0.1)] text-[#E03E3E] flex items-center gap-1">
                   {a.icon} {a.text}
                 </span>
               ))}
@@ -187,7 +187,7 @@ export default function Coach() {
       <div className="flex gap-2 mb-4 overflow-x-auto pb-2 flex-shrink-0">
         {quickQuestions.map(({ q, icon }) => (
           <button key={q} onClick={() => sendMessage(q)}
-            className="whitespace-nowrap text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white transition-all flex items-center gap-1.5">
+            className="whitespace-nowrap text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[#9B9B9B] hover:bg-white/10 hover:text-white transition-all flex items-center gap-1.5">
             <span>{icon}</span>{q}
           </button>
         ))}
@@ -198,10 +198,10 @@ export default function Coach() {
         {messages.map((msg, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] lg:max-w-[75%] p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-blue-500/20 border border-blue-500/30 text-blue-100' : 'glass-card text-slate-300'}`}>
+            <div className={`max-w-[85%] lg:max-w-[75%] p-4 rounded-lg text-sm leading-relaxed whitespace-pre-line ${msg.role === 'user' ? 'bg-blue-500/20 border border-blue-500/30 text-blue-100' : 'glass-card text-[#EBEBEB]'}`}>
               {msg.role === 'ai' && (
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-slate-500 font-semibold flex items-center gap-1.5">
+                  <span className="text-xs text-[#9B9B9B] font-semibold flex items-center gap-1.5">
                     🧠 AI Coach
                     {msg.source === 'fallback' && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">Local AI Mode</span>
@@ -210,7 +210,7 @@ export default function Coach() {
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Rate Limited</span>
                     )}
                     {feedback[String(i)] === 'up' && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">✨ AI learning your preferences</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-[#2E9E6B]">✨ AI learning your preferences</span>
                     )}
                   </span>
                 </div>
@@ -225,8 +225,8 @@ export default function Coach() {
                       onClick={() => handleFeedback(i, 'up')}
                       className={`text-sm px-1.5 py-0.5 rounded-lg transition-all ${
                         feedback[String(i)] === 'up'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : 'text-slate-600 hover:text-emerald-400 hover:bg-emerald-500/10'
+                          ? 'bg-emerald-500/20 text-[#2E9E6B]'
+                          : 'text-slate-600 hover:text-[#2E9E6B] hover:bg-[rgba(46,158,107,0.1)]'
                       }`}
                       title="This was helpful"
                     >👍</button>
@@ -234,8 +234,8 @@ export default function Coach() {
                       onClick={() => handleFeedback(i, 'down')}
                       className={`text-sm px-1.5 py-0.5 rounded-lg transition-all ${
                         feedback[String(i)] === 'down'
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'text-slate-600 hover:text-red-400 hover:bg-red-500/10'
+                          ? 'bg-red-500/20 text-[#E03E3E]'
+                          : 'text-slate-600 hover:text-[#E03E3E] hover:bg-[rgba(224,62,62,0.1)]'
                       }`}
                       title="This wasn't helpful"
                     >👎</button>
@@ -248,8 +248,8 @@ export default function Coach() {
 
         {typing && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="glass-card p-4 rounded-2xl">
-              <span className="text-xs text-slate-500 block mb-2 font-semibold">🧠 AI Coach</span>
+            <div className="glass-card p-4 rounded-lg">
+              <span className="text-xs text-[#9B9B9B] block mb-2 font-semibold">🧠 AI Coach</span>
               <div className="flex gap-1.5">
                 <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-2 h-2 rounded-full bg-blue-400" />
                 <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.15 }} className="w-2 h-2 rounded-full bg-purple-400" />
@@ -266,7 +266,7 @@ export default function Coach() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-300 italic flex items-center gap-2"
+          className="mb-2 px-4 py-2 rounded-xl bg-[rgba(224,62,62,0.1)] border border-red-500/20 text-xs text-red-300 italic flex items-center gap-2"
         >
           <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
           Hearing: "{liveTranscript}"
@@ -276,7 +276,7 @@ export default function Coach() {
       {/* Input */}
       <div className="flex gap-2 flex-shrink-0">
         <button onClick={toggleListening}
-          className={`p-3 rounded-xl border flex items-center justify-center transition-all flex-shrink-0 ${isListening ? 'bg-red-500/20 border-red-500/40 text-red-400 animate-pulse' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'}`}
+          className={`p-3 rounded-xl border flex items-center justify-center transition-all flex-shrink-0 ${isListening ? 'bg-red-500/20 border-red-500/40 text-[#E03E3E] animate-pulse' : 'bg-white/5 border-white/10 text-[#9B9B9B] hover:text-white hover:bg-white/10'}`}
           title={isListening ? 'Stop listening' : 'Voice Input — speak your question'}>
           {isListening ? '🛑' : '🎤'}
         </button>
