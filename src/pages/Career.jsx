@@ -64,8 +64,8 @@ export default function Career() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-12">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
+        <div className="space-y-16">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-7 lg:gap-8">
             <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
               <ScoreRing score={score} color="auto" label="Career Score" size={120} />
             </GlassCard>
@@ -76,10 +76,10 @@ export default function Career() {
             <MetricCard icon="🎯" label="Placement" value={`${placementReadiness}%`} color="#f59e0b" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
             <GlassCard>
-              <h3 className="dash-section-title mb-6">Skill Radar</h3>
-              <div className="h-72">
+              <h3 className="dash-section-title mb-8">Skill Radar</h3>
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={skillRadar}>
                     <PolarGrid stroke="rgba(255,255,255,0.06)" />
@@ -91,7 +91,7 @@ export default function Career() {
             </GlassCard>
 
             <GlassCard>
-              <h3 className="dash-section-title mb-6">Skills Portfolio</h3>
+              <h3 className="dash-section-title mb-8">Skills Portfolio</h3>
               <div className="flex flex-wrap gap-2.5 mb-6">
                 {c.skills.map(s => (
                   <span key={s} className="px-3.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[12px] text-[#a1a1aa] font-medium tracking-wide">
@@ -99,7 +99,7 @@ export default function Career() {
                   </span>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-6 lg:gap-8 mt-auto">
+              <div className="grid grid-cols-2 gap-7 lg:gap-10 mt-auto">
                 <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04] text-center">
                   <p className="text-3xl font-bold text-blue-400 mb-2">{c.coursesActive}</p>
                   <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wide">Active Courses</p>
@@ -119,7 +119,7 @@ export default function Career() {
           <div className="border-b border-white/[0.04] pb-6 mb-8">
             <h3 className="dash-section-title mb-0">Log Today's Career Data</h3>
           </div>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-8">
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-9">
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Study Hours</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" /></div>
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Coding Hours</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" /></div>
             <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" /></div>
@@ -130,7 +130,7 @@ export default function Career() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-8">
+        <div className="space-y-10">
           {recommendations.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <GlassCard>
@@ -154,7 +154,7 @@ export default function Career() {
       )}
 
       {tab === 'roadmap' && (
-        <div className="space-y-10">
+        <div className="space-y-12">
           {roadmap.map((phase, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
               <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>

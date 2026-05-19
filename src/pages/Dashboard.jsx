@@ -156,7 +156,7 @@ export default function Dashboard() {
       <PageHeader title="Dashboard" subtitle={`Welcome back, ${user?.name || 'User'}. Here's your AI-powered life overview.`} />
 
       {/* Digital Twin Summary Banner */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-14">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-20">
         <div className="dash-hero">
           <div className="flex items-start gap-5 mb-6">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0" style={{ boxShadow: '0 0 20px rgba(99,102,241,0.15)' }}>
@@ -202,7 +202,7 @@ export default function Dashboard() {
 
       {/* 14-Day Pattern Alert */}
       {sleepCascade && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-14">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-20">
           <div className="rounded-xl border border-red-500/10 bg-red-500/[0.02] overflow-hidden">
             <div className="flex items-center gap-3 px-6 py-3 border-b border-red-500/8 bg-red-500/[0.03]">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
@@ -238,7 +238,7 @@ export default function Dashboard() {
       )}
 
       {/* Score Rings */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-16">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-7 lg:gap-8 mb-20">
         <GlassCard className="flex justify-center py-8">
           <ScoreRing score={healthScore} color="auto" label="Health" delay={0} size={130} />
         </GlassCard>
@@ -257,22 +257,22 @@ export default function Dashboard() {
       </div>
 
       {/* Explainable AI Score Panels */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-16">
-        <h3 className="dash-section-title mb-8">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-20">
+        <h3 className="dash-section-title mb-10">
           <Search size={14} className="text-indigo-400" /> Explainable AI — Score Breakdown
           <span className="dash-badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Advanced</span>
         </h3>
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid md:grid-cols-3 gap-7 lg:gap-10">
           <ExplainableScorePanel title="Health Score" score={healthScore} factors={explainFactors.health} color="#22c55e" icon="❤️" />
           <ExplainableScorePanel title="Finance Score" score={financeScore} factors={explainFactors.finance} color="#f59e0b" icon="💰" />
           <ExplainableScorePanel title="Career Score" score={careerScore} factors={explainFactors.career} color="#3b82f6" icon="🎯" />
         </div>
       </motion.div>
 
-      <div className="grid lg:grid-cols-3 gap-8 lg:gap-10 mb-16">
+      <div className="grid lg:grid-cols-3 gap-10 lg:gap-12 mb-20">
         {/* Metrics + Chart */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="lg:col-span-2 space-y-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-7">
             <MetricCard icon={<Moon size={20} className="text-violet-400" />} label="Avg Sleep" value={`${h.sleepAvg || 0}h`} change={h.sleepAvg >= 7 ? 5 : -12} color="#a78bfa" delay={0} />
             <MetricCard icon={<Flame size={20} className="text-rose-400" />} label="Stress" value={`${h.stressLevel || 0}/10`} change={h.stressLevel <= 5 ? 8 : -15} color="#f43f5e" delay={100} />
             <MetricCard icon={<PiggyBank size={20} className="text-emerald-400" />} label="Savings" value={`${computed?.financeScore?.summary?.savingsRate || 0}%`} change={f.income > f.expenses ? 5 : -10} color="#22c55e" delay={200} />
@@ -282,7 +282,7 @@ export default function Dashboard() {
           {/* Trend Chart */}
           <GlassCard>
             <h3 className="dash-section-title mb-6"><CalendarDays size={14} className="text-indigo-400" /> 14-Day Trends</h3>
-            <div className="h-64">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData}>
                   <defs>
@@ -302,11 +302,11 @@ export default function Dashboard() {
         </div>
 
         {/* AI Insights */}
-        <div className="space-y-6">
+        <div className="space-y-7">
           <h3 className="dash-section-title">
             <Brain size={14} className="text-purple-400" /> AI Insights
           </h3>
-          <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
+          <div className="space-y-7 max-h-[600px] overflow-y-auto pr-2">
             {insights.map((insight, i) => <InsightCard key={i} insight={insight} index={i} />)}
             {insights.length === 0 && (
               <div className="p-8 rounded-xl bg-[#141416] text-center text-[13px] text-[#52525b] border border-white/[0.06]">
@@ -318,7 +318,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-16">
+      <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 mb-20">
         {/* Activity Timeline */}
         <GlassCard>
           <h3 className="dash-section-title mb-8">
@@ -349,7 +349,7 @@ export default function Dashboard() {
           <h3 className="dash-section-title mb-8">
             <Link2 size={14} className="text-cyan-400" /> Habit Correlations
           </h3>
-          <div className="space-y-5">
+          <div className="space-y-6">
             {correlations.slice(0, 5).map((c, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
                 className={`p-4 rounded-xl text-[12px] border ${c.type === 'positive' ? 'border-emerald-500/10 bg-emerald-500/[0.02]' : c.type === 'negative' ? 'border-red-500/10 bg-red-500/[0.02]' : 'border-white/[0.06] bg-white/[0.01]'}`}>
@@ -367,7 +367,7 @@ export default function Dashboard() {
       </div>
 
       {/* Today's Action Plan */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-16">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-20">
         <GlassCard>
           <div className="flex items-center justify-between mb-8">
             <h3 className="dash-section-title mb-0">
@@ -380,7 +380,7 @@ export default function Dashboard() {
           </div>
 
           {/* Progress bar */}
-          <div className="w-full h-1.5 rounded-full bg-white/[0.04] mb-8">
+          <div className="w-full h-1.5 rounded-full bg-white/[0.04] mb-10">
             <motion.div
               animate={{ width: `${(Object.values(checkedTasks).filter(Boolean).length / actionPlan.length) * 100}%` }}
               transition={{ duration: 0.5 }}
@@ -388,7 +388,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {actionPlan.map((task, i) => {
               const done = !!checkedTasks[task.id];
               return (

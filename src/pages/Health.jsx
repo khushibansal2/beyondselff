@@ -106,8 +106,8 @@ export default function Health() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-12">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-6 lg:gap-8">
+        <div className="space-y-16">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-7 lg:gap-8">
             <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
               <ScoreRing score={score} color="auto" label="Health Score" size={120} />
             </GlassCard>
@@ -119,10 +119,10 @@ export default function Health() {
             <MetricCard icon="🔥" label="Calories" value={h.calories} color="#f97316" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
             <GlassCard>
-              <h3 className="dash-section-title mb-6">Sleep & Mood Trends (30 days)</h3>
-              <div className="h-72">
+              <h3 className="dash-section-title mb-8">Sleep & Mood Trends (30 days)</h3>
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>
                     <defs>
@@ -139,8 +139,8 @@ export default function Health() {
             </GlassCard>
 
             <GlassCard>
-              <h3 className="dash-section-title mb-6">Stress & Water Intake</h3>
-              <div className="h-72">
+              <h3 className="dash-section-title mb-8">Stress & Water Intake</h3>
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={trendData.slice(-14)} maxBarSize={32}>
                     <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 11 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} />
@@ -155,7 +155,7 @@ export default function Health() {
           </div>
 
           {/* BMI & Burnout Risk */}
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
+          <div className="grid md:grid-cols-2 gap-10 lg:gap-12">
             <GlassCard>
               <h3 className="dash-section-title mb-6">⚖️ Body Metrics</h3>
               <div className="flex items-center gap-8">
@@ -212,7 +212,7 @@ export default function Health() {
               </button>
             </div>
           </div>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 lg:grid-cols-3 gap-7">
             {[
               { key: 'sleep', label: 'Sleep (hours)', placeholder: '7.5', type: 'number', min: 0, max: 14, step: '0.5' },
               { key: 'mood', label: 'Mood (1-10)', placeholder: '7', type: 'number', min: 1, max: 10 },
@@ -235,7 +235,7 @@ export default function Health() {
       )}
 
       {tab === 'wellness' && (
-        <div className="space-y-12">
+        <div className="space-y-16">
           {/* Wellness Breakdown */}
           <GlassCard>
             <h3 className="dash-section-title mb-8">🧘 Wellness Factor Breakdown</h3>
@@ -258,7 +258,7 @@ export default function Health() {
           {/* Emotional Wellness */}
           <GlassCard>
             <h3 className="dash-section-title mb-8">💔 Emotional Wellness Analysis</h3>
-            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid md:grid-cols-3 gap-7 lg:gap-10">
               <div className={`p-8 rounded-3xl border ${h.moodAvg < 4 ? 'border-red-500/20 bg-red-500/[0.03]' : h.moodAvg < 6 ? 'border-amber-500/20 bg-amber-500/[0.03]' : 'border-emerald-500/20 bg-emerald-500/[0.03]'}`}>
                 <p className="text-[11px] text-[#71717a] mb-2 font-medium uppercase tracking-wide">Emotional State</p>
                 <p className="font-semibold text-[15px] text-[#f0f0f3] mb-3">{h.moodAvg < 4 ? '😔 Needs Attention' : h.moodAvg < 6 ? '😐 Moderate' : '😊 Good'}</p>
@@ -280,7 +280,7 @@ export default function Health() {
           {/* Daily Summary */}
           <GlassCard>
             <h3 className="dash-section-title mb-8">📝 Daily Health Summary</h3>
-            <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+            <div className="grid md:grid-cols-2 gap-7 lg:gap-10">
               <div className="p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
                 <p className="text-[12px] text-[#71717a] font-medium mb-2 uppercase tracking-wide">Energy Level</p>
                 <p className="text-[14px] font-medium text-[#f0f0f3]">{h.sleepAvg >= 7 && h.stressLevel < 6 ? '⚡ High — well rested and low stress' : h.sleepAvg >= 5.5 ? '🔋 Moderate — could use more sleep' : '🪫 Low — sleep deprivation detected'}</p>
@@ -303,7 +303,7 @@ export default function Health() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-8">
+        <div className="space-y-10">
           {recommendations.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <GlassCard>
