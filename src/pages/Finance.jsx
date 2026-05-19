@@ -4,11 +4,30 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
 import { generateTrendData } from '../data/demoData';
-import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
+import { ScoreRing, GlassCard, PageHeader, TabBar, showToast } from '../components/ui/Components';
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, Legend } from 'recharts';
 import RoboAdvisor from '../components/ui/RoboAdvisor';
+import { Banknote, CreditCard, Landmark, TrendingUp, RefreshCw, AlertTriangle } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'];
+
+function FinanceMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="glass-card p-6 flex flex-col items-center text-center gap-3 group hover:translate-y-[-2px] transition-all duration-300"
+    >
+      <div className="w-11 h-11 rounded-2xl flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110"
+        style={{ background: `${color}12`, boxShadow: `0 0 20px ${color}15` }}>
+        <Icon size={20} style={{ color }} />
+      </div>
+      <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">{label}</p>
+      <p className="text-[20px] font-bold tracking-tight leading-none truncate w-full">{value}</p>
+      {subtitle && <p className="text-[10px] text-[#3f3f46]">{subtitle}</p>}
+    </motion.div>
+  );
+}
 
 // Removed old RoboAdvisor component to use the new dynamic one from components/ui/RoboAdvisor
 
@@ -123,27 +142,32 @@ export default function Finance() {
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
-      return <div className="bg-[#252525] border border-[rgba(255,255,255,0.06)] p-3 rounded-xl text-xs"><p className="text-[#9B9B9B] mb-1">{label}</p>{payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: ₹{p.value?.toFixed?.(0)}</p>)}</div>;
+      return (
+        <div className="border border-white/[0.10] p-4 rounded-2xl text-xs" style={{ background: 'rgba(12,12,15,0.92)', backdropFilter: 'blur(20px)', boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }}>
+          <p className="text-[#71717a] mb-2 font-medium">{label}</p>
+          {payload.map(p => <p key={p.name} className="py-0.5" style={{ color: p.color }}>{p.name}: ₹{p.value?.toFixed?.(0)}</p>)}
+        </div>
+      );
     }
     return null;
   };
 
   return (
-    <div className="page-container min-h-screen pb-20">
-      <PageHeader title="Financial Intelligence" subtitle="Track your net worth, expenses, and AI-driven optimizations." icon="💰" />
+    <div className="page-container min-h-screen pb-20 bg-mesh">
+      <PageHeader title="Financial Intelligence" subtitle="Track your net worth, expenses, and AI-driven optimizations." />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
         <div className="space-y-16">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-7 lg:gap-8">
-            <GlassCard className="flex justify-center col-span-2 md:col-span-1 border-white/[0.04]">
-              <ScoreRing score={score} color="auto" label="Finance Score" size={120} />
-            </GlassCard>
-            <MetricCard icon="💵" label="Income" value={`₹${f.income.toLocaleString()}`} color="#22c55e" />
-            <MetricCard icon="💸" label="Expenses" value={`₹${f.expenses.toLocaleString()}`} color="#f43f5e" />
-            <MetricCard icon="🏦" label="Savings" value={`₹${f.savings.toLocaleString()}`} color="#3b82f6" />
-            <MetricCard icon="📈" label="Investments" value={`₹${f.investments.toLocaleString()}`} color="#a78bfa" />
-            <MetricCard icon="🔄" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} color="#f59e0b" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+            <div className="glass-card p-7 flex justify-center col-span-2 sm:col-span-3 lg:col-span-1" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
+              <ScoreRing score={score} color="auto" label="Finance" size={110} />
+            </div>
+            <FinanceMetric icon={Banknote} color="#22c55e" label="Income" value={`₹${f.income.toLocaleString()}`} subtitle="monthly" delay={50} />
+            <FinanceMetric icon={CreditCard} color="#f43f5e" label="Expenses" value={`₹${f.expenses.toLocaleString()}`} subtitle="monthly" delay={100} />
+            <FinanceMetric icon={Landmark} color="#3b82f6" label="Savings" value={`₹${f.savings.toLocaleString()}`} subtitle="total" delay={150} />
+            <FinanceMetric icon={TrendingUp} color="#a78bfa" label="Investments" value={`₹${f.investments.toLocaleString()}`} subtitle="portfolio" delay={200} />
+            <FinanceMetric icon={RefreshCw} color="#f59e0b" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} subtitle="monthly" delay={250} />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
@@ -155,8 +179,8 @@ export default function Finance() {
                     <Pie data={expenseBreakdown} cx="50%" cy="50%" outerRadius={110} innerRadius={70} dataKey="value" paddingAngle={3}>
                       {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="rgba(255,255,255,0.05)" />)}
                     </Pie>
-                    <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} contentStyle={{ background: '#141416', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', fontSize: '12px' }} />
-                    <Legend formatter={(v) => <span className="text-[13px] text-[#a1a1aa] font-medium ml-1">{v}</span>} />
+                    <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} contentStyle={{ background: 'rgba(12,12,15,0.92)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: '16px', fontSize: '12px', backdropFilter: 'blur(20px)' }} />
+                    <Legend formatter={(v) => <span className="text-[12px] text-[#a1a1aa] font-medium ml-1">{v}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -181,28 +205,29 @@ export default function Finance() {
 
           {/* Financial Anxiety Check */}
           {(f.debt > 0 || savingsRate < 5 || emotionalSpending) && (
-            <GlassCard className="border-red-500/10 bg-red-500/[0.02]">
-              <div className="flex items-center gap-3 mb-8">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
+            <GlassCard className="border-red-500/10" style={{ background: 'rgba(239,68,68,0.02)' }}>
+              <div className="flex items-center gap-3 mb-10">
+                <AlertTriangle size={16} className="text-red-400" />
                 <h3 className="text-[13px] font-bold text-red-300 uppercase tracking-wider mb-0">Financial Anxiety Detection</h3>
+                <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
               </div>
-              <div className="grid md:grid-cols-3 gap-7 lg:gap-10">
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
                 {f.debt > 0 && (
-                  <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
-                    <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Debt: ₹{f.debt.toLocaleString()}</p>
-                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">Prioritize debt repayment. Allocate 20% of income to clearing debt to reduce financial stress.</p>
+                  <div className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <p className="font-semibold text-[14px] text-[#f0f0f3] mb-3">Debt: ₹{f.debt.toLocaleString()}</p>
+                    <p className="text-[12px] text-[#a1a1aa] leading-relaxed">Prioritize debt repayment. Allocate 20% of income to clearing debt to reduce financial stress.</p>
                   </div>
                 )}
                 {savingsRate < 5 && (
-                  <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
-                    <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Low Savings Rate: {savingsRate}%</p>
-                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">Aim for 20% minimum. Start with small automated transfers on payday.</p>
+                  <div className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <p className="font-semibold text-[14px] text-[#f0f0f3] mb-3">Low Savings Rate: {savingsRate}%</p>
+                    <p className="text-[12px] text-[#a1a1aa] leading-relaxed">Aim for 20% minimum. Start with small automated transfers on payday.</p>
                   </div>
                 )}
                 {emotionalSpending && (
-                  <div className="p-6 lg:p-8 rounded-3xl bg-[#141416] border border-white/[0.04]">
-                    <p className="font-semibold text-[15px] text-[#f0f0f3] mb-2">Emotional Spending Risk</p>
-                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">High stress levels linked to impulsive purchases. Use a 24-hour wait rule for non-essentials.</p>
+                  <div className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <p className="font-semibold text-[14px] text-[#f0f0f3] mb-3">Emotional Spending Risk</p>
+                    <p className="text-[12px] text-[#a1a1aa] leading-relaxed">High stress levels linked to impulsive purchases. Use a 24-hour wait rule for non-essentials.</p>
                   </div>
                 )}
               </div>
