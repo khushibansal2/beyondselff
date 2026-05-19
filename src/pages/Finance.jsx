@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
-import { generateTrendData } from '../data/demoData';
+import { generateTrendData, generateInsights } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast } from '../components/ui/Components';
-import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, Legend } from 'recharts';
+import { CartesianGrid, PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import RoboAdvisor from '../components/ui/RoboAdvisor';
 import { Banknote, CreditCard, Landmark, TrendingUp, RefreshCw, AlertTriangle } from 'lucide-react';
 
@@ -46,6 +46,17 @@ export default function Finance() {
   const [form, setForm] = useState({ income: '', expense: '', category: 'food', amount: '' });
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
+
+  const currentState = useMemo(() => ({
+    health: user?.health || { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0 },
+    finance: f,
+    career: computed?.careerScore?.raw || { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0 }
+  }), [user, f, computed]);
+
+  const financeInsights = useMemo(() => {
+    const all = generateInsights(currentState);
+    return all.filter(ins => ins.domains.includes('finance')).slice(0, 2);
+  }, [currentState]);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -158,10 +169,12 @@ export default function Finance() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-16">
+        <div className="space-y-12 lg:space-y-16">
+          {/* Score + Metrics Row */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
-            <div className="glass-card p-7 flex justify-center col-span-2 sm:col-span-3 lg:col-span-1" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
-              <ScoreRing score={score} color="auto" label="Finance" size={110} />
+            <div className="glass-card p-6 flex flex-col items-center justify-between text-center min-h-[170px]" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
+              <ScoreRing score={score} color="auto" label="" size={80} strokeWidth={6} />
+              <span className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">Finance Score</span>
             </div>
             <FinanceMetric icon={Banknote} color="#22c55e" label="Income" value={`₹${f.income.toLocaleString()}`} subtitle="monthly" delay={50} />
             <FinanceMetric icon={CreditCard} color="#f43f5e" label="Expenses" value={`₹${f.expenses.toLocaleString()}`} subtitle="monthly" delay={100} />
@@ -170,9 +183,10 @@ export default function Finance() {
             <FinanceMetric icon={RefreshCw} color="#f59e0b" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} subtitle="monthly" delay={250} />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
-            <GlassCard>
-              <h3 className="dash-section-title mb-8">Expense Breakdown</h3>
+          {/* Charts Row */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
+            <GlassCard className="p-8">
+              <h3 className="dash-section-title mb-6">Expense Breakdown</h3>
               <div className="h-80 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -186,15 +200,23 @@ export default function Finance() {
               </div>
             </GlassCard>
 
-            <GlassCard>
-              <h3 className="dash-section-title mb-8">Spending Trend (30 days)</h3>
+            <GlassCard className="p-8">
+              <h3 className="dash-section-title mb-2">Spending Trend (30 days)</h3>
+              <div className="flex gap-4 mb-8">
+                <div className="flex items-center gap-1.5 text-xs text-[#a1a1aa]">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f43f5e' }} />
+                  <span>Spending (daily)</span>
+                </div>
+              </div>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>
                     <defs>
-                      <linearGradient id="spendG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient>
+                      <linearGradient id="spendG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 11 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} tickFormatter={v => `₹${v}`} axisLine={false} tickLine={false} dx={-8} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="spending" stroke="#f43f5e" fill="url(#spendG)" strokeWidth={2} name="Spending" />
                   </AreaChart>
@@ -203,36 +225,92 @@ export default function Finance() {
             </GlassCard>
           </div>
 
-          {/* Financial Anxiety Check */}
-          {(f.debt > 0 || savingsRate < 5 || emotionalSpending) && (
-            <GlassCard className="border-red-500/10" style={{ background: 'rgba(239,68,68,0.02)' }}>
-              <div className="flex items-center gap-3 mb-10">
-                <AlertTriangle size={16} className="text-red-400" />
-                <h3 className="text-[13px] font-bold text-red-300 uppercase tracking-wider mb-0">Financial Anxiety Detection</h3>
-                <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
-              </div>
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {f.debt > 0 && (
-                  <div className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                    <p className="font-semibold text-[14px] text-[#f0f0f3] mb-3">Debt: ₹{f.debt.toLocaleString()}</p>
-                    <p className="text-[12px] text-[#a1a1aa] leading-relaxed">Prioritize debt repayment. Allocate 20% of income to clearing debt to reduce financial stress.</p>
-                  </div>
-                )}
-                {savingsRate < 5 && (
-                  <div className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                    <p className="font-semibold text-[14px] text-[#f0f0f3] mb-3">Low Savings Rate: {savingsRate}%</p>
-                    <p className="text-[12px] text-[#a1a1aa] leading-relaxed">Aim for 20% minimum. Start with small automated transfers on payday.</p>
-                  </div>
-                )}
-                {emotionalSpending && (
-                  <div className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                    <p className="font-semibold text-[14px] text-[#f0f0f3] mb-3">Emotional Spending Risk</p>
-                    <p className="text-[12px] text-[#a1a1aa] leading-relaxed">High stress levels linked to impulsive purchases. Use a 24-hour wait rule for non-essentials.</p>
-                  </div>
-                )}
+          {/* Bottom Analytics Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Card 1: Financial Anxiety Check */}
+            <GlassCard className={`flex flex-col justify-between p-8 h-full ${(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? 'border-red-500/10' : ''}`} style={(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? { background: 'rgba(239,68,68,0.02)' } : {}}>
+              <div>
+                <h3 className="dash-section-title mb-8 flex items-center gap-2">
+                  <AlertTriangle size={16} className={(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? 'text-red-400' : 'text-emerald-400'} />
+                  <span>Financial Anxiety</span>
+                </h3>
+                <div className="space-y-4">
+                  {f.debt > 0 && (
+                    <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                      <p className="font-semibold text-[13px] text-[#f0f0f3] mb-1">Debt: ₹{f.debt.toLocaleString()}</p>
+                      <p className="text-[11px] text-[#71717a] leading-relaxed">Prioritize debt repayment. Allocate 20% of income to clearing debt to reduce stress.</p>
+                    </div>
+                  )}
+                  {savingsRate < 5 && (
+                    <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                      <p className="font-semibold text-[13px] text-[#f0f0f3] mb-1">Low Savings Rate: {savingsRate}%</p>
+                      <p className="text-[11px] text-[#71717a] leading-relaxed">Aim for 20% minimum. Start with small automated transfers on payday.</p>
+                    </div>
+                  )}
+                  {emotionalSpending && (
+                    <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                      <p className="font-semibold text-[13px] text-[#f0f0f3] mb-1">Emotional Spending Risk</p>
+                      <p className="text-[11px] text-[#71717a] leading-relaxed">High stress levels linked to impulsive purchases. Use a 24-hour wait rule.</p>
+                    </div>
+                  )}
+                  {!(f.debt > 0 || savingsRate < 5 || emotionalSpending) && (
+                    <div className="text-center py-6 text-[12px] text-[#71717a]">
+                      <p className="text-[#22c55e] font-semibold text-[13px] mb-1">✓ Healthy Standing</p>
+                      <p>No anxiety indicators detected. Your debt, savings rate, and spending patterns look healthy.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </GlassCard>
-          )}
+
+            {/* Card 2: Subscription Insights */}
+            <GlassCard className="flex flex-col justify-between p-8 h-full">
+              <div>
+                <h3 className="dash-section-title mb-8">🔄 Subscription Insights</h3>
+                <div className="space-y-5">
+                  <div className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.01] text-center">
+                    <p className="text-[10px] text-[#52525b] uppercase tracking-wider font-semibold mb-2">Monthly Subscriptions</p>
+                    <p className="text-2xl font-bold tracking-tight text-amber-400">₹{f.subscriptions.toLocaleString()}</p>
+                    <p className="text-[10px] text-[#71717a] mt-2">
+                      {f.income > 0 ? `${Math.round(f.subscriptions / f.income * 100)}% of monthly income` : 'No income logged'}
+                    </p>
+                  </div>
+                  <div className="text-[12px] text-[#71717a] leading-relaxed">
+                    <p className="font-semibold text-[#f0f0f3] mb-1">Potential Action</p>
+                    <p>Analyze your active subscriptions. Canceling just one unused service could save up to ₹1,000/month, reducing emotional leaks.</p>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Card 3: AI Recommendations (Insights) */}
+            <GlassCard className="flex flex-col justify-between p-8 h-full">
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="dash-section-title mb-0">💡 AI Insights</h3>
+                  <button onClick={() => setTab('recommendations')} className="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider">View all</button>
+                </div>
+                
+                <div className="space-y-4 w-full">
+                  {financeInsights.map((insight, i) => (
+                    <div key={i} className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.04] border border-white/[0.06] text-sm flex-shrink-0">
+                        {insight.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-[12px] text-[#f0f0f3] truncate mb-1">{insight.title}</h4>
+                        <p className="text-[11px] text-[#71717a] leading-relaxed line-clamp-2">{insight.text}</p>
+                      </div>
+                      <span className="text-[#3f3f46] group-hover:text-[#71717a] transition-colors mt-0.5 text-sm">→</span>
+                    </div>
+                  ))}
+                  {financeInsights.length === 0 && (
+                    <p className="text-[12px] text-[#52525b] text-center py-6">No active insights. Keep logging your data.</p>
+                  )}
+                </div>
+              </div>
+            </GlassCard>
+          </div>
         </div>
       )}
 

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { generateTrendData, generateInsights } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast } from '../components/ui/Components';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { BookOpen, Code2, Puzzle, Rocket, Target, GraduationCap } from 'lucide-react';
@@ -31,6 +32,17 @@ export default function Career() {
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
   const score = computed?.careerScore?.score || 0;
   const [form, setForm] = useState({ studyHours: '', codingHours: '', dsa: '', skill: '' });
+
+  const currentState = useMemo(() => ({
+    health: health || { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0 },
+    finance: computed?.financeScore?.raw || { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0 },
+    career: c
+  }), [health, c, computed]);
+
+  const careerInsights = useMemo(() => {
+    const all = generateInsights(currentState);
+    return all.filter(ins => ins.domains.includes('career')).slice(0, 2);
+  }, [currentState]);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -83,10 +95,12 @@ export default function Career() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-16">
+        <div className="space-y-12 lg:space-y-16">
+          {/* Score + Metrics Row */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
-            <div className="glass-card p-7 flex justify-center col-span-2 sm:col-span-3 lg:col-span-1" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
-              <ScoreRing score={score} color="auto" label="Career" size={110} />
+            <div className="glass-card p-6 flex flex-col items-center justify-between text-center min-h-[170px]" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
+              <ScoreRing score={score} color="auto" label="" size={80} strokeWidth={6} />
+              <span className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">Career Score</span>
             </div>
             <CareerMetric icon={BookOpen} color="#3b82f6" label="Study/day" value={`${c.studyHoursDaily}h`} subtitle="focused" delay={50} />
             <CareerMetric icon={Code2} color="#8b5cf6" label="Coding/day" value={`${c.codingHoursDaily}h`} subtitle="hands-on" delay={100} />
@@ -95,38 +109,128 @@ export default function Career() {
             <CareerMetric icon={Target} color="#f59e0b" label="Placement" value={`${placementReadiness}%`} subtitle="readiness" delay={250} />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
-            <GlassCard>
+          {/* Charts Row */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
+            <GlassCard className="p-8">
               <h3 className="dash-section-title mb-8">Skill Radar</h3>
-              <div className="h-80">
+              <div className="h-80 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={skillRadar}>
-                    <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#a1a1aa', fontSize: 11 }} />
-                    <Radar name="Skills" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2} />
+                    <PolarGrid stroke="rgba(255,255,255,0.04)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} />
+                    <Radar name="Skills" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={2} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
             </GlassCard>
 
-            <GlassCard>
-              <h3 className="dash-section-title mb-8">Skills Portfolio</h3>
-              <div className="flex flex-wrap gap-2.5 mb-8">
-                {c.skills.map(s => (
-                  <span key={s} className="px-4 py-2 rounded-xl border border-white/[0.06] text-[12px] text-[#a1a1aa] font-medium tracking-wide hover:border-white/[0.12] hover:text-[#e4e4e7] transition-all duration-200 cursor-default" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    {s}
-                  </span>
-                ))}
-                {c.skills.length === 0 && <p className="text-[12px] text-[#52525b]">No skills added yet. Log data to add skills.</p>}
+            <GlassCard className="p-8 flex flex-col justify-between">
+              <div>
+                <h3 className="dash-section-title mb-6">Skills Portfolio</h3>
+                <div className="flex flex-wrap gap-2.5 mb-8">
+                  {c.skills.map(s => (
+                    <span key={s} className="px-3.5 py-1.5 rounded-xl border border-white/[0.04] text-[11px] text-[#a1a1aa] font-medium tracking-wide hover:border-white/[0.08] hover:text-[#e4e4e7] transition-all duration-200 cursor-default bg-white/[0.01]">
+                      {s}
+                    </span>
+                  ))}
+                  {c.skills.length === 0 && <p className="text-[12px] text-[#52525b]">No skills added yet. Log data to add skills.</p>}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-5 mt-auto">
-                <div className="p-6 rounded-2xl border border-white/[0.06] text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="grid grid-cols-2 gap-5 mt-auto pt-6 border-t border-white/[0.04]">
+                <div className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.01] text-center">
                   <p className="text-3xl font-bold text-blue-400 mb-2 tracking-tight">{c.coursesActive}</p>
                   <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">Active Courses</p>
                 </div>
-                <div className="p-6 rounded-2xl border border-white/[0.06] text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.01] text-center">
                   <p className="text-3xl font-bold text-[#a78bfa] mb-2 tracking-tight">{c.gpa}</p>
                   <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">GPA</p>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+
+          {/* Bottom Analytics Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Card 1: Learning Progress */}
+            <GlassCard className="flex flex-col justify-between p-8 h-full">
+              <div>
+                <h3 className="dash-section-title mb-8">📈 Learning Progress</h3>
+                <div className="space-y-5">
+                  <div>
+                    <div className="flex justify-between items-center text-[11px] mb-1.5">
+                      <span className="text-[#a1a1aa] font-medium">DSA Coding Practice</span>
+                      <span className="text-blue-400 font-semibold">{c.dsaPractice} / 5 Daily</span>
+                    </div>
+                    <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-blue-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (c.dsaPractice / 5) * 100)}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center text-[11px] mb-1.5">
+                      <span className="text-[#a1a1aa] font-medium">Projects Built</span>
+                      <span className="text-emerald-400 font-semibold">{c.projectsCompleted} / 4 Target</span>
+                    </div>
+                    <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-emerald-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (c.projectsCompleted / 4) * 100)}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center text-[11px] mb-1.5">
+                      <span className="text-[#a1a1aa] font-medium">Daily Study Hours</span>
+                      <span className="text-purple-400 font-semibold">{c.studyHoursDaily}h / 6h Target</span>
+                    </div>
+                    <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-purple-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (c.studyHoursDaily / 6) * 100)}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Card 2: Placement Readiness */}
+            <GlassCard className="flex flex-col justify-between p-8 h-full">
+              <div>
+                <h3 className="dash-section-title mb-8">🎯 Placement Readiness</h3>
+                <div className="flex items-center gap-6 mt-2">
+                  <div className="flex-shrink-0">
+                    <ScoreRing score={placementReadiness} color={placementReadiness > 70 ? '#22c55e' : placementReadiness > 40 ? '#f59e0b' : '#ef4444'} label="" size={90} strokeWidth={6} />
+                  </div>
+                  <div className="text-[13px] text-[#a1a1aa] flex-1">
+                    <p className="font-bold text-[15px] mb-2" style={{ color: placementReadiness > 70 ? '#22c55e' : placementReadiness > 40 ? '#f59e0b' : '#ef4444' }}>
+                      {placementReadiness > 70 ? 'Excellent Status' : placementReadiness > 40 ? 'Moderate Readiness' : 'Needs Focus'}
+                    </p>
+                    <p className="leading-relaxed text-[12px] text-[#71717a]">
+                      {placementReadiness > 70 ? 'You are well-prepared. Keep reviewing core topics and practice interviews.' : placementReadiness > 40 ? 'Review core DSA patterns and build one more deployment-ready project.' : 'Prioritize daily coding sessions and start building basic portfolio projects.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Card 3: Career Insights */}
+            <GlassCard className="flex flex-col justify-between p-8 h-full">
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="dash-section-title mb-0">💡 AI Insights</h3>
+                  <button onClick={() => setTab('recommendations')} className="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider">View all</button>
+                </div>
+                
+                <div className="space-y-4 w-full">
+                  {careerInsights.map((insight, i) => (
+                    <div key={i} className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.04] border border-white/[0.06] text-sm flex-shrink-0">
+                        {insight.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-[12px] text-[#f0f0f3] truncate mb-1">{insight.title}</h4>
+                        <p className="text-[11px] text-[#71717a] leading-relaxed line-clamp-2">{insight.text}</p>
+                      </div>
+                      <span className="text-[#3f3f46] group-hover:text-[#71717a] transition-colors mt-0.5 text-sm">→</span>
+                    </div>
+                  ))}
+                  {careerInsights.length === 0 && (
+                    <p className="text-[12px] text-[#52525b] text-center py-6">No active insights. Keep logging your data.</p>
+                  )}
                 </div>
               </div>
             </GlassCard>
