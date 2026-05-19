@@ -129,7 +129,7 @@ export default function Finance() {
   };
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="Financial Health" subtitle="Track spending, optimize savings, and build financial resilience." icon="💰" />
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 

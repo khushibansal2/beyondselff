@@ -138,7 +138,7 @@ export default function Insights() {
   };
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="Cross-Domain Intelligence" subtitle="AI-explained patterns across your health, finances, and career." icon="🧠" />
 
       {/* 14-Day Pattern Report Header */}

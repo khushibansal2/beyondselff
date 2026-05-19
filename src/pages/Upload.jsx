@@ -211,7 +211,7 @@ export default function Upload() {
   };
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container bg-mesh min-h-screen">
       <PageHeader title="Data Import Center" subtitle="Upload files or connect apps to feed your Digital Twin with real data." icon="📂" />
 
       <SecurityBadge />
