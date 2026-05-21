@@ -54,9 +54,13 @@
   --radius-2xl: 28px;
   --radius-3xl: 32px;
 
-  /* Spacing */
-  --spacing-page: 64px;
-  --spacing-page-mobile: 24px;
+  /* Spacing — premium SaaS rhythm */
+  --spacing-page: 88px;
+  --spacing-page-mobile: 20px;
+  --spacing-section: 72px;
+  --spacing-component: 48px;
+  --spacing-card-inner: 48px;
+  --spacing-card-inner-sm: 36px;
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -184,13 +188,21 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
-  padding: 28px;
+  padding: var(--spacing-card-inner-sm);
   box-shadow: var(--glass-shadow), var(--glass-inner-highlight);
   transition:
     background var(--transition-base),
     border-color var(--transition-base),
     transform var(--transition-slow),
     box-shadow var(--transition-slow);
+}
+
+@media (min-width: 768px) {
+  .dash-card { padding: 40px; }
+}
+
+@media (min-width: 1024px) {
+  .dash-card { padding: var(--spacing-card-inner); }
 }
 
 .dash-card:hover {
@@ -217,12 +229,16 @@ body {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(99, 102, 241, 0.12);
   border-radius: var(--radius-2xl);
-  padding: 36px;
+  padding: 40px;
   position: relative;
   overflow: hidden;
   box-shadow:
     0 0 60px rgba(99, 102, 241, 0.06),
     var(--glass-inner-highlight);
+}
+
+@media (min-width: 1024px) {
+  .dash-hero { padding: 52px; }
 }
 
 .dash-hero::before {
@@ -536,10 +552,17 @@ select.input-premium option {
   z-index: 1;
 }
 
+@media (min-width: 640px) {
+  .page-container {
+    padding: 32px;
+    padding-bottom: 80px;
+  }
+}
+
 @media (min-width: 768px) {
   .page-container {
-    padding: 40px;
-    padding-bottom: 40px;
+    padding: 48px;
+    padding-bottom: 48px;
   }
 }
 
@@ -571,7 +594,7 @@ select.input-premium option {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -579,7 +602,7 @@ select.input-premium option {
 
 /* ===== DASHBOARD SECTION SPACING ===== */
 .dash-section {
-  margin-bottom: 36px;
+  margin-bottom: 72px;
 }
 
 .dash-section-title {
@@ -588,7 +611,7 @@ select.input-premium option {
   color: var(--color-text-primary);
   text-transform: none;
   letter-spacing: -0.01em;
-  margin-bottom: 20px;
+  margin-bottom: 32px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -601,6 +624,19 @@ select.input-premium option {
   border-radius: 99px;
   text-transform: none;
   letter-spacing: 0;
+}
+
+/* ===== SECTION DIVIDER ===== */
+.section-gap { margin-bottom: var(--spacing-section); }
+.component-gap { margin-bottom: var(--spacing-component); }
+
+/* ===== DASHBOARD SECTION SEPARATOR — subtle horizontal rule ===== */
+.dash-separator {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  margin: 0;
+  border: none;
 }
 
 /* ===== SIDEBAR GLASSMORPHISM ===== */

@@ -110,12 +110,12 @@ export default function Simulator() {
       ) : (
         <>
           {/* Scenario Selection */}
-          <GlassCard className="mb-6">
-            <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
+          <GlassCard className="mb-8 lg:mb-10">
+            <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-6">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold">Select Scenarios to Simulate</h3>
+                <h3 className="text-[15px] font-semibold text-[#f0f0f3]">Select Scenarios to Simulate</h3>
                 {selected.length > 0 && (
-                  <button onClick={resetSimulator} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-[#EBEBEB] px-2 py-1 rounded transition-colors">
+                  <button onClick={resetSimulator} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-[#EBEBEB] px-2.5 py-1.5 rounded transition-colors">
                     Reset
                   </button>
                 )}
@@ -125,44 +125,44 @@ export default function Simulator() {
                 <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
                   {[1, 3, 6, 12].map(m => (
                     <button key={m} onClick={() => setMonths(m)}
-                      className={`text-xs px-3 py-1 rounded-md transition-all ${months === m ? 'bg-blue-500 text-white' : 'text-[#9B9B9B] hover:text-slate-200'}`}>
+                      className={`text-xs px-3.5 py-1.5 rounded-md transition-all cursor-pointer ${months === m ? 'bg-blue-500 text-white' : 'text-[#9B9B9B] hover:text-slate-200'}`}>
                       {m}m
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
               {scenarios.map(s => (
                 <motion.button key={s.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => toggleScenario(s.id)}
-                  className={`p-3 rounded-xl border text-left text-xs transition-all ${selected.includes(s.id) ? 'border-blue-500/40 bg-blue-500/10' : 'border-[rgba(255,255,255,0.055)] bg-[#252525] hover:bg-[#2b2b2b]'}`}>
-                  <span className="text-lg block mb-1">{s.icon}</span>
-                  <span className={selected.includes(s.id) ? 'text-blue-300' : 'text-[#9B9B9B]'}>{s.label}</span>
+                  className={`p-4 rounded-xl border text-left text-xs transition-all cursor-pointer ${selected.includes(s.id) ? 'border-blue-500/40 bg-blue-500/10' : 'border-[rgba(255,255,255,0.055)] bg-[#252525] hover:bg-[#2b2b2b]'}`}>
+                  <span className="text-xl block mb-2">{s.icon}</span>
+                  <span className={selected.includes(s.id) ? 'text-blue-300 font-medium' : 'text-[#9B9B9B]'}>{s.label}</span>
                 </motion.button>
               ))}
             </div>
           </GlassCard>
 
           {/* Side-by-Side Comparison */}
-          <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-8 lg:mb-10">
             <GlassCard>
-              <h3 className="text-sm font-semibold mb-4 text-center">📍 Baseline State (Now)</h3>
+              <h3 className="dash-section-title mb-6 justify-center">📍 Baseline State (Now)</h3>
               <div className="flex justify-around">
                 <ScoreRing score={simulate.baseline.health}  color="#10b981" label="Health"  size={90} />
                 <ScoreRing score={simulate.baseline.finance} color="#f59e0b" label="Finance" size={90} />
                 <ScoreRing score={simulate.baseline.career}  color="#3b82f6" label="Career"  size={90} />
               </div>
-              <div className="flex justify-center mt-4">
+              <div className="flex justify-center mt-6">
                 <ScoreRing score={simulate.baseline.burnout} color={simulate.baseline.burnout > 60 ? '#ef4444' : '#10b981'} label="Burnout Risk" size={80} />
               </div>
             </GlassCard>
 
             <GlassCard className={selected.length > 0 ? 'glow-blue' : ''}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-semibold flex-1 text-center">🔮 Projected Future ({months} Months)</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="dash-section-title mb-0 flex-1 justify-center">🔮 Projected Future ({months} Months)</h3>
                 {selected.length > 0 && (
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-shrink-0">
                     {simulate.stabilityTrend && (
                       <span className={`text-[9px] px-2 py-0.5 rounded-full whitespace-nowrap capitalize ${
                         simulate.stabilityTrend === 'improving' ? 'bg-[rgba(46,158,107,0.1)] text-[#2E9E6B]' :
@@ -180,7 +180,7 @@ export default function Simulator() {
                 )}
               </div>
               {selected.length === 0 ? (
-                <div className="text-center py-8 text-[#9B9B9B] text-sm h-32 flex items-center justify-center">Select scenarios above to simulate</div>
+                <div className="text-center py-10 text-[#9B9B9B] text-sm h-32 flex items-center justify-center">Select scenarios above to simulate</div>
               ) : (
                 <>
                   <div className="flex justify-around">
@@ -188,11 +188,11 @@ export default function Simulator() {
                     <ScoreRing score={simulate.simulated.finance} color="#f59e0b" label="Finance" size={90} />
                     <ScoreRing score={simulate.simulated.career}  color="#3b82f6" label="Career"  size={90} />
                   </div>
-                  <div className="flex justify-center mt-4">
+                  <div className="flex justify-center mt-6">
                     <ScoreRing score={simulate.simulated.burnout} color={simulate.simulated.burnout > 60 ? '#ef4444' : '#10b981'} label="Burnout Risk" size={80} />
                   </div>
                   {/* Delta summary row */}
-                  <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-[rgba(255,255,255,0.055)]">
+                  <div className="grid grid-cols-4 gap-2 mt-6 pt-5 border-t border-[rgba(255,255,255,0.055)]">
                     {[
                       { label: 'Health',  delta: simulate.deltas.health,  color: '#10b981' },
                       { label: 'Finance', delta: simulate.deltas.finance, color: '#f59e0b' },
@@ -204,7 +204,7 @@ export default function Simulator() {
                       return (
                         <div key={item.label} className="text-center">
                           <p className={`text-xs font-bold ${positive ? 'text-[#2E9E6B]' : item.delta < 0 ? 'text-[#E03E3E]' : 'text-[#9B9B9B]'}`}>{sign}{item.delta}</p>
-                          <p className="text-[9px] text-slate-600">{item.label}</p>
+                          <p className="text-[9px] text-[#52525b] font-medium">{item.label}</p>
                         </div>
                       );
                     })}
@@ -216,11 +216,11 @@ export default function Simulator() {
 
           {/* AI Analysis, Timeline, Cascades */}
           {selected.length > 0 && (
-            <div className="space-y-6 mb-8">
-              <div className="grid lg:grid-cols-3 gap-6">
+            <div className="space-y-8 mb-10">
+              <div className="grid lg:grid-cols-3 gap-8 lg:gap-10">
                 <div className="lg:col-span-2">
                   <GlassCard className="h-full">
-                    <h3 className="text-sm font-semibold mb-4">Projected Trajectory</h3>
+                    <h3 className="dash-section-title mb-6">Projected Trajectory</h3>
                     <div className="h-48">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={simulate.timeline}>
