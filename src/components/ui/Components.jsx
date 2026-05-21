@@ -107,10 +107,17 @@ export function InsightCard({ insight, index = 0 }) {
 
 export function PageHeader({ title, subtitle, icon }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mb-16 lg:mb-20">
-      <h1 className="text-[34px] md:text-[42px] font-bold gradient-text tracking-[-0.03em] leading-none">{title}</h1>
-      {subtitle && <p className="text-[#71717a] text-[15px] mt-5 leading-relaxed max-w-2xl">{subtitle}</p>}
-    </motion.div>
+    <div className="relative mb-10 lg:mb-12">
+      <div className="absolute -inset-8 pointer-events-none bg-gradient-to-br from-violet-600/20 via-cyan-500/10 to-transparent rounded-3xl blur-3xl" />
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="relative z-10">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
+          <span style={{ background: 'linear-gradient(135deg,#e2d9f3 0%,#c084fc 50%,#67e8f9 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            {title}
+          </span>
+        </h1>
+        {subtitle && <p className="text-[#9B9B9B] text-sm mt-1 max-w-2xl">{subtitle}</p>}
+      </motion.div>
+    </div>
   );
 }
 
