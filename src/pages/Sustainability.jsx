@@ -60,14 +60,24 @@ export default function Sustainability() {
   };
 
   return (
-    <div className="page-container min-h-screen">
+    <div className="page-container min-h-screen space-y-8 lg:space-y-10">
       <PageHeader title="Sustainability Tracking" subtitle="Monitor your carbon footprint and log eco-friendly actions." icon="🌿" />
-      <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      <div className="flex space-x-3 mb-6">
+  {tabs.map(t => (
+    <button
+      key={t.id}
+      className={`px-4 py-2 rounded-lg transition-all ${tab===t.id ? 'bg-gradient-to-r from-violet-600/80 to-emerald-500/80 text-white font-medium' : 'bg-[#252525]/80 text-[#9B9B9B] hover:bg-[#2a22a]/80'}`}
+      onClick={() => setTab(t.id)}
+    >
+      <span className="mr-1">{t.icon}</span>{t.label}
+    </button>
+  ))}
+</div>
 
       {tab === 'dashboard' && (
         <div className="space-y-10 lg:space-y-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <GlassCard className="flex flex-col items-center justify-center col-span-2 md:col-span-1" glow={footprintScore > 50 ? 'glow-emerald' : 'glow-rose'}>
+            <GlassCard className="flex flex-col items-center justify-center col-span-2 md:col-span-1 p-6" glow={footprintScore > 50 ? 'glow-emerald' : 'glow-rose'}>
               <h3 className="text-xs text-[#9B9B9B] mb-3 font-medium">Monthly Footprint</h3>
               <div className="relative flex items-center justify-center">
                 <ScoreRing score={footprintScore} color={footprintScore > 50 ? '#10b981' : '#f43f5e'} size={110} strokeWidth={8} label="" />
@@ -87,7 +97,7 @@ export default function Sustainability() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
-            <GlassCard>
+            <GlassCard className="p-6">
               <h3 className="text-sm font-semibold mb-4">Carbon Footprint Breakdown</h3>
               <div className="h-64 flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%">
@@ -114,7 +124,7 @@ export default function Sustainability() {
               </div>
             </GlassCard>
 
-            <GlassCard>
+            <GlassCard className="p-6">
               <h3 className="text-sm font-semibold mb-4">30-Day Carbon Trend</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -155,7 +165,7 @@ export default function Sustainability() {
                 <button 
                   key={act.label} 
                   onClick={() => handleLogAction(act.label, act.carbon)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border border-white/5 transition-all text-left ${act.bg}`}
+                  className={`w-full flex items-center justify-between p-3 rounded-full transition-all hover:shadow-lg text-left ${act.bg}`}
                 >
                   <span className="text-sm font-medium text-slate-200">{act.label}</span>
                   <span className={`text-xs font-bold px-2 py-1 rounded-md bg-white/5 ${act.text}`}>-{act.carbon} kg CO₂</span>
@@ -191,7 +201,7 @@ export default function Sustainability() {
 
       {tab === 'recommendations' && (
         <div className="space-y-8">
-          <GlassCard glow="glow-emerald">
+          <GlassCard glow="glow-emerald" className="p-6">
             <h3 className="text-sm font-semibold mb-4">ESG & Green Investment Recommendations</h3>
             <p className="text-xs text-[#9B9B9B] leading-relaxed mb-6">
               Based on your finance data, your Digital Twin suggests allocating a portion of your portfolio to sustainable, ESG-focused (Environmental, Social, and Governance) mutual funds.
@@ -214,7 +224,7 @@ export default function Sustainability() {
             </div>
           </GlassCard>
 
-          <GlassCard>
+          <GlassCard className="p-6">
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">🤖 AI Analysis: Footprint Reduction</h3>
             <div className="p-4 rounded-xl bg-[#252525] border border-white/5 text-sm text-[#EBEBEB] leading-relaxed space-y-4">
               <p>
