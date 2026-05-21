@@ -5,7 +5,7 @@ import { useData } from '../context/DataContext';
 import { generateTrendData, generateInsights } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast } from '../components/ui/Components';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
-import { BookOpen, Code2, Puzzle, Rocket, Target, GraduationCap } from 'lucide-react';
+import { BookOpen, Code2, Puzzle, Rocket, Target, GraduationCap, LayoutDashboard, ClipboardList, Sparkles, Map } from 'lucide-react';
 
 function CareerMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
   return (
@@ -45,10 +45,10 @@ export default function Career() {
   }, [currentState]);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'log', label: 'Log Data', icon: '✏️' },
-    { id: 'recommendations', label: 'AI Recommendations', icon: '🤖' },
-    { id: 'roadmap', label: 'Learning Path', icon: '🗺️' },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'log', label: 'Log Data', icon: ClipboardList },
+    { id: 'recommendations', label: 'AI Recommendations', icon: Sparkles },
+    { id: 'roadmap', label: 'Learning Path', icon: Map },
   ];
 
   const skillRadar = [
@@ -92,12 +92,45 @@ export default function Career() {
   return (
     <div className="page-container min-h-screen pb-20 bg-mesh">
       <PageHeader title="Career Intelligence" subtitle="Track skills, map out learning paths, and optimize your career trajectory." />
-      <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      
+      {/* Custom Premium Tab Buttons */}
+      <div className="flex flex-wrap justify-start gap-4 mt-8 mb-16 relative z-10">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`relative flex items-center gap-3 px-7 py-3.5 rounded-2xl text-[13.5px] font-medium tracking-wide transition-all duration-300 select-none outline-none cursor-pointer group border ${
+                isActive
+                  ? 'text-white border-transparent'
+                  : 'bg-[#090714]/80 border-[#8b5cf6]/20 backdrop-blur-3xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] text-[#9ca3af] hover:text-[#f3f4f6] hover:bg-white/[0.04] hover:border-[#8b5cf6]/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.2)]'
+              }`}
+            >
+              {/* Active Glowing Background */}
+              {isActive && (
+                <motion.div
+                  layoutId="career-active-tab-glow"
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#7c3aed] to-[#a855f7] shadow-[0_0_24px_rgba(139,92,246,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)]"
+                  transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                />
+              )}
+              
+              {/* Content */}
+              <span className="relative z-10 flex items-center justify-center">
+                <Icon size={16} className={`transition-all duration-300 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-[#8e8e93] group-hover:text-[#c084fc] group-hover:drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]'}`} />
+              </span>
+              <span className="relative z-10">{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {tab === 'overview' && (
-        <div className="space-y-14 lg:space-y-20">
+        <div className="space-y-16 lg:space-y-20">
           {/* Score + Metrics Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-7">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
             <div className="glass-card p-6 flex flex-col items-center justify-between text-center min-h-[170px]" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
               <ScoreRing score={score} color="auto" label="" size={80} strokeWidth={6} />
               <span className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">Career Score</span>
@@ -110,7 +143,7 @@ export default function Career() {
           </div>
 
           {/* Charts Row */}
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
             <GlassCard className="p-8">
               <h3 className="dash-section-title mb-10">Skill Radar</h3>
               <div className="h-80 flex items-center justify-center">
@@ -150,7 +183,7 @@ export default function Career() {
           </div>
 
           {/* Bottom Analytics Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
             {/* Card 1: Learning Progress */}
             <GlassCard className="flex flex-col justify-between p-8 h-full">
               <div>
@@ -254,7 +287,7 @@ export default function Career() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-10">
+        <div className="space-y-8 lg:space-y-10">
           {recommendations.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <GlassCard>
@@ -278,7 +311,7 @@ export default function Career() {
       )}
 
       {tab === 'roadmap' && (
-        <div className="space-y-10">
+        <div className="space-y-10 lg:space-y-12">
           {roadmap.map((phase, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
               <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>
