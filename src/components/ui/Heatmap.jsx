@@ -6,32 +6,34 @@ export default function LifeStressHeatmap({ trendData }) {
 
   // We expect trendData to have 30 days. Let's slice the last 30 if there are more.
   const days = trendData.slice(-30);
+  if (days.length === 0) return null;
 
   const layers = [
-    { id: 'stress', label: 'Stress Level', icon: '😰', color: 'red' },
-    { id: 'sleep', label: 'Sleep Quality', icon: '😴', color: 'purple' },
+    { id: 'stress', label: 'Stress Level', icon: '😰', color: 'rose' },
+    { id: 'sleep', label: 'Sleep Quality', icon: '😴', color: 'violet' },
     { id: 'spending', label: 'Spending', icon: '💸', color: 'amber' },
-    { id: 'productivity', label: 'Productivity', icon: '⚡', color: 'blue' },
+    { id: 'productivity', label: 'Productivity', icon: '⚡', color: 'cyan' },
   ];
 
-  // Helper to get color intensity based on value relative to min/max
   const getColorIntensity = (value, min, max, colorPrefix) => {
-    if (value === undefined || value === null) return 'bg-white/5';
+    if (value === undefined || value === null) return 'bg-white/[0.03] border-white/[0.05]';
     const ratio = Math.max(0, Math.min(1, (value - min) / (max - min || 1)));
+    const bucket = Math.ceil(ratio * 4); 
     
-    // 5 buckets of intensity
-    const bucket = Math.ceil(ratio * 4); // 0 to 4
-    
-    if (bucket === 0) return `bg-${colorPrefix}-500/10 border-${colorPrefix}-500/20`;
-    if (bucket === 1) return `bg-${colorPrefix}-500/30 border-${colorPrefix}-500/40`;
-    if (bucket === 2) return `bg-${colorPrefix}-500/50 border-${colorPrefix}-500/60`;
-    if (bucket === 3) return `bg-${colorPrefix}-500/70 border-${colorPrefix}-500/80`;
-    return `bg-${colorPrefix}-500 border-${colorPrefix}-400`;
+    const colorMaps = {
+      rose: ['bg-rose-500/10 border-rose-500/20', 'bg-rose-500/30 border-rose-500/40', 'bg-rose-500/50 border-rose-500/60', 'bg-rose-500/80 border-rose-500', 'bg-rose-400 border-rose-300'],
+      violet: ['bg-violet-500/10 border-violet-500/20', 'bg-violet-500/30 border-violet-500/40', 'bg-violet-500/50 border-violet-500/60', 'bg-violet-500/80 border-violet-500', 'bg-violet-400 border-violet-300'],
+      amber: ['bg-amber-500/10 border-amber-500/20', 'bg-amber-500/30 border-amber-500/40', 'bg-amber-500/50 border-amber-500/60', 'bg-amber-500/80 border-amber-500', 'bg-amber-400 border-amber-300'],
+      cyan: ['bg-cyan-500/10 border-cyan-500/20', 'bg-cyan-500/30 border-cyan-500/40', 'bg-cyan-500/50 border-cyan-500/60', 'bg-cyan-500/80 border-cyan-500', 'bg-cyan-400 border-cyan-300'],
+    };
+
+    const palette = colorMaps[colorPrefix] || colorMaps.violet;
+    return palette[bucket === 0 ? 0 : bucket];
   };
 
   const getStats = (layerId) => {
     const values = days.map(d => d[layerId]).filter(v => v !== undefined);
-    if (!values.length) return { min: 0, max: 1 };
+    if (!values.length) return { min: 0, max: 1, avg: 0 };
     return {
       min: Math.min(...values),
       max: Math.max(...values),
@@ -42,15 +44,13 @@ export default function LifeStressHeatmap({ trendData }) {
   const stats = getStats(activeLayer);
   const activeLayerConfig = layers.find(l => l.id === activeLayer);
 
-  // Generate the correlation insight text
   const generateCorrelationText = () => {
-    // Simple mock behavioral correlation logic
     if (activeLayer === 'stress') {
       const highStressDays = days.filter(d => d.stress > stats.avg);
       const avgSpendHighStress = highStressDays.length ? highStressDays.reduce((a, b) => a + b.spending, 0) / highStressDays.length : 0;
       const allAvgSpend = getStats('spending').avg;
       if (avgSpendHighStress > allAvgSpend * 1.1) {
-        return `On high-stress days, your spending is ₹${Math.round(avgSpendHighStress)} — ${((avgSpendHighStress/allAvgSpend)).toFixed(1)}x your normal average.`;
+        return `On high-stress days, your spending is ₹${Math.round(avgSpendHighStress)} — ${((avgSpendHighStress/allAvgSpend)).toFixed(1)}x normal.`;
       }
       return `Stress seems to negatively impact your sleep quality by ~15%.`;
     }
@@ -68,78 +68,120 @@ export default function LifeStressHeatmap({ trendData }) {
     return '';
   };
 
+  const firstDay = new Date(days[0].date);
+  const startOffset = firstDay.getDay(); 
+  const emptySlots = Array(startOffset).fill(null);
+  const allCells = [...emptySlots, ...days];
+
   return (
-    <div className="glass-card p-5">
+    <div className="glass-card p-6 border border-white/[0.06] bg-white/[0.02]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <span className="text-lg">🗺️</span> Life Stress Heatmap
+          <h3 className="text-base font-semibold flex items-center gap-2 text-white">
+            <span className="text-xl">🗺️</span> Behavioral Heatmap
           </h3>
-          <p className="text-[10px] text-slate-400 mt-1">Visualize behavioral correlations over 30 days</p>
+          <p className="text-[11px] text-[#9B9B9B] mt-1">Visualize patterns and correlations over the last 30 days</p>
         </div>
         
         {/* Layer Toggles */}
-        <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 overflow-x-auto max-w-full">
-          {layers.map(layer => (
-            <button
-              key={layer.id}
-              onClick={() => setActiveLayer(layer.id)}
-              className={`flex items-center gap-1.5 text-[10px] px-3 py-1.5 rounded-md transition-all whitespace-nowrap ${
-                activeLayer === layer.id 
-                  ? `bg-${layer.color}-500/20 text-${layer.color}-300 font-bold border border-${layer.color}-500/30` 
-                  : 'text-slate-400 hover:text-slate-200 border border-transparent'
-              }`}
-            >
-              <span>{layer.icon}</span> {layer.label}
-            </button>
-          ))}
+        <div className="flex bg-[#0a0a10]/80 rounded-lg p-1 border border-white/[0.06] overflow-x-auto max-w-full shadow-inner">
+          {layers.map(layer => {
+            const isActive = activeLayer === layer.id;
+            return (
+              <button
+                key={layer.id}
+                onClick={() => setActiveLayer(layer.id)}
+                className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md transition-all duration-300 whitespace-nowrap ${
+                  isActive 
+                    ? `bg-${layer.color}-500/20 text-${layer.color}-300 font-semibold border border-${layer.color}-500/30 shadow-[0_0_12px_rgba(var(--tw-colors-${layer.color}-500),0.2)]` 
+                    : 'text-[#9B9B9B] hover:text-[#EBEBEB] border border-transparent hover:bg-white/[0.04]'
+                }`}
+              >
+                <span>{layer.icon}</span> {layer.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-7 md:grid-cols-10 gap-2 mb-4">
-        {days.map((day, i) => {
-          const val = day[activeLayer];
-          const colorClass = getColorIntensity(val, stats.min, stats.max, activeLayerConfig.color);
-          
-          return (
-            <motion.div
-              key={day.date}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.01 }}
-              className={`aspect-square rounded-md border flex items-center justify-center relative group cursor-pointer transition-colors ${colorClass}`}
-            >
-              {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] p-2 rounded-lg bg-slate-900 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none shadow-xl">
-                <p className="text-[9px] text-slate-400 mb-1">{new Date(day.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric'})}</p>
-                <div className="space-y-1">
-                  <p className={`text-[10px] font-bold ${activeLayer === 'stress' ? 'text-red-400' : 'text-slate-300'}`}>Stress: {day.stress?.toFixed(1)}/10</p>
-                  <p className={`text-[10px] font-bold ${activeLayer === 'sleep' ? 'text-purple-400' : 'text-slate-300'}`}>Sleep: {day.sleep?.toFixed(1)}h</p>
-                  <p className={`text-[10px] font-bold ${activeLayer === 'spending' ? 'text-amber-400' : 'text-slate-300'}`}>Spent: ₹{Math.round(day.spending || 0)}</p>
-                  <p className={`text-[10px] font-bold ${activeLayer === 'productivity' ? 'text-blue-400' : 'text-slate-300'}`}>Productivity: {day.productivity?.toFixed(1)}/10</p>
+      <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin">
+        {/* Y-Axis Labels */}
+        <div className="flex flex-col justify-between text-[9px] text-[#52525b] font-medium py-[3px]">
+          <span>Mon</span>
+          <span>Wed</span>
+          <span>Fri</span>
+        </div>
+
+        {/* Grid */}
+        <div 
+          className="grid gap-1.5" 
+          style={{ 
+            gridTemplateRows: 'repeat(7, minmax(0, 1fr))', 
+            gridAutoFlow: 'column' 
+          }}
+        >
+          {allCells.map((day, i) => {
+            if (!day) {
+              return <div key={`empty-${i}`} className="w-4 h-4 rounded-[4px] bg-transparent" />;
+            }
+            
+            const val = day[activeLayer];
+            const colorClass = getColorIntensity(val, stats.min, stats.max, activeLayerConfig.color);
+            
+            return (
+              <motion.div
+                key={day.date}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.005 }}
+                className={`w-4 h-4 rounded-[4px] border flex items-center justify-center relative group cursor-pointer transition-colors duration-200 ${colorClass}`}
+              >
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-max min-w-[140px] p-3 rounded-xl bg-[#111116]/95 border border-white/[0.08] opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 pointer-events-none shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-md">
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#111116]/95 border-b border-r border-white/[0.08] rotate-45"></div>
+                  <p className="text-[10px] text-[#9B9B9B] font-medium mb-2 border-b border-white/[0.06] pb-1.5">
+                    {new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric'})}
+                  </p>
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center gap-3">
+                      <span className="text-[10px] text-[#9B9B9B]">Stress</span>
+                      <span className={`text-[10px] font-bold ${activeLayer === 'stress' ? 'text-rose-400' : 'text-white'}`}>{day.stress?.toFixed(1)}/10</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-3">
+                      <span className="text-[10px] text-[#9B9B9B]">Sleep</span>
+                      <span className={`text-[10px] font-bold ${activeLayer === 'sleep' ? 'text-violet-400' : 'text-white'}`}>{day.sleep?.toFixed(1)}h</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-3">
+                      <span className="text-[10px] text-[#9B9B9B]">Spent</span>
+                      <span className={`text-[10px] font-bold ${activeLayer === 'spending' ? 'text-amber-400' : 'text-white'}`}>₹{Math.round(day.spending || 0)}</span>
+                    </div>
+                    <div className="flex justify-between items-center gap-3">
+                      <span className="text-[10px] text-[#9B9B9B]">Prod.</span>
+                      <span className={`text-[10px] font-bold ${activeLayer === 'productivity' ? 'text-cyan-400' : 'text-white'}`}>{day.productivity?.toFixed(1)}/10</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
       
       {/* Legend & Insight */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-6 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-slate-500">Less</span>
+          <span className="text-[10px] text-[#52525b] font-medium uppercase tracking-wider">Less</span>
           <div className="flex gap-1">
             {[0, 1, 2, 3, 4].map(i => (
-              <div key={i} className={`w-3 h-3 rounded-sm border ${getColorIntensity(stats.min + (stats.max - stats.min) * (i / 4), stats.min, stats.max, activeLayerConfig.color)}`} />
+              <div key={i} className={`w-3.5 h-3.5 rounded-[3px] border ${getColorIntensity(stats.min + (stats.max - stats.min) * (i / 4), stats.min, stats.max, activeLayerConfig.color)}`} />
             ))}
           </div>
-          <span className="text-[10px] text-slate-500">More</span>
+          <span className="text-[10px] text-[#52525b] font-medium uppercase tracking-wider">More</span>
         </div>
         
         <div className="flex items-start gap-2 flex-1 md:justify-end text-right">
           <span className="text-sm">💡</span>
-          <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-sm text-left md:text-right">
+          <p className="text-[11px] text-[#EBEBEB] font-medium leading-relaxed max-w-sm text-left md:text-right">
             {generateCorrelationText()}
           </p>
         </div>
