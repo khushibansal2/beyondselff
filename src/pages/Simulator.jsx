@@ -98,7 +98,15 @@ export default function Simulator() {
 
   return (
     <div className="page-container min-h-screen">
-      <PageHeader title="What-If Future Simulator" subtitle="Explore how different life choices affect your estimated future trajectory." icon="🔮" />
+      <div className="relative mb-16 lg:mb-20">
+  <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#7c3aed]/30 to-[#06b6d4]/20 rounded-3xl blur-3xl animate-glow-breathe"></div>
+  <PageHeader
+    title="What-If Future Simulator"
+    subtitle="Explore how different life choices affect your estimated future trajectory."
+    icon="🔮"
+    className="relative z-10 gradient-text text-[44px] md:text-[52px] font-bold leading-none"
+  />
+</div>
 
       {/* Guard: require baseline data */}
       {!computed?.hasData ? (
@@ -110,42 +118,58 @@ export default function Simulator() {
       ) : (
         <>
           {/* Scenario Selection */}
-          <GlassCard className="mb-8 lg:mb-10">
-            <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-6">
-              <div className="flex items-center gap-3">
-                <h3 className="text-[15px] font-semibold text-[#f0f0f3]">Select Scenarios to Simulate</h3>
-                {selected.length > 0 && (
-                  <button onClick={resetSimulator} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-[#EBEBEB] px-2.5 py-1.5 rounded transition-colors">
-                    Reset
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-[#9B9B9B]">Projection Timeline:</span>
-                <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-                  {[1, 3, 6, 12].map(m => (
-                    <button key={m} onClick={() => setMonths(m)}
-                      className={`text-xs px-3.5 py-1.5 rounded-md transition-all cursor-pointer ${months === m ? 'bg-blue-500 text-white' : 'text-[#9B9B9B] hover:text-slate-200'}`}>
-                      {m}m
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-              {scenarios.map(s => (
-                <motion.button key={s.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+          <GlassCard className="mb-8 lg:mb-10 p-6" >
+            {scenarios.map(s => {
+              const isActive = selected.includes(s.id);
+              // Simple impact preview mapping (could be expanded)
+              const impactMap = {
+                sleep1: '+1.5h Sleep',
+                workout2: '+2 Workouts',
+                cutExp: '-₹2000 Expenses',
+                sidehustle: '+₹5k Income',
+                study2: '+2h Study',
+                dsa3: '+3 DSA Problems'
+              };
+              return (
+                <motion.button
+                  key={s.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => toggleScenario(s.id)}
-                  className={`p-4 rounded-xl border text-left text-xs transition-all cursor-pointer ${selected.includes(s.id) ? 'border-blue-500/40 bg-blue-500/10' : 'border-[rgba(255,255,255,0.055)] bg-[#252525] hover:bg-[#2b2b2b]'}`}>
-                  <span className="text-xl block mb-2">{s.icon}</span>
-                  <span className={selected.includes(s.id) ? 'text-blue-300 font-medium' : 'text-[#9B9B9B]'}>{s.label}</span>
+                  className={`glass-card p-6 w-full md:w-[calc(33.333%-12px)] lg:w-[calc(16.666%-12px)] border ${isActive ? 'border-indigo-500/60 bg-indigo-500/10 glow-indigo' : 'border-white/08 bg-[#252525] hover:bg-[#2b2b2b]'} transition-all duration-300`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">{s.icon}</span>
+                    <h4 className={`text-sm font-medium ${isActive ? 'text-white' : 'text-[#9B9B9B]'}`}>{s.label}</h4>
+                  </div>
+                  <p className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-[#52525b]'}`}>{impactMap[s.id] || ''}</p>
                 </motion.button>
-              ))}
-            </div>
+              );
+            })}
           </GlassCard>
 
-          {/* Side-by-Side Comparison */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-8 lg:mb-10">
+          <div className="flex items-center gap-4 mt-4 mb-12">
+            <span className="text-sm text-[#9B9B9B]">Projection Timeline:</span>
+            <div className="relative inline-flex rounded-xl bg-[#090714]/80 p-1">
+              {[1, 3, 6, 12].map(m => (
+                <button
+                  key={m}
+                  onClick={() => setMonths(m)}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${months === m ? 'bg-indigo-600 text-white shadow-lg' : 'text-[#9B9B9B] hover:text-[#d1d5db]'}`}
+                >
+                  {m}m
+                </button>
+              ))}
+              <motion.div
+                layoutId="timeline-glow"
+                className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#06b6d4] opacity-30"
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                style={{ zIndex: -1, pointerEvents: 'none' }}
+              />
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-8 lg:gap-10">
             <GlassCard>
               <h3 className="dash-section-title mb-6 justify-center">📍 Baseline State (Now)</h3>
               <div className="flex justify-around">
@@ -191,7 +215,6 @@ export default function Simulator() {
                   <div className="flex justify-center mt-6">
                     <ScoreRing score={simulate.simulated.burnout} color={simulate.simulated.burnout > 60 ? '#ef4444' : '#10b981'} label="Burnout Risk" size={80} />
                   </div>
-                  {/* Delta summary row */}
                   <div className="grid grid-cols-4 gap-2 mt-6 pt-5 border-t border-[rgba(255,255,255,0.055)]">
                     {[
                       { label: 'Health',  delta: simulate.deltas.health,  color: '#10b981' },
@@ -214,7 +237,6 @@ export default function Simulator() {
             </GlassCard>
           </div>
 
-          {/* AI Analysis, Timeline, Cascades */}
           {selected.length > 0 && (
             <div className="space-y-8 mb-10">
               <div className="grid lg:grid-cols-3 gap-8 lg:gap-10">
@@ -273,7 +295,6 @@ export default function Simulator() {
                 </div>
               </div>
 
-              {/* Dominant Driver + Recovery Momentum */}
               {(simulate.dominantDriver || simulate.recoveryMomentum?.active) && (
                 <div className="grid md:grid-cols-2 gap-4">
                   {simulate.dominantDriver && (
@@ -305,7 +326,6 @@ export default function Simulator() {
                 </div>
               )}
 
-              {/* Active Cross-Domain Cascades */}
               {simulate.cascades?.length > 0 && (
                 <GlassCard>
                   <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">🔗 Active Cross-Domain Cascades</h3>
@@ -326,7 +346,6 @@ export default function Simulator() {
                 </GlassCard>
               )}
 
-              {/* Export disclaimer for long-term projections */}
               {simulate.confidence < 70 && (
                 <p className="text-[10px] text-slate-600 text-center italic px-4">
                   📋 {simulate.exportMeta?.disclaimer}
