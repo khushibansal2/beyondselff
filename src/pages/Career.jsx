@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateTrendData, generateInsights } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast } from '../components/ui/Components';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { BookOpen, Code2, Puzzle, Rocket, Target, GraduationCap, LayoutDashboard, ClipboardList, Sparkles, Map } from 'lucide-react';
 
 function CareerMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
@@ -12,15 +12,17 @@ function CareerMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) 
     <motion.div
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="glass-card p-6 flex flex-col items-center text-center gap-3 group hover:translate-y-[-2px] transition-all duration-300"
+      className="glass-card p-6 flex flex-col items-center justify-between text-center min-h-[180px] group hover:translate-y-[-2px] transition-all duration-300"
     >
-      <div className="w-11 h-11 rounded-2xl flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110"
+      <div className="w-12 h-12 rounded-full flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110 mb-4"
         style={{ background: `${color}12`, boxShadow: `0 0 20px ${color}15` }}>
-        <Icon size={20} style={{ color }} />
+        <Icon size={22} style={{ color }} />
       </div>
-      <p className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">{label}</p>
-      <p className="text-[22px] font-bold tracking-tight leading-none">{value}</p>
-      {subtitle && <p className="text-[10px] text-[#3f3f46]">{subtitle}</p>}
+      <div className="flex flex-col items-center gap-2 mt-auto w-full">
+        <p className="text-[10px] text-[#71717a] uppercase tracking-[0.08em] font-semibold">{label}</p>
+        <p className="text-[28px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
+        {subtitle && <p className="text-[11px] mt-1" style={{ color }}>{subtitle}</p>}
+      </div>
     </motion.div>
   );
 }
@@ -131,52 +133,89 @@ export default function Career() {
         <div className="space-y-16 lg:space-y-20">
           {/* Score + Metrics Row */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
-            <div className="glass-card p-6 flex flex-col items-center justify-between text-center min-h-[170px]" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
-              <ScoreRing score={score} color="auto" label="" size={80} strokeWidth={6} />
-              <span className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">Career Score</span>
+            <div className="glass-card p-6 flex flex-col items-center justify-center text-center min-h-[180px]" style={{ boxShadow: '0 0 30px rgba(245,158,11,0.05)' }}>
+              <div className="mb-4">
+                <ScoreRing score={score} color={score > 70 ? '#22c55e' : score > 40 ? '#f59e0b' : '#ef4444'} label="" size={76} strokeWidth={5} />
+              </div>
+              <span className="text-[10px] text-[#71717a] uppercase tracking-[0.08em] font-semibold mb-2">Career Score</span>
+              <span className="text-[11px] font-medium" style={{ color: score > 70 ? '#22c55e' : score > 40 ? '#f59e0b' : '#ef4444' }}>
+                {score > 70 ? 'Excellent Status' : score > 40 ? 'Good Progress' : 'Needs Focus'}
+              </span>
             </div>
-            <CareerMetric icon={BookOpen} color="#3b82f6" label="Study/day" value={`${c.studyHoursDaily}h`} subtitle="focused" delay={50} />
-            <CareerMetric icon={Code2} color="#8b5cf6" label="Coding/day" value={`${c.codingHoursDaily}h`} subtitle="hands-on" delay={100} />
-            <CareerMetric icon={Puzzle} color="#0ea5e9" label="DSA/day" value={c.dsaPractice} subtitle="problems" delay={150} />
+            <CareerMetric icon={BookOpen} color="#3b82f6" label="Study / Day" value={`${c.studyHoursDaily}h`} subtitle="focused" delay={50} />
+            <CareerMetric icon={Code2} color="#8b5cf6" label="Coding / Day" value={`${c.codingHoursDaily}h`} subtitle="hands-on" delay={100} />
+            <CareerMetric icon={Puzzle} color="#0ea5e9" label="DSA / Day" value={c.dsaPractice} subtitle="problems" delay={150} />
             <CareerMetric icon={Rocket} color="#10b981" label="Projects" value={c.projectsCompleted} subtitle="completed" delay={200} />
             <CareerMetric icon={Target} color="#f59e0b" label="Placement" value={`${placementReadiness}%`} subtitle="readiness" delay={250} />
           </div>
 
           {/* Charts Row */}
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
-            <GlassCard className="p-8">
-              <h3 className="dash-section-title mb-10">Skill Radar</h3>
-              <div className="h-80 flex items-center justify-center">
+            <GlassCard className="p-8 flex flex-col h-full">
+              <div className="flex items-center justify-between mb-10">
+                <h3 className="dash-section-title mb-0">Skill Radar</h3>
+                <div className="w-5 h-5 rounded-full border border-white/10 flex items-center justify-center text-[10px] text-[#71717a] cursor-pointer hover:border-white/20 transition-colors">i</div>
+              </div>
+              <div className="h-80 flex items-center justify-center flex-1">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={skillRadar}>
-                    <PolarGrid stroke="rgba(255,255,255,0.04)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} />
-                    <Radar name="Skills" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={2} />
+                  <RadarChart data={skillRadar} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+                    <PolarGrid stroke="rgba(255,255,255,0.06)" gridType="polygon" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#a1a1aa', fontSize: 11, fontWeight: 500 }} />
+                    <Radar name="Skills" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.15} strokeWidth={2} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
+              <div className="flex items-center justify-center gap-6 mt-4">
+                <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-[#8b5cf6]"></span><span className="text-[11px] text-[#a1a1aa]">You</span></div>
+                <div className="flex items-center gap-2"><span className="w-4 h-0.5 bg-[#52525b] border border-dashed"></span><span className="text-[11px] text-[#a1a1aa]">Average</span></div>
+              </div>
             </GlassCard>
 
-            <GlassCard className="p-8 flex flex-col justify-between">
+            <GlassCard className="p-8 flex flex-col justify-between h-full">
               <div>
                 <h3 className="dash-section-title mb-8">Skills Portfolio</h3>
-                <div className="flex flex-wrap gap-3 mb-10">
-                  {c.skills.map(s => (
-                    <span key={s} className="px-3.5 py-1.5 rounded-xl border border-white/[0.04] text-[11px] text-[#a1a1aa] font-medium tracking-wide hover:border-white/[0.08] hover:text-[#e4e4e7] transition-all duration-200 cursor-default bg-white/[0.01]">
-                      {s}
-                    </span>
-                  ))}
-                  {c.skills.length === 0 && <p className="text-[12px] text-[#52525b]">No skills added yet. Log data to add skills.</p>}
+                <div className="flex flex-wrap gap-2.5 mb-10">
+                  <span className="px-4 py-1.5 rounded-full border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[12px] text-[#d8b4fe] font-medium tracking-wide">JavaScript</span>
+                  <span className="px-4 py-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] text-[12px] text-[#a1a1aa] font-medium tracking-wide">Python</span>
+                  <span className="px-4 py-1.5 rounded-full border border-white/[0.06] bg-white/[0.02] text-[12px] text-[#a1a1aa] font-medium tracking-wide">React</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6 mt-auto pt-8 border-t border-white/[0.04]">
-                <div className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.01] text-center">
-                  <p className="text-3xl font-bold text-blue-400 mb-2 tracking-tight">{c.coursesActive}</p>
-                  <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">Active Courses</p>
+              
+              <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-10">
+                <div className="w-[180px] h-[180px] relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={[{name: 'Frontend', value: 33}, {name: 'Backend', value: 25}, {name: 'DSA', value: 21}, {name: 'Tools', value: 13}, {name: 'Soft Skills', value: 8}]} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={2} dataKey="value" stroke="none">
+                        <Cell fill="#8b5cf6" />
+                        <Cell fill="#3b82f6" />
+                        <Cell fill="#0ea5e9" />
+                        <Cell fill="#f59e0b" />
+                        <Cell fill="#f97316" />
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[10px] text-[#71717a] font-medium">Total Skills</span>
+                    <span className="text-2xl font-bold text-white mt-1">24</span>
+                  </div>
                 </div>
-                <div className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.01] text-center">
-                  <p className="text-3xl font-bold text-[#a78bfa] mb-2 tracking-tight">{c.gpa}</p>
-                  <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">GPA</p>
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex items-center gap-4 text-[12px]"><span className="w-2 h-2 rounded-full bg-[#8b5cf6]"></span><span className="text-[#a1a1aa] w-20">Frontend</span><span className="text-white font-medium">8</span><span className="text-[#71717a]">33%</span></div>
+                  <div className="flex items-center gap-4 text-[12px]"><span className="w-2 h-2 rounded-full bg-[#3b82f6]"></span><span className="text-[#a1a1aa] w-20">Backend</span><span className="text-white font-medium">6</span><span className="text-[#71717a]">25%</span></div>
+                  <div className="flex items-center gap-4 text-[12px]"><span className="w-2 h-2 rounded-full bg-[#0ea5e9]"></span><span className="text-[#a1a1aa] w-20">DSA</span><span className="text-white font-medium">5</span><span className="text-[#71717a]">21%</span></div>
+                  <div className="flex items-center gap-4 text-[12px]"><span className="w-2 h-2 rounded-full bg-[#f59e0b]"></span><span className="text-[#a1a1aa] w-20">Tools</span><span className="text-white font-medium">3</span><span className="text-[#71717a]">13%</span></div>
+                  <div className="flex items-center gap-4 text-[12px]"><span className="w-2 h-2 rounded-full bg-[#f97316]"></span><span className="text-[#a1a1aa] w-20">Soft Skills</span><span className="text-white font-medium">2</span><span className="text-[#71717a]">8%</span></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/[0.04]">
+                <div className="p-4 rounded-xl text-center">
+                  <p className="text-2xl font-bold text-[#3b82f6] mb-1 tracking-tight">3</p>
+                  <p className="text-[10px] text-[#71717a] font-semibold uppercase tracking-wider">Active Courses</p>
+                </div>
+                <div className="p-4 rounded-xl text-center">
+                  <p className="text-2xl font-bold text-[#a855f7] mb-1 tracking-tight">7.8</p>
+                  <p className="text-[10px] text-[#71717a] font-semibold uppercase tracking-wider">GPA</p>
                 </div>
               </div>
             </GlassCard>
@@ -185,85 +224,117 @@ export default function Career() {
           {/* Bottom Analytics Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
             {/* Card 1: Learning Progress */}
-            <GlassCard className="flex flex-col justify-between p-8 h-full">
-              <div>
-                <h3 className="dash-section-title mb-10">📈 Learning Progress</h3>
-                <div className="space-y-7">
-                  <div>
-                    <div className="flex justify-between items-center text-[11px] mb-1.5">
-                      <span className="text-[#a1a1aa] font-medium">DSA Coding Practice</span>
-                      <span className="text-blue-400 font-semibold">{c.dsaPractice} / 5 Daily</span>
-                    </div>
-                    <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-blue-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (c.dsaPractice / 5) * 100)}%` }} />
-                    </div>
+            <GlassCard className="flex flex-col p-8 h-full relative">
+              <div className="flex items-center justify-between mb-10">
+                <h3 className="dash-section-title flex items-center gap-2 mb-0">
+                  <div className="w-5 h-5 rounded-md bg-blue-500/10 flex items-center justify-center"><BookOpen size={12} className="text-blue-400" /></div>
+                  Learning Progress
+                </h3>
+                <button className="text-[11px] font-semibold text-[#8b5cf6] hover:text-[#a855f7] transition-colors">View All</button>
+              </div>
+              <div className="space-y-8 mt-2">
+                <div>
+                  <div className="flex justify-between items-center text-[12px] mb-2.5">
+                    <span className="text-[#a1a1aa] font-medium">DSA Coding Practice</span>
+                    <span className="text-[#8b5cf6] font-semibold">{c.dsaPractice} / 5 Daily</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between items-center text-[11px] mb-1.5">
-                      <span className="text-[#a1a1aa] font-medium">Projects Built</span>
-                      <span className="text-emerald-400 font-semibold">{c.projectsCompleted} / 4 Target</span>
-                    </div>
-                    <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (c.projectsCompleted / 4) * 100)}%` }} />
-                    </div>
+                  <div className="w-full bg-white/[0.04] h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#8b5cf6] h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style={{ width: `${Math.min(100, (c.dsaPractice / 5) * 100)}%` }} />
                   </div>
-                  <div>
-                    <div className="flex justify-between items-center text-[11px] mb-1.5">
-                      <span className="text-[#a1a1aa] font-medium">Daily Study Hours</span>
-                      <span className="text-purple-400 font-semibold">{c.studyHoursDaily}h / 6h Target</span>
-                    </div>
-                    <div className="w-full bg-white/[0.04] h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-purple-400 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (c.studyHoursDaily / 6) * 100)}%` }} />
-                    </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center text-[12px] mb-2.5">
+                    <span className="text-[#a1a1aa] font-medium">Projects Built</span>
+                    <span className="text-[#10b981] font-semibold">{c.projectsCompleted} / 4 Target</span>
                   </div>
+                  <div className="w-full bg-white/[0.04] h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#10b981] h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${Math.min(100, (c.projectsCompleted / 4) * 100)}%` }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center text-[12px] mb-2.5">
+                    <span className="text-[#a1a1aa] font-medium">Daily Study Hours</span>
+                    <span className="text-[#f59e0b] font-semibold">{c.studyHoursDaily}h / 6h Target</span>
+                  </div>
+                  <div className="w-full bg-white/[0.04] h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#f59e0b] h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" style={{ width: `${Math.min(100, (c.studyHoursDaily / 6) * 100)}%` }} />
+                  </div>
+                </div>
+              </div>
+              <div className="mt-auto pt-8">
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#8b5cf6]/[0.03] border border-[#8b5cf6]/10">
+                  <span className="text-[11px] text-[#a1a1aa]">Keep going! You're building consistency.</span>
+                  <div className="w-5 h-5 rounded-full bg-[#8b5cf6]/10 flex items-center justify-center"><BookOpen size={10} className="text-[#8b5cf6]" /></div>
                 </div>
               </div>
             </GlassCard>
 
             {/* Card 2: Placement Readiness */}
-            <GlassCard className="flex flex-col justify-between p-8 h-full">
-              <div>
-                <h3 className="dash-section-title mb-10">🎯 Placement Readiness</h3>
-                <div className="flex items-center gap-7 mt-2">
-                  <div className="flex-shrink-0">
-                    <ScoreRing score={placementReadiness} color={placementReadiness > 70 ? '#22c55e' : placementReadiness > 40 ? '#f59e0b' : '#ef4444'} label="" size={90} strokeWidth={6} />
-                  </div>
-                  <div className="text-[13px] text-[#a1a1aa] flex-1">
-                    <p className="font-bold text-[15px] mb-2" style={{ color: placementReadiness > 70 ? '#22c55e' : placementReadiness > 40 ? '#f59e0b' : '#ef4444' }}>
-                      {placementReadiness > 70 ? 'Excellent Status' : placementReadiness > 40 ? 'Moderate Readiness' : 'Needs Focus'}
-                    </p>
-                    <p className="leading-relaxed text-[12px] text-[#71717a]">
-                      {placementReadiness > 70 ? 'You are well-prepared. Keep reviewing core topics and practice interviews.' : placementReadiness > 40 ? 'Review core DSA patterns and build one more deployment-ready project.' : 'Prioritize daily coding sessions and start building basic portfolio projects.'}
-                    </p>
-                  </div>
-                </div>
+            <GlassCard className="flex flex-col items-center text-center p-8 h-full">
+              <div className="w-full flex items-center justify-start gap-2 mb-8">
+                <div className="w-5 h-5 rounded-md bg-orange-500/10 flex items-center justify-center"><Target size={12} className="text-[#f59e0b]" /></div>
+                <h3 className="dash-section-title mb-0">Placement Readiness</h3>
               </div>
+              
+              <div className="mt-4 mb-6">
+                <ScoreRing score={placementReadiness} color={placementReadiness > 70 ? '#22c55e' : placementReadiness > 40 ? '#f59e0b' : '#ef4444'} label="" size={110} strokeWidth={6} />
+              </div>
+              
+              <p className="font-bold text-[16px] mb-3" style={{ color: placementReadiness > 70 ? '#22c55e' : placementReadiness > 40 ? '#f59e0b' : '#ef4444' }}>
+                {placementReadiness > 70 ? 'Excellent Readiness' : placementReadiness > 40 ? 'Moderate Readiness' : 'Needs Focus'}
+              </p>
+              
+              <p className="leading-relaxed text-[12px] text-[#a1a1aa] px-4">
+                {placementReadiness > 70 ? 'You are well-prepared. Keep reviewing core topics and practice interviews.' : placementReadiness > 40 ? 'Review core DSA patterns and build one more deployment-ready project.' : 'Prioritize daily coding sessions and start building basic portfolio projects.'}
+              </p>
+              
+              <button className="mt-auto pt-8 w-full flex items-center justify-center gap-2 text-[12px] font-medium text-[#8b5cf6] hover:text-[#a855f7] border-t border-white/[0.04] transition-colors">
+                View Recommendations <span className="text-[14px]">→</span>
+              </button>
             </GlassCard>
 
-            {/* Card 3: Career Insights */}
-            <GlassCard className="flex flex-col justify-between p-8 h-full">
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-10">
-                  <h3 className="dash-section-title mb-0">💡 AI Insights</h3>
-                  <button onClick={() => setTab('recommendations')} className="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider">View all</button>
+            {/* Card 3: AI Insights */}
+            <GlassCard className="flex flex-col p-8 h-full">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="dash-section-title flex items-center gap-2 mb-0">
+                  <div className="w-5 h-5 rounded-md bg-white/5 flex items-center justify-center"><Sparkles size={12} className="text-white" /></div>
+                  AI Insights
+                </h3>
+                <button onClick={() => setTab('recommendations')} className="text-[11px] font-semibold text-[#8b5cf6] hover:text-[#a855f7] transition-colors">View All</button>
+              </div>
+              
+              <div className="space-y-4 w-full mt-2 flex-1">
+                <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3.5 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-[#22c55e]/10 border border-[#22c55e]/20 text-sm flex-shrink-0 mt-0.5">
+                    <span className="text-[#22c55e] text-[10px]">✓</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-[12px] text-[#22c55e] mb-1">Strength</h4>
+                    <p className="text-[11px] text-[#a1a1aa] leading-relaxed pr-2">You are consistent in DSA practice. Keep solving advanced problems.</p>
+                  </div>
+                  <span className="text-[#52525b] group-hover:text-[#a1a1aa] transition-colors mt-0.5 text-sm">›</span>
                 </div>
-                
-                <div className="space-y-5 w-full">
-                  {careerInsights.map((insight, i) => (
-                    <div key={i} className="p-5 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.04] border border-white/[0.06] text-sm flex-shrink-0">
-                        {insight.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-[12px] text-[#f0f0f3] truncate mb-1">{insight.title}</h4>
-                        <p className="text-[11px] text-[#71717a] leading-relaxed line-clamp-2">{insight.text}</p>
-                      </div>
-                      <span className="text-[#3f3f46] group-hover:text-[#71717a] transition-colors mt-0.5 text-sm">→</span>
-                    </div>
-                  ))}
-                  {careerInsights.length === 0 && (
-                    <p className="text-[12px] text-[#52525b] text-center py-6">No active insights. Keep logging your data.</p>
-                  )}
+
+                <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3.5 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f59e0b]/10 border border-[#f59e0b]/20 text-sm flex-shrink-0 mt-0.5">
+                    <span className="text-[#f59e0b] text-[10px]">!</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-[12px] text-[#f59e0b] mb-1">Focus Area</h4>
+                    <p className="text-[11px] text-[#a1a1aa] leading-relaxed pr-2">Complete one fullstack project to improve portfolio strength.</p>
+                  </div>
+                  <span className="text-[#52525b] group-hover:text-[#a1a1aa] transition-colors mt-0.5 text-sm">›</span>
+                </div>
+
+                <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3.5 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-[#ef4444]/10 border border-[#ef4444]/20 text-sm flex-shrink-0 mt-0.5">
+                    <span className="text-[#ef4444] text-[10px]">📍</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-[12px] text-[#ef4444] mb-1">Watchout</h4>
+                    <p className="text-[11px] text-[#a1a1aa] leading-relaxed pr-2">Your study hours drop on weekends. Try time blocking.</p>
+                  </div>
+                  <span className="text-[#52525b] group-hover:text-[#a1a1aa] transition-colors mt-0.5 text-sm">›</span>
                 </div>
               </div>
             </GlassCard>
