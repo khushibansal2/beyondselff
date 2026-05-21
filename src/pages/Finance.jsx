@@ -7,7 +7,7 @@ import { generateTrendData, generateInsights } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast } from '../components/ui/Components';
 import { CartesianGrid, PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import RoboAdvisor from '../components/ui/RoboAdvisor';
-import { Banknote, CreditCard, Landmark, TrendingUp, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Banknote, CreditCard, Landmark, TrendingUp, RefreshCw, AlertTriangle, LayoutDashboard, ClipboardList, Sparkles } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'];
 
@@ -59,9 +59,9 @@ export default function Finance() {
   }, [currentState]);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'log', label: 'Log Data', icon: '✏️' },
-    { id: 'recommendations', label: 'AI Recommendations', icon: '🤖' },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'log', label: 'Log Data', icon: ClipboardList },
+    { id: 'recommendations', label: 'AI Recommendations', icon: Sparkles },
   ];
 
   const expenseBreakdown = [
@@ -166,7 +166,42 @@ export default function Finance() {
   return (
     <div className="page-container min-h-screen pb-20 bg-mesh">
       <PageHeader title="Financial Intelligence" subtitle="Track your net worth, expenses, and AI-driven optimizations." />
-      <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      
+      {/* Custom Premium Capsule Navbar */}
+      <div className="flex justify-center mt-6 mb-16">
+        <div className="flex items-center gap-2 p-2 bg-[#090714]/80 border border-[#8b5cf6]/30 rounded-full backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_40px_rgba(139,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.05)] relative z-10">
+          {tabs.map((t) => {
+            const Icon = t.icon;
+            const isActive = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`relative flex items-center gap-2.5 px-7 py-3 rounded-full text-[13.5px] font-medium tracking-wide transition-all duration-300 select-none outline-none cursor-pointer group ${
+                  isActive
+                    ? 'text-white'
+                    : 'text-[#9ca3af] hover:text-[#f3f4f6] hover:bg-white/[0.04] hover:shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                }`}
+              >
+                {/* Active Glowing Background */}
+                {isActive && (
+                  <motion.div
+                    layoutId="finance-active-tab-glow"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#a855f7] shadow-[0_0_24px_rgba(139,92,246,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)]"
+                    transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                  />
+                )}
+                
+                {/* Content */}
+                <span className="relative z-10 flex items-center justify-center">
+                  <Icon size={16} className={`transition-all duration-300 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-[#8e8e93] group-hover:text-[#c084fc] group-hover:drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]'}`} />
+                </span>
+                <span className="relative z-10">{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {tab === 'overview' && (
         <div className="space-y-14 lg:space-y-20">
