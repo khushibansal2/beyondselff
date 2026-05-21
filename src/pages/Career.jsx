@@ -95,9 +95,9 @@ export default function Career() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-12 lg:space-y-16">
+        <div className="space-y-14 lg:space-y-20">
           {/* Score + Metrics Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-7">
             <div className="glass-card p-6 flex flex-col items-center justify-between text-center min-h-[170px]" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
               <ScoreRing score={score} color="auto" label="" size={80} strokeWidth={6} />
               <span className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">Career Score</span>
@@ -110,9 +110,9 @@ export default function Career() {
           </div>
 
           {/* Charts Row */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
             <GlassCard className="p-8">
-              <h3 className="dash-section-title mb-8">Skill Radar</h3>
+              <h3 className="dash-section-title mb-10">Skill Radar</h3>
               <div className="h-80 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={skillRadar}>
@@ -126,8 +126,8 @@ export default function Career() {
 
             <GlassCard className="p-8 flex flex-col justify-between">
               <div>
-                <h3 className="dash-section-title mb-6">Skills Portfolio</h3>
-                <div className="flex flex-wrap gap-2.5 mb-8">
+                <h3 className="dash-section-title mb-8">Skills Portfolio</h3>
+                <div className="flex flex-wrap gap-3 mb-10">
                   {c.skills.map(s => (
                     <span key={s} className="px-3.5 py-1.5 rounded-xl border border-white/[0.04] text-[11px] text-[#a1a1aa] font-medium tracking-wide hover:border-white/[0.08] hover:text-[#e4e4e7] transition-all duration-200 cursor-default bg-white/[0.01]">
                       {s}
@@ -136,7 +136,7 @@ export default function Career() {
                   {c.skills.length === 0 && <p className="text-[12px] text-[#52525b]">No skills added yet. Log data to add skills.</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-5 mt-auto pt-6 border-t border-white/[0.04]">
+              <div className="grid grid-cols-2 gap-6 mt-auto pt-8 border-t border-white/[0.04]">
                 <div className="p-6 rounded-2xl border border-white/[0.04] bg-white/[0.01] text-center">
                   <p className="text-3xl font-bold text-blue-400 mb-2 tracking-tight">{c.coursesActive}</p>
                   <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">Active Courses</p>
@@ -150,12 +150,12 @@ export default function Career() {
           </div>
 
           {/* Bottom Analytics Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
             {/* Card 1: Learning Progress */}
             <GlassCard className="flex flex-col justify-between p-8 h-full">
               <div>
-                <h3 className="dash-section-title mb-8">📈 Learning Progress</h3>
-                <div className="space-y-5">
+                <h3 className="dash-section-title mb-10">📈 Learning Progress</h3>
+                <div className="space-y-7">
                   <div>
                     <div className="flex justify-between items-center text-[11px] mb-1.5">
                       <span className="text-[#a1a1aa] font-medium">DSA Coding Practice</span>
@@ -190,8 +190,8 @@ export default function Career() {
             {/* Card 2: Placement Readiness */}
             <GlassCard className="flex flex-col justify-between p-8 h-full">
               <div>
-                <h3 className="dash-section-title mb-8">🎯 Placement Readiness</h3>
-                <div className="flex items-center gap-6 mt-2">
+                <h3 className="dash-section-title mb-10">🎯 Placement Readiness</h3>
+                <div className="flex items-center gap-7 mt-2">
                   <div className="flex-shrink-0">
                     <ScoreRing score={placementReadiness} color={placementReadiness > 70 ? '#22c55e' : placementReadiness > 40 ? '#f59e0b' : '#ef4444'} label="" size={90} strokeWidth={6} />
                   </div>
@@ -210,14 +210,14 @@ export default function Career() {
             {/* Card 3: Career Insights */}
             <GlassCard className="flex flex-col justify-between p-8 h-full">
               <div className="w-full">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-10">
                   <h3 className="dash-section-title mb-0">💡 AI Insights</h3>
                   <button onClick={() => setTab('recommendations')} className="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider">View all</button>
                 </div>
                 
-                <div className="space-y-4 w-full">
+                <div className="space-y-5 w-full">
                   {careerInsights.map((insight, i) => (
-                    <div key={i} className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                    <div key={i} className="p-5 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.04] border border-white/[0.06] text-sm flex-shrink-0">
                         {insight.icon}
                       </div>
@@ -240,15 +240,15 @@ export default function Career() {
 
       {tab === 'log' && (
         <GlassCard>
-          <div className="border-b border-white/[0.04] pb-6 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 border-b border-white/[0.04] pb-10">
             <h3 className="dash-section-title mb-0">Log Today's Career Data</h3>
           </div>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-9">
-            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Study Hours</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" /></div>
-            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Coding Hours</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" /></div>
-            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" /></div>
-            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Add New Skill</label><input type="text" value={form.skill} onChange={e => setForm(p => ({ ...p, skill: e.target.value }))} className="input-premium w-full" placeholder="e.g. Docker" /></div>
-            <div className="md:col-span-2 mt-2"><button type="submit" className="btn-primary w-full py-[14px]">Save Career Data</button></div>
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-10">
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-3 block">Study Hours</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-3 block">Coding Hours</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-3 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-3 block">Add New Skill</label><input type="text" value={form.skill} onChange={e => setForm(p => ({ ...p, skill: e.target.value }))} className="input-premium w-full" placeholder="e.g. Docker" /></div>
+            <div className="md:col-span-2 mt-4"><button type="submit" className="btn-primary w-full py-[14px]">Save Career Data</button></div>
           </form>
         </GlassCard>
       )}
@@ -258,10 +258,10 @@ export default function Career() {
           {recommendations.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <GlassCard>
-                <div className="flex items-start gap-6">
-                  <span className="text-4xl flex-shrink-0">{r.icon}</span>
+                <div className="flex items-start gap-7">
+                  <span className="text-4xl flex-shrink-0 mt-0.5">{r.icon}</span>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-3 gap-4">
+                    <div className="flex items-center justify-between mb-5 gap-4">
                       <h4 className="text-[15px] font-semibold text-[#f0f0f3]">{r.title}</h4>
                       <div className="flex gap-3 flex-shrink-0">
                         <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#ef4444]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#f59e0b]' : 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]'}`}>Risk: {r.risk}</span>
@@ -278,18 +278,18 @@ export default function Career() {
       )}
 
       {tab === 'roadmap' && (
-        <div className="space-y-12">
+        <div className="space-y-10">
           {roadmap.map((phase, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
               <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>
-                <div className="flex items-center gap-5 mb-8 pb-6 border-b border-white/[0.04]">
+                <div className="flex items-center gap-5 mb-12 pb-8 border-b border-white/[0.04]">
                   <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-[13px] font-bold flex-shrink-0 ${phase.status === 'done' ? 'bg-emerald-500/10 text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>
                     {phase.status === 'done' ? '✓' : i + 1}
                   </span>
                   <h4 className="font-semibold text-[#f0f0f3] text-[15px]">{phase.phase}</h4>
                   <span className={`text-[10px] font-semibold px-3 py-1 rounded-lg ml-auto capitalize tracking-wider uppercase ${phase.status === 'done' ? 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-[#71717a]'}`}>{phase.status}</span>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-4 ml-[60px]">
+                <div className="grid sm:grid-cols-2 gap-6 ml-[60px]">
                   {phase.items.map(item => (
                     <div key={item} className="text-[13px] text-[#a1a1aa] flex items-center gap-3">
                       <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-[#52525b]'}`} />

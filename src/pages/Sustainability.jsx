@@ -65,10 +65,10 @@ export default function Sustainability() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'dashboard' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="space-y-10 lg:space-y-14">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <GlassCard className="flex flex-col items-center justify-center col-span-2 md:col-span-1" glow={footprintScore > 50 ? 'glow-emerald' : 'glow-rose'}>
-              <h3 className="text-xs text-[#9B9B9B] mb-2 font-medium">Monthly Footprint</h3>
+              <h3 className="text-xs text-[#9B9B9B] mb-3 font-medium">Monthly Footprint</h3>
               <div className="relative flex items-center justify-center">
                 <ScoreRing score={footprintScore} color={footprintScore > 50 ? '#10b981' : '#f43f5e'} size={110} strokeWidth={8} label="" />
                 <div className="absolute flex flex-col items-center justify-center pointer-events-none">
@@ -76,7 +76,7 @@ export default function Sustainability() {
                   <span className="text-[9px] text-[#9B9B9B] uppercase tracking-wider">kg CO₂</span>
                 </div>
               </div>
-              <p className="text-xs text-[#9B9B9B] mt-3 text-center px-4">
+              <p className="text-xs text-[#9B9B9B] mt-4 text-center px-4">
                 Target: {targetCarbon} kg
               </p>
             </GlassCard>
@@ -86,7 +86,7 @@ export default function Sustainability() {
             <MetricCard icon="🥗" label="Food/Diet" value={`${Math.round(pieData[2].value)}kg`} color="#10b981" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
             <GlassCard>
               <h3 className="text-sm font-semibold mb-4">Carbon Footprint Breakdown</h3>
               <div className="h-64 flex items-center justify-center relative">
@@ -137,7 +137,7 @@ export default function Sustainability() {
       )}
 
       {tab === 'actions' && (
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
           <GlassCard>
             <h3 className="text-sm font-semibold mb-4">Log Eco-Action</h3>
             <p className="text-xs text-[#9B9B9B] mb-6 leading-relaxed">
@@ -190,7 +190,7 @@ export default function Sustainability() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-4">
+        <div className="space-y-8">
           <GlassCard glow="glow-emerald">
             <h3 className="text-sm font-semibold mb-4">ESG & Green Investment Recommendations</h3>
             <p className="text-xs text-[#9B9B9B] leading-relaxed mb-6">

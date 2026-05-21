@@ -52,7 +52,7 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
       animate={animate ? { opacity: 1, y: 0 } : false}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       onClick={onClick}
-      className={`glass-card p-7 lg:p-8 ${glow} ${onClick ? 'cursor-pointer dash-card-interactive' : ''} ${className}`}
+      className={`glass-card p-8 lg:p-10 ${glow} ${onClick ? 'cursor-pointer dash-card-interactive' : ''} ${className}`}
     >
       {children}
     </motion.div>
@@ -107,19 +107,19 @@ export function InsightCard({ insight, index = 0 }) {
 
 export function PageHeader({ title, subtitle, icon }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mb-14">
-      <h1 className="text-[34px] md:text-[40px] font-bold gradient-text tracking-[-0.03em] leading-none">{title}</h1>
-      {subtitle && <p className="text-[#71717a] text-[15px] mt-4 leading-relaxed max-w-2xl">{subtitle}</p>}
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mb-16 lg:mb-20">
+      <h1 className="text-[34px] md:text-[42px] font-bold gradient-text tracking-[-0.03em] leading-none">{title}</h1>
+      {subtitle && <p className="text-[#71717a] text-[15px] mt-5 leading-relaxed max-w-2xl">{subtitle}</p>}
     </motion.div>
   );
 }
 
 export function TabBar({ tabs, active, onChange }) {
   return (
-    <div className="flex gap-1 border-b border-white/[0.06] mb-12 overflow-x-auto -mt-4">
+    <div className="flex gap-1 border-b border-white/[0.06] mb-14 overflow-x-auto">
       {tabs.map(t => (
         <button key={t.id} onClick={() => onChange(t.id)}
-          className={`relative px-5 py-3.5 text-[14px] font-medium transition-colors whitespace-nowrap ${active === t.id ? 'text-[#f0f0f3]' : 'text-[#52525b] hover:text-[#a1a1aa]'}`}>
+          className={`relative px-5 py-4 text-[14px] font-medium transition-colors whitespace-nowrap ${active === t.id ? 'text-[#f0f0f3]' : 'text-[#52525b] hover:text-[#a1a1aa]'}`}>
           {t.icon && <span className="mr-2 text-[13px]">{t.icon}</span>}{t.label}
           {active === t.id && (
             <motion.div

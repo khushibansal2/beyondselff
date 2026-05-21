@@ -169,10 +169,10 @@ export default function Finance() {
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
 
       {tab === 'overview' && (
-        <div className="space-y-12 lg:space-y-16">
+        <div className="space-y-14 lg:space-y-20">
           {/* Score + Metrics Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
-            <div className="glass-card p-6 flex flex-col items-center justify-between text-center min-h-[170px]" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-7">
+            <div className="glass-card p-8 flex flex-col items-center justify-between text-center min-h-[180px]" style={{ boxShadow: '0 0 30px rgba(59,130,246,0.06)' }}>
               <ScoreRing score={score} color="auto" label="" size={80} strokeWidth={6} />
               <span className="text-[10px] text-[#52525b] uppercase tracking-[0.08em] font-semibold">Finance Score</span>
             </div>
@@ -184,9 +184,9 @@ export default function Finance() {
           </div>
 
           {/* Charts Row */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
-            <GlassCard className="p-8">
-              <h3 className="dash-section-title mb-6">Expense Breakdown</h3>
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
+            <GlassCard>
+              <h3 className="dash-section-title mb-10">Expense Breakdown</h3>
               <div className="h-80 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -200,9 +200,9 @@ export default function Finance() {
               </div>
             </GlassCard>
 
-            <GlassCard className="p-8">
-              <h3 className="dash-section-title mb-2">Spending Trend (30 days)</h3>
-              <div className="flex gap-4 mb-8">
+            <GlassCard>
+              <h3 className="dash-section-title mb-5">Spending Trend (30 days)</h3>
+              <div className="flex gap-4 mb-10">
                 <div className="flex items-center gap-1.5 text-xs text-[#a1a1aa]">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f43f5e' }} />
                   <span>Spending (daily)</span>
@@ -226,29 +226,29 @@ export default function Finance() {
           </div>
 
           {/* Bottom Analytics Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
             {/* Card 1: Financial Anxiety Check */}
-            <GlassCard className={`flex flex-col justify-between p-8 h-full ${(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? 'border-red-500/10' : ''}`} style={(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? { background: 'rgba(239,68,68,0.02)' } : {}}>
+            <GlassCard className={`flex flex-col justify-between h-full ${(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? 'border-red-500/10' : ''}`} style={(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? { background: 'rgba(239,68,68,0.02)' } : {}}>
               <div>
-                <h3 className="dash-section-title mb-8 flex items-center gap-2">
+                <h3 className="dash-section-title mb-10 flex items-center gap-2">
                   <AlertTriangle size={16} className={(f.debt > 0 || savingsRate < 5 || emotionalSpending) ? 'text-red-400' : 'text-emerald-400'} />
                   <span>Financial Anxiety</span>
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {f.debt > 0 && (
-                    <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                    <div className="p-5 rounded-xl border border-white/[0.04] bg-white/[0.01]">
                       <p className="font-semibold text-[13px] text-[#f0f0f3] mb-1">Debt: ₹{f.debt.toLocaleString()}</p>
                       <p className="text-[11px] text-[#71717a] leading-relaxed">Prioritize debt repayment. Allocate 20% of income to clearing debt to reduce stress.</p>
                     </div>
                   )}
                   {savingsRate < 5 && (
-                    <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                    <div className="p-5 rounded-xl border border-white/[0.04] bg-white/[0.01]">
                       <p className="font-semibold text-[13px] text-[#f0f0f3] mb-1">Low Savings Rate: {savingsRate}%</p>
                       <p className="text-[11px] text-[#71717a] leading-relaxed">Aim for 20% minimum. Start with small automated transfers on payday.</p>
                     </div>
                   )}
                   {emotionalSpending && (
-                    <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                    <div className="p-5 rounded-xl border border-white/[0.04] bg-white/[0.01]">
                       <p className="font-semibold text-[13px] text-[#f0f0f3] mb-1">Emotional Spending Risk</p>
                       <p className="text-[11px] text-[#71717a] leading-relaxed">High stress levels linked to impulsive purchases. Use a 24-hour wait rule.</p>
                     </div>
@@ -264,10 +264,10 @@ export default function Finance() {
             </GlassCard>
 
             {/* Card 2: Subscription Insights */}
-            <GlassCard className="flex flex-col justify-between p-8 h-full">
+            <GlassCard className="flex flex-col justify-between h-full">
               <div>
-                <h3 className="dash-section-title mb-8">🔄 Subscription Insights</h3>
-                <div className="space-y-5">
+                <h3 className="dash-section-title mb-10">🔄 Subscription Insights</h3>
+                <div className="space-y-6">
                   <div className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.01] text-center">
                     <p className="text-[10px] text-[#52525b] uppercase tracking-wider font-semibold mb-2">Monthly Subscriptions</p>
                     <p className="text-2xl font-bold tracking-tight text-amber-400">₹{f.subscriptions.toLocaleString()}</p>
@@ -284,16 +284,16 @@ export default function Finance() {
             </GlassCard>
 
             {/* Card 3: AI Recommendations (Insights) */}
-            <GlassCard className="flex flex-col justify-between p-8 h-full">
+            <GlassCard className="flex flex-col justify-between h-full">
               <div className="w-full">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-10">
                   <h3 className="dash-section-title mb-0">💡 AI Insights</h3>
                   <button onClick={() => setTab('recommendations')} className="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider">View all</button>
                 </div>
                 
-                <div className="space-y-4 w-full">
+                <div className="space-y-5 w-full">
                   {financeInsights.map((insight, i) => (
-                    <div key={i} className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
+                    <div key={i} className="p-5 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/[0.04] border border-white/[0.06] text-sm flex-shrink-0">
                         {insight.icon}
                       </div>
@@ -316,7 +316,7 @@ export default function Finance() {
 
       {tab === 'log' && (
         <GlassCard>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-white/[0.04] pb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 border-b border-white/[0.04] pb-10">
             <h3 className="dash-section-title mb-0">Log Financial Data</h3>
             <div className="relative w-full md:w-auto">
               <input 
@@ -337,31 +337,31 @@ export default function Finance() {
             </div>
           </div>
           
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-9">
-            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium w-full" placeholder="₹25000" /></div>
-            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium w-full"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
-            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium w-full" placeholder="₹500" /></div>
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-8">
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2.5 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium w-full" placeholder="₹25000" /></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2.5 block">Expense Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium w-full"><option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option></select></div>
+            <div><label className="text-[12px] text-[#a1a1aa] font-medium mb-2.5 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium w-full" placeholder="₹500" /></div>
             <div className="flex items-end mt-2"><button type="submit" className="btn-primary w-full py-[14px]">Save Entry</button></div>
           </form>
         </GlassCard>
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-12">
+        <div className="space-y-14 lg:space-y-20">
           <RoboAdvisor financeData={f} />
           
-          <div className="pt-4">
-            <h3 className="dash-section-title mb-8 flex items-center gap-2">
+          <div className="pt-6">
+            <h3 className="dash-section-title mb-12 flex items-center gap-2">
               <span>💡</span> Spending Optimizations
             </h3>
             <div className="space-y-10">
               {recommendations.map((r, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
                   <GlassCard>
-                    <div className="flex items-start gap-6">
-                      <span className="text-4xl flex-shrink-0">{r.icon}</span>
+                    <div className="flex items-start gap-7">
+                      <span className="text-4xl flex-shrink-0 mt-0.5">{r.icon}</span>
                       <div className="flex-1">
-                        <div className="flex items-center justify-between mb-3 gap-4">
+                        <div className="flex items-center justify-between mb-5 gap-4">
                           <h4 className="text-[15px] font-semibold text-[#f0f0f3]">{r.title}</h4>
                           <div className="flex gap-3 flex-shrink-0">
                             <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#ef4444]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#f59e0b]' : 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]'}`}>Risk: {r.risk}</span>
