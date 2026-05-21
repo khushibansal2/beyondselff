@@ -167,40 +167,38 @@ export default function Finance() {
     <div className="page-container min-h-screen pb-20 bg-mesh">
       <PageHeader title="Financial Intelligence" subtitle="Track your net worth, expenses, and AI-driven optimizations." />
       
-      {/* Custom Premium Capsule Navbar */}
-      <div className="flex justify-center mt-6 mb-16">
-        <div className="flex items-center gap-2 p-2 bg-[#090714]/80 border border-[#8b5cf6]/30 rounded-full backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_40px_rgba(139,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.05)] relative z-10">
-          {tabs.map((t) => {
-            const Icon = t.icon;
-            const isActive = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`relative flex items-center gap-2.5 px-7 py-3 rounded-full text-[13.5px] font-medium tracking-wide transition-all duration-300 select-none outline-none cursor-pointer group ${
-                  isActive
-                    ? 'text-white'
-                    : 'text-[#9ca3af] hover:text-[#f3f4f6] hover:bg-white/[0.04] hover:shadow-[0_0_15px_rgba(139,92,246,0.1)]'
-                }`}
-              >
-                {/* Active Glowing Background */}
-                {isActive && (
-                  <motion.div
-                    layoutId="finance-active-tab-glow"
-                    className="absolute inset-0 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#a855f7] shadow-[0_0_24px_rgba(139,92,246,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)]"
-                    transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                  />
-                )}
-                
-                {/* Content */}
-                <span className="relative z-10 flex items-center justify-center">
-                  <Icon size={16} className={`transition-all duration-300 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-[#8e8e93] group-hover:text-[#c084fc] group-hover:drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]'}`} />
-                </span>
-                <span className="relative z-10">{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Custom Premium Tab Buttons */}
+      <div className="flex flex-wrap justify-start gap-4 mt-8 mb-16 relative z-10">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`relative flex items-center gap-3 px-7 py-3.5 rounded-2xl text-[13.5px] font-medium tracking-wide transition-all duration-300 select-none outline-none cursor-pointer group border ${
+                isActive
+                  ? 'text-white border-transparent'
+                  : 'bg-[#090714]/80 border-[#8b5cf6]/20 backdrop-blur-3xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] text-[#9ca3af] hover:text-[#f3f4f6] hover:bg-white/[0.04] hover:border-[#8b5cf6]/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.2)]'
+              }`}
+            >
+              {/* Active Glowing Background */}
+              {isActive && (
+                <motion.div
+                  layoutId="finance-active-tab-glow"
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#7c3aed] to-[#a855f7] shadow-[0_0_24px_rgba(139,92,246,0.45),inset_0_1px_1px_rgba(255,255,255,0.3)]"
+                  transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                />
+              )}
+              
+              {/* Content */}
+              <span className="relative z-10 flex items-center justify-center">
+                <Icon size={16} className={`transition-all duration-300 ${isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-[#8e8e93] group-hover:text-[#c084fc] group-hover:drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]'}`} />
+              </span>
+              <span className="relative z-10">{t.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {tab === 'overview' && (
