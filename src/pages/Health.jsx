@@ -140,7 +140,7 @@ export default function Health() {
       <PageHeader title="Health & Wellness" subtitle="Track, understand, and optimize your physical and mental wellbeing." />
       
       {/* Custom Premium Capsule Navbar */}
-      <div className="flex justify-center mb-16">
+      <div className="flex justify-start mt-8 mb-16">
         <div className="flex items-center gap-2 p-2 bg-[#090714]/80 border border-[#8b5cf6]/30 rounded-full backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_40px_rgba(139,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.05)] relative z-10">
           {tabs.map((t) => {
             const Icon = t.icon;
@@ -176,7 +176,7 @@ export default function Health() {
       </div>
 
       {tab === 'overview' && (
-        <div className="space-y-20 lg:space-y-28">
+        <div className="space-y-16 lg:space-y-20">
           {/* ── Score + Metrics Row ── */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-6 lg:gap-8">
             {/* Health Score Card */}
@@ -199,7 +199,7 @@ export default function Health() {
           </div>
 
           {/* ── Charts Row ── */}
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-10">
             <GlassCard>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10">
                 <h3 className="dash-section-title text-[15px] font-bold" style={{ marginBottom: 0 }}>Sleep & Mood Trends (30 Days)</h3>
@@ -262,7 +262,7 @@ export default function Health() {
           </div>
 
           {/* ── Bottom Analytics Row ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-14">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
             {/* Body Metrics */}
             <GlassCard className="flex flex-col justify-between h-full hover:shadow-[0_0_30px_rgba(99,102,241,0.05)] transition-all duration-300">
               <div>
@@ -391,7 +391,7 @@ export default function Health() {
       )}
 
       {tab === 'wellness' && (
-        <div className="space-y-20 lg:space-y-28">
+        <div className="space-y-16 lg:space-y-20">
           {/* Wellness Breakdown */}
           <GlassCard className="hover:shadow-[0_0_40px_rgba(139,92,246,0.05)] transition-all duration-300">
             <h3 className="dash-section-title mb-14 lg:mb-16 text-[16px] font-bold">🧘 Wellness Factor Breakdown</h3>
