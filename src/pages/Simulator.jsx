@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { runSimulation } from '../engines/simulatorEngine';
 import { generateNarrative } from '../services/aiService';
-import { GlassCard, ScoreRing } from '../components/ui/Components';
+import { GlassCard, ScoreRing, PageHeader } from '../components/ui/Components';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
 
 const scenarios = [
@@ -78,19 +78,10 @@ export default function Simulator() {
     <div className="page-container min-h-screen pb-16">
 
       {/* ── Page Header ─────────────────────────────────────────── */}
-      <div className="relative mb-8">
-        <div className="absolute -inset-8 pointer-events-none bg-gradient-to-br from-violet-600/20 via-purple-600/10 to-cyan-500/10 rounded-3xl blur-3xl" />
-        <div className="relative z-10">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
-            <span className="text-violet-400 mr-2">✦</span>
-            <span style={{ background: 'linear-gradient(135deg,#e2d9f3 0%,#c084fc 50%,#67e8f9 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              What-If Future Simulator
-            </span>
-            <span className="text-cyan-400 ml-2">✦</span>
-          </h1>
-          <p className="text-[#9B9B9B] text-sm">Explore how different life choices affect your estimated future trajectory.</p>
-        </div>
-      </div>
+      <PageHeader 
+        title="What-If Future Simulator" 
+        subtitle="Explore how different life choices affect your estimated future trajectory." 
+      />
 
       {/* ── Guard ───────────────────────────────────────────────── */}
       {!computed?.hasData ? (

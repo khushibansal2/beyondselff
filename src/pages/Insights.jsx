@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateInsights, generateTrendData, generateCorrelations } from '../data/demoData';
-import { GlassCard, InsightCard, ScoreRing, showToast } from '../components/ui/Components';
+import { GlassCard, InsightCard, ScoreRing, showToast, PageHeader } from '../components/ui/Components';
 import AIExplainer from '../components/ui/AIExplainer';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine } from 'recharts';
 import { Link } from 'react-router-dom';
@@ -153,18 +153,10 @@ export default function Insights() {
   return (
     <div className="page-container min-h-screen pb-20">
       {/* ── Page Header ─────────────────────────────────────────── */}
-      <div className="relative mb-10 lg:mb-12">
-        <div className="absolute -inset-8 pointer-events-none bg-gradient-to-br from-violet-600/20 via-cyan-500/10 to-transparent rounded-3xl blur-3xl" />
-        <div className="relative z-10">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
-            <span className="text-violet-400 mr-2">✦</span>
-            <span style={{ background: 'linear-gradient(135deg,#e2d9f3 0%,#c084fc 50%,#67e8f9 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Cross-Domain Intelligence
-            </span>
-          </h1>
-          <p className="text-[#9B9B9B] text-sm mt-1">AI-explained patterns and correlations across your health, finances, and career.</p>
-        </div>
-      </div>
+      <PageHeader 
+        title="Cross-Domain Intelligence" 
+        subtitle="AI-explained patterns and correlations across your health, finances, and career." 
+      />
 
       <div className="space-y-8 lg:space-y-10">
 
