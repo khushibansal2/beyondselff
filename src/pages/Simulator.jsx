@@ -7,14 +7,6 @@ import { generateNarrative } from '../services/aiService';
 import { GlassCard, PageHeader, ScoreRing } from '../components/ui/Components';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
 
-const scenarios = [
-  { id: 'sleep1',    label: '+1.5 Hours Sleep/night', icon: '😴', changes: { sleepAdd: 1.5 } },
-  { id: 'workout2',  label: '+2 Workouts/week',        icon: '💪', changes: { workoutAdd: 2 } },
-  { id: 'cutExp',    label: 'Cut Expenses ₹2000',      icon: '💰', changes: { expenseChange: -2000 } },
-  { id: 'sidehustle',label: 'Side Hustle +₹5000',      icon: '💼', changes: { incomeChange: 5000, studyAdd: -1 } },
-  { id: 'study2',    label: '+2 Hours Study/day',      icon: '📚', changes: { studyAdd: 2, sleepAdd: -0.5 } },
-  { id: 'dsa3',      label: '+3 DSA Problems/day',     icon: '🧩', changes: { dsaAdd: 3 } },
-];
 
 export default function Simulator() {
   const { user } = useAuth();
@@ -23,6 +15,19 @@ export default function Simulator() {
   const [months, setMonths] = useState(simulatorState?.months || 3);
   const [aiNarrative, setAiNarrative] = useState(aiCache?.lastSimulation?.narrative || null);
   const [loading, setLoading] = useState(false);
+
+  const scenarios = useMemo(() => {
+    const expensesCut = Math.max(1000, Math.round((finance?.expenses || 20000) * 0.1 / 100) * 100);
+    const hustleIncome = Math.max(2000, Math.round((finance?.income || 50000) * 0.15 / 100) * 100);
+    return [
+      { id: 'sleep1',    label: '+1.5 Hours Sleep/night', icon: '😴', changes: { sleepAdd: 1.5 } },
+      { id: 'workout2',  label: '+2 Workouts/week',        icon: '💪', changes: { workoutAdd: 2 } },
+      { id: 'cutExp',    label: `Cut Expenses ₹${expensesCut}`, icon: '💰', changes: { expenseChange: -expensesCut } },
+      { id: 'sidehustle',label: `Side Hustle +₹${hustleIncome}`, icon: '💼', changes: { incomeChange: hustleIncome, studyAdd: -1 } },
+      { id: 'study2',    label: '+2 Hours Study/day',      icon: '📚', changes: { studyAdd: 2, sleepAdd: -0.5 } },
+      { id: 'dsa3',      label: '+3 DSA Problems/day',     icon: '🧩', changes: { dsaAdd: 3 } },
+    ];
+  }, [finance]);
 
   // Persist selections to DataContext so they survive unmount
   useEffect(() => {
@@ -37,7 +42,7 @@ export default function Simulator() {
       Object.entries(sc.changes).forEach(([k, v]) => { acc[k] = (acc[k] || 0) + v; });
       return acc;
     }, {});
-  }, [selected]);
+  }, [selected, scenarios]);
 
   // Run deterministic simulation — always from live DataContext state
   const simulate = useMemo(() => {

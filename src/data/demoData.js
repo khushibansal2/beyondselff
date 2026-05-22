@@ -1,7 +1,7 @@
 // Demo users with realistic cross-domain data
 export const demoUsers = {
   stressed_student: {
-    id: 'demo-1', name: 'Arjun Mehta', email: 'arjun@demo.com', password: 'demo123',
+    id: 'demo-1', name: 'Arjun Mehta', email: 'arjun@demo.com',
     avatar: '🧑‍💻', role: 'user', persona: 'Stressed Student',
     health: { sleepAvg: 5.2, stressLevel: 8, moodAvg: 4, workoutsPerWeek: 1, waterIntake: 4, calories: 2800, bmi: 24.5 },
     finance: { income: 150000, expenses: 135000, savings: 80000, investments: 120000, subscriptions: 3200, debt: 0, portfolio: { equity: 80000, debt: 15000, gold: 20000, cash: 5000 } },
@@ -20,7 +20,7 @@ export const demoUsers = {
     ]
   },
   fitness_learner: {
-    id: 'demo-2', name: 'Priya Sharma', email: 'priya@demo.com', password: 'demo123',
+    id: 'demo-2', name: 'Priya Sharma', email: 'priya@demo.com',
     avatar: '💪', role: 'user', persona: 'Fitness-Focused Learner',
     health: { sleepAvg: 7.5, stressLevel: 4, moodAvg: 7.5, workoutsPerWeek: 5, waterIntake: 8, calories: 2200, bmi: 22.1 },
     finance: { income: 200000, expenses: 140000, savings: 450000, investments: 850000, subscriptions: 1500, debt: 0, portfolio: { equity: 600000, debt: 150000, gold: 50000, cash: 50000 } },
@@ -37,7 +37,7 @@ export const demoUsers = {
     ]
   },
   overspender: {
-    id: 'demo-3', name: 'Rahul Verma', email: 'rahul@demo.com', password: 'demo123',
+    id: 'demo-3', name: 'Rahul Verma', email: 'rahul@demo.com',
     avatar: '💸', role: 'user', persona: 'Overspending User',
     health: { sleepAvg: 6.5, stressLevel: 6, moodAvg: 5.5, workoutsPerWeek: 2, waterIntake: 5, calories: 2600, bmi: 26.3 },
     finance: { income: 250000, expenses: 240000, savings: 50000, investments: 20000, subscriptions: 5500, debt: 120000, portfolio: { equity: 5000, debt: 0, gold: 0, cash: 15000 } },
@@ -54,7 +54,7 @@ export const demoUsers = {
     ]
   },
   burnout_risk: {
-    id: 'demo-4', name: 'Sneha Reddy', email: 'sneha@demo.com', password: 'demo123',
+    id: 'demo-4', name: 'Sneha Reddy', email: 'sneha@demo.com',
     avatar: '🔥', role: 'user', persona: 'Burnout-Risk Student',
     health: { sleepAvg: 4.8, stressLevel: 9, moodAvg: 3.5, workoutsPerWeek: 0, waterIntake: 3, calories: 3000, bmi: 23.8 },
     finance: { income: 120000, expenses: 110000, savings: 30000, investments: 40000, subscriptions: 2000, debt: 50000, portfolio: { equity: 20000, debt: 10000, gold: 0, cash: 10000 } },
@@ -71,7 +71,7 @@ export const demoUsers = {
     ]
   },
   placement_coder: {
-    id: 'demo-5', name: 'Karthik Nair', email: 'karthik@demo.com', password: 'demo123',
+    id: 'demo-5', name: 'Karthik Nair', email: 'karthik@demo.com',
     avatar: '🎯', role: 'user', persona: 'Placement-Focused Coder',
     health: { sleepAvg: 6.5, stressLevel: 6, moodAvg: 6, workoutsPerWeek: 3, waterIntake: 6, calories: 2400, bmi: 23.0 },
     finance: { income: 180000, expenses: 120000, savings: 300000, investments: 500000, subscriptions: 1800, debt: 0, portfolio: { equity: 400000, debt: 50000, gold: 20000, cash: 30000 } },
@@ -197,20 +197,35 @@ export function generateInsights(user) {
   return insights;
 }
 
-// Habit correlations
 export function generateCorrelations(trendData) {
   const correlations = [];
-  let sleepSpendCorr = 0, workoutProdCorr = 0, stressSleepCorr = 0;
   const n = trendData.length;
+  if (n === 0) return [];
+  
+  let lowSleepSpend = 0, lowSleepDays = 0, highSleepSpend = 0, highSleepDays = 0;
+  let workoutProd = 0, workoutDays = 0, noWorkoutProd = 0, noWorkoutDays = 0;
   
   for (let i = 0; i < n; i++) {
-    if (trendData[i].sleep < 6) sleepSpendCorr += trendData[i].spending;
-    if (trendData[i].workoutDone) workoutProdCorr += trendData[i].productivity;
+    if (trendData[i].sleep < 6) { lowSleepSpend += trendData[i].spending; lowSleepDays++; }
+    else { highSleepSpend += trendData[i].spending; highSleepDays++; }
+    
+    if (trendData[i].workoutDone) { workoutProd += trendData[i].productivity; workoutDays++; }
+    else { noWorkoutProd += trendData[i].productivity; noWorkoutDays++; }
   }
 
+  const avgLowSleepSpend = lowSleepDays ? lowSleepSpend / lowSleepDays : 0;
+  const avgHighSleepSpend = highSleepDays ? highSleepSpend / highSleepDays : 0;
+  const spendIncrease = avgHighSleepSpend > 0 ? ((avgLowSleepSpend - avgHighSleepSpend) / avgHighSleepSpend) * 100 : 0;
+  const spendStrength = Math.min(0.95, parseFloat((0.5 + Math.max(0, spendIncrease) / 200).toFixed(2)));
+
+  const avgWorkoutProd = workoutDays ? workoutProd / workoutDays : 0;
+  const avgNoWorkoutProd = noWorkoutDays ? noWorkoutProd / noWorkoutDays : 0;
+  const prodIncrease = avgNoWorkoutProd > 0 ? ((avgWorkoutProd - avgNoWorkoutProd) / avgNoWorkoutProd) * 100 : 0;
+  const prodStrength = Math.min(0.95, parseFloat((0.5 + Math.max(0, prodIncrease) / 200).toFixed(2)));
+
   correlations.push(
-    { pattern: 'On days with less sleep, your spending increases by ~25%', strength: 0.73, type: 'negative', domains: ['health', 'finance'] },
-    { pattern: 'Your productivity improves by ~30% after workouts', strength: 0.81, type: 'positive', domains: ['health', 'career'] },
+    { pattern: `On days with less sleep, your spending increases by ~${Math.max(0, Math.round(spendIncrease))}%`, strength: spendStrength, type: 'negative', domains: ['health', 'finance'] },
+    { pattern: `Your productivity improves by ~${Math.max(0, Math.round(prodIncrease))}% after workouts`, strength: prodStrength, type: 'positive', domains: ['health', 'career'] },
     { pattern: 'Stress spikes correlate with deadline proximity', strength: 0.68, type: 'neutral', domains: ['health', 'career'] },
     { pattern: 'Mood improves on days with 7+ hours of sleep', strength: 0.85, type: 'positive', domains: ['health'] },
     { pattern: 'Evening screen time correlates with poor sleep quality', strength: 0.72, type: 'negative', domains: ['health'] },

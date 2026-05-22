@@ -19,7 +19,7 @@ const NeuralCore = () => {
   const [loading, setLoading] = useState(false);
 
   const income = state?.finance?.income || 0;
-  const healthScore = state?.health?.score || 0;
+  const healthScore = state?.computed?.healthScore?.score || 0;
 
   const careerHours =
     Number(state?.career?.studyHoursDaily || 0) +

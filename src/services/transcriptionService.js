@@ -19,7 +19,7 @@ export const transcribeAudio = async (audioBlob, mockText = null) => {
   }
 
   try {
-    const response = await fetch('http://localhost:8080/api/transcribe/audio', {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE}/transcribe/audio`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`

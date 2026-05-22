@@ -15,7 +15,7 @@ export default function Sustainability() {
   const trendData = useMemo(() => generateTrendData(user, 30), [user]);
   
   const totalCarbon = (sustainData.carbonFootprint?.transport || 0) + (sustainData.carbonFootprint?.energy || 0) + (sustainData.carbonFootprint?.food || 0);
-  const targetCarbon = 250; // kg CO2 monthly target
+  const targetCarbon = Math.round(((user?.sustainability?.carbonFootprint?.transport || 100) + (user?.sustainability?.carbonFootprint?.energy || 100) + (user?.sustainability?.carbonFootprint?.food || 80)) * 0.85); // Dynamic target: 15% reduction from baseline
   const footprintScore = Math.max(0, 100 - (totalCarbon / targetCarbon) * 100);
 
   const pieData = [

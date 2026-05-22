@@ -158,6 +158,13 @@ export default function Gamification() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {allChallenges.map((ch, i) => {
             const isActive = activeChallenges.has(ch.id);
+            let progress = 0;
+            if (ch.id === 'c1') progress = Math.min(100, Math.round(((h.sleepAvg || 0) / 7) * 100));
+            if (ch.id === 'c2') progress = f.expenses > 0 ? Math.max(0, 100 - Math.round((f.expenses / (f.income || 1)) * 100)) : 100;
+            if (ch.id === 'c3') progress = Math.min(100, Math.round(((c.dsaPractice || 0) / 5) * 100));
+            if (ch.id === 'c4') progress = Math.min(100, Math.round(((h.workoutsPerWeek || 0) / 5) * 100));
+            if (ch.id === 'c5') progress = Math.min(100, Math.round(((f.savings || 0) / Math.max(f.expenses || 1, 1)) * 100));
+
             return (
               <motion.div key={ch.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                 className={`p-4 rounded-xl border transition-all ${isActive ? 'bg-blue-500/5 border-blue-500/30' : 'bg-white/[0.02] border-white/[0.06] hover:border-blue-500/30'}`}>
@@ -172,10 +179,10 @@ export default function Gamification() {
                 {isActive && (
                   <div className="mb-3">
                     <div className="flex justify-between text-[10px] text-slate-500 mb-1">
-                      <span>Progress</span><span>{Math.floor(Math.random() * 60 + 20)}%</span>
+                      <span>Progress</span><span>{progress}%</span>
                     </div>
                     <div className="w-full h-1.5 rounded-full bg-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.floor(Math.random() * 60 + 20)}%` }} transition={{ duration: 1 }}
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1 }}
                         className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" />
                     </div>
                   </div>

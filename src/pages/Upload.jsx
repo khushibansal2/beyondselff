@@ -29,11 +29,13 @@ export default function Upload() {
   const [preview, setPreview] = useState(null);
   const [connectedApis, setConnectedApis] = useState(new Set());
   const [importHistory, setImportHistory] = useState([]);
+  const [githubModal, setGithubModal] = useState(false);
+  const [githubUsername, setGithubUsername] = useState('');
 
   const fetchHistory = async () => {
     if (!user || !token) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/uploads/history`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/uploads/history`, {
         headers: { 'Authorization': token }
       });
       if (res.ok) {
@@ -58,7 +60,7 @@ export default function Upload() {
     // userId is now extracted securely from the JWT token on the backend
 
     try {
-      const res = await fetch('http://localhost:8080/api/uploads', {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/uploads`, {
         method: 'POST',
         headers: { 'Authorization': token },
         body: formData,
@@ -95,7 +97,7 @@ export default function Upload() {
     setImporting(true);
     try {
       showToast(`Fetching ${preview.valid} records from ${preview.name}...`, 'info');
-      const res = await fetch(`http://localhost:8080/api/records/${preview.domain}/import/${preview.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/records/${preview.domain}/import/${preview.id}`, {
         headers: { 'Authorization': token }
       });
       if (!res.ok) throw new Error("Failed to fetch parsed records.");
@@ -165,40 +167,44 @@ export default function Upload() {
     fetchHistory(); // Refresh history table
   };
 
+  const submitGithub = async (e) => {
+    e.preventDefault();
+    setGithubModal(false);
+    if (!githubUsername) return;
+    setImporting(true);
+    try {
+      showToast(`Syncing with GitHub...`, 'info');
+      const res = await fetch(`${import.meta.env.VITE_API_BASE}/sync/github?githubUsername=${githubUsername}`, { 
+        method: 'POST',
+        headers: { 'Authorization': token }
+      });
+      
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      
+      setConnectedApis(prev => new Set(prev).add('GitHub'));
+      showToast(`Synced ${data.repos} repos and ${data.commits} commits from GitHub!`, 'success');
+      fetchHistory();
+      
+      setUserData({
+        health,
+        finance,
+        career: { ...career, projectsCompleted: (career.projectsCompleted || 0) + Math.floor(data.repos / 2) },
+        timeline: [{ type: 'positive', domain: 'career', message: `Synced GitHub: ${data.repos} repos`, date: new Date().toISOString() }, ...timeline],
+        goals: goals
+      }, 'imported');
+    } catch (err) {
+      showToast(`Failed to sync GitHub: ${err.message}`, 'error');
+    } finally {
+      setImporting(false);
+      setGithubUsername('');
+    }
+  };
+
   const toggleApi = async (name) => {
     if (name === 'GitHub' && !connectedApis.has(name)) {
       if (importing) return;
-      setImporting(true);
-      const username = window.prompt("Enter your GitHub username to sync:");
-      if (!username) { setImporting(false); return; }
-      
-      try {
-        showToast(`Syncing with GitHub...`, 'info');
-        const res = await fetch(`http://localhost:8080/api/sync/github?githubUsername=${username}`, { 
-          method: 'POST',
-          headers: { 'Authorization': token }
-        });
-        
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        
-        setConnectedApis(prev => new Set(prev).add(name));
-        showToast(`Synced ${data.repos} repos and ${data.commits} commits from GitHub!`, 'success');
-        fetchHistory();
-        
-        // Update dashboard immediately
-        setUserData({
-          health,
-          finance,
-          career: { ...career, projectsCompleted: (career.projectsCompleted || 0) + Math.floor(data.repos / 2) },
-          timeline: [{ type: 'positive', domain: 'career', message: `Synced GitHub: ${data.repos} repos`, date: new Date().toISOString() }, ...timeline],
-          goals: goals
-        }, 'imported');
-      } catch (err) {
-        showToast(`Failed to sync GitHub: ${err.message}`, 'error');
-      } finally {
-        setImporting(false);
-      }
+      setGithubModal(true);
       return;
     }
 
@@ -358,7 +364,7 @@ export default function Upload() {
               <button 
                 onClick={async () => {
                   if (h.id) {
-                    await fetch(`http://localhost:8080/api/uploads/${h.id}`, { method: 'DELETE' });
+                    await fetch(`${import.meta.env.VITE_API_BASE}/uploads/${h.id}`, { method: 'DELETE' });
                     fetchHistory();
                     showToast('Import deleted', 'info');
                   }
@@ -371,6 +377,33 @@ export default function Upload() {
           ))}
         </div>
       </GlassCard>
+
+      {/* GitHub Sync Modal */}
+      <AnimatePresence>
+        {githubModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#0f111a] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative">
+              <button onClick={() => setGithubModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+              <h3 className="text-xl font-bold mb-2">Connect GitHub</h3>
+              <p className="text-xs text-slate-400 mb-6">Enter your username to sync coding activity and project history.</p>
+              
+              <form onSubmit={submitGithub}>
+                <input 
+                  type="text" 
+                  value={githubUsername}
+                  onChange={(e) => setGithubUsername(e.target.value)}
+                  placeholder="e.g. torvalds"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 mb-4"
+                  autoFocus
+                  required
+                />
+                <button type="submit" className="w-full btn-primary py-3 rounded-xl text-sm font-medium">Sync Account</button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

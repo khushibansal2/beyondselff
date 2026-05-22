@@ -305,7 +305,7 @@ export default function Landing() {
             Start for Free →
           </Link>
           <p className="text-xs text-slate-600">
-            No setup required • Try demo: arjun@demo.com / demo123
+            No setup required
           </p>
         </motion.div>
       </section>

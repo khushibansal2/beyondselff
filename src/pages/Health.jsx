@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateTrendData } from '../data/demoData';
@@ -17,6 +17,9 @@ export default function Health() {
   const trendData = useMemo(() => generateTrendData(user, 30), [user]);
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
   const [visionLoading, setVisionLoading] = useState(false);
+  const [apiKeyModal, setApiKeyModal] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState('');
+  const [pendingFile, setPendingFile] = useState(null);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -42,18 +45,15 @@ export default function Health() {
   };
 
   const handleMealScan = async (e) => {
-    const file = e.target.files[0];
+    const file = e?.target?.files?.[0] || pendingFile;
     if (!file) return;
 
     let apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) {
-      apiKey = window.prompt("To use REAL Computer Vision, please enter your Gemini API Key.\n(It will be stored locally in your browser)");
-      if (apiKey) {
-        localStorage.setItem('gemini_api_key', apiKey);
-      } else {
-        e.target.value = '';
-        return; // User cancelled
-      }
+      setPendingFile(file);
+      setApiKeyModal(true);
+      if (e?.target) e.target.value = '';
+      return;
     }
 
     setVisionLoading(true);
@@ -71,7 +71,17 @@ export default function Health() {
       }
     } finally {
       setVisionLoading(false);
-      e.target.value = '';
+      setPendingFile(null);
+      if (e?.target) e.target.value = '';
+    }
+  };
+
+  const submitApiKey = (e) => {
+    e.preventDefault();
+    if (tempApiKey) {
+      localStorage.setItem('gemini_api_key', tempApiKey);
+      setApiKeyModal(false);
+      handleMealScan({ target: { files: [pendingFile] } });
     }
   };
 
@@ -318,6 +328,33 @@ export default function Health() {
           ))}
         </div>
       )}
+
+      {/* API Key Modal */}
+      <AnimatePresence>
+        {apiKeyModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#0f111a] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative">
+              <button onClick={() => { setApiKeyModal(false); setPendingFile(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+              <h3 className="text-xl font-bold mb-2">Gemini API Key</h3>
+              <p className="text-xs text-slate-400 mb-6">Enter your API key to use real computer vision. It is stored locally in your browser.</p>
+              
+              <form onSubmit={submitApiKey}>
+                <input 
+                  type="password" 
+                  value={tempApiKey}
+                  onChange={(e) => setTempApiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 mb-4"
+                  autoFocus
+                  required
+                />
+                <button type="submit" className="w-full btn-primary py-3 rounded-xl text-sm font-medium">Save & Scan</button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

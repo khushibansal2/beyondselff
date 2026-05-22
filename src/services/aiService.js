@@ -10,7 +10,7 @@
  * - No medical diagnoses, no guaranteed financial promises, no impossible predictions
  */
 
-const API_BASE = 'http://localhost:8080/api/ai';
+const API_BASE = import.meta.env.VITE_API_BASE + '/ai';
 
 /** Strip PII from user data before sending to AI. */
 function stripPII(data) {
