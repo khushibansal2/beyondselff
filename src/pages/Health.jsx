@@ -36,9 +36,6 @@ export default function Health() {
   const trendData = useMemo(() => generateTrendData(user, 30), [user]);
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
   const [visionLoading, setVisionLoading] = useState(false);
-  const [apiKeyModal, setApiKeyModal] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState('');
-  const [pendingFile, setPendingFile] = useState(null);
 
   const currentState = useMemo(() => ({
     health: h,
@@ -75,43 +72,22 @@ export default function Health() {
   };
 
   const handleMealScan = async (e) => {
-    const file = e?.target?.files?.[0] || pendingFile;
+    const file = e?.target?.files?.[0];
     if (!file) return;
 
-    let apiKey = localStorage.getItem('gemini_api_key');
-    if (!apiKey) {
-      setPendingFile(file);
-      setApiKeyModal(true);
-      if (e?.target) e.target.value = '';
-      return;
-    }
-
     setVisionLoading(true);
-    showToast("Analyzing meal...", "info");
+    showToast("Analyzing meal with AI Agent...", "info");
 
     try {
-      const result = await analyzeMealImage(file, apiKey);
+      const result = await analyzeMealImage(file);
       setForm(prev => ({ ...prev, calories: result.calories.toString() }));
       showToast(`Detected: ${result.foodName} (${result.calories} kcal). Macros: ${result.protein}g P / ${result.carbs}g C / ${result.fat}g F`, "success", 6000);
     } catch (error) {
       console.error(error);
       showToast(error.message || "Failed to analyze image.", "error");
-      if (error.message.includes("API key")) {
-        localStorage.removeItem('gemini_api_key'); // clear invalid key
-      }
     } finally {
       setVisionLoading(false);
-      setPendingFile(null);
-      if (e?.target) e.target.value = '';
-    }
-  };
-
-  const submitApiKey = (e) => {
-    e.preventDefault();
-    if (tempApiKey) {
-      localStorage.setItem('gemini_api_key', tempApiKey);
-      setApiKeyModal(false);
-      handleMealScan({ target: { files: [pendingFile] } });
+      e.target.value = '';
     }
   };
 
@@ -486,32 +462,6 @@ export default function Health() {
         </div>
       )}
 
-      {/* API Key Modal */}
-      <AnimatePresence>
-        {apiKeyModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#0f111a] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative">
-              <button onClick={() => { setApiKeyModal(false); setPendingFile(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-              <h3 className="text-xl font-bold mb-2">Gemini API Key</h3>
-              <p className="text-xs text-slate-400 mb-6">Enter your API key to use real computer vision. It is stored locally in your browser.</p>
-              
-              <form onSubmit={submitApiKey}>
-                <input 
-                  type="password" 
-                  value={tempApiKey}
-                  onChange={(e) => setTempApiKey(e.target.value)}
-                  placeholder="AIzaSy..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 mb-4"
-                  autoFocus
-                  required
-                />
-                <button type="submit" className="w-full btn-primary py-3 rounded-xl text-sm font-medium">Save & Scan</button>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
