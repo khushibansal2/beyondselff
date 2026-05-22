@@ -1,0 +1,6 @@
+TransactionDate,Amount,Category,Description,TransactionType
+2026-05-01,15.50,Food,Starbucks Coffee,Debit
+2026-05-02,45.00,Transport,Uber Ride,Debit
+2026-05-03,120.00,Health,Pharmacy,Debit
+2026-05-04,2000.00,Income,Salary,Credit
+2026-05-05,25.00,Entertainment,Netflix Subscription,Debit
