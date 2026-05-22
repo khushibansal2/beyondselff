@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
 import Sidebar from './components/layout/Sidebar';
-import TopNavbar from './components/layout/TopNavbar';
 import Landing from './pages/Landing';
 import { Login, Signup } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -15,7 +14,6 @@ import Simulator from './pages/Simulator';
 import Insights from './pages/Insights';
 import Coach from './pages/Coach';
 import Gamification from './pages/Gamification';
-import Sustainability from './pages/Sustainability';
 import Upload from './pages/Upload';
 import Settings from './pages/Settings';
 
@@ -27,16 +25,11 @@ function ProtectedRoute() {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <div className="flex min-h-screen bg-[#09090b]">
+    <div className="flex min-h-screen bg-[#0a0a0f]">
       <Sidebar />
-      <div className="flex-1 min-w-0 flex flex-col">
-        <div className="hidden lg:block">
-          <TopNavbar />
-        </div>
-        <main className="flex-1 min-w-0 overflow-y-auto">
-          <Outlet />
-        </main>
-      </div>
+      <main className="flex-1 min-w-0">
+        <Outlet />
+      </main>
     </div>
   );
 }
@@ -69,7 +62,6 @@ export default function App() {
             <Route path="/insights" element={<Insights />} />
             <Route path="/coach" element={<Coach />} />
             <Route path="/gamification" element={<Gamification />} />
-            <Route path="/sustainability" element={<Sustainability />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

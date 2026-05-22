@@ -4,9 +4,8 @@ export const demoUsers = {
     id: 'demo-1', name: 'Arjun Mehta', email: 'arjun@demo.com', password: 'demo123',
     avatar: '🧑‍💻', role: 'user', persona: 'Stressed Student',
     health: { sleepAvg: 5.2, stressLevel: 8, moodAvg: 4, workoutsPerWeek: 1, waterIntake: 4, calories: 2800, bmi: 24.5 },
-    finance: { income: 150000, expenses: 135000, savings: 80000, investments: 120000, subscriptions: 3200, debt: 0, portfolio: { equity: 80000, debt: 15000, gold: 20000, cash: 5000 } },
+    finance: { income: 15000, expenses: 13500, savings: 8000, investments: 0, subscriptions: 3200, debt: 0 },
     career: { studyHoursDaily: 6, codingHoursDaily: 4, dsaPractice: 2, coursesActive: 3, projectsCompleted: 2, skills: ['JavaScript','Python','React'], gpa: 7.8 },
-    sustainability: { carbonFootprint: { transport: 180, energy: 110, food: 95 }, ecoActions: [] },
     goals: [
       { id: 'g1', title: 'Crack FAANG Internship', domain: 'career', progress: 35, deadline: '2026-08-01', milestones: ['DSA 200 problems','System Design basics','3 Projects','Mock interviews'] },
       { id: 'g2', title: 'Fix Sleep Schedule', domain: 'health', progress: 20, deadline: '2026-06-15', milestones: ['Sleep by 11pm','No screens after 10pm','Morning routine'] }
@@ -23,9 +22,8 @@ export const demoUsers = {
     id: 'demo-2', name: 'Priya Sharma', email: 'priya@demo.com', password: 'demo123',
     avatar: '💪', role: 'user', persona: 'Fitness-Focused Learner',
     health: { sleepAvg: 7.5, stressLevel: 4, moodAvg: 7.5, workoutsPerWeek: 5, waterIntake: 8, calories: 2200, bmi: 22.1 },
-    finance: { income: 200000, expenses: 140000, savings: 450000, investments: 850000, subscriptions: 1500, debt: 0, portfolio: { equity: 600000, debt: 150000, gold: 50000, cash: 50000 } },
+    finance: { income: 20000, expenses: 14000, savings: 45000, investments: 15000, subscriptions: 1500, debt: 0 },
     career: { studyHoursDaily: 4, codingHoursDaily: 3, dsaPractice: 1, coursesActive: 2, projectsCompleted: 5, skills: ['Python','ML','Data Science','SQL'], gpa: 8.5 },
-    sustainability: { carbonFootprint: { transport: 60, energy: 75, food: 40 }, ecoActions: [{ action: 'Cycled to work', points: 15 }] },
     goals: [
       { id: 'g3', title: 'Run Half Marathon', domain: 'health', progress: 60, deadline: '2026-09-01', milestones: ['5K done','10K done','15K run','21K race'] },
       { id: 'g4', title: 'ML Engineer Role', domain: 'career', progress: 45, deadline: '2026-12-01', milestones: ['ML foundations','Deep learning','3 ML projects','Portfolio'] }
@@ -40,9 +38,8 @@ export const demoUsers = {
     id: 'demo-3', name: 'Rahul Verma', email: 'rahul@demo.com', password: 'demo123',
     avatar: '💸', role: 'user', persona: 'Overspending User',
     health: { sleepAvg: 6.5, stressLevel: 6, moodAvg: 5.5, workoutsPerWeek: 2, waterIntake: 5, calories: 2600, bmi: 26.3 },
-    finance: { income: 250000, expenses: 240000, savings: 50000, investments: 20000, subscriptions: 5500, debt: 120000, portfolio: { equity: 5000, debt: 0, gold: 0, cash: 15000 } },
+    finance: { income: 25000, expenses: 24000, savings: 5000, investments: 0, subscriptions: 5500, debt: 12000 },
     career: { studyHoursDaily: 3, codingHoursDaily: 2, dsaPractice: 0, coursesActive: 1, projectsCompleted: 1, skills: ['HTML','CSS','JavaScript'], gpa: 7.2 },
-    sustainability: { carbonFootprint: { transport: 250, energy: 180, food: 140 }, ecoActions: [] },
     goals: [
       { id: 'g5', title: 'Save ₹1 Lakh', domain: 'finance', progress: 5, deadline: '2026-12-31', milestones: ['Track expenses','Cut subscriptions','₹25K saved','₹50K saved','₹1L saved'] },
       { id: 'g6', title: 'Learn Full Stack', domain: 'career', progress: 25, deadline: '2026-10-01', milestones: ['React basics','Node.js','Database','Full project'] }
@@ -57,9 +54,8 @@ export const demoUsers = {
     id: 'demo-4', name: 'Sneha Reddy', email: 'sneha@demo.com', password: 'demo123',
     avatar: '🔥', role: 'user', persona: 'Burnout-Risk Student',
     health: { sleepAvg: 4.8, stressLevel: 9, moodAvg: 3.5, workoutsPerWeek: 0, waterIntake: 3, calories: 3000, bmi: 23.8 },
-    finance: { income: 120000, expenses: 110000, savings: 30000, investments: 40000, subscriptions: 2000, debt: 50000, portfolio: { equity: 20000, debt: 10000, gold: 0, cash: 10000 } },
+    finance: { income: 12000, expenses: 11000, savings: 3000, investments: 0, subscriptions: 2000, debt: 5000 },
     career: { studyHoursDaily: 10, codingHoursDaily: 8, dsaPractice: 5, coursesActive: 5, projectsCompleted: 4, skills: ['Java','C++','Python','React','Node.js','SQL','AWS'], gpa: 9.1 },
-    sustainability: { carbonFootprint: { transport: 40, energy: 220, food: 150 }, ecoActions: [] },
     goals: [
       { id: 'g7', title: 'Crack Google Interview', domain: 'career', progress: 55, deadline: '2026-07-15', milestones: ['400 DSA problems','System Design','OS concepts','Mock interviews','Apply'] },
     ],
@@ -74,9 +70,8 @@ export const demoUsers = {
     id: 'demo-5', name: 'Karthik Nair', email: 'karthik@demo.com', password: 'demo123',
     avatar: '🎯', role: 'user', persona: 'Placement-Focused Coder',
     health: { sleepAvg: 6.5, stressLevel: 6, moodAvg: 6, workoutsPerWeek: 3, waterIntake: 6, calories: 2400, bmi: 23.0 },
-    finance: { income: 180000, expenses: 120000, savings: 300000, investments: 500000, subscriptions: 1800, debt: 0, portfolio: { equity: 400000, debt: 50000, gold: 20000, cash: 30000 } },
+    finance: { income: 18000, expenses: 12000, savings: 30000, investments: 10000, subscriptions: 1800, debt: 0 },
     career: { studyHoursDaily: 5, codingHoursDaily: 5, dsaPractice: 3, coursesActive: 2, projectsCompleted: 6, skills: ['Java','Python','React','Spring Boot','MongoDB','Docker'], gpa: 8.2 },
-    sustainability: { carbonFootprint: { transport: 100, energy: 90, food: 80 }, ecoActions: [] },
     goals: [
       { id: 'g8', title: 'Get ₹15LPA+ Package', domain: 'career', progress: 50, deadline: '2026-09-01', milestones: ['300 DSA','System Design','Projects portfolio','Resume ready','Mock interviews'] },
       { id: 'g9', title: 'Build Emergency Fund', domain: 'finance', progress: 40, deadline: '2026-12-01', milestones: ['₹10K saved','₹25K saved','₹50K saved'] }
@@ -106,7 +101,6 @@ export function generateTrendData(user, days = 30) {
       studyHours: Math.max(0, user.career.studyHoursDaily + noise()),
       workoutDone: Math.random() > (1 - user.health.workoutsPerWeek / 7),
       water: Math.max(1, Math.min(12, base.waterIntake + noise())),
-      carbon: Math.max(0, (user.sustainability?.carbonFootprint?.transport || 100) + (user.sustainability?.carbonFootprint?.energy || 100) + (user.sustainability?.carbonFootprint?.food || 80) + noise() * 20),
     });
   }
   return data;
