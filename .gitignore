@@ -4,4 +4,3 @@ target/
 .env
 dist/
 build/
-telegram_repo/
