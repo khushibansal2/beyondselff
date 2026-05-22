@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+target/
+.env
+dist/
+build/
+telegram_repo/
