@@ -56,25 +56,25 @@ const NeuralCore = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <GlassCard className="p-6 border-cyan-500/20 bg-cyan-950/5">
-          <h3 className="text-[10px] uppercase tracking-[0.2em] mb-6 text-[#9B9B9B]">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] mb-6 text-slate-500">
             Global State Tensors
           </h3>
 
           <div className="space-y-4 mb-10">
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-[#9B9B9B]">FINANCE:</span>
+              <span className="text-slate-400">FINANCE:</span>
               <span className="text-white">
                 ₹{parseFloat(income).toLocaleString()}
               </span>
             </div>
 
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-[#9B9B9B]">HEALTH:</span>
+              <span className="text-slate-400">HEALTH:</span>
               <span className="text-white">{healthScore}%</span>
             </div>
 
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-[#9B9B9B]">CAREER EFFORT:</span>
+              <span className="text-slate-400">CAREER EFFORT:</span>
               <span className="text-white">{careerHours} hrs/day</span>
             </div>
           </div>

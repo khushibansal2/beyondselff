@@ -10,6 +10,7 @@
 import { safeNum } from '../utils/safeMath.js';
 
 /**
+ * changed ai
  * Calculate career score from career data.
  * Returns: { score, factors[], placementReadiness, trends[], sources[] }
  */

@@ -6,5 +6,4 @@ import java.util.List;
 
 public interface CareerRecordRepository extends JpaRepository<CareerRecord, Long> {
     List<CareerRecord> findByImportId(Long importId);
-    List<CareerRecord> findByUserId(String userId);
 }

@@ -10,11 +10,6 @@ import { generateTrendData, generateCorrelations, generateInsights } from '../da
 import { computeHealthScore } from '../engines/healthScoreEngine';
 import { computeFinanceScore } from '../engines/financeScoreEngine';
 import { computeCareerScore } from '../engines/careerScoreEngine';
-import {
-  Brain, Dna, Search, ClipboardList, Zap, CalendarDays, Link2,
-  Moon, Flame, PiggyBank, BookOpen, Heart, DollarSign, GraduationCap,
-  MessageSquare, AlertTriangle, BedDouble, Smartphone
-} from 'lucide-react';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -77,7 +72,7 @@ export default function Dashboard() {
     // Return top 3 highest priority tasks
     return tasks.slice(0, 3);
   }, [h, f, c]);
-
+  
   // Use deterministic alerts from lifeBalanceEngine via DataContext
   const urgentAlerts = [
     ...(computed?.urgentAlerts || []),
@@ -95,12 +90,12 @@ export default function Dashboard() {
   // Generate fallback data for charts/insights if records are missing
   const trendData = useMemo(() => generateTrendData(currentState, 14), [currentState]);
   const correlations = useMemo(() => generateCorrelations(trendData), [trendData]);
-
+  
   // Convert crossDomain deterministic relationships into insights
   const insights = useMemo(() => {
     // Generate basic insights from demoData for UI population
     const baseInsights = generateInsights(currentState);
-
+    
     // Prepend deterministic cross-domain relationships
     const crossInsights = crossDomain.map(cd => ({
       type: cd.severity === 'critical' ? 'critical' : cd.severity === 'warning' ? 'alert' : 'positive',
@@ -110,7 +105,7 @@ export default function Dashboard() {
       domains: [cd.from, cd.to],
       confidence: 100 // deterministic
     }));
-
+    
     return [...crossInsights, ...baseInsights].slice(0, 5);
   }, [user, crossDomain]);
 
@@ -119,30 +114,30 @@ export default function Dashboard() {
     async function fetchNarrative() {
       // Create a hash to avoid refetching for the same state
       const hash = `${lifeBalance}-${healthScore}-${financeScore}-${careerScore}-${burnoutRisk}`;
-
+      
       if (aiCache.dashboardNarrative && aiCache.dashboardNarrativeHash === hash) {
         setAiNarrative(aiCache.dashboardNarrative);
         return;
       }
-
+      
       if (!computed?.hasData) return;
-
+      
       setNarrativeLoading(true);
       const res = await generateNarrative(computed, 'dashboard');
       setAiNarrative(res.narrative);
       updateAICache({ dashboardNarrative: res.narrative, dashboardNarrativeHash: hash });
       setNarrativeLoading(false);
     }
-
+    
     fetchNarrative();
   }, [computed, aiCache.dashboardNarrative, aiCache.dashboardNarrativeHash, updateAICache, lifeBalance, healthScore, financeScore, careerScore, burnoutRisk]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
       return (
-        <div className="border border-white/[0.10] p-4 rounded-2xl text-xs" style={{ background: 'rgba(12,12,15,0.92)', backdropFilter: 'blur(20px)', boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)' }}>
-          <p className="text-[#71717a] mb-2 font-medium">{label}</p>
-          {payload.map(p => <p key={p.name} className="py-0.5" style={{ color: p.color }}>{p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}</p>)}
+        <div className="glass-strong p-3 rounded-xl text-xs">
+          <p className="text-slate-400 mb-1">{label}</p>
+          {payload.map(p => <p key={p.name} style={{ color: p.color }}>{p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}</p>)}
         </div>
       );
     }
@@ -152,84 +147,79 @@ export default function Dashboard() {
   const sleepCascade = crossDomain.find(cd => cd.id === 'sleep-productivity');
 
   return (
-    <div className="page-container min-h-screen pb-20 bg-mesh">
-      <PageHeader title="Dashboard" subtitle={`Welcome back, ${user?.name || 'User'}. Here's your AI-powered life overview.`} />
+    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+      <PageHeader title="Your Digital Twin Today" subtitle={`Welcome back, ${user?.name || 'User'}. Here's your AI-powered life overview.`} icon="🧬" />
 
       {/* Digital Twin Summary Banner */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-20 lg:mb-28">
-        <div className="dash-hero">
-          <div className="flex items-start gap-6 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0" style={{ boxShadow: '0 0 20px rgba(99,102,241,0.15)' }}>
-              <Dna size={22} className="text-indigo-400" />
-            </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+        <div className="glass-card p-5 rounded-2xl border border-white/[0.06]" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(139,92,246,0.05) 50%, rgba(6,182,212,0.05) 100%)' }}>
+          <div className="flex items-start gap-4 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-2xl flex-shrink-0">🧬</div>
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-[15px] font-semibold text-[#f0f0f3]">Digital Twin Analysis</h3>
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />Live</span>
-              </div>
+              <h3 className="text-sm font-semibold mb-1" style={{ fontFamily: 'var(--font-display)' }}>Your Digital Twin Analysis</h3>
               {narrativeLoading ? (
-                <div className="flex items-center gap-3 text-[13px] text-[#71717a] mt-3">
-                  <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                  Generating AI narrative...
+                <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
+                  <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                  Generating AI narrative from your data...
                 </div>
               ) : aiNarrative ? (
-                <p className="text-[13px] text-[#a1a1aa] leading-relaxed mt-2">"{aiNarrative}"</p>
+                <p className="text-xs text-slate-300 italic mb-2 leading-relaxed">"{aiNarrative}"</p>
               ) : (
-                <p className="text-[13px] text-[#a1a1aa] leading-relaxed mt-2">
-                  Life balance is <strong className={lifeBalance >= 60 ? 'text-[#22c55e]' : 'text-[#f59e0b]'}>{lifeBalance}/100</strong>.
-                  {' '}Weakest area: <strong className="text-[#f59e0b] capitalize">{weakestDomain}</strong> at {computed?.[`${weakestDomain}Score`]?.score}/100.
-                  {burnoutRisk > 50 ? ` Burnout risk at ${burnoutRisk}%.` : ''}
+                <p className="text-xs text-slate-400">
+                  Your life balance is <strong className={lifeBalance >= 60 ? 'text-emerald-400' : 'text-amber-400'}>{lifeBalance}/100</strong>.
+                  {' '}Your weakest area is <strong className="text-amber-400 capitalize">{weakestDomain}</strong> at {computed?.[`${weakestDomain}Score`]?.score}/100.
+                  {burnoutRisk > 50 ? ` Burnout risk is ${burnoutRisk}% — this needs attention.` : ' Keep up the good work!'}
                 </p>
               )}
             </div>
           </div>
           {urgentAlerts.length > 0 && (
-            <div className="space-y-3 mb-6">
+            <div className="space-y-1.5 mb-3">
               {urgentAlerts.map((u, i) => (
-                <div key={i} className="text-[12px] text-[#ef4444] p-4 rounded-xl bg-[rgba(239,68,68,0.04)] border border-[rgba(239,68,68,0.08)]">{u.icon} {u.text}</div>
+                <div key={i} className="text-xs text-red-300/80 p-2 rounded-lg bg-red-500/5 border border-red-500/10">{u.icon} {u.text}</div>
               ))}
             </div>
           )}
           {positiveSignals.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {positiveSignals.map((p, i) => (
-                <span key={i} className="text-[11px] text-[#22c55e] px-3 py-1.5 rounded-lg bg-[rgba(34,197,94,0.05)] border border-[rgba(34,197,94,0.08)] font-medium">{p.icon} {p.text}</span>
+                <span key={i} className="text-[10px] text-emerald-300/80 px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">{p.icon} {p.text}</span>
               ))}
             </div>
           )}
         </div>
       </motion.div>
 
-      {/* 14-Day Pattern Alert */}
+      {/* 14-Day Pattern Alert (from Deterministic Cross-Domain) */}
       {sleepCascade && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-20 lg:mb-28">
-          <div className="rounded-xl border border-red-500/10 bg-red-500/[0.02] overflow-hidden">
-            <div className="flex items-center gap-3 px-7 py-5 border-b border-red-500/8 bg-red-500/[0.03]">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6">
+          <div className="rounded-2xl border border-red-500/25 bg-red-500/5 overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-3 border-b border-red-500/15 bg-red-500/5">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
-              <span className="text-[11px] text-red-300 font-semibold uppercase tracking-wider flex items-center gap-2"><Brain size={13} /> AI Pattern Detected</span>
-              <span className="ml-auto text-[10px] text-[#52525b] font-medium">Deterministic • Cross-domain</span>
+              <span className="text-[10px] text-red-300 font-semibold uppercase tracking-wider">🧠 AI Pattern Detected</span>
+              <span className="ml-auto text-[10px] text-slate-600">Deterministic • Cross-domain</span>
             </div>
-            <div className="p-8 lg:p-12">
-              <h3 className="text-[15px] font-bold text-[#f0f0f3] mb-5">Sleep–Productivity Cascade Active</h3>
-              <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-10">
-                Poor sleep quality (<strong className="text-[#f0f0f3]">{h.sleepAvg}h avg</strong>) has reduced cognitive consistency, leading to lower coding productivity. {sleepCascade.mechanism}
+            <div className="p-5">
+              <h3 className="text-sm font-bold text-white mb-2">Sleep–Productivity Cascade Active</h3>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                Your Digital Twin detected a recurring pattern: poor sleep quality (<strong className="text-white">{h.sleepAvg}h avg</strong>) has reduced cognitive consistency, leading to lower coding productivity. {sleepCascade.mechanism}
               </p>
-              <div className="space-y-4 mb-10">
-                <p className="section-label mb-6">Recommended Recovery Path</p>
+              <div className="space-y-2 mb-4">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Recommended Recovery Path</p>
                 {[
-                  { lucideIcon: BedDouble, action: `Increase sleep by ${Math.max(1, (7 - h.sleepAvg)).toFixed(1)} hours`, impact: `Avoid ${sleepCascade.computedImpact?.productivityLoss || 0}% productivity loss` },
-                  { lucideIcon: Smartphone, action: 'Reduce evening screen time', impact: 'Faster sleep onset' },
+                  { icon: '😴', action: `Increase sleep by ${Math.max(1, (7 - h.sleepAvg)).toFixed(1)} hours`, impact: `Avoid ${sleepCascade.computedImpact?.productivityLoss || 0}% productivity loss` },
+                  { icon: '📱', action: 'Reduce evening screen time', impact: 'Faster sleep onset' },
                 ].map((r, i) => (
-                  <div key={i} className="flex items-center gap-4 p-5 lg:p-6 rounded-xl border border-white/[0.06] transition-all hover:border-white/[0.10]" style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
-                    <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center flex-shrink-0"><r.lucideIcon size={16} className="text-[#a1a1aa]" /></div>
-                    <p className="text-[13px] text-[#a1a1aa] flex-1">• {r.action}</p>
-                    <span className="text-[10px] text-[#22c55e] bg-[rgba(34,197,94,0.06)] px-3 py-1 rounded-lg flex-shrink-0 whitespace-nowrap font-medium">{r.impact}</span>
+                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                    <span className="text-base flex-shrink-0">{r.icon}</span>
+                    <p className="text-xs text-slate-300 flex-1">• {r.action}</p>
+                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{r.impact}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3 pt-2">
-                <Link to="/coach" className="text-[12px] px-5 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:text-white hover:bg-indigo-500/20 transition-all font-medium flex items-center gap-2">
-                  <MessageSquare size={13} /> Ask AI Coach →
+              <div className="flex gap-3">
+                <Link to="/coach" className="text-xs px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-all">
+                  Ask AI Coach
                 </Link>
               </div>
             </div>
@@ -238,61 +228,79 @@ export default function Dashboard() {
       )}
 
       {/* Score Rings */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-6 lg:gap-8 mb-20 lg:mb-28">
-        <GlassCard className="flex justify-center py-10">
-          <ScoreRing score={healthScore} color="auto" label="Health" delay={0} size={130} />
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <GlassCard className="flex justify-center" glow="glow-emerald">
+          <ScoreRing score={healthScore} color="auto" label="Health" delay={0} />
         </GlassCard>
-        <GlassCard className="flex justify-center py-10">
-          <ScoreRing score={financeScore} color="auto" label="Finance" delay={100} size={130} />
+        <GlassCard className="flex justify-center" glow="glow-amber">
+          <ScoreRing score={financeScore} color="auto" label="Finance" delay={100} />
         </GlassCard>
-        <GlassCard className="flex justify-center py-10">
-          <ScoreRing score={careerScore} color="auto" label="Career" delay={200} size={130} />
+        <GlassCard className="flex justify-center" glow="glow-blue">
+          <ScoreRing score={careerScore} color="auto" label="Career" delay={200} />
         </GlassCard>
-        <GlassCard className="flex justify-center py-10">
-          <ScoreRing score={lifeBalance} color="auto" label="Balance" delay={300} size={130} />
+        <GlassCard className="flex justify-center" glow="glow-purple">
+          <ScoreRing score={lifeBalance} color="auto" label="Life Balance" delay={300} />
         </GlassCard>
-        <GlassCard className="flex justify-center py-10 col-span-2 md:col-span-1">
-          <ScoreRing score={burnoutRisk} color={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f59e0b' : '#22c55e'} label="Burnout" delay={400} size={130} />
+        <GlassCard className={`flex justify-center col-span-2 md:col-span-1 ${burnoutRisk > 60 ? 'glow-rose' : ''}`}>
+          <ScoreRing score={burnoutRisk} color={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f59e0b' : '#10b981'} label="Burnout Risk" delay={400} />
         </GlassCard>
       </div>
 
-      {/* Explainable AI Score Panels */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-20 lg:mb-28">
-        <h3 className="dash-section-title mb-12 lg:mb-14">
-          <Search size={14} className="text-indigo-400" /> Explainable AI — Score Breakdown
-          <span className="dash-badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Advanced</span>
+      {/* Explainable AI Score Panels — always visible, shows defaults if no data logged */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
+        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+          <span className="text-lg">🔍</span> Explainable AI — Why Your Scores
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Advanced Feature</span>
         </h3>
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-10">
-          <ExplainableScorePanel title="Health Score" score={healthScore} factors={explainFactors.health} color="#22c55e" icon="❤️" />
-          <ExplainableScorePanel title="Finance Score" score={financeScore} factors={explainFactors.finance} color="#f59e0b" icon="💰" />
-          <ExplainableScorePanel title="Career Score" score={careerScore} factors={explainFactors.career} color="#3b82f6" icon="🎯" />
+        <div className="grid md:grid-cols-3 gap-4">
+          <ExplainableScorePanel
+            title="Health Score"
+            score={healthScore}
+            factors={explainFactors.health}
+            color="#10b981"
+            icon="❤️"
+          />
+          <ExplainableScorePanel
+            title="Finance Score"
+            score={financeScore}
+            factors={explainFactors.finance}
+            color="#f59e0b"
+            icon="💰"
+          />
+          <ExplainableScorePanel
+            title="Career Score"
+            score={careerScore}
+            factors={explainFactors.career}
+            color="#3b82f6"
+            icon="🎯"
+          />
         </div>
       </motion.div>
 
-      <div className="grid lg:grid-cols-3 gap-12 lg:gap-14 mb-20 lg:mb-28">
+      <div className="grid lg:grid-cols-3 gap-6 mb-8">
         {/* Metrics + Chart */}
-        <div className="lg:col-span-2 space-y-10 lg:space-y-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-7">
-            <MetricCard icon={<Moon size={20} className="text-violet-400" />} label="Avg Sleep" value={`${h.sleepAvg || 0}h`} change={h.sleepAvg >= 7 ? 5 : -12} color="#a78bfa" delay={0} />
-            <MetricCard icon={<Flame size={20} className="text-rose-400" />} label="Stress" value={`${h.stressLevel || 0}/10`} change={h.stressLevel <= 5 ? 8 : -15} color="#f43f5e" delay={100} />
-            <MetricCard icon={<PiggyBank size={20} className="text-emerald-400" />} label="Savings" value={`${computed?.financeScore?.summary?.savingsRate || 0}%`} change={f.income > f.expenses ? 5 : -10} color="#22c55e" delay={200} />
-            <MetricCard icon={<BookOpen size={20} className="text-indigo-400" />} label="Study" value={`${c.studyHoursDaily || 0}h/day`} change={c.studyHoursDaily >= 4 ? 10 : -5} color="#818cf8" delay={300} />
+        <div className="lg:col-span-2 space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <MetricCard icon="😴" label="Avg Sleep" value={`${h.sleepAvg || 0}h`} change={h.sleepAvg >= 7 ? 5 : -12} color="#8b5cf6" delay={0} />
+            <MetricCard icon="😰" label="Stress" value={`${h.stressLevel || 0}/10`} change={h.stressLevel <= 5 ? 8 : -15} color="#f43f5e" delay={100} />
+            <MetricCard icon="💵" label="Savings Rate" value={`${computed?.financeScore?.summary?.savingsRate || 0}%`} change={f.income > f.expenses ? 5 : -10} color="#10b981" delay={200} />
+            <MetricCard icon="📊" label="Study Hours" value={`${c.studyHoursDaily || 0}h/day`} change={c.studyHoursDaily >= 4 ? 10 : -5} color="#3b82f6" delay={300} />
           </div>
 
           {/* Trend Chart */}
           <GlassCard>
-            <h3 className="dash-section-title mb-10"><CalendarDays size={14} className="text-indigo-400" /> 14-Day Trends</h3>
-            <div className="h-72">
+            <h3 className="text-sm font-semibold mb-4" style={{ fontFamily: 'var(--font-display)' }}>14-Day Trends</h3>
+            <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData}>
                   <defs>
-                    <linearGradient id="sleepG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#a78bfa" stopOpacity={0.2} /><stop offset="95%" stopColor="#a78bfa" stopOpacity={0} /></linearGradient>
-                    <linearGradient id="stressG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} /><stop offset="95%" stopColor="#f43f5e" stopOpacity={0} /></linearGradient>
-                    <linearGradient id="prodG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="sleepG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/></linearGradient>
+                    <linearGradient id="stressG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient>
+                    <linearGradient id="prodG" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
                   </defs>
-                  <XAxis dataKey="date" tick={{ fill: '#3f3f46', fontSize: 11 }} tickFormatter={v => v.slice(5)} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 10 }} tickFormatter={v => v.slice(5)} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="url(#sleepG)" strokeWidth={2} name="Sleep" />
+                  <Area type="monotone" dataKey="sleep" stroke="#8b5cf6" fill="url(#sleepG)" strokeWidth={2} name="Sleep" />
                   <Area type="monotone" dataKey="stress" stroke="#f43f5e" fill="url(#stressG)" strokeWidth={2} name="Stress" />
                   <Area type="monotone" dataKey="productivity" stroke="#3b82f6" fill="url(#prodG)" strokeWidth={2} name="Productivity" />
                 </AreaChart>
@@ -302,15 +310,15 @@ export default function Dashboard() {
         </div>
 
         {/* AI Insights */}
-        <div className="space-y-8">
-          <h3 className="dash-section-title">
-            <Brain size={14} className="text-purple-400" /> AI Insights
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+            <span className="text-lg">🧠</span> Deterministic Insights
           </h3>
-          <div className="space-y-6 max-h-[640px] overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
             {insights.map((insight, i) => <InsightCard key={i} insight={insight} index={i} />)}
             {insights.length === 0 && (
-              <div className="p-10 rounded-xl bg-[#141416] text-center text-[13px] text-[#52525b] border border-white/[0.06]">
-                <span className="text-3xl block mb-4">✨</span>
+              <div className="p-4 rounded-xl bg-white/[0.02] text-center text-xs text-slate-500">
+                <span className="text-2xl block mb-2">✨</span>
                 All clear! No critical insights right now.
               </div>
             )}
@@ -318,47 +326,44 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 mb-20 lg:mb-28">
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
         {/* Activity Timeline */}
         <GlassCard>
-          <h3 className="dash-section-title mb-10">
-            <CalendarDays size={14} className="text-indigo-400" /> Recent Activity
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+            <span>📅</span> Recent Activity
           </h3>
-          <div className="space-y-8">
+          <div className="space-y-3">
             {(timeline || []).slice(0, 6).map((item, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                className="flex items-start gap-4 text-[13px]">
-                <div className="flex flex-col items-center flex-shrink-0">
-                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${item.sentiment === 'positive' ? 'bg-emerald-400' : item.sentiment === 'negative' ? 'bg-red-400' : 'bg-zinc-700'}`} />
-                  {i < 5 && <div className="w-px h-8 bg-white/[0.04] mt-1" />}
-                </div>
+                className="flex items-start gap-3 text-sm">
+                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${item.sentiment === 'positive' ? 'bg-emerald-400' : item.sentiment === 'negative' ? 'bg-red-400' : 'bg-slate-500'}`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#a1a1aa] leading-relaxed">{item.text}</p>
-                  <p className="text-[10px] text-[#52525b] mt-1.5">{item.date} • {item.type}</p>
+                  <p className="text-slate-300">{item.text}</p>
+                  <p className="text-[10px] text-slate-600 mt-0.5">{item.date} • {item.type}</p>
                 </div>
               </motion.div>
             ))}
             {(!timeline || timeline.length === 0) && (
-              <p className="text-[13px] text-[#52525b] text-center py-10">No recent activity yet.</p>
+              <p className="text-xs text-slate-500 text-center py-4">No recent activity yet.</p>
             )}
           </div>
         </GlassCard>
 
         {/* Habit Correlations */}
         <GlassCard>
-          <h3 className="dash-section-title mb-10">
-            <Link2 size={14} className="text-cyan-400" /> Habit Correlations
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+            <span>🔗</span> Habit Correlations
           </h3>
-          <div className="space-y-6">
+          <div className="space-y-3">
             {correlations.slice(0, 5).map((c, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                className={`p-6 rounded-xl text-[12px] border ${c.type === 'positive' ? 'border-emerald-500/10 bg-emerald-500/[0.02]' : c.type === 'negative' ? 'border-red-500/10 bg-red-500/[0.02]' : 'border-white/[0.06] bg-white/[0.01]'}`}>
+                className={`p-3 rounded-xl text-xs border ${c.type === 'positive' ? 'border-emerald-500/20 bg-emerald-500/5' : c.type === 'negative' ? 'border-red-500/20 bg-red-500/5' : 'border-slate-500/20 bg-slate-500/5'}`}>
                 <div className="flex justify-between items-center">
-                  <p className="text-[#a1a1aa]">{c.pattern}</p>
-                  <span className="text-[10px] px-2.5 py-1 rounded-lg bg-white/[0.04] text-[#52525b] flex-shrink-0 ml-3 tabular-nums font-medium">{Math.round(c.strength * 100)}%</span>
+                  <p className="text-slate-300">{c.pattern}</p>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 flex-shrink-0 ml-2">{Math.round(c.strength * 100)}%</span>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  {c.domains.map(d => <span key={d} className="text-[10px] px-2 py-0.5 rounded-lg bg-white/[0.04] text-[#52525b] capitalize font-medium">{d}</span>)}
+                <div className="flex gap-1 mt-1.5">
+                  {c.domains.map(d => <span key={d} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{d}</span>)}
                 </div>
               </motion.div>
             ))}
@@ -367,20 +372,20 @@ export default function Dashboard() {
       </div>
 
       {/* Today's Action Plan */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-20 lg:mb-28">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-6">
         <GlassCard>
-          <div className="flex items-center justify-between mb-10">
-            <h3 className="dash-section-title mb-0">
-              <ClipboardList size={14} className="text-emerald-400" /> Today's Action Plan
-              <span className="dash-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI-generated</span>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+              <span className="text-lg">📋</span> Today's Action Plan
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI-generated from your data</span>
             </h3>
-            <span className="text-[12px] text-[#52525b] tabular-nums font-medium">
+            <span className="text-[10px] text-slate-500">
               {Object.values(checkedTasks).filter(Boolean).length}/{actionPlan.length} done
             </span>
           </div>
 
           {/* Progress bar */}
-          <div className="w-full h-1.5 rounded-full bg-white/[0.04] mb-12">
+          <div className="w-full h-1.5 rounded-full bg-white/5 mb-4">
             <motion.div
               animate={{ width: `${(Object.values(checkedTasks).filter(Boolean).length / actionPlan.length) * 100}%` }}
               transition={{ duration: 0.5 }}
@@ -388,7 +393,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-3">
             {actionPlan.map((task, i) => {
               const done = !!checkedTasks[task.id];
               return (
@@ -397,29 +402,31 @@ export default function Dashboard() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.08 }}
-                  className={`flex items-center gap-5 p-5 lg:p-6 rounded-2xl border transition-all duration-300 cursor-pointer ${done ? 'border-emerald-500/10 bg-emerald-500/[0.02] opacity-60' : 'border-white/[0.06] hover:border-white/[0.10] hover:translate-y-[-1px]'
-                    }`}
-                  style={!done ? { background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' } : {}}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                    done ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60' : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                  }`}
                   onClick={() => setCheckedTasks(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
                 >
-                  <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${done ? 'border-emerald-400 bg-emerald-500/20 shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'border-zinc-700'
-                    }`}>
-                    {done && <span className="text-[10px] text-[#22c55e]">✓</span>}
+                  {/* Checkbox */}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                    done ? 'border-emerald-400 bg-emerald-500/20' : 'border-white/20'
+                  }`}>
+                    {done && <span className="text-[10px] text-emerald-400">✓</span>}
                   </div>
 
                   <span className="text-lg flex-shrink-0">{task.icon}</span>
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-[13px] font-medium ${done ? 'line-through text-[#52525b]' : 'text-[#f0f0f3]'}`}>{task.text}</p>
-                    <div className="flex items-center gap-2.5 mt-2">
-                      <span className="text-[10px] px-2 py-0.5 rounded-lg capitalize font-medium"
-                        style={{ color: task.color, background: task.color + '10' }}>{task.domain}</span>
-                      <span className="text-[10px] text-[#52525b] font-medium">⏱ {task.time}</span>
+                    <p className={`text-xs font-medium ${done ? 'line-through text-slate-500' : 'text-slate-200'}`}>{task.text}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full capitalize"
+                        style={{ color: task.color, background: task.color + '15' }}>{task.domain}</span>
+                      <span className="text-[9px] text-slate-600">⏱ {task.time}</span>
                     </div>
                   </div>
 
                   <Link to={task.link} onClick={e => e.stopPropagation()}
-                    className="text-[11px] px-3.5 py-1.5 rounded-lg bg-white/[0.04] text-[#52525b] hover:text-white hover:bg-white/[0.08] transition-all flex-shrink-0 font-medium">
+                    className="text-[10px] px-2 py-1 rounded-lg bg-white/5 text-slate-500 hover:text-white hover:bg-white/10 transition-all flex-shrink-0">
                     Go →
                   </Link>
                 </motion.div>
@@ -433,10 +440,10 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mt-10 p-8 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/10 text-center"
+                className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center"
               >
-                <p className="text-[14px] text-[#22c55e] font-semibold">🎉 All tasks complete! +50 XP earned</p>
-                <p className="text-[11px] text-emerald-500/50 mt-1.5">Come back tomorrow for a new plan</p>
+                <p className="text-sm text-emerald-400 font-semibold">🎉 All tasks complete! +50 XP earned</p>
+                <p className="text-[10px] text-emerald-500/60 mt-0.5">Come back tomorrow for a new plan</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -445,21 +452,18 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <GlassCard>
-        <h3 className="dash-section-title mb-10"><Zap size={14} className="text-amber-400" /> Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>⚡ Quick Actions</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { to: '/health', LIcon: Heart, label: 'Log Health', color: '#22c55e' },
-            { to: '/finance', LIcon: DollarSign, label: 'Log Expense', color: '#f59e0b' },
-            { to: '/career', LIcon: GraduationCap, label: 'Log Study', color: '#818cf8' },
-            { to: '/coach', LIcon: MessageSquare, label: 'Ask AI Coach', color: '#a78bfa' },
+            { to: '/health', icon: '❤️', label: 'Log Health', color: '#10b981' },
+            { to: '/finance', icon: '💰', label: 'Log Expense', color: '#f59e0b' },
+            { to: '/career', icon: '📚', label: 'Log Study', color: '#3b82f6' },
+            { to: '/coach', icon: '💬', label: 'Ask AI Coach', color: '#8b5cf6' },
           ].map(action => (
             <Link key={action.to} to={action.to}
-              className="p-10 rounded-2xl border border-white/[0.06] text-center hover:border-white/[0.12] transition-all duration-300 group hover:translate-y-[-2px] active:scale-[0.98]"
-              style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}>
-              <div className="w-12 h-12 rounded-2xl mx-auto mb-6 flex items-center justify-center border border-white/[0.06] transition-all duration-300 group-hover:scale-110" style={{ background: `${action.color}10`, boxShadow: `0 0 20px ${action.color}10` }}>
-                <action.LIcon size={20} style={{ color: action.color }} />
-              </div>
-              <p className="text-[12px] font-medium text-[#71717a] group-hover:text-[#f0f0f3] transition-colors">{action.label}</p>
+              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center hover:bg-white/[0.04] transition-all group">
+              <span className="text-2xl block mb-2 group-hover:scale-110 transition-transform">{action.icon}</span>
+              <p className="text-xs font-medium text-slate-400 group-hover:text-white transition-colors">{action.label}</p>
             </Link>
           ))}
         </div>
@@ -467,4 +471,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
