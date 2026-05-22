@@ -6,5 +6,4 @@ import java.util.List;
 
 public interface HealthRecordRepository extends JpaRepository<HealthRecord, Long> {
     List<HealthRecord> findByImportId(Long importId);
-    List<HealthRecord> findByUserId(String userId);
 }
