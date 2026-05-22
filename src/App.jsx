@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
 import Sidebar from './components/layout/Sidebar';
+import TopNavbar from './components/layout/TopNavbar';
 import Landing from './pages/Landing';
 import { Login, Signup } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -26,11 +27,16 @@ function ProtectedRoute() {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f]">
+    <div className="flex min-h-screen bg-[#09090b]">
       <Sidebar />
-      <main className="flex-1 min-w-0">
-        <Outlet />
-      </main>
+      <div className="flex-1 min-w-0 flex flex-col">
+        <div className="hidden lg:block">
+          <TopNavbar />
+        </div>
+        <main className="flex-1 min-w-0 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
