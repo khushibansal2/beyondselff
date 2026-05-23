@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard, PageHeader, SecurityBadge, showToast } from '../components/ui/Components';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { analyzeDocument, hasApiKey, saveApiKey, getDemoMealResult } from '../services/visionService';
+import { Upload as UploadIcon, FileText, X, Key, CheckCircle, Scan } from 'lucide-react';
 
 const fileTypes = [
   { type: 'csv', label: 'CSV Spreadsheet', icon: '📊', desc: 'Import expense reports, health logs, study hours', accept: '.csv' },
@@ -20,9 +22,234 @@ const mockApiSources = [
   { name: 'Notion / Todoist', icon: '📝', connected: false, desc: 'Sync task completion, goal tracking, productivity' },
 ];
 
+const DOC_TYPES = {
+  salary_slip:    { label: 'Salary Slip',      icon: '💰', color: '#10b981', logLabel: 'Log income to Finance' },
+  hospital_bill:  { label: 'Hospital Bill',    icon: '🏥', color: '#ef4444', logLabel: 'Log medical expense to Finance' },
+  lab_report:     { label: 'Lab Report',       icon: '🧪', color: '#8b5cf6', logLabel: 'Log health markers' },
+  utility_bill:   { label: 'Utility Bill',     icon: '⚡', color: '#f59e0b', logLabel: 'Log expense to Finance' },
+  bank_statement: { label: 'Bank Statement',   icon: '🏦', color: '#06b6d4', logLabel: 'Log transactions to Finance' },
+  invoice:        { label: 'Invoice',          icon: '🧾', color: '#f97316', logLabel: 'Log expense to Finance' },
+  unknown:        { label: 'Document',         icon: '📄', color: '#71717a', logLabel: 'Review extracted data' },
+};
+
+const DEMO_DOCS = {
+  salary_slip: { docType:'salary_slip', confidence:91, summary:'Salary slip for April 2024 from TechCorp Pvt Ltd', fields:[{label:'Employer',value:'TechCorp Pvt Ltd',category:'employer'},{label:'Employee',value:'Demo User',category:'employee'},{label:'Month',value:'April 2024',category:'period'},{label:'Gross Salary',value:'₹72,000',category:'income'},{label:'Net Salary',value:'₹61,500',category:'income'},{label:'PF Deduction',value:'₹5,400',category:'deduction'},{label:'TDS',value:'₹5,100',category:'deduction'}], logTo:'finance', autoFill:{income:61500} },
+  hospital_bill: { docType:'hospital_bill', confidence:89, summary:'Hospital bill of ₹6,800 from City Hospital dated 10 Apr 2024', fields:[{label:'Hospital',value:'City Hospital',category:'provider'},{label:'Patient',value:'Demo User',category:'patient'},{label:'Date',value:'10 Apr 2024',category:'date'},{label:'Diagnosis',value:'Viral Fever',category:'medical'},{label:'Consultation',value:'₹800',category:'amount'},{label:'Medicines',value:'₹2,000',category:'amount'},{label:'Total',value:'₹6,800',category:'amount'}], logTo:'finance', autoFill:{expenses:6800,expenseCategory:'medical'} },
+};
+
+function SmartDocScanner({ onLogData }) {
+  const [scanning, setScanning] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [result, setResult] = useState(null);
+  const [isDemo, setIsDemo] = useState(false);
+  const [error, setError] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [showKeyPanel, setShowKeyPanel] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('groq_api_key') || '');
+  const fileRef = useRef(null);
+
+  const keyConfigured = !!(apiKey || import.meta.env.VITE_GROQ_API_KEY);
+
+  const handleSaveKey = () => {
+    const k = keyInput.trim();
+    saveApiKey(k);
+    setApiKey(k);
+    setKeyInput('');
+    setShowKeyPanel(false);
+    showToast('API key saved', 'success');
+  };
+
+  const processFile = useCallback(async (file) => {
+    if (!file || !file.type.startsWith('image/')) {
+      showToast('Please upload an image of the document (PNG, JPG, WEBP)', 'error');
+      return;
+    }
+    setError(null);
+    setResult(null);
+    setIsDemo(false);
+    setPreview(URL.createObjectURL(file));
+    setScanning(true);
+    try {
+      const data = await analyzeDocument(file);
+      setResult(data);
+    } catch (err) {
+      if (err.message === 'QUOTA_EXCEEDED') {
+        setIsDemo(true);
+        setResult(DEMO_DOCS.salary_slip);
+      } else {
+        setError(err.message);
+        if (err.message.includes('API key')) setShowKeyPanel(true);
+      }
+    } finally {
+      setScanning(false);
+    }
+  }, []);
+
+  const handleDrop = (e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); };
+  const reset = () => { setPreview(null); setResult(null); setError(null); setIsDemo(false); };
+
+  const meta = result ? (DOC_TYPES[result.docType] || DOC_TYPES.unknown) : null;
+
+  const categoryColor = (cat) => {
+    if (cat === 'income') return '#10b981';
+    if (cat === 'deduction' || cat === 'amount') return '#f97316';
+    if (cat === 'medical') return '#ef4444';
+    return '#a1a1aa';
+  };
+
+  return (
+    <GlassCard className="mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+            <Scan size={18} className="text-violet-400" />
+          </div>
+          <div>
+            <h3 className="text-[15px] font-semibold text-[#f0f0f3]">Smart Document Scanner</h3>
+            <p className="text-[12px] text-[#71717a]">Scan salary slips, hospital bills, lab reports & more</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowKeyPanel(p => !p)}
+          className={`flex items-center gap-2 text-[12px] px-3.5 py-2 rounded-xl border transition-all font-medium ${keyConfigured ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}
+        >
+          {keyConfigured ? <CheckCircle size={13} /> : <Key size={13} />}
+          {keyConfigured ? 'AI Ready' : 'Set Groq Key'}
+        </button>
+      </div>
+
+      {/* Supported doc types row */}
+      <div className="flex flex-wrap gap-2 mb-5">
+        {Object.entries(DOC_TYPES).filter(([k]) => k !== 'unknown').map(([k, v]) => (
+          <span key={k} className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#71717a] font-medium">
+            <span>{v.icon}</span>{v.label}
+          </span>
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {showKeyPanel && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+            <div className="mb-5 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] space-y-3">
+              <p className="text-[11px] text-[#71717a]">Enter your Groq API key from <span className="text-amber-400 font-medium">console.groq.com</span></p>
+              <div className="flex gap-2">
+                <input type="password" value={keyInput} onChange={e => setKeyInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveKey()} placeholder="gsk_..." className="input-premium flex-1 font-mono text-[12px]" />
+                <button onClick={handleSaveKey} disabled={!keyInput.trim()} className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[12px] font-medium disabled:opacity-40 transition-all">Save</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Drop zone */}
+      <div
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => !preview && fileRef.current?.click()}
+        className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden ${preview ? 'border-white/[0.06] cursor-default' : `cursor-pointer hover:border-white/[0.14] ${dragOver ? 'border-violet-500/50 bg-violet-500/[0.04]' : 'border-white/[0.08] bg-white/[0.02]'}`}`}
+        style={{ minHeight: preview ? 'auto' : '160px' }}
+      >
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { if (e.target.files[0]) processFile(e.target.files[0]); e.target.value = ''; }} />
+
+        {!preview ? (
+          <div className="flex flex-col items-center justify-center gap-3 p-8">
+            <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+              <FileText size={20} className="text-[#52525b]" />
+            </div>
+            <div className="text-center">
+              <p className="text-[13px] font-medium text-[#a1a1aa]">Drop document image here or click to browse</p>
+              <p className="text-[11px] text-[#52525b] mt-1">Take a photo on mobile · Salary slips, bills, lab reports</p>
+            </div>
+          </div>
+        ) : (
+          <div className="relative">
+            <img src={preview} alt="document" className="w-full max-h-64 object-contain rounded-2xl" />
+            {scanning && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl" style={{ background: 'rgba(9,9,11,0.8)', backdropFilter: 'blur(8px)' }}>
+                <div className="w-10 h-10 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />
+                <p className="text-[13px] text-violet-300 font-medium">Reading document with AI…</p>
+              </div>
+            )}
+            {!scanning && (
+              <button onClick={e => { e.stopPropagation(); reset(); }} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center hover:bg-black/80 transition-all">
+                <X size={12} className="text-white" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.04] text-[12px] text-red-400">
+          {error}
+        </motion.div>
+      )}
+
+      {/* Results */}
+      <AnimatePresence>
+        {result && !scanning && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }} className="mt-5 space-y-4">
+            {isDemo && (
+              <div className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] flex items-center gap-2.5">
+                <span className="text-amber-400 text-sm">⚠️</span>
+                <p className="text-[11px] text-amber-300"><span className="font-semibold">Demo mode</span> — API quota exceeded. Get a free key at console.groq.com</p>
+              </div>
+            )}
+
+            {/* Doc type header */}
+            <div className="flex items-center justify-between p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{meta.icon}</span>
+                <div>
+                  <p className="text-[13px] font-semibold text-[#f0f0f3]">{meta.label} Detected</p>
+                  <p className="text-[11px] text-[#71717a] mt-0.5">{result.summary}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-[11px] px-2.5 py-1 rounded-lg font-semibold" style={{ color: meta.color, background: `${meta.color}15` }}>
+                  {result.confidence}% confident
+                </span>
+              </div>
+            </div>
+
+            {/* Extracted fields */}
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {result.fields?.map((f, i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                  className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                  <span className="text-[11px] text-[#71717a] font-medium">{f.label}</span>
+                  <span className="text-[12px] font-semibold tabular-nums" style={{ color: categoryColor(f.category) }}>{f.value}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Log button */}
+            {result.logTo !== 'none' && result.autoFill && (
+              <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-white/[0.04]">
+                <button
+                  onClick={() => { onLogData(result); reset(); }}
+                  className="btn-primary flex-1"
+                  style={{ background: `linear-gradient(135deg, ${meta.color}30, ${meta.color}15)`, borderColor: `${meta.color}40`, color: meta.color }}
+                >
+                  {meta.logLabel}
+                </button>
+                <button onClick={() => fileRef.current?.click()} className="flex-1 px-5 py-2.5 rounded-xl border border-white/[0.08] text-[13px] font-medium text-[#a1a1aa] hover:text-[#f0f0f3] hover:border-white/[0.14] transition-all">
+                  Scan Another
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </GlassCard>
+  );
+}
+
 export default function Upload() {
   const { user, token } = useAuth();
-  const { health, finance, career, timeline, goals, setUserData } = useData();
+  const { health, finance, career, timeline, goals, setUserData, updateDomain } = useData();
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -216,11 +443,37 @@ export default function Upload() {
     });
   };
 
+  const handleDocLog = (result) => {
+    const fill = result.autoFill || {};
+    const type = result.docType;
+    const label = DOC_TYPES[type]?.label || 'Document';
+
+    if (result.logTo === 'finance' || result.logTo === 'both') {
+      const updated = { ...finance };
+      if (fill.income)   updated.income   = (Number(updated.income)   || 0) + Number(fill.income);
+      if (fill.expenses) updated.expenses = (Number(updated.expenses) || 0) + Number(fill.expenses);
+      updateDomain('finance', updated);
+    }
+
+    const summary = fill.income
+      ? `+₹${Number(fill.income).toLocaleString()} income from ${label}`
+      : fill.expenses
+        ? `-₹${Number(fill.expenses).toLocaleString()} expense from ${label}`
+        : `${label} scanned and logged`;
+
+    showToast(summary, 'success');
+  };
+
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
       <PageHeader title="Data Import Center" subtitle="Upload files or connect apps to feed your Digital Twin with real data." icon="📂" />
 
       <SecurityBadge />
+
+      {/* Smart Document Scanner */}
+      <div className="mt-6">
+        <SmartDocScanner onLogData={handleDocLog} />
+      </div>
 
       {/* File Upload Zone */}
       <GlassCard className="mt-6 mb-6">

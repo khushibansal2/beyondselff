@@ -20,6 +20,7 @@ import Upload from './pages/Upload';
 import Settings from './pages/Settings';
 
 import NeuralCore from './pages/NeuralCore';
+import Integrations from './pages/Integrations';
 
 
 function ProtectedRoute() {
@@ -71,6 +72,7 @@ export default function App() {
             <Route path="/gamification" element={<Gamification />} />
             <Route path="/sustainability" element={<Sustainability />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/integrations" element={<Integrations />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
