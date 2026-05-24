@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Heart, Wallet, Target, Trophy, Sparkles,
   Brain, MessageSquare, Star, Leaf, Upload, Settings,
   ChevronLeft, ChevronRight, ChevronDown, LogOut, Menu, X, Zap,
-  Activity, Shield, Link2
+  Activity, Shield, Link2, ArrowLeftRight
 } from 'lucide-react';
 
 const navSections = [
@@ -34,6 +34,7 @@ const navSections = [
       { path: '/insights', label: 'Insights', icon: Brain },
       { path: '/coach', label: 'AI Coach', icon: MessageSquare },
       { path: '/gamification', label: 'Rewards', icon: Star },
+      { path: '/market', label: 'Life Market', icon: ArrowLeftRight },
     ],
   },
   {
