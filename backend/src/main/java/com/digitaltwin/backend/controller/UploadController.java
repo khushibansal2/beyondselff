@@ -14,9 +14,11 @@ import java.util.List;
 public class UploadController {
 
     private final UploadService uploadService;
+    private final AuthUtil authUtil;
 
-    public UploadController(UploadService uploadService) {
+    public UploadController(UploadService uploadService, AuthUtil authUtil) {
         this.uploadService = uploadService;
+        this.authUtil = authUtil;
     }
 
     @PostMapping
@@ -26,7 +28,7 @@ public class UploadController {
             return ResponseEntity.badRequest().body("File is empty");
         }
         try {
-            String userId = AuthUtil.getUserIdFromToken(authHeader);
+            String userId = authUtil.getUserIdFromToken(authHeader);
             ImportHistory history = uploadService.processFile(file, userId);
             return ResponseEntity.ok(history);
         } catch (Exception e) {
@@ -37,14 +39,13 @@ public class UploadController {
 
     @GetMapping("/history")
     public ResponseEntity<List<ImportHistory>> getHistory(@RequestHeader("Authorization") String authHeader) {
-        String userId = AuthUtil.getUserIdFromToken(authHeader);
+        String userId = authUtil.getUserIdFromToken(authHeader);
         return ResponseEntity.ok(uploadService.getUserHistory(userId));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteImport(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        // ideally, verify the import belongs to this user before deleting, but keeping it simple
-        AuthUtil.getUserIdFromToken(authHeader);
+        authUtil.getUserIdFromToken(authHeader);
         uploadService.deleteImport(id);
         return ResponseEntity.ok().build();
     }
