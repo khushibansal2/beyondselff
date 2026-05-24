@@ -21,17 +21,19 @@ public class SyncController {
 
     private final CareerRecordRepository careerRepo;
     private final ImportHistoryRepository importRepo;
+    private final AuthUtil authUtil;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public SyncController(CareerRecordRepository careerRepo, ImportHistoryRepository importRepo) {
+    public SyncController(CareerRecordRepository careerRepo, ImportHistoryRepository importRepo, AuthUtil authUtil) {
         this.careerRepo = careerRepo;
         this.importRepo = importRepo;
+        this.authUtil = authUtil;
     }
 
     @PostMapping("/github")
     public ResponseEntity<?> syncGithub(@RequestHeader("Authorization") String authHeader, @RequestParam String githubUsername) {
         try {
-            String userId = AuthUtil.getUserIdFromToken(authHeader);
+            String userId = authUtil.getUserIdFromToken(authHeader);
             // 1. Fetch from GitHub API
             String userUrl = "https://api.github.com/users/" + githubUsername;
             JsonNode userNode = restTemplate.getForObject(userUrl, JsonNode.class);
