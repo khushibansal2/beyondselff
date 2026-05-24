@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateTrendData, generateInsights } from '../data/demoData';
 import { analyzeMealImage, analyzeSupplementImage, hasApiKey, saveApiKey, getDemoMealResult, getDemoSupplementResult } from '../services/visionService';
+import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionService';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge } from '../components/ui/Components';
 import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill } from 'lucide-react';
+import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw } from 'lucide-react';
 
 function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
   return (
@@ -428,6 +429,232 @@ function ScanVisionPanel({ onApplyCalories }) {
   );
 }
 
+// ── Nutrition Panel ─────────────────────────────────────────────────────────────
+function NutritionPanel({ healthData, updateDomain }) {
+  const profile = healthData?.nutritionProfile;
+  const plan = healthData?.dailyMealPlan;
+  
+  const [editing, setEditing] = useState(!profile);
+  const [loading, setLoading] = useState(false);
+  const [loadingMeal, setLoadingMeal] = useState(null);
+  const [form, setForm] = useState(profile || {
+    dietaryPreference: 'Veg',
+    allergies: '',
+    cuisine: 'North Indian',
+    targetCalories: healthData.calories || (healthData.weight ? Math.round(healthData.weight * 24 * 1.2) : 2000)
+  });
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const updatedProfile = { ...form, targetCalories: Number(form.targetCalories) };
+    try {
+      const newPlan = await generateMealPlan(updatedProfile);
+      updateDomain('health', { 
+        ...healthData, 
+        nutritionProfile: updatedProfile, 
+        dailyMealPlan: newPlan 
+      });
+      setEditing(false);
+      showToast('Nutrition profile & meal plan generated!', 'success');
+    } catch (err) {
+      showToast('Failed to generate plan. Try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    setLoading(true);
+    try {
+      const newPlan = await generateMealPlan(profile);
+      updateDomain('health', { ...healthData, dailyMealPlan: newPlan });
+      showToast('New meal plan generated!', 'success');
+    } catch (err) {
+      showToast('Failed to regenerate plan. Try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegenerateSingleMeal = async (mealType, currentMealName) => {
+    setLoadingMeal(mealType);
+    try {
+      const newMeal = await regenerateSingleMeal(profile, mealType, currentMealName);
+      
+      const updatedMeals = plan.meals.map(m => m.type === mealType ? newMeal : m);
+      
+      const newTotalCalories = updatedMeals.reduce((acc, m) => acc + m.calories, 0);
+      const newMacros = {
+        protein: updatedMeals.reduce((acc, m) => acc + m.macros.protein, 0),
+        carbs: updatedMeals.reduce((acc, m) => acc + m.macros.carbs, 0),
+        fat: updatedMeals.reduce((acc, m) => acc + m.macros.fat, 0)
+      };
+
+      const updatedPlan = {
+        ...plan,
+        meals: updatedMeals,
+        totalCalories: newTotalCalories,
+        macros: newMacros
+      };
+
+      updateDomain('health', { ...healthData, dailyMealPlan: updatedPlan });
+      showToast(`${mealType} updated!`, 'success');
+    } catch (err) {
+      showToast('Failed to swap meal. Try again.', 'error');
+    } finally {
+      setLoadingMeal(null);
+    }
+  };
+
+  if (editing) {
+    return (
+      <GlassCard>
+        <div className="mb-6">
+          <h3 className="dash-section-title mb-1 text-[18px]">Nutrition Onboarding</h3>
+          <p className="text-[13px] text-[#71717a]">Set your preferences to get AI-generated Indian meal plans tailored to your goals.</p>
+        </div>
+        <form onSubmit={handleSave} className="space-y-5">
+          <div className="grid md:grid-cols-2 gap-5">
+            <div>
+              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Dietary Preference</label>
+              <select value={form.dietaryPreference} onChange={e => setForm({...form, dietaryPreference: e.target.value})} className="input-premium w-full text-[13px]">
+                <option value="Veg">Vegetarian</option>
+                <option value="Non-Veg">Non-Vegetarian</option>
+                <option value="Vegan">Vegan</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Regional Cuisine</label>
+              <select value={form.cuisine} onChange={e => setForm({...form, cuisine: e.target.value})} className="input-premium w-full text-[13px]">
+                <option value="North Indian">North Indian</option>
+                <option value="South Indian">South Indian</option>
+                <option value="Bengali">Bengali</option>
+                <option value="Maharashtrian">Maharashtrian</option>
+                <option value="Pan-Indian">Pan-Indian (Mixed)</option>
+                <option value="Other">Other / No Preference</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Food Allergies / Intolerances (Optional)</label>
+              <input type="text" value={form.allergies} onChange={e => setForm({...form, allergies: e.target.value})} placeholder="e.g. peanuts, dairy" className="input-premium w-full" />
+            </div>
+            <div>
+              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Daily Caloric Target (kcal)</label>
+              <input type="number" value={form.targetCalories} onChange={e => setForm({...form, targetCalories: e.target.value})} className="input-premium w-full" min="1000" max="5000" required />
+            </div>
+          </div>
+          <div className="flex justify-end pt-4 border-t border-white/[0.04]">
+            {profile && <button type="button" onClick={() => setEditing(false)} className="px-5 py-2.5 rounded-xl border border-white/[0.08] text-[13px] font-medium text-[#a1a1aa] hover:text-[#f0f0f3] hover:border-white/[0.14] transition-all mr-3">Cancel</button>}
+            <button type="submit" disabled={loading} className="btn-primary">
+              {loading ? 'Generating Plan...' : 'Save & Generate Plan'}
+            </button>
+          </div>
+        </form>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 className="text-[20px] font-bold text-[#f0f0f3] tracking-tight mb-1">Today's Meal Plan</h3>
+          <p className="text-[13px] text-[#71717a] flex items-center gap-2">
+            Target: {profile.targetCalories} kcal <span className="text-white/[0.1]">|</span> {profile.dietaryPreference} <span className="text-white/[0.1]">|</span> {profile.cuisine}
+          </p>
+        </div>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <button onClick={() => setEditing(true)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#a1a1aa] text-[12px] font-medium hover:text-[#f0f0f3] hover:border-white/[0.14] transition-all">
+            Edit Preferences
+          </button>
+          <button onClick={handleRegenerate} disabled={loading} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[12px] font-medium hover:bg-orange-500/20 transition-all">
+             {loading ? 'Generating...' : 'Regenerate Plan'}
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <GlassCard className="flex flex-col items-center justify-center py-20">
+          <div className="w-10 h-10 rounded-full border-2 border-orange-400 border-t-transparent animate-spin mb-4" />
+          <p className="text-[14px] text-orange-300 font-medium">Crafting your meal plan...</p>
+          <p className="text-[12px] text-[#71717a]">Analyzing nutritional balance and preferences</p>
+        </GlassCard>
+      ) : (
+        <>
+          <div className="grid md:grid-cols-2 gap-4">
+            {plan?.meals?.map((meal, idx) => (
+              <GlassCard key={idx} className="flex flex-col justify-between hover:border-orange-500/20 transition-all group">
+                <div>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-widest font-semibold text-orange-400 bg-orange-500/10 px-2 py-1 rounded-md">{meal.type}</span>
+                      <button 
+                        onClick={() => handleRegenerateSingleMeal(meal.type, meal.name)}
+                        disabled={loadingMeal === meal.type}
+                        className="text-[#71717a] hover:text-orange-400 transition-colors bg-white/[0.02] hover:bg-orange-500/10 p-1 rounded border border-transparent hover:border-orange-500/20 disabled:opacity-50"
+                        title="Change this meal"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${loadingMeal === meal.type ? 'animate-spin text-orange-400' : ''}`} />
+                      </button>
+                    </div>
+                    <span className="text-[14px] font-bold text-[#f0f0f3] bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">{meal.calories} kcal</span>
+                  </div>
+                  <h4 className="text-[16px] font-bold text-[#f0f0f3] mb-1.5 group-hover:text-orange-300 transition-colors">{meal.name}</h4>
+                  <p className="text-[12px] text-[#a1a1aa] leading-relaxed mb-4">
+                    {loadingMeal === meal.type ? <span className="text-orange-300 animate-pulse">Finding alternative...</span> : meal.description}
+                  </p>
+                </div>
+                <div className="flex justify-between border-t border-white/[0.04] pt-3 text-[11px]">
+                  <div className="flex gap-3">
+                    <span className="text-[#a1a1aa]"><span className="text-[#10b981] font-medium">P:</span> {meal.macros.protein}g</span>
+                    <span className="text-[#a1a1aa]"><span className="text-[#f59e0b] font-medium">C:</span> {meal.macros.carbs}g</span>
+                    <span className="text-[#a1a1aa]"><span className="text-[#ef4444] font-medium">F:</span> {meal.macros.fat}g</span>
+                  </div>
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+
+          <GlassCard>
+            <h3 className="dash-section-title mb-5">Macro Breakdown</h3>
+            <div className="flex flex-col sm:flex-row gap-5 mb-5">
+               <MacroPill label="Protein" value={plan?.macros?.protein || 0} unit="g" color="#10b981" />
+               <MacroPill label="Carbs" value={plan?.macros?.carbs || 0} unit="g" color="#f59e0b" />
+               <MacroPill label="Fats" value={plan?.macros?.fat || 0} unit="g" color="#ef4444" />
+               <div className="flex-1 flex flex-col items-center justify-center border border-white/[0.06] rounded-2xl bg-white/[0.02] p-4">
+                 <p className="text-[10px] text-[#52525b] uppercase tracking-widest font-semibold mb-1">Total Plan Calories</p>
+                 <p className="text-[28px] font-bold text-[#f0f0f3] leading-none">{plan?.totalCalories || 0}</p>
+               </div>
+            </div>
+            
+            <div className="space-y-3">
+              {[
+                { label: 'Protein', val: plan?.macros?.protein || 0, target: Math.round((profile.targetCalories * 0.3) / 4), color: '#10b981' },
+                { label: 'Carbohydrates', val: plan?.macros?.carbs || 0, target: Math.round((profile.targetCalories * 0.45) / 4), color: '#f59e0b' },
+                { label: 'Fats', val: plan?.macros?.fat || 0, target: Math.round((profile.targetCalories * 0.25) / 9), color: '#ef4444' }
+              ].map(m => (
+                <div key={m.label}>
+                  <div className="flex justify-between text-[11px] mb-1.5">
+                    <span className="text-[#a1a1aa] font-medium">{m.label}</span>
+                    <span className="text-[#71717a]">{m.val}g / {m.target}g</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-1000" 
+                      style={{ width: `${Math.min(100, (m.val / (m.target || 1)) * 100)}%`, backgroundColor: m.color }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function Health() {
   const { user } = useAuth();
   const { health, updateDomain, computed } = useData();
@@ -454,6 +681,7 @@ export default function Health() {
     { id: 'log', label: 'Log Data', icon: '✏️' },
     { id: 'scan', label: 'Scan AI', icon: '👁️' },
     { id: 'wellness', label: 'Wellness', icon: '🧘' },
+    { id: 'nutrition', label: 'Nutrition', icon: '🥗' },
     { id: 'recommendations', label: 'AI Recommendations', icon: '🤖' },
   ];
 
@@ -715,6 +943,10 @@ export default function Health() {
 
       {tab === 'scan' && (
         <ScanVisionPanel onApplyCalories={handleApplyCalories} />
+      )}
+
+      {tab === 'nutrition' && (
+        <NutritionPanel healthData={health} updateDomain={updateDomain} />
       )}
 
       {tab === 'wellness' && (
