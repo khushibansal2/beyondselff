@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface FinanceRecordRepository extends JpaRepository<FinanceRecord, Long> {
     List<FinanceRecord> findByImportId(Long importId);
+    List<FinanceRecord> findByUserIdOrderByTransactionDateDesc(String userId);
 }
