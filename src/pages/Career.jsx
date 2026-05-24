@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { generateLearningPath } from '../services/learningService';
 
 export default function Career() {
   const { user } = useAuth();
@@ -12,6 +13,13 @@ export default function Career() {
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
   const score = computed?.careerScore?.score || 0;
   const [form, setForm] = useState({ studyHours: '', codingHours: '', dsa: '', skill: '' });
+
+  // ── Learning Path State ────────────────────────────────────────────────────
+  const savedPath = career?.generatedLearningPath || null;
+  const [lpCurrentRole, setLpCurrentRole] = useState(career?.currentRole || c.currentRole || '');
+  const [lpTargetRole, setLpTargetRole] = useState(career?.targetRole || '');
+  const [lpLoading, setLpLoading] = useState(false);
+  const [lpResult, setLpResult] = useState(savedPath);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -60,6 +68,37 @@ export default function Career() {
     { phase: 'Projects', items: ['Full-Stack Web App', 'Mobile App / AI Project', 'Open Source Contribution', 'Technical Blog'], status: c.projectsCompleted >= 3 ? 'done' : c.skills.length >= 4 ? 'active' : 'locked' },
     { phase: 'Interview Prep', items: ['250+ DSA Problems', 'System Design Basics', 'Mock Interviews', 'Resume & LinkedIn'], status: c.projectsCompleted >= 3 ? 'active' : 'locked' },
   ];
+
+  const platformColor = (platform) => {
+    if (platform === 'Coursera') return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+    if (platform === 'Udemy') return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
+    return 'text-red-400 bg-red-500/10 border-red-500/20'; // YouTube
+  };
+
+  const handleGenerateLearningPath = async (e) => {
+    e.preventDefault();
+    if (!lpCurrentRole.trim() || !lpTargetRole.trim()) {
+      showToast('Please enter both current and target roles.', 'error');
+      return;
+    }
+    setLpLoading(true);
+    setLpResult(null);
+    try {
+      const result = await generateLearningPath(lpCurrentRole.trim(), lpTargetRole.trim());
+      setLpResult(result);
+      updateDomain('career', {
+        ...c,
+        currentRole: lpCurrentRole.trim(),
+        targetRole: lpTargetRole.trim(),
+        generatedLearningPath: result,
+      });
+      showToast('Learning path generated!', 'success');
+    } catch (err) {
+      showToast('Failed to generate path. Try again.', 'error');
+    } finally {
+      setLpLoading(false);
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
@@ -145,28 +184,172 @@ export default function Career() {
       )}
 
       {tab === 'roadmap' && (
-        <div className="space-y-4">
-          {roadmap.map((phase, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
-              <GlassCard className={phase.status === 'locked' ? 'opacity-50' : ''}>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${phase.status === 'done' ? 'bg-emerald-500/20 text-emerald-400' : phase.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-slate-600'}`}>
-                    {phase.status === 'done' ? '✓' : i + 1}
-                  </span>
-                  <h4 className="font-semibold">{phase.phase}</h4>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full ml-auto ${phase.status === 'done' ? 'bg-emerald-500/10 text-emerald-400' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-600'}`}>{phase.status}</span>
+        <div className="space-y-6">
+
+          {/* ── AI Learning Path Generator ── */}
+          <GlassCard>
+            <div className="mb-5">
+              <h3 className="text-[16px] font-bold text-[#f0f0f3] tracking-tight mb-1">🎯 AI Learning Path Generator</h3>
+              <p className="text-[12px] text-slate-400">Enter your current and target roles to get a personalized AI-curated course roadmap.</p>
+            </div>
+            <form onSubmit={handleGenerateLearningPath} className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <label className="text-xs text-slate-400 mb-1.5 block">Current Role</label>
+                <input
+                  type="text"
+                  value={lpCurrentRole}
+                  onChange={e => setLpCurrentRole(e.target.value)}
+                  className="input-premium w-full"
+                  placeholder="e.g. Software Engineer"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs text-slate-400 mb-1.5 block">Target Role</label>
+                <input
+                  type="text"
+                  value={lpTargetRole}
+                  onChange={e => setLpTargetRole(e.target.value)}
+                  className="input-premium w-full"
+                  placeholder="e.g. Machine Learning Engineer"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={lpLoading}
+                  className="btn-primary whitespace-nowrap disabled:opacity-60"
+                >
+                  {lpLoading ? 'Building...' : 'Generate Path 🚀'}
+                </button>
+              </div>
+            </form>
+          </GlassCard>
+
+          {/* ── Loading skeleton ── */}
+          {lpLoading && (
+            <GlassCard>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-6 h-6 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+                <p className="text-sm text-blue-300 font-medium">Building your learning path…</p>
+              </div>
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-20 rounded-xl bg-white/[0.03] border border-white/[0.06] animate-pulse" />
+                ))}
+              </div>
+            </GlassCard>
+          )}
+
+          {/* ── Generated Learning Path ── */}
+          {lpResult && !lpLoading && (
+            <motion.div className="space-y-4" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+
+              {/* Approximate match warning */}
+              {lpResult.approximate && (
+                <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] flex items-center gap-2.5">
+                  <span className="text-amber-400 text-base">⚠️</span>
+                  <p className="text-[12px] text-amber-300">
+                    Showing closest available path for your transition — exact match not found in our database.
+                  </p>
                 </div>
-                <div className="grid grid-cols-2 gap-2 ml-11">
-                  {phase.items.map(item => (
-                    <div key={item} className="text-xs text-slate-400 flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-                      {item}
+              )}
+
+              {/* Summary header */}
+              <GlassCard>
+                <div className="flex flex-col sm:flex-row justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-1">Learning Path</p>
+                    <h3 className="text-[18px] font-bold text-[#f0f0f3]">
+                      {lpResult.from} <span className="text-blue-400">→</span> {lpResult.to}
+                    </h3>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="text-center">
+                      <p className="text-[22px] font-bold text-blue-400">{lpResult.totalHours}</p>
+                      <p className="text-[10px] text-slate-500">Total Hours</p>
                     </div>
-                  ))}
+                    <div className="text-center">
+                      <p className="text-[13px] font-bold text-emerald-400 mt-1">{lpResult.totalCost}</p>
+                      <p className="text-[10px] text-slate-500">Est. Cost</p>
+                    </div>
+                  </div>
                 </div>
               </GlassCard>
+
+              {/* Phases */}
+              {lpResult.phases?.map((phase, pi) => (
+                <motion.div key={pi} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: pi * 0.1 }}>
+                  <GlassCard>
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center justify-center">
+                        {pi + 1}
+                      </span>
+                      <h4 className="font-semibold text-[#f0f0f3] text-[14px]">{phase.phase}</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {phase.courses?.map((course, ci) => (
+                        <div key={ci} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-blue-500/20 transition-all">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <h5 className="text-[13px] font-semibold text-[#f0f0f3]">{course.title}</h5>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${platformColor(course.platform)}`}>
+                                  {course.platform}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                                <span>⏱ {course.hours} hrs</span>
+                                <span className={course.cost === 'Free' || course.cost === 'Free to audit' ? 'text-emerald-400' : 'text-amber-400'}>
+                                  {course.cost === 'Free' || course.cost === 'Free to audit' ? '✓ ' : '💳 '}{course.cost}
+                                </span>
+                              </div>
+                            </div>
+                            <a
+                              href={course.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[12px] font-medium hover:bg-blue-500/20 hover:text-blue-300 transition-all whitespace-nowrap"
+                            >
+                              Open Course →
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
+          )}
+
+          {/* ── Static Skill Roadmap (always visible below) ── */}
+          <div>
+            <p className="text-[11px] text-slate-500 uppercase tracking-widest font-semibold mb-3 px-1">General Skill Roadmap</p>
+            <div className="space-y-4">
+              {roadmap.map((phase, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
+                  <GlassCard className={phase.status === 'locked' ? 'opacity-50' : ''}>
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${phase.status === 'done' ? 'bg-emerald-500/20 text-emerald-400' : phase.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-slate-600'}`}>
+                        {phase.status === 'done' ? '✓' : i + 1}
+                      </span>
+                      <h4 className="font-semibold">{phase.phase}</h4>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ml-auto ${phase.status === 'done' ? 'bg-emerald-500/10 text-emerald-400' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-600'}`}>{phase.status}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 ml-11">
+                      {phase.items.map(item => (
+                        <div key={item} className="text-xs text-slate-400 flex items-center gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
         </div>
       )}
     </div>
