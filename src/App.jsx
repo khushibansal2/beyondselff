@@ -21,6 +21,7 @@ import Settings from './pages/Settings';
 
 import NeuralCore from './pages/NeuralCore';
 import Integrations from './pages/Integrations';
+import LifeMarket from './pages/LifeMarket';
 
 
 function ProtectedRoute() {
@@ -73,6 +74,7 @@ export default function App() {
             <Route path="/sustainability" element={<Sustainability />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/integrations" element={<Integrations />} />
+            <Route path="/market" element={<LifeMarket />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
