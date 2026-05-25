@@ -5,10 +5,10 @@
 
 /* ===== CSS VARIABLES ===== */
 :root {
-  --color-bg-primary: #0a0a0f;
-  --color-bg-secondary: #12121a;
-  --color-bg-card: rgba(255, 255, 255, 0.03);
-  --color-bg-glass: rgba(255, 255, 255, 0.05);
+  --color-bg-primary: #0e1120;
+  --color-bg-secondary: #131929;
+  --color-bg-card: rgba(255, 255, 255, 0.04);
+  --color-bg-glass: rgba(255, 255, 255, 0.06);
   --color-accent-blue: #3b82f6;
   --color-accent-purple: #8b5cf6;
   --color-accent-cyan: #06b6d4;
@@ -74,32 +74,32 @@ body {
 
 /* ===== GLASSMORPHISM CLASSES ===== */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .glass-card:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+  border-color: rgba(255, 255, 255, 0.13);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 }
 
 /* ===== GLOW EFFECTS ===== */
@@ -128,9 +128,9 @@ body {
 /* ===== ANIMATED BACKGROUND ===== */
 .bg-mesh {
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 40% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 40% 80%, rgba(6, 182, 212, 0.07) 0%, transparent 50%),
     var(--color-bg-primary);
 }
 
@@ -229,21 +229,45 @@ select.input-premium option {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 12px;
   padding: 12px 24px;
   font-family: var(--font-primary);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+/* Small action chips used inside cards */
+.btn-chip {
+  background: rgba(255, 255, 255, 0.07);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-chip:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: #fff;
 }
 
 /* ===== TOAST NOTIFICATION ===== */
@@ -263,9 +287,10 @@ select.input-premium option {
   box-shadow: 0 10px 40px rgba(0,0,0,0.4);
 }
 
-.toast-success { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.3); }
-.toast-error { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.3); }
-.toast-info { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.3); }
+.toast-success  { background: rgba(16, 185, 129, 0.2);  border-color: rgba(16, 185, 129, 0.3); }
+.toast-error    { background: rgba(244, 63, 94, 0.2);   border-color: rgba(244, 63, 94, 0.3); }
+.toast-info     { background: rgba(59, 130, 246, 0.2);  border-color: rgba(59, 130, 246, 0.3); }
+.toast-warning  { background: rgba(245, 158, 11, 0.2);  border-color: rgba(245, 158, 11, 0.3); }
 
 /* ===== ACHIEVEMENT POPUP ===== */
 @keyframes achievement-pop {
@@ -442,3 +467,95 @@ input[type="range"]::-moz-range-thumb {
   to { box-shadow: 0 0 16px 4px rgba(239,68,68,0.35); }
 }
 .doom-toggle-active { animation: doom-toggle-on 0.4s ease-out forwards; }
+
+/* ===== PAGE CONTAINER ===== */
+.page-container {
+  padding: 1rem 1rem 5rem;
+}
+@media (min-width: 640px) {
+  .page-container { padding: 1.5rem 1.5rem 5rem; }
+}
+@media (min-width: 1024px) {
+  .page-container { padding: 2rem 2rem 2rem; }
+}
+
+/* ===== DASHBOARD SECTION TITLE ===== */
+.dash-section-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #e4e4e7;
+  letter-spacing: 0.01em;
+  margin-bottom: 1rem;
+}
+
+/* ===== TAB BAR — horizontal scroll on mobile ===== */
+.tab-bar-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tab-bar-scroll::-webkit-scrollbar { display: none; }
+
+/* ===== MOBILE TOAST POSITION ===== */
+@media (max-width: 640px) {
+  .toast {
+    bottom: 90px;
+    right: 12px;
+    left: 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ===== FORM INPUTS — brighter placeholder ===== */
+.input-premium::placeholder {
+  color: #475569;
+}
+
+/* ===== FILTER / PILL BUTTONS (used in Goals, Finance, etc.) ===== */
+.pill-btn {
+  background: rgba(255, 255, 255, 0.07);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 9999px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.pill-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.pill-btn.active {
+  background: #4f46e5;
+  color: #fff;
+  border-color: #6366f1;
+}
+
+/* ===== FOCUS VISIBLE ACCESSIBILITY ===== */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.6);
+  outline-offset: 2px;
+}
+
+/* ===== LINE CLAMP UTILITY ===== */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

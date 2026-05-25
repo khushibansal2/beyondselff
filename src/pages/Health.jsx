@@ -216,10 +216,10 @@ function ScanVisionPanel({ onApplyCalories }) {
             <button
               key={t.id}
               onClick={() => { setScanType(t.id); reset(); }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[12px] font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-semibold transition-all ${
                 scanType === t.id
-                  ? 'border-white/[0.12] bg-white/[0.06] text-[#f0f0f3]'
-                  : 'border-white/[0.05] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] hover:border-white/[0.08]'
+                  ? 'border-indigo-500/50 bg-indigo-500/15 text-white'
+                  : 'border-white/[0.13] bg-white/[0.05] text-slate-300 hover:text-white hover:bg-white/[0.09] hover:border-white/[0.2]'
               }`}
             >
               <span style={{ color: scanType === t.id ? t.color : undefined }}>{t.icon}</span>
@@ -565,8 +565,8 @@ function NutritionPanel({ healthData, updateDomain }) {
           </p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
-          <button onClick={() => setEditing(true)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#a1a1aa] text-[12px] font-medium hover:text-[#f0f0f3] hover:border-white/[0.14] transition-all">
-            Edit Preferences
+          <button onClick={() => setEditing(true)} className="btn-chip flex-1 sm:flex-none justify-center">
+            ✏️ Edit Preferences
           </button>
           <button onClick={handleRegenerate} disabled={loading} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[12px] font-medium hover:bg-orange-500/20 transition-all">
              {loading ? 'Generating...' : 'Regenerate Plan'}
@@ -657,13 +657,50 @@ function NutritionPanel({ healthData, updateDomain }) {
 
 export default function Health() {
   const { user } = useAuth();
-  const { health, updateDomain, computed } = useData();
+  const { health, finance, records, updateDomain, addRecords, computed } = useData();
+  const healthRecords = records?.health || [];
   const [tab, setTab] = useState('overview');
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
   const score = computed?.healthScore?.score || 0;
   const burnout = computed?.burnout?.risk || 0;
-  const trendData = useMemo(() => generateTrendData(user, 30), [user]);
-  const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
+  const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
+
+  // Build chart data from real logs when available, else fall back to generated demo data
+  const trendData = useMemo(() => {
+    if (healthRecords.length >= 3) {
+      const sorted = [...healthRecords]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(-30);
+      return sorted.map(r => ({
+        date: typeof r.date === 'string' ? r.date.split('T')[0] : new Date(r.date).toISOString().split('T')[0],
+        sleep: r.sleep ?? null,
+        mood: r.mood ?? null,
+        stress: r.stress ?? null,
+        water: r.water ?? null,
+      }));
+    }
+    return generateTrendData(user, 30);
+  }, [healthRecords, user]);
+
+  // Consecutive-day logging streak
+  const streak = useMemo(() => {
+    if (healthRecords.length === 0) return 0;
+    const uniqueDays = [...new Set(healthRecords.map(r => (typeof r.date === 'string' ? r.date : new Date(r.date).toISOString()).split('T')[0]))].sort().reverse();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let count = 0;
+    let cursor = new Date(today);
+    for (const d of uniqueDays) {
+      const day = new Date(d); day.setHours(0, 0, 0, 0);
+      const diff = Math.round((cursor - day) / 86400000);
+      if (diff === 0 || diff === 1) { count++; cursor = day; } else break;
+    }
+    return count;
+  }, [healthRecords]);
+
+  // Recent log entries for history panel
+  const recentLogs = useMemo(() =>
+    [...healthRecords].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 7),
+  [healthRecords]);
 
   const currentState = useMemo(() => ({
     health: h,
@@ -688,16 +725,20 @@ export default function Health() {
   const handleLog = (e) => {
     e.preventDefault();
     const updated = { ...h };
+    const record = { date: new Date().toISOString() };
     let changes = 0;
-    if (form.sleep) { updated.sleepAvg = Number(form.sleep); changes++; }
-    if (form.stress) { updated.stressLevel = parseInt(form.stress, 10); changes++; }
-    if (form.mood) { updated.moodAvg = Number(form.mood); changes++; }
-    if (form.water) { updated.waterIntake = parseInt(form.water, 10); changes++; }
-    if (form.calories) { updated.calories = parseInt(form.calories, 10); changes++; }
-    if (form.workout) { changes++; }
+    if (form.sleep)    { updated.sleepAvg       = Number(form.sleep);          record.sleep    = Number(form.sleep);          changes++; }
+    if (form.stress)   { updated.stressLevel    = parseInt(form.stress, 10);   record.stress   = parseInt(form.stress, 10);   changes++; }
+    if (form.mood)     { updated.moodAvg        = Number(form.mood);           record.mood     = Number(form.mood);           changes++; }
+    if (form.workout)  { updated.workoutsPerWeek = parseInt(form.workout, 10); record.workoutsPerWeek = parseInt(form.workout, 10); changes++; }
+    if (form.water)    { updated.waterIntake    = parseInt(form.water, 10);    record.water    = parseInt(form.water, 10);    changes++; }
+    if (form.calories) { updated.calories       = parseInt(form.calories, 10); record.calories = parseInt(form.calories, 10); changes++; }
+    if (form.weight)   { updated.weight         = Number(form.weight);         record.weight   = Number(form.weight);         changes++; }
+    if (form.bmi)      { updated.bmi            = Number(form.bmi);            record.bmi      = Number(form.bmi);            changes++; }
     if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
     updateDomain('health', updated);
-    setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '' });
+    addRecords('health', [record]);
+    setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
     showToast(`Health data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
   };
 
@@ -706,13 +747,88 @@ export default function Health() {
     setTab('log');
   };
 
-  const recommendations = [
-    { icon: '😴', title: 'Sleep Optimization', text: h.sleepAvg < 7 ? `Increase sleep from ${h.sleepAvg}h to 7-8h. Try: wind-down routine at 10pm, no caffeine after 2pm, dim lights 1h before bed.` : 'Great sleep habits! Maintain 7-8h consistently for optimal recovery.', confidence: 88, risk: h.sleepAvg < 6 ? 'high' : 'low' },
-    { icon: '🏃', title: 'Workout Plan', text: h.workoutsPerWeek < 3 ? `Increase from ${h.workoutsPerWeek} to 4 workouts/week. Start with 20-min sessions: Mon/Wed/Fri cardio, Sat strength.` : `${h.workoutsPerWeek} workouts/week is excellent. Add variety with yoga or swimming for recovery.`, confidence: 85, risk: 'medium' },
-    { icon: '🧘', title: 'Stress Recovery', text: h.stressLevel > 7 ? `Critical: stress at ${h.stressLevel}/10. Immediate actions: 5-min breathing exercises, 15-min daily walks, social connection time.` : 'Stress levels are manageable. Maintain balance with regular breaks and mindfulness.', confidence: 82, risk: h.stressLevel > 7 ? 'high' : 'low' },
-    { icon: '💧', title: 'Hydration Plan', text: h.waterIntake < 8 ? `Increase from ${h.waterIntake} to 8 glasses. Set hourly reminders. Keep a bottle on your desk.` : 'Great hydration! Continue maintaining 8+ glasses daily.', confidence: 90, risk: 'low' },
-    { icon: '🥗', title: 'Nutrition Guidance', text: h.calories > 2500 ? `Current ${h.calories} cal may be high. Focus on whole foods, reduce processed snacks, meal prep on Sundays.` : 'Caloric intake is reasonable. Ensure balanced macros: 30% protein, 40% carbs, 30% fats.', confidence: 75, risk: 'medium' },
-  ];
+  const recommendations = useMemo(() => {
+    const crossDomain = computed?.crossDomain || [];
+    const finStress = crossDomain.find(c => c.id === 'financial-stress');
+    const stressSpend = crossDomain.find(c => c.id === 'stress-spending');
+    const sleepProductivity = crossDomain.find(c => c.id === 'sleep-productivity');
+    const dataPoints = healthRecords.length;
+    const confidence = (base) => Math.min(99, Math.round(base + Math.min(10, dataPoints * 0.8)));
+
+    const recs = [];
+
+    // Sleep
+    const sleepDeficit = 8 - h.sleepAvg;
+    const sleepRisk = h.sleepAvg < 5.5 ? 'critical' : h.sleepAvg < 6.5 ? 'high' : h.sleepAvg < 7 ? 'medium' : 'low';
+    if (h.sleepAvg < 7) {
+      const prodImpact = sleepProductivity ? ` This causes ~${sleepProductivity.computedImpact.productivityLoss}% career productivity loss.` : '';
+      recs.push({
+        icon: '😴', title: 'Sleep Optimization', priority: sleepRisk === 'critical' ? 1 : sleepRisk === 'high' ? 2 : 4,
+        text: `You're averaging ${h.sleepAvg}h — ${sleepDeficit.toFixed(1)}h below the 7-8h target. ${sleepRisk === 'critical' ? 'Severe sleep debt detected.' : 'Consistent shortfall accumulates over time.'} Actions: shift bedtime to ${Math.max(21, 23 - Math.ceil(sleepDeficit))}:00, cut caffeine after 14:00, avoid screens 1h before bed.${prodImpact}`,
+        confidence: confidence(88), risk: sleepRisk,
+      });
+    } else {
+      recs.push({ icon: '😴', title: 'Sleep Quality', priority: 6, text: `Solid ${h.sleepAvg}h average — maintain this. To push quality further: consistent wake time within ±30 min daily, 18-20°C room temperature, magnesium glycinate before bed.`, confidence: confidence(85), risk: 'low' });
+    }
+
+    // Stress — boosted if cross-domain spending cascade active
+    const stressRisk = h.stressLevel > 8 ? 'critical' : h.stressLevel > 6 ? 'high' : h.stressLevel > 4 ? 'medium' : 'low';
+    const stressNote = stressSpend ? ` High cortisol is also driving ~₹${stressSpend.computedImpact.excessSpending.toLocaleString()} extra spending/month.` : '';
+    const finStressNote = finStress ? ' Financial insecurity detected — address debt/savings to reduce anxiety at its root.' : '';
+    recs.push({
+      icon: '🧘', title: 'Stress & Recovery', priority: stressRisk === 'critical' ? 1 : stressRisk === 'high' ? 2 : 5,
+      text: h.stressLevel > 6
+        ? `Stress at ${h.stressLevel}/10 — ${stressRisk === 'critical' ? 'critical level' : 'elevated'}. Daily protocol: 5-min box breathing (4-4-4-4), one 15-min outdoor walk, cap work at ${Math.min(10, 12 - Math.round(h.stressLevel / 2))}h/day.${stressNote}${finStressNote}`
+        : `Stress at ${h.stressLevel}/10 — manageable. Protect this by scheduling one "buffer hour" daily with no meetings or screens.${finStressNote}`,
+      confidence: confidence(82), risk: stressRisk,
+    });
+
+    // Workout
+    const workoutGap = 4 - h.workoutsPerWeek;
+    const workoutRisk = h.workoutsPerWeek === 0 ? 'high' : h.workoutsPerWeek < 2 ? 'medium' : 'low';
+    recs.push({
+      icon: '🏃', title: 'Movement & Fitness', priority: workoutRisk === 'high' ? 3 : 5,
+      text: h.workoutsPerWeek < 3
+        ? `Only ${h.workoutsPerWeek} session${h.workoutsPerWeek !== 1 ? 's' : ''}/week — target is 4. Add ${workoutGap} session${workoutGap > 1 ? 's' : ''}: try ${workoutGap >= 2 ? '2× 25-min cardio + 1 strength' : '20-min HIIT'}. Even a 10-min walk counts. ${h.bmi > 25 ? `Current BMI ${h.bmi} — weight-bearing cardio recommended.` : ''}`
+        : `${h.workoutsPerWeek} sessions/week is ${h.workoutsPerWeek >= 5 ? 'excellent' : 'good'}. For the next level: add one mobility/yoga session for injury prevention and recovery acceleration.`,
+      confidence: confidence(84), risk: workoutRisk,
+    });
+
+    // Hydration
+    const hydrationGap = 8 - h.waterIntake;
+    recs.push({
+      icon: '💧', title: 'Hydration', priority: h.waterIntake < 5 ? 3 : 6,
+      text: h.waterIntake < 8
+        ? `At ${h.waterIntake} glasses/day — ${hydrationGap} short of the 8-glass target. Dehydration by even 2% impairs cognitive performance. Fix: fill a 1L bottle in the morning, drink it by noon, refill. Set 3 phone alarms.`
+        : `Hydration is optimal at ${h.waterIntake} glasses. Keep morning-front-loading: 2 glasses before 9am activates metabolism.`,
+      confidence: confidence(90), risk: h.waterIntake < 5 ? 'high' : h.waterIntake < 7 ? 'medium' : 'low',
+    });
+
+    // Nutrition — uses real calorie target if set
+    const calTarget = health?.nutritionProfile?.targetCalories || 2000;
+    const calDiff = h.calories - calTarget;
+    const calRisk = Math.abs(calDiff) > calTarget * 0.3 ? 'high' : Math.abs(calDiff) > calTarget * 0.15 ? 'medium' : 'low';
+    recs.push({
+      icon: '🥗', title: 'Nutrition & Calories', priority: calRisk === 'high' ? 3 : 6,
+      text: calDiff > calTarget * 0.15
+        ? `At ${h.calories} kcal — ${Math.abs(calDiff)} over your ${calTarget} kcal target. Swap 1 processed snack for fruit/nuts daily. Meal prep 2 lunches on Sunday to avoid impulse eating.`
+        : calDiff < -(calTarget * 0.15)
+        ? `At ${h.calories} kcal — ${Math.abs(calDiff)} below target. Under-fuelling ${h.workoutsPerWeek > 0 ? 'combined with workouts ' : ''}risks muscle loss and fatigue. Add a protein-rich snack mid-morning.`
+        : `Calories near target (${h.calories} vs ${calTarget} kcal). Focus on quality: 30% protein, 40% carbs, 30% fats. Track for 3 days to see if macros are balanced.`,
+      confidence: confidence(78), risk: calRisk,
+    });
+
+    // Mood — added only if mood is low
+    if (h.moodAvg < 5) {
+      recs.push({
+        icon: '😊', title: 'Mood & Mental Energy', priority: h.moodAvg < 3 ? 1 : 3,
+        text: `Mood averaging ${h.moodAvg}/10${h.moodAvg < 3 ? ' — critically low' : ''}. Three high-impact actions: (1) 10-min gratitude journaling before sleep, (2) one social connection per day, (3) reduce doomscrolling by removing social apps from home screen.${finStressNote}`,
+        confidence: confidence(80), risk: h.moodAvg < 3 ? 'critical' : 'high',
+      });
+    }
+
+    return recs.sort((a, b) => a.priority - b.priority);
+  }, [h, healthRecords, computed, finance, health]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
@@ -726,14 +842,24 @@ export default function Health() {
     return null;
   };
 
-  // Daily wellness score
+  // Daily wellness score — nutrition uses user's target if set, else sensible defaults
+  const nutritionScore = (() => {
+    if (!h.calories) return 0;
+    const target = health?.nutritionProfile?.targetCalories || 2000;
+    const dev = Math.abs(h.calories - target) / target;
+    if (dev <= 0.05) return 92;
+    if (dev <= 0.15) return 78;
+    if (dev <= 0.30) return 58;
+    return 30;
+  })();
+
   const wellnessFactors = [
-    { label: 'Sleep Quality', score: Math.round(Math.min(100, (h.sleepAvg / 8) * 100)), icon: '😴', color: '#8b5cf6' },
-    { label: 'Stress Level', score: Math.round(Math.max(0, (10 - h.stressLevel) / 10 * 100)), icon: '😰', color: '#f43f5e' },
-    { label: 'Mood', score: Math.round((h.moodAvg / 10) * 100), icon: '😊', color: '#f59e0b' },
-    { label: 'Physical Activity', score: Math.round(Math.min(100, (h.workoutsPerWeek / 5) * 100)), icon: '💪', color: '#10b981' },
-    { label: 'Hydration', score: Math.round(Math.min(100, (h.waterIntake / 8) * 100)), icon: '💧', color: '#06b6d4' },
-    { label: 'Nutrition', score: Math.round(h.calories >= 1800 && h.calories <= 2400 ? 85 : h.calories > 2800 ? 40 : 60), icon: '🥗', color: '#f97316' },
+    { label: 'Sleep Quality',    score: Math.round(Math.min(100, (h.sleepAvg / 8) * 100)),                    icon: '😴', color: '#8b5cf6' },
+    { label: 'Stress Level',     score: Math.round(Math.max(0, (10 - h.stressLevel) / 10 * 100)),             icon: '😰', color: '#f43f5e' },
+    { label: 'Mood',             score: Math.round((h.moodAvg / 10) * 100),                                   icon: '😊', color: '#f59e0b' },
+    { label: 'Physical Activity',score: Math.round(Math.min(100, (h.workoutsPerWeek / 5) * 100)),             icon: '💪', color: '#10b981' },
+    { label: 'Hydration',        score: Math.round(Math.min(100, (h.waterIntake / 8) * 100)),                 icon: '💧', color: '#06b6d4' },
+    { label: 'Nutrition',        score: nutritionScore,                                                        icon: '🥗', color: '#f97316' },
   ];
 
   return (
@@ -835,17 +961,22 @@ export default function Health() {
                 <h3 className="dash-section-title">Body Metrics</h3>
                 <div className="grid grid-cols-4 gap-2.5">
                   {[
-                    { label: 'BMI', val: h.bmi || 24.5, unit: '', color: (h.bmi || 24.5) < 18.5 || (h.bmi || 24.5) > 25 ? '#f59e0b' : '#22c55e', sub: 'Normal' },
-                    { label: 'Weight', val: h.weight || 70, unit: 'kg', color: '#f0f0f3', sub: null },
-                    { label: 'Body Fat', val: h.bodyFat || 18, unit: '%', color: '#f0f0f3', sub: null },
-                    { label: 'Muscle Mass', val: h.muscleMass || 32, unit: 'kg', color: '#f0f0f3', sub: null },
+                    { label: 'BMI', val: h.bmi || null, unit: '', color: h.bmi ? (h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#22c55e') : '#52525b', sub: h.bmi ? (h.bmi < 18.5 ? 'Underweight' : h.bmi > 25 ? 'Overweight' : 'Normal') : null },
+                    { label: 'Weight', val: h.weight || null, unit: 'kg', color: h.weight ? '#f0f0f3' : '#52525b', sub: null },
+                    { label: 'Body Fat', val: h.bodyFat || null, unit: '%', color: h.bodyFat ? '#f0f0f3' : '#52525b', sub: null },
+                    { label: 'Muscle', val: h.muscleMass || null, unit: 'kg', color: h.muscleMass ? '#f0f0f3' : '#52525b', sub: null },
                   ].map(m => (
                     <div key={m.label} className="p-3.5 rounded-2xl border border-white/[0.04] bg-white/[0.02] text-center flex flex-col justify-center min-h-[85px]">
                       <p className="text-[8px] text-[#52525b] uppercase tracking-wider font-semibold mb-1">{m.label}</p>
-                      <p className="text-[18px] font-bold tracking-tight leading-none" style={{ color: m.color }}>
-                        {m.val}<span className="text-[9px] text-[#52525b] font-normal ml-0.5">{m.unit}</span>
-                      </p>
-                      {m.sub && <p className="text-[8px] text-[#22c55e] mt-1 font-medium">{m.sub}</p>}
+                      {m.val != null ? (
+                        <p className="text-[18px] font-bold tracking-tight leading-none" style={{ color: m.color }}>
+                          {typeof m.val === 'number' && !Number.isInteger(m.val) ? m.val.toFixed(1) : m.val}
+                          <span className="text-[9px] text-[#52525b] font-normal ml-0.5">{m.unit}</span>
+                        </p>
+                      ) : (
+                        <button onClick={() => setTab('log')} className="text-[13px] font-bold text-[#3f3f46] hover:text-[#a1a1aa] transition-colors" title="Log this metric">—</button>
+                      )}
+                      {m.sub && <p className="text-[8px] mt-1 font-medium" style={{ color: m.color }}>{m.sub}</p>}
                     </div>
                   ))}
                 </div>
@@ -853,7 +984,13 @@ export default function Health() {
               <div className="pt-5 mt-5 border-t border-white/[0.04] flex items-center justify-between text-[11px]">
                 <span className="text-[#52525b]">Target BMI range</span>
                 <span className="text-[#a1a1aa] font-semibold">18.5 - 24.9</span>
-                <span className="text-[#22c55e] font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-lg text-[9px] uppercase tracking-wide">Normal</span>
+                {h.bmi ? (
+                  <span className={`font-bold px-2.5 py-0.5 rounded-lg text-[9px] uppercase tracking-wide ${h.bmi >= 18.5 && h.bmi <= 24.9 ? 'text-[#22c55e] bg-emerald-500/10' : 'text-[#f59e0b] bg-amber-500/10'}`}>
+                    {h.bmi >= 18.5 && h.bmi <= 24.9 ? 'Normal' : h.bmi < 18.5 ? 'Low' : 'High'}
+                  </span>
+                ) : (
+                  <span className="text-[#3f3f46] text-[9px]">Log BMI to track</span>
+                )}
               </div>
             </GlassCard>
 
@@ -919,14 +1056,26 @@ export default function Health() {
               <Eye size={14} /> Scan with AI Vision
             </button>
           </div>
+          {streak > 0 && (
+            <div className="mb-6 flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-orange-500/20 bg-orange-500/[0.05]">
+              <span className="text-2xl">🔥</span>
+              <div>
+                <p className="text-[13px] font-bold text-orange-300">{streak}-Day Logging Streak!</p>
+                <p className="text-[11px] text-orange-400/70">Keep it up — consistency is everything.</p>
+              </div>
+              <span className="ml-auto text-[10px] text-orange-500/60 font-mono">{healthRecords.length} entries</span>
+            </div>
+          )}
           <form onSubmit={handleLog} className="grid md:grid-cols-2 lg:grid-cols-3 gap-7">
             {[
-              { key: 'sleep', label: 'Sleep (hours)', placeholder: '7.5', type: 'number', min: 0, max: 14, step: '0.5' },
-              { key: 'mood', label: 'Mood (1-10)', placeholder: '7', type: 'number', min: 1, max: 10 },
-              { key: 'stress', label: 'Stress (1-10)', placeholder: '4', type: 'number', min: 1, max: 10 },
-              { key: 'workout', label: 'Workout (minutes)', placeholder: '30', type: 'number', min: 0 },
-              { key: 'water', label: 'Water (glasses)', placeholder: '8', type: 'number', min: 0, max: 20 },
-              { key: 'calories', label: 'Calories', placeholder: '2200', type: 'number', min: 0 },
+              { key: 'sleep',    label: 'Sleep (hours)',       placeholder: '7.5', type: 'number', min: 0, max: 14, step: '0.5' },
+              { key: 'mood',     label: 'Mood (1–10)',          placeholder: '7',   type: 'number', min: 1, max: 10 },
+              { key: 'stress',   label: 'Stress (1–10)',        placeholder: '4',   type: 'number', min: 1, max: 10 },
+              { key: 'workout',  label: 'Workouts this week',  placeholder: '3',   type: 'number', min: 0, max: 14 },
+              { key: 'water',    label: 'Water (glasses)',      placeholder: '8',   type: 'number', min: 0, max: 20 },
+              { key: 'calories', label: 'Calories (kcal)',      placeholder: '2200', type: 'number', min: 0 },
+              { key: 'weight',   label: 'Body Weight (kg)',     placeholder: '70',  type: 'number', min: 20, max: 300, step: '0.1' },
+              { key: 'bmi',      label: 'BMI',                  placeholder: '22.5', type: 'number', min: 10, max: 50, step: '0.1' },
             ].map(f => (
               <div key={f.key}>
                 <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">{f.label}</label>
@@ -938,6 +1087,35 @@ export default function Health() {
               <button type="submit" className="btn-primary">Save Health Data</button>
             </div>
           </form>
+
+          {/* ── Log History ── */}
+          {recentLogs.length > 0 && (
+            <div className="mt-10 border-t border-white/[0.04] pt-8">
+              <h4 className="text-[13px] font-semibold text-[#a1a1aa] mb-4 uppercase tracking-wide">Recent Log History</h4>
+              <div className="space-y-3">
+                {recentLogs.map((entry, i) => {
+                  const date = new Date(entry.date);
+                  const fields = ['sleep','mood','stress','workoutsPerWeek','water','calories','weight','bmi'].filter(k => entry[k] != null);
+                  const labels = { sleep: '😴', mood: '😊', stress: '😰', workoutsPerWeek: '💪', water: '💧', calories: '🍽️', weight: '⚖️', bmi: '📏' };
+                  return (
+                    <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                      className="flex items-center gap-4 px-4 py-3 rounded-xl border border-white/[0.04] bg-white/[0.02]">
+                      <span className="text-[10px] text-[#52525b] font-mono min-w-[64px]">
+                        {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                      </span>
+                      <div className="flex flex-wrap gap-2 flex-1">
+                        {fields.map(k => (
+                          <span key={k} className="text-[11px] px-2 py-0.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-[#a1a1aa]">
+                            {labels[k]} {k === 'sleep' ? `${entry[k]}h` : k === 'calories' ? `${entry[k]} kcal` : k === 'weight' ? `${entry[k]} kg` : k === 'workoutsPerWeek' ? `${entry[k]}/wk` : entry[k]}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </GlassCard>
       )}
 
@@ -997,10 +1175,42 @@ export default function Health() {
             <h3 className="dash-section-title mb-8">📝 Daily Health Summary</h3>
             <div className="grid sm:grid-cols-2 gap-5">
               {[
-                { label: 'Energy Level', text: h.sleepAvg >= 7 && h.stressLevel < 6 ? '⚡ High — well rested and low stress' : h.sleepAvg >= 5.5 ? '🔋 Moderate — could use more sleep' : '🪫 Low — sleep deprivation detected' },
-                { label: 'Recovery Status', text: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅ Good recovery balance' : '⚠️ Recovery may be insufficient' },
-                { label: 'Immune Health', text: h.sleepAvg >= 7 && h.waterIntake >= 6 ? '🛡️ Strong — sleep and hydration support immunity' : '⚠️ Weakened — improve sleep and hydration' },
-                { label: 'Cognitive Performance', text: h.sleepAvg >= 7 && h.stressLevel < 7 ? '🧠 Optimal — focus should be sharp' : '🧠 Reduced — ' + (h.sleepAvg < 6 ? 'sleep deficit' : 'high stress') + ' impacting cognition' },
+                {
+                  label: 'Energy Level',
+                  text: h.sleepAvg >= 7 && h.stressLevel < 6 && h.waterIntake >= 7
+                    ? '⚡ High — sleep, stress, and hydration all green'
+                    : h.sleepAvg >= 6 && h.stressLevel < 7
+                    ? `🔋 Moderate — ${h.sleepAvg < 7 ? `+${(7 - h.sleepAvg).toFixed(1)}h sleep needed` : 'stress slightly elevated'}`
+                    : `🪫 Low — ${h.sleepAvg < 5.5 ? `only ${h.sleepAvg}h sleep` : h.stressLevel > 7 ? `stress ${h.stressLevel}/10` : 'multiple factors'} draining reserves`,
+                },
+                {
+                  label: 'Recovery Status',
+                  text: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7
+                    ? `✅ Balanced — ${h.workoutsPerWeek}x workouts + ${h.sleepAvg}h sleep`
+                    : h.workoutsPerWeek >= 3 && h.sleepAvg < 7
+                    ? `⚠️ Training without adequate recovery — increase sleep to match ${h.workoutsPerWeek}x/week load`
+                    : `⚠️ Under-recovered — ${h.workoutsPerWeek < 2 ? 'add 1-2 movement sessions' : 'prioritise 7h+ sleep'}`,
+                },
+                {
+                  label: 'Immune Health',
+                  text: (() => {
+                    const immuneScore = Math.round((Math.min(h.sleepAvg / 8, 1) * 40) + (Math.min(h.waterIntake / 8, 1) * 30) + (Math.max(0, (10 - h.stressLevel) / 10) * 30));
+                    if (immuneScore >= 80) return `🛡️ Strong (${immuneScore}/100) — sleep, hydration, stress all supporting immunity`;
+                    if (immuneScore >= 55) return `🛡️ Moderate (${immuneScore}/100) — ${h.sleepAvg < 7 ? 'sleep' : h.waterIntake < 6 ? 'hydration' : 'stress'} is the weak link`;
+                    return `⚠️ Compromised (${immuneScore}/100) — multiple factors reducing immune resilience`;
+                  })(),
+                },
+                {
+                  label: 'Cognitive Performance',
+                  text: (() => {
+                    const cogScore = Math.round((Math.min(h.sleepAvg / 8, 1) * 45) + (Math.max(0, (10 - h.stressLevel) / 10) * 35) + (Math.min(h.moodAvg / 10, 1) * 20));
+                    const crossLoss = computed?.crossDomain?.find(c => c.id === 'sleep-productivity');
+                    const lossNote = crossLoss ? ` (${crossLoss.computedImpact.productivityLoss}% efficiency loss estimated)` : '';
+                    if (cogScore >= 80) return `🧠 Optimal (${cogScore}/100) — focus and working memory at peak`;
+                    if (cogScore >= 55) return `🧠 Moderate (${cogScore}/100)${lossNote} — ${h.sleepAvg < 7 ? 'sleep deficit' : 'elevated stress'} limiting capacity`;
+                    return `🧠 Impaired (${cogScore}/100)${lossNote} — deep work will be difficult; prioritise recovery today`;
+                  })(),
+                },
               ].map((item, i) => (
                 <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                   className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>

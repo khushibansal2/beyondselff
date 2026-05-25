@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
@@ -7,21 +8,22 @@ import TopNavbar from './components/layout/TopNavbar';
 import Landing from './pages/Landing';
 import { Login, Signup } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
-import Health from './pages/Health';
-import Finance from './pages/Finance';
-import Career from './pages/Career';
-import Goals from './pages/Goals';
-import Simulator from './pages/Simulator';
-import Insights from './pages/Insights';
-import Coach from './pages/Coach';
-import Gamification from './pages/Gamification';
-import Sustainability from './pages/Sustainability';
-import Upload from './pages/Upload';
-import Settings from './pages/Settings';
 
-import NeuralCore from './pages/NeuralCore';
-import Integrations from './pages/Integrations';
-import LifeMarket from './pages/LifeMarket';
+// Heavy pages — lazy-loaded to reduce initial bundle
+const Health        = lazy(() => import('./pages/Health'));
+const Finance       = lazy(() => import('./pages/Finance'));
+const Career        = lazy(() => import('./pages/Career'));
+const Goals         = lazy(() => import('./pages/Goals'));
+const Simulator     = lazy(() => import('./pages/Simulator'));
+const Insights      = lazy(() => import('./pages/Insights'));
+const Coach         = lazy(() => import('./pages/Coach'));
+const Gamification  = lazy(() => import('./pages/Gamification'));
+const Sustainability= lazy(() => import('./pages/Sustainability'));
+const Upload        = lazy(() => import('./pages/Upload'));
+const Settings      = lazy(() => import('./pages/Settings'));
+const NeuralCore    = lazy(() => import('./pages/NeuralCore'));
+const Integrations  = lazy(() => import('./pages/Integrations'));
+const LifeMarket    = lazy(() => import('./pages/LifeMarket'));
 
 
 function ProtectedRoute() {
@@ -29,7 +31,7 @@ function ProtectedRoute() {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <div className="flex min-h-screen bg-[#09090b]">
+    <div className="flex min-h-screen bg-[#0e1120]">
       <Sidebar />
       <div className="flex-1 min-w-0 flex flex-col">
         <div className="hidden lg:block">
@@ -62,20 +64,20 @@ export default function App() {
           <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/health" element={<Health />} />
-            <Route path="/finance" element={<Finance />} />
-            <Route path="/career" element={<Career />} />
-            <Route path="/goals" element={<Goals />} />
-            <Route path="/neural-core" element={<NeuralCore />} />
-            <Route path="/simulator" element={<Simulator />} />
-            <Route path="/insights" element={<Insights />} />
-            <Route path="/coach" element={<Coach />} />
-            <Route path="/gamification" element={<Gamification />} />
-            <Route path="/sustainability" element={<Sustainability />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/integrations" element={<Integrations />} />
-            <Route path="/market" element={<LifeMarket />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/health"        element={<Suspense fallback={<LoadingScreen />}><Health /></Suspense>} />
+            <Route path="/finance"       element={<Suspense fallback={<LoadingScreen />}><Finance /></Suspense>} />
+            <Route path="/career"        element={<Suspense fallback={<LoadingScreen />}><Career /></Suspense>} />
+            <Route path="/goals"         element={<Suspense fallback={<LoadingScreen />}><Goals /></Suspense>} />
+            <Route path="/neural-core"   element={<Suspense fallback={<LoadingScreen />}><NeuralCore /></Suspense>} />
+            <Route path="/simulator"     element={<Suspense fallback={<LoadingScreen />}><Simulator /></Suspense>} />
+            <Route path="/insights"      element={<Suspense fallback={<LoadingScreen />}><Insights /></Suspense>} />
+            <Route path="/coach"         element={<Suspense fallback={<LoadingScreen />}><Coach /></Suspense>} />
+            <Route path="/gamification"  element={<Suspense fallback={<LoadingScreen />}><Gamification /></Suspense>} />
+            <Route path="/sustainability" element={<Suspense fallback={<LoadingScreen />}><Sustainability /></Suspense>} />
+            <Route path="/upload"        element={<Suspense fallback={<LoadingScreen />}><Upload /></Suspense>} />
+            <Route path="/integrations"  element={<Suspense fallback={<LoadingScreen />}><Integrations /></Suspense>} />
+            <Route path="/market"        element={<Suspense fallback={<LoadingScreen />}><LifeMarket /></Suspense>} />
+            <Route path="/settings"      element={<Suspense fallback={<LoadingScreen />}><Settings /></Suspense>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

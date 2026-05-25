@@ -8,11 +8,12 @@ import { generateLearningPath } from '../services/learningService';
 
 export default function Career() {
   const { user } = useAuth();
-  const { career, health, updateDomain, computed } = useData();
+  const { career, health, records, updateDomain, addRecords, computed } = useData();
+  const careerRecords = records?.career || [];
   const [tab, setTab] = useState('overview');
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
   const score = computed?.careerScore?.score || 0;
-  const [form, setForm] = useState({ studyHours: '', codingHours: '', dsa: '', skill: '' });
+  const [form, setForm] = useState({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
 
   // ── Learning Path State ────────────────────────────────────────────────────
   const savedPath = career?.generatedLearningPath || null;
@@ -40,14 +41,39 @@ export default function Career() {
   const handleLog = (e) => {
     e.preventDefault();
     const updated = { ...c };
-    if (form.studyHours) updated.studyHoursDaily = parseFloat(form.studyHours);
-    if (form.codingHours) updated.codingHoursDaily = parseFloat(form.codingHours);
-    if (form.dsa) updated.dsaPractice = parseInt(form.dsa);
-    if (form.skill && !updated.skills.includes(form.skill)) updated.skills = [...(updated.skills || []), form.skill];
+    const record = { date: new Date().toISOString() };
+    let changes = 0;
+    if (form.studyHours)  { updated.studyHoursDaily  = parseFloat(form.studyHours);  record.studyHours  = parseFloat(form.studyHours);  changes++; }
+    if (form.codingHours) { updated.codingHoursDaily = parseFloat(form.codingHours); record.codingHours = parseFloat(form.codingHours); changes++; }
+    if (form.dsa)         { updated.dsaPractice      = parseInt(form.dsa);           record.dsa         = parseInt(form.dsa);           changes++; }
+    if (form.projects)    { updated.projectsCompleted = parseInt(form.projects);     record.projects    = parseInt(form.projects);      changes++; }
+    if (form.skill && !updated.skills.includes(form.skill.trim())) {
+      updated.skills = [...(updated.skills || []), form.skill.trim()];
+      record.skillAdded = form.skill.trim();
+      changes++;
+    }
+    if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
     updateDomain('career', updated);
-    setForm({ studyHours: '', codingHours: '', dsa: '', skill: '' });
-    showToast('Career data updated', 'success');
+    addRecords('career', [record]);
+    setForm({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
+    showToast(`Career data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
   };
+
+  // Consecutive logging streak
+  const streak = (() => {
+    if (careerRecords.length === 0) return 0;
+    const uniqueDays = [...new Set(careerRecords.map(r => (typeof r.date === 'string' ? r.date : new Date(r.date).toISOString()).split('T')[0]))].sort().reverse();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let count = 0; let cursor = new Date(today);
+    for (const d of uniqueDays) {
+      const day = new Date(d); day.setHours(0, 0, 0, 0);
+      const diff = Math.round((cursor - day) / 86400000);
+      if (diff === 0 || diff === 1) { count++; cursor = day; } else break;
+    }
+    return count;
+  })();
+
+  const recentLogs = [...careerRecords].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
   const placementReadiness = Math.round((c.dsaPractice >= 3 ? 25 : c.dsaPractice * 8) + (c.projectsCompleted >= 4 ? 25 : c.projectsCompleted * 6) + (c.skills.length >= 5 ? 25 : c.skills.length * 5) + (c.codingHoursDaily >= 4 ? 25 : c.codingHoursDaily * 6));
 
@@ -156,14 +182,47 @@ export default function Career() {
 
       {tab === 'log' && (
         <GlassCard>
-          <h3 className="text-sm font-semibold mb-4">Log Today's Career Data</h3>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-4">
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Study Hours</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium" placeholder="4" step="0.5" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Coding Hours</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium" placeholder="3" step="0.5" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium" placeholder="3" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Add New Skill</label><input type="text" value={form.skill} onChange={e => setForm(p => ({ ...p, skill: e.target.value }))} className="input-premium" placeholder="e.g. Docker" /></div>
-            <div className="md:col-span-2"><button type="submit" className="btn-primary">Save Career Data ✓</button></div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/[0.06] pb-4">
+            <h3 className="text-sm font-semibold">Log Today's Career Data</h3>
+            {streak > 0 && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/20 bg-blue-500/[0.05]">
+                <span className="text-lg">🔥</span>
+                <span className="text-[12px] font-semibold text-blue-300">{streak}-Day Streak</span>
+                <span className="text-[10px] text-blue-500/60 ml-1">{careerRecords.length} entries</span>
+              </div>
+            )}
+          </div>
+          <form onSubmit={handleLog} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Study Hours Today</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium" placeholder="4" step="0.5" min="0" max="24" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Coding Hours Today</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium" placeholder="3" step="0.5" min="0" max="24" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium" placeholder="3" min="0" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Projects Completed (total)</label><input type="number" value={form.projects} onChange={e => setForm(p => ({ ...p, projects: e.target.value }))} className="input-premium" placeholder={c.projectsCompleted || '2'} min="0" /></div>
+            <div><label className="text-xs text-slate-400 mb-1.5 block">Add New Skill</label><input type="text" value={form.skill} onChange={e => setForm(p => ({ ...p, skill: e.target.value }))} className="input-premium" placeholder="e.g. Docker, Kubernetes" /></div>
+            <div className="flex items-end"><button type="submit" className="btn-primary w-full">Save Entry ✓</button></div>
           </form>
+
+          {recentLogs.length > 0 && (
+            <div className="mt-8 border-t border-white/[0.04] pt-6">
+              <h4 className="text-[12px] font-semibold text-[#a1a1aa] mb-4 uppercase tracking-wide">Recent Logs</h4>
+              <div className="space-y-2">
+                {recentLogs.map((entry, i) => {
+                  const date = new Date(entry.date);
+                  const parts = [];
+                  if (entry.studyHours != null)  parts.push(`📚 ${entry.studyHours}h study`);
+                  if (entry.codingHours != null) parts.push(`💻 ${entry.codingHours}h coding`);
+                  if (entry.dsa != null)         parts.push(`🧩 ${entry.dsa} DSA`);
+                  if (entry.projects != null)    parts.push(`🚀 ${entry.projects} projects`);
+                  if (entry.skillAdded)          parts.push(`🎯 +${entry.skillAdded}`);
+                  return (
+                    <div key={i} className="flex items-center gap-4 px-4 py-2.5 rounded-xl border border-white/[0.04] bg-white/[0.02] text-[11px]">
+                      <span className="text-[#52525b] font-mono min-w-[52px]">{date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+                      <div className="flex flex-wrap gap-2 text-[#a1a1aa]">{parts.map((p, j) => <span key={j}>{p}</span>)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </GlassCard>
       )}
 

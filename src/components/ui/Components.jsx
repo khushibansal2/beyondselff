@@ -114,11 +114,21 @@ export function PageHeader({ title, subtitle, icon }) {
 
 export function TabBar({ tabs, active, onChange }) {
   return (
-    <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6 overflow-x-auto">
+    <div className="flex gap-2 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => onChange(t.id)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${active === t.id ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-          {t.icon && <span className="mr-1.5">{t.icon}</span>}{t.label}
+        <button
+          key={t.id}
+          onClick={() => onChange(t.id)}
+          className={`
+            flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 border
+            ${active === t.id
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/25'
+              : 'text-slate-300 bg-white/[0.06] border-white/[0.1] hover:bg-white/[0.1] hover:text-white hover:border-white/[0.18]'
+            }
+          `}
+        >
+          {t.icon && <span className="text-base leading-none">{t.icon}</span>}
+          {t.label}
         </button>
       ))}
     </div>
@@ -164,7 +174,7 @@ let toastId = 0;
 const toastListeners = new Set();
 const toasts = [];
 
-export function showToast(message, type = 'success') {
+export function showToast(message, type = 'success', duration = 3000) {
   const id = ++toastId;
   toasts.push({ id, message, type });
   toastListeners.forEach(fn => fn([...toasts]));
@@ -172,7 +182,7 @@ export function showToast(message, type = 'success') {
     const idx = toasts.findIndex(t => t.id === id);
     if (idx !== -1) toasts.splice(idx, 1);
     toastListeners.forEach(fn => fn([...toasts]));
-  }, 3000);
+  }, duration);
 }
 
 export function ToastContainer() {
@@ -187,7 +197,7 @@ export function ToastContainer() {
       <AnimatePresence>
         {items.map(t => (
           <motion.div key={t.id} initial={{ opacity: 0, x: 50, scale: 0.8 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 50 }} className={`toast toast-${t.type}`}>
-            {t.type === 'success' && '✅ '}{t.type === 'error' && '❌ '}{t.type === 'info' && 'ℹ️ '}{t.message}
+            {t.type === 'success' && '✅ '}{t.type === 'error' && '❌ '}{t.type === 'info' && 'ℹ️ '}{t.type === 'warning' && '⚠️ '}{t.message}
           </motion.div>
         ))}
       </AnimatePresence>

@@ -1,94 +1,51 @@
-import * as tf from '@tensorflow/tfjs';
-
+// Deterministic trajectory engine — no ML library needed.
+// Models 20-year stability/risk projection from current health, finance, and career data.
 export class NeuralEngine {
-  constructor() {
-    this.model = this.initModel();
-  }
-
-  initModel() {
-    const model = tf.sequential();
-
-    // Input Layer
-    model.add(
-      tf.layers.dense({
-        units: 16,
-        activation: 'relu',
-        inputShape: [3],
-      })
-    );
-
-    // Hidden Layer
-    model.add(
-      tf.layers.dense({
-        units: 8,
-        activation: 'sigmoid',
-      })
-    );
-
-    // Output Layer
-    model.add(
-      tf.layers.dense({
-        units: 2,
-        activation: 'softmax',
-      })
-    );
-
-    model.compile({
-      optimizer: 'adam',
-      loss: 'categoricalCrossentropy',
-    });
-
-    return model;
-  }
-
   async runInference(state) {
-    return tf.tidy(() => {
-      // 1. DATA EXTRACTION
-      const rawHealth = state?.health?.score || 75;
-      const rawFinance = state?.finance?.income || 50000;
+    const healthScore = state?.computed?.healthScore?.score ?? state?.health?.score ?? 75;
+    const rawFinance  = state?.finance?.income || 50000;
+    const study  = parseFloat(state?.career?.studyHoursDaily  || 0);
+    const coding = parseFloat(state?.career?.codingHoursDaily || 0);
+    const burnout = state?.computed?.burnout?.risk ?? 0;
+    const finScore = state?.computed?.financeScore?.score ?? 50;
+    const carScore = state?.computed?.careerScore?.score  ?? 50;
 
-      // Career inputs
-      const study = parseFloat(state?.career?.studyHoursDaily || 0);
-      const coding = parseFloat(state?.career?.codingHoursDaily || 0);
+    // Normalize inputs to 0-1
+    let h = Math.min(1, Math.max(0, healthScore / 100));
+    let f = Math.min(1, Math.max(0, finScore    / 100));
+    let c = Math.min(1, Math.max(0, carScore    / 100));
+    const effort = Math.min(1, (study + coding) / 12);
+    const burnoutPenalty = burnout / 100;
 
-      const totalEffort = study + coding;
+    const trajectory = [];
 
-      // 2. NORMALIZATION
-      let h = parseFloat(rawHealth) / 100;
-
-      let f = Math.min(
-        Math.log10(parseFloat(rawFinance) + 1) / 10,
-        1
+    for (let i = 0; i < 20; i++) {
+      // Stability: how sustainable the current life trajectory is
+      const stability = Math.round(
+        Math.min(100, Math.max(0,
+          (h * 0.35 + f * 0.35 + c * 0.30) * 100
+          - burnoutPenalty * 15
+          + i * 0.5   // slight upward drift as habits compound
+        ))
       );
 
-      let c = Math.min(totalEffort / 12, 1);
+      // Risk: inverse pressure — burnout, low health, financial stress
+      const risk = Math.round(
+        Math.min(100, Math.max(0,
+          100 - stability
+          + burnoutPenalty * 10
+          - i * 0.3   // risk reduces as stability compounds
+        ))
+      );
 
-      let trajectory = [];
+      trajectory.push({ year: 2026 + i, stability, risk });
 
-      // 3. FUTURE PREDICTION LOOP
-      for (let i = 0; i < 20; i++) {
-        const inputTensor = tf.tensor2d([[h, f, c]]);
+      // Evolution: career effort drives finance; burnout degrades health
+      h = Math.max(0.05, Math.min(1, h + 0.008 * (1 - burnoutPenalty) - 0.003 * (risk / 100)));
+      f = Math.max(0.05, Math.min(1, f + effort * 0.012 * (stability / 100)));
+      c = Math.max(0.05, Math.min(1, c + effort * 0.010 - 0.004 * burnoutPenalty));
+    }
 
-        const prediction = this.model.predict(inputTensor);
-
-        const [stability, risk] = prediction.dataSync();
-
-        trajectory.push({
-          year: 2026 + i,
-          stability: parseFloat((stability * 100).toFixed(2)),
-          risk: parseFloat((risk * 100).toFixed(2)),
-        });
-
-        // Future evolution logic
-        h = Math.max(0.05, h - risk * 0.02);
-
-        f = Math.min(
-          1,
-          f + c * 0.05 * stability
-        );
-      }
-
-      return trajectory;
-    });
+    return trajectory;
   }
 }

@@ -5,31 +5,61 @@ import {
   ReferenceLine, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 
+// Compute monthly health-based life balance from real records
+function buildMonthlyScores(healthRecords = []) {
+  const byMonth = {};
+  healthRecords.forEach(r => {
+    const d = new Date(r.date);
+    if (isNaN(d)) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (!byMonth[key]) byMonth[key] = [];
+    byMonth[key].push(r);
+  });
+  const scores = {};
+  Object.entries(byMonth).forEach(([key, recs]) => {
+    const avg = (field, fallback) => {
+      const vals = recs.map(r => r[field]).filter(v => v != null && !isNaN(v));
+      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : fallback;
+    };
+    const sleep   = Math.min(100, Math.round((avg('sleep', 6) / 8) * 100));
+    const stress  = Math.min(100, Math.round(((10 - avg('stress', 5)) / 10) * 100));
+    const mood    = Math.min(100, Math.round((avg('mood', 5) / 10) * 100));
+    const workout = Math.min(100, Math.round((avg('workout', 0) / 5) * 100));
+    // Rough health score → life balance proxy (health contributes ~40%)
+    const healthApprox = Math.round((sleep * 0.3 + stress * 0.3 + mood * 0.2 + workout * 0.2));
+    scores[key] = Math.max(20, Math.min(95, healthApprox));
+  });
+  return scores;
+}
+
 // Build 12 monthly data points: 6 past + current + 5 future
-function buildChartData(lifeBalance, healthScore, financeScore, careerScore) {
-  const now = new Date(2026, 4, 1); // May 2026 = index 6
+function buildChartData(lifeBalance, healthScore, financeScore, careerScore, healthRecords = []) {
+  const monthlyScores = buildMonthlyScores(healthRecords);
+  const now = new Date();
   const data = [];
 
   for (let m = -6; m <= 5; m++) {
     const d = new Date(now.getFullYear(), now.getMonth() + m, 1);
     const label = d.toLocaleDateString('en', { month: 'short', year: '2-digit' });
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const isPast = m < 0;
     const isNow  = m === 0;
 
     if (isPast) {
-      // Historical: simulate a slight upward trend with noise
+      // Use real monthly score if available, otherwise simulate
+      const realScore = monthlyScores[monthKey];
       const seed = Math.sin(m * 2.3) * 7 + Math.cos(m * 1.1) * 5;
-      const hist = Math.max(22, Math.min(92, lifeBalance + m * 1.8 + seed));
-      data.push({ label, actual: Math.round(hist), ghost: null, trajectory: null, isNow: false });
+      const simulated = Math.max(22, Math.min(92, lifeBalance + m * 1.8 + seed));
+      data.push({ label, actual: Math.round(realScore ?? simulated), ghost: null, trajectory: null, isNow: false, isReal: realScore != null });
     } else if (isNow) {
-      data.push({ label: 'NOW', actual: lifeBalance, ghost: lifeBalance, trajectory: lifeBalance, isNow: true });
+      data.push({ label: 'NOW', actual: lifeBalance, ghost: lifeBalance, trajectory: lifeBalance, isNow: true, isReal: true });
     } else {
       // Ghost path: smooth ramp toward 90
       const ghost = Math.min(93, lifeBalance + (90 - lifeBalance) * (m / 6));
-      // Trajectory: slight decline if habits don't change
+      // Trajectory: decline if habits are weak, improve if strong
       const slope = careerScore < 50 || healthScore < 50 ? -1.8 : 0.4;
       const traj = Math.max(12, lifeBalance + slope * m + Math.sin(m * 1.7) * 3);
-      data.push({ label, actual: null, ghost: Math.round(ghost), trajectory: Math.round(traj), isNow: false });
+      data.push({ label, actual: null, ghost: Math.round(ghost), trajectory: Math.round(traj), isNow: false, isReal: false });
     }
   }
   return data;
@@ -87,11 +117,11 @@ const CustomTooltip = ({ active, payload, label, doomMode }) => {
   );
 };
 
-export function GhostTimeline({ lifeBalance = 55, healthScore = 50, financeScore = 50, careerScore = 50, studyHours = 0, savingsRate = 0, burnoutRisk = 30, doomMode = false }) {
+export function GhostTimeline({ lifeBalance = 55, healthScore = 50, financeScore = 50, careerScore = 50, studyHours = 0, savingsRate = 0, burnoutRisk = 30, doomMode = false, healthRecords = [] }) {
   const [sliderIdx, setSliderIdx] = useState(0);
   const data = useMemo(
-    () => buildChartData(lifeBalance, healthScore, financeScore, careerScore),
-    [lifeBalance, healthScore, financeScore, careerScore]
+    () => buildChartData(lifeBalance, healthScore, financeScore, careerScore, healthRecords),
+    [lifeBalance, healthScore, financeScore, careerScore, healthRecords]
   );
   const milestones = useMemo(
     () => buildMilestones(lifeBalance, healthScore, financeScore, careerScore, studyHours, savingsRate, burnoutRisk),
@@ -112,7 +142,10 @@ export function GhostTimeline({ lifeBalance = 55, healthScore = 50, financeScore
             <span className="text-base">👻</span>
             {doomMode ? 'TRAJECTORY FORECAST — DOOM VIEW' : 'Ghost Mode Timeline'}
           </h3>
-          <p className="text-[10px] text-slate-500 mt-0.5">Past 6 months · Today · Next 5 months projected</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            {healthRecords.length >= 3 ? `${healthRecords.length} real entries · ` : 'Simulated past · '}
+            Today · Next 5 months projected
+          </p>
         </div>
         <div className="flex gap-4 text-[10px]">
           <div className="flex items-center gap-1.5">

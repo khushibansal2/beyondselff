@@ -136,14 +136,40 @@ function RoboAdvisor({ f, savingsRate }) {
 
 export default function Finance() {
   const { user } = useAuth();
-  const { finance, computed, updateDomain, addTimelineEvent } = useData();
+  const { finance, records, computed, updateDomain, addRecords, addTimelineEvent } = useData();
   const [tab, setTab] = useState('overview');
-  
-  // Use data from context
+
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const score = computed?.financeScore?.score || 0;
-  
-  const trendData = useMemo(() => generateTrendData(user || {}, 30), [user]);
+  const financeRecords = records?.finance || [];
+
+  // Build spending trend from real logged transactions; fall back to generated when no records
+  const trendData = useMemo(() => {
+    if (financeRecords.length >= 2) {
+      // Aggregate daily spending from real records
+      const byDate = {};
+      financeRecords.forEach(r => {
+        const d = typeof r.date === 'string' ? r.date.split('T')[0] : new Date(r.date).toISOString().split('T')[0];
+        byDate[d] = (byDate[d] || 0) + (r.amount || 0);
+      });
+      const sorted = Object.entries(byDate)
+        .sort(([a], [b]) => new Date(a) - new Date(b))
+        .slice(-30)
+        .map(([date, spending]) => ({ date, spending }));
+      // If fewer than 5 real data points, pad the start with zeros so the chart isn't empty
+      if (sorted.length < 5) {
+        const first = sorted[0]?.date || new Date().toISOString().split('T')[0];
+        const pad = [];
+        for (let i = 4; i > sorted.length; i--) {
+          const d = new Date(new Date(first) - i * 86400000);
+          pad.push({ date: d.toISOString().split('T')[0], spending: 0 });
+        }
+        return [...pad, ...sorted];
+      }
+      return sorted;
+    }
+    return generateTrendData(user || {}, 30);
+  }, [financeRecords, user]);
   
   const [form, setForm] = useState({ income: '', expense: '', category: 'food', amount: '' });
   const [ocrLoading, setOcrLoading] = useState(false);
@@ -193,6 +219,12 @@ export default function Finance() {
       updated.categoryTotals = { ...(updated.categoryTotals || {}) };
       updated.categoryTotals[form.category] = (updated.categoryTotals[form.category] || 0) + amount;
       hasUpdate = true;
+      // Store timestamped record so the spending trend chart can use real data
+      addRecords('finance', [{
+        date: new Date().toISOString(),
+        amount,
+        category: form.category,
+      }]);
       addTimelineEvent({
         type: 'Expense Logged',
         text: `Spent ₹${amount} on ${form.category}`,
@@ -262,7 +294,7 @@ export default function Finance() {
 
       {tab === 'overview' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             <GlassCard className="flex justify-center col-span-2 md:col-span-1" glow="glow-amber">
               <ScoreRing score={score} color="auto" label="Finance Score" size={100} />
             </GlassCard>
@@ -271,11 +303,24 @@ export default function Finance() {
             <MetricCard icon="🏦" label="Savings" value={`₹${f.savings.toLocaleString()}`} color="#3b82f6" />
             <MetricCard icon="📈" label="Investments" value={`₹${f.investments.toLocaleString()}`} color="#8b5cf6" />
             <MetricCard icon="🔄" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} color="#f59e0b" />
+            <MetricCard icon="💎" label="Net Worth" value={`₹${((f.savings || 0) + (f.investments || 0) - (f.debt || 0)).toLocaleString()}`} color={(f.savings + f.investments - f.debt) >= 0 ? '#10b981' : '#ef4444'} />
+            <div className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-4 flex flex-col items-center justify-center text-center">
+              <p className="text-[9px] text-[#52525b] uppercase tracking-widest font-semibold mb-1">Savings Rate</p>
+              <p className="text-[24px] font-bold" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate}%</p>
+              <p className="text-[9px] mt-1 font-medium" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate >= 20 ? 'Excellent' : savingsRate >= 10 ? 'Moderate' : 'Low'}</p>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
             <GlassCard>
               <h3 className="text-sm font-semibold mb-4">Expense Breakdown</h3>
+              {f.expenses === 0 ? (
+                <div className="h-52 flex flex-col items-center justify-center gap-3 text-center">
+                  <span className="text-4xl opacity-30">📊</span>
+                  <p className="text-[13px] text-[#52525b]">No expenses logged yet</p>
+                  <button onClick={() => setTab('log')} className="text-[12px] px-4 py-2 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all">Log your first expense →</button>
+                </div>
+              ) : (
               <div className="h-52 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -287,10 +332,11 @@ export default function Finance() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+              )}
             </GlassCard>
 
             <GlassCard>
-              <h3 className="text-sm font-semibold mb-4">Spending Trend (30 days)</h3>
+              <h3 className="text-sm font-semibold mb-4">Spending Trend {financeRecords.length >= 2 ? `(${Math.min(financeRecords.length, 30)} logged entries)` : '(demo — log expenses to see real data)'}</h3>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>

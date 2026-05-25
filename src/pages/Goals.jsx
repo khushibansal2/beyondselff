@@ -101,7 +101,7 @@ export default function Goals() {
         <div className="flex gap-2">
           {['all', 'health', 'finance', 'career'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`text-xs px-3 py-1.5 rounded-lg transition-all capitalize ${filter === f ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-white bg-white/[0.02]'}`}>
+              className={`pill-btn capitalize ${filter === f ? 'active' : ''}`}>
               {f === 'all' ? '🌐 All' : `${domainIcons[f]} ${f}`}
             </button>
           ))}
@@ -163,10 +163,10 @@ export default function Goals() {
                   </div>
 
                   <div className="flex gap-2 mb-3">
-                    <button onClick={() => updateProgress(g.id, 10)} className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all">+10%</button>
-                    <button onClick={() => updateProgress(g.id, 25)} className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all">+25%</button>
-                    <button onClick={() => updateProgress(g.id, -10)} className="text-xs px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all">-10%</button>
-                    {g.progress >= 100 && <span className="text-xs text-emerald-400 ml-auto">✅ Completed!</span>}
+                    <button onClick={() => updateProgress(g.id, 10)} className="btn-chip text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">+10%</button>
+                    <button onClick={() => updateProgress(g.id, 25)} className="btn-chip text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">+25%</button>
+                    <button onClick={() => updateProgress(g.id, -10)} className="btn-chip text-slate-400">-10%</button>
+                    {g.progress >= 100 && <span className="text-xs text-emerald-400 ml-auto font-semibold">✅ Done!</span>}
                   </div>
 
                   {g.milestones?.length > 0 && (

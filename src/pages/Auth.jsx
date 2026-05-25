@@ -24,12 +24,23 @@ export function Login() {
   };
 
   const demoAccounts = [
-    { name: 'Stressed Student', email: 'arjun@demo.com' },
-    { name: 'Fitness Learner', email: 'priya@demo.com' },
-    { name: 'Overspender', email: 'rahul@demo.com' },
-    { name: 'Burnout Risk', email: 'sneha@demo.com' },
-    { name: 'Placement Coder', email: 'karthik@demo.com' },
+    { name: 'Stressed Student', email: 'arjun@demo.com',   icon: '🧑‍💻' },
+    { name: 'Fitness Learner',  email: 'priya@demo.com',   icon: '💪'   },
+    { name: 'Overspender',      email: 'rahul@demo.com',   icon: '💸'   },
+    { name: 'Burnout Risk',     email: 'sneha@demo.com',   icon: '🔥'   },
+    { name: 'Placement Coder',  email: 'karthik@demo.com', icon: '🎯'   },
   ];
+
+  const handleDemoLogin = (email) => {
+    setLoading(true);
+    setError('');
+    setTimeout(() => {
+      const result = login(email, 'demo123');
+      if (result.success) navigate('/dashboard');
+      else setError(result.error);
+      setLoading(false);
+    }, 400);
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4 relative overflow-hidden">
@@ -62,13 +73,16 @@ export function Login() {
           </form>
 
           <div className="mt-6 pt-6 border-t border-white/[0.06]">
-            <p className="text-xs text-slate-500 mb-3 text-center">Quick Demo Access</p>
+            <p className="text-xs text-slate-500 mb-3 text-center">One-click demo — no signup needed</p>
             <div className="grid grid-cols-1 gap-2">
               {demoAccounts.map(d => (
-                <button key={d.email} onClick={() => { setEmail(d.email); setPassword('demo123'); }}
-                  className="text-left text-xs p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all flex justify-between items-center">
-                  <span className="text-slate-300">{d.name}</span>
-                  <span className="text-slate-600">{d.email}</span>
+                <button key={d.email} onClick={() => handleDemoLogin(d.email)} disabled={loading}
+                  className="text-left text-xs p-2.5 rounded-xl bg-white/[0.03] hover:bg-blue-500/10 border border-white/[0.06] hover:border-blue-500/20 transition-all flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span>{d.icon}</span>
+                    <span className="text-slate-300 font-medium">{d.name}</span>
+                  </div>
+                  <span className="text-blue-400 text-[10px]">Try →</span>
                 </button>
               ))}
             </div>

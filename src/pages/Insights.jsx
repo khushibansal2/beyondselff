@@ -84,7 +84,7 @@ function PatternCard({ pattern, index }) {
 
 export default function Insights() {
   const { user } = useAuth();
-  const { computed, health, finance, career } = useData();
+  const { computed, health, finance, career, records } = useData();
 
   const h = health || {};
   const f = finance || {};
@@ -111,7 +111,26 @@ export default function Insights() {
   const currentState = useMemo(() => ({ ...user, health: h, finance: f, career: c, timeline: computed?.timeline || [] }), [user, h, f, c, computed?.timeline]);
 
   const insights = useMemo(() => generateInsights(currentState), [currentState]);
-  const trendData = useMemo(() => generateTrendData(currentState, 14), [currentState]);
+
+  const healthRecords = records?.health || [];
+
+  // Use real health records for the trend chart; fall back to synthetic when < 3 entries
+  const trendData = useMemo(() => {
+    if (healthRecords.length >= 3) {
+      return [...healthRecords]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(-14)
+        .map(r => ({
+          date: typeof r.date === 'string' ? r.date.split('T')[0] : new Date(r.date).toISOString().split('T')[0],
+          sleep: r.sleep ?? null,
+          stress: r.stress ?? null,
+          mood: r.mood ?? null,
+          water: r.water ?? null,
+        }));
+    }
+    return generateTrendData(currentState, 14);
+  }, [healthRecords, currentState]);
+
   const correlations = useMemo(() => generateCorrelations(trendData), [trendData]);
 
   const criticalCount = patterns.filter(p => p.severity === 'critical').length;
@@ -145,7 +164,9 @@ export default function Insights() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <span className="text-[10px] text-purple-300 font-medium uppercase tracking-wider">Deterministic AI Analysis</span>
+              <span className="text-[10px] text-purple-300 font-medium uppercase tracking-wider">
+                {healthRecords.length >= 3 ? `Live — ${Math.min(healthRecords.length, 14)} real entries` : 'Demo data — log health to see real patterns'}
+              </span>
             </div>
             <h2 className="text-base font-bold" style={{ fontFamily: 'var(--font-display)' }}>
               {patterns.length} Pattern{patterns.length !== 1 ? 's' : ''} Detected in Your Data

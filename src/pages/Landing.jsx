@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const correlations = [
@@ -21,10 +21,10 @@ const modules = [
 ];
 
 const personas = [
-  { avatar: '🧑‍💻', name: 'Arjun', tag: 'Stressed Student', health: 38, finance: 62, career: 71, alert: '⚠️ Sleep deprivation cutting study efficiency by ~30%' },
-  { avatar: '💪', name: 'Priya', tag: 'Fitness Learner', health: 91, finance: 74, career: 63, alert: '✅ Exercise boosting focus by 20% — keep going!' },
-  { avatar: '💸', name: 'Rahul', tag: 'Overspender', health: 55, finance: 18, career: 47, alert: '🚨 High stress linked to emotional overspending detected' },
-  { avatar: '🔥', name: 'Sneha', tag: 'Burnout Risk', health: 19, finance: 51, career: 88, alert: '🚨 Critical burnout risk: intervene before collapse' },
+  { avatar: '🧑‍💻', name: 'Arjun', tag: 'Stressed Student', health: 38, finance: 62, career: 71, alert: '⚠️ Sleep deprivation cutting study efficiency by ~30%', email: 'arjun@demo.com' },
+  { avatar: '💪', name: 'Priya', tag: 'Fitness Learner', health: 91, finance: 74, career: 63, alert: '✅ Exercise boosting focus by 20% — keep going!', email: 'priya@demo.com' },
+  { avatar: '💸', name: 'Rahul', tag: 'Overspender', health: 55, finance: 18, career: 47, alert: '🚨 High stress linked to emotional overspending detected', email: 'rahul@demo.com' },
+  { avatar: '🔥', name: 'Sneha', tag: 'Burnout Risk', health: 19, finance: 51, career: 88, alert: '🚨 Critical burnout risk: intervene before collapse', email: 'sneha@demo.com' },
 ];
 
 const stats = [
@@ -35,7 +35,13 @@ const stats = [
 ];
 
 export default function Landing() {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
+
+  const tryAsPersona = (email) => {
+    const result = login(email, 'demo123');
+    if (result.success) navigate('/dashboard');
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] overflow-x-hidden">
@@ -247,18 +253,17 @@ export default function Landing() {
                     </div>
                   ))}
                 </div>
-                <div className={`p-3 rounded-xl text-xs ${p.alert.startsWith('🚨') ? 'bg-red-500/5 border border-red-500/20 text-red-300/80' : p.alert.startsWith('⚠️') ? 'bg-amber-500/5 border border-amber-500/20 text-amber-300/80' : 'bg-emerald-500/5 border border-emerald-500/20 text-emerald-300/80'}`}>
+                <div className={`p-3 rounded-xl text-xs mb-3 ${p.alert.startsWith('🚨') ? 'bg-red-500/5 border border-red-500/20 text-red-300/80' : p.alert.startsWith('⚠️') ? 'bg-amber-500/5 border border-amber-500/20 text-amber-300/80' : 'bg-emerald-500/5 border border-emerald-500/20 text-emerald-300/80'}`}>
                   {p.alert}
                 </div>
+                <button onClick={() => tryAsPersona(p.email)}
+                  className="w-full text-xs px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all font-medium">
+                  Try as {p.name} →
+                </button>
               </motion.div>
             ))}
           </div>
 
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-8">
-            <Link to="/login" className="btn-secondary text-sm px-6 py-3 rounded-xl">
-              Try any of these personas →
-            </Link>
-          </motion.div>
         </div>
       </section>
 

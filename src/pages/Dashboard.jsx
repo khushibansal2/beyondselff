@@ -105,25 +105,47 @@ function DoomRealityPanel({ stats, burnoutRisk, lifeBalance }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // RIPPLE CONNECTOR (SVG overlay on score rings)
 // ─────────────────────────────────────────────────────────────────────────────
-const DOMAIN_CASCADES = {
+// Static fallback — shown only when no real cascade is active for a domain
+const FALLBACK_CASCADES = {
   health:  [
-    { to: 'career',  type: 'positive', label: '+15% Focus',      color: '#10b981' },
-    { to: 'finance', type: 'positive', label: '+8% Discipline',  color: '#10b981' },
+    { to: 'career',  type: 'positive', label: 'Boosts Focus',     color: '#10b981' },
+    { to: 'finance', type: 'positive', label: 'Discipline',       color: '#10b981' },
   ],
   finance: [
-    { to: 'health',  type: 'negative', label: '-12% Wellbeing',  color: '#ef4444' },
-    { to: 'career',  type: 'positive', label: '+10% Drive',      color: '#10b981' },
+    { to: 'health',  type: 'negative', label: 'Stress Risk',      color: '#ef4444' },
+    { to: 'career',  type: 'positive', label: 'Drives Ambition',  color: '#10b981' },
   ],
   career:  [
-    { to: 'health',  type: 'negative', label: '-20% Recovery',   color: '#ef4444' },
-    { to: 'finance', type: 'positive', label: '+5% Income',      color: '#10b981' },
+    { to: 'health',  type: 'negative', label: 'Recovery Cost',    color: '#ef4444' },
+    { to: 'finance', type: 'positive', label: 'Income Boost',     color: '#10b981' },
   ],
 };
+
+function buildDomainCascades(crossDomain = []) {
+  if (!crossDomain.length) return FALLBACK_CASCADES;
+  const result = { health: [], finance: [], career: [] };
+  crossDomain.forEach(c => {
+    const isNeg = c.type === 'negative';
+    const color = c.severity === 'critical' ? '#ef4444' : isNeg ? '#f97316' : '#10b981';
+    let label = c.effect?.split('.')[0] || (isNeg ? 'Negative impact' : 'Positive impact');
+    // Derive concise labels from computedImpact
+    if (c.computedImpact?.productivityLoss)  label = `-${c.computedImpact.productivityLoss}% Productivity`;
+    if (c.computedImpact?.excessSpending)    label = `-₹${(c.computedImpact.excessSpending / 1000).toFixed(0)}K Spending`;
+    if (c.computedImpact?.focusBoost)        label = `+${c.computedImpact.focusBoost}% Focus`;
+    if (c.computedImpact?.alertnessReduction) label = `-${c.computedImpact.alertnessReduction}% Alertness`;
+    if (result[c.from]) result[c.from].push({ to: c.to, type: c.type, label, color });
+  });
+  // Fill any domain with no real cascades using fallback
+  ['health', 'finance', 'career'].forEach(d => {
+    if (!result[d].length) result[d] = FALLBACK_CASCADES[d];
+  });
+  return result;
+}
 
 // Column indices in the 5-card desktop grid
 const DOMAIN_COL = { health: 0, finance: 1, career: 2, life: 3, burnout: 4 };
 
-function RippleConnector({ hoveredDomain, containerRef }) {
+function RippleConnector({ hoveredDomain, containerRef, cascades }) {
   const [svgSize, setSvgSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
@@ -136,7 +158,7 @@ function RippleConnector({ hoveredDomain, containerRef }) {
     return () => ro.disconnect();
   }, []);
 
-  if (!hoveredDomain || !DOMAIN_CASCADES[hoveredDomain] || svgSize.w === 0) return null;
+  if (!hoveredDomain || !cascades?.[hoveredDomain] || svgSize.w === 0) return null;
 
   const { w, h } = svgSize;
   const colW = w / 5;
@@ -144,7 +166,7 @@ function RippleConnector({ hoveredDomain, containerRef }) {
 
   const fromX = DOMAIN_COL[hoveredDomain] * colW + colW / 2;
 
-  const conns = DOMAIN_CASCADES[hoveredDomain];
+  const conns = cascades[hoveredDomain];
 
   return (
     <svg
@@ -227,7 +249,7 @@ function RippleConnector({ hoveredDomain, containerRef }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuth();
-  const { health, finance, career, timeline, computed, aiCache, updateAICache, anomalies = [] } = useData();
+  const { health, finance, career, timeline, records, computed, aiCache, updateAICache, anomalies = [] } = useData();
   const [aiNarrative, setAiNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [checkedTasks, setCheckedTasks] = useState({});
@@ -266,6 +288,9 @@ export default function Dashboard() {
     setTimeout(() => setDoomShake(false), 600);
   }, []);
 
+  // Real-time cross-domain cascade map derived from scoring engine
+  const domainCascades = useMemo(() => buildDomainCascades(computed?.crossDomain || []), [computed?.crossDomain]);
+
   // Explainable factors
   const explainFactors = useMemo(() => ({
     health:  computeHealthScore(health  || {}, []).factors,
@@ -273,36 +298,44 @@ export default function Dashboard() {
     career:  computeCareerScore(career  || {}, []).factors,
   }), [health, finance, career]);
 
-  // Action plan
+  // Action plan — only show items based on data the user has actually logged
+  const hasHealthData  = h.sleepAvg > 0 || h.stressLevel > 0 || h.workoutsPerWeek > 0 || h.waterIntake > 0;
+  const hasFinanceData = f.income > 0 || f.expenses > 0;
+  const hasCareerData  = c.studyHoursDaily > 0 || c.dsaPractice > 0 || c.skills.length > 0;
+
   const actionPlan = useMemo(() => {
     const tasks = [];
     if (h.sleepAvg > 0 && h.sleepAvg < 7)
-      tasks.push({ id: 'sleep',   icon: '😴', text: `Go to bed ${Math.max(0.5, 7 - h.sleepAvg).toFixed(1)}h earlier tonight`, domain: 'health',  color: '#8b5cf6', time: '0 min',  link: '/health' });
-    if (h.workoutsPerWeek >= 0 && h.workoutsPerWeek < 3)
-      tasks.push({ id: 'workout', icon: '💪', text: 'Do a 20-min home workout session',                                         domain: 'health',  color: '#10b981', time: '20 min', link: '/health' });
+      tasks.push({ id: 'sleep',   icon: '😴', text: `Go to bed ${Math.max(0.5, 7 - h.sleepAvg).toFixed(1)}h earlier tonight`,            domain: 'health',  color: '#8b5cf6', time: '0 min',   link: '/health' });
+    if (h.workoutsPerWeek > 0 && h.workoutsPerWeek < 3)
+      tasks.push({ id: 'workout', icon: '💪', text: `Add ${3 - h.workoutsPerWeek} more workout day${3 - h.workoutsPerWeek > 1 ? 's' : ''} this week`, domain: 'health',  color: '#10b981', time: '20 min',  link: '/health' });
     if (h.waterIntake > 0 && h.waterIntake < 7)
-      tasks.push({ id: 'water',   icon: '💧', text: `Drink ${8 - Math.round(h.waterIntake)} more glasses of water today`,       domain: 'health',  color: '#06b6d4', time: 'All day', link: '/health' });
+      tasks.push({ id: 'water',   icon: '💧', text: `Drink ${8 - Math.round(h.waterIntake)} more glasses of water today`,                 domain: 'health',  color: '#06b6d4', time: 'All day',  link: '/health' });
     if (h.stressLevel > 6)
-      tasks.push({ id: 'stress',  icon: '🧘', text: 'Take a 15-min meditation or walk break',                                   domain: 'health',  color: '#f43f5e', time: '15 min', link: '/health' });
+      tasks.push({ id: 'stress',  icon: '🧘', text: 'Take a 15-min meditation or walk break',                                             domain: 'health',  color: '#f43f5e', time: '15 min',  link: '/health' });
     if (savingsRate < 20 && f.income > 0)
-      tasks.push({ id: 'savings', icon: '💰', text: `Review subscriptions (₹${f.subscriptions}) — cancel one unused service`,  domain: 'finance', color: '#f59e0b', time: '10 min', link: '/finance' });
+      tasks.push({ id: 'savings', icon: '💰', text: `Review subscriptions (₹${f.subscriptions}) — cancel one unused service`,            domain: 'finance', color: '#f59e0b', time: '10 min',  link: '/finance' });
     if (f.debt > 0)
-      tasks.push({ id: 'debt',    icon: '🏦', text: 'Make a debt repayment transfer today',                                     domain: 'finance', color: '#ef4444', time: '5 min',  link: '/finance' });
-    if (c.dsaPractice < 3)
-      tasks.push({ id: 'dsa',     icon: '🧩', text: `Solve ${Math.max(1, 3 - c.dsaPractice)} DSA problems on LeetCode`,        domain: 'career',  color: '#3b82f6', time: '45 min', link: '/career' });
-    if (c.studyHoursDaily < 4)
-      tasks.push({ id: 'study',   icon: '📚', text: 'Block a 2-hour focused study session',                                     domain: 'career',  color: '#8b5cf6', time: '2 hours', link: '/career' });
-    if (c.skills.length < 5)
-      tasks.push({ id: 'skill',   icon: '🎯', text: 'Add one new skill to your profile today',                                  domain: 'career',  color: '#06b6d4', time: '5 min',  link: '/career' });
+      tasks.push({ id: 'debt',    icon: '🏦', text: 'Make a debt repayment transfer today',                                               domain: 'finance', color: '#ef4444', time: '5 min',   link: '/finance' });
+    if (hasCareerData && c.dsaPractice < 3)
+      tasks.push({ id: 'dsa',     icon: '🧩', text: `Solve ${Math.max(1, 3 - c.dsaPractice)} DSA problem${3 - c.dsaPractice > 1 ? 's' : ''} on LeetCode`, domain: 'career',  color: '#3b82f6', time: '45 min',  link: '/career' });
+    if (hasCareerData && c.studyHoursDaily > 0 && c.studyHoursDaily < 4)
+      tasks.push({ id: 'study',   icon: '📚', text: 'Block a 2-hour focused study session',                                               domain: 'career',  color: '#8b5cf6', time: '2 hours', link: '/career' });
+    if (hasCareerData && c.skills.length < 5)
+      tasks.push({ id: 'skill',   icon: '🎯', text: 'Add one new skill to your profile today',                                            domain: 'career',  color: '#06b6d4', time: '5 min',   link: '/career' });
+
     if (tasks.length === 0) {
-      tasks.push(
-        { id: 'log-health',  icon: '❤️', text: 'Log your health data to unlock insights',  domain: 'health',  color: '#10b981', time: '2 min', link: '/health' },
-        { id: 'log-finance', icon: '💰', text: 'Log your income and expenses',              domain: 'finance', color: '#f59e0b', time: '2 min', link: '/finance' },
-        { id: 'log-career',  icon: '📚', text: 'Log your study hours and skills',           domain: 'career',  color: '#3b82f6', time: '2 min', link: '/career' },
-      );
+      const empties = [];
+      if (!hasHealthData)  empties.push({ id: 'log-health',  icon: '❤️',  text: 'Log your health data to unlock insights',  domain: 'health',  color: '#10b981', time: '2 min', link: '/health' });
+      if (!hasFinanceData) empties.push({ id: 'log-finance', icon: '💰', text: 'Log your income and expenses',               domain: 'finance', color: '#f59e0b', time: '2 min', link: '/finance' });
+      if (!hasCareerData)  empties.push({ id: 'log-career',  icon: '📚', text: 'Log your study hours and skills',            domain: 'career',  color: '#3b82f6', time: '2 min', link: '/career' });
+      if (empties.length === 0) {
+        empties.push({ id: 'all-good', icon: '🏆', text: 'All targets met — you\'re crushing it today!', domain: 'health', color: '#22c55e', time: '—', link: '/health' });
+      }
+      return empties.slice(0, 3);
     }
     return tasks.slice(0, 3);
-  }, [h, f, c, savingsRate]);
+  }, [h, f, c, savingsRate, hasHealthData, hasFinanceData, hasCareerData]);
 
   const urgentAlerts   = [...(computed?.urgentAlerts || []), ...anomalies.map(a => ({ icon: a.severity === 'critical' ? '🚨' : '⚠️', text: `${a.title}: ${a.description}` }))];
   const positiveSignals = computed?.positiveSignals || [];
@@ -359,7 +392,7 @@ export default function Dashboard() {
   // Cascade effect indicator for each score ring
   function getCascadeEffect(cardKey) {
     if (!hoveredDomain || hoveredDomain === cardKey) return null;
-    const effects = DOMAIN_CASCADES[hoveredDomain] || [];
+    const effects = domainCascades[hoveredDomain] || [];
     return effects.find(e => e.to === cardKey) || null;
   }
 
@@ -549,7 +582,7 @@ export default function Dashboard() {
             <AnimatePresence>
               {hoveredDomain && (
                 <motion.div key={hoveredDomain} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
-                  <RippleConnector hoveredDomain={hoveredDomain} containerRef={scoreRingsRef} />
+                  <RippleConnector hoveredDomain={hoveredDomain} containerRef={scoreRingsRef} cascades={domainCascades} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -617,6 +650,7 @@ export default function Dashboard() {
             savingsRate={savingsRate}
             burnoutRisk={burnoutRisk}
             doomMode={doomMode}
+            healthRecords={records?.health || []}
           />
         </div>
 
@@ -754,7 +788,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <Link to={task.link} onClick={e => e.stopPropagation()}
-                    className="text-[10px] px-2 py-1 rounded-lg bg-white/5 text-slate-500 hover:text-white hover:bg-white/10 transition-all flex-shrink-0">
+                    className="btn-chip flex-shrink-0">
                     Go →
                   </Link>
                 </motion.div>
