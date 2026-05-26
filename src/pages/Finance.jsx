@@ -375,6 +375,7 @@ export default function Finance() {
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const score = computed?.financeScore?.score || 0;
   const financeRecords = records?.finance || [];
+  const hasFinanceData = f.income > 0 || f.expenses > 0 || f.savings > 0;
 
   // ── Spending trend ────────────────────────────────────────────────────────
   const trendData = useMemo(() => {
@@ -1035,14 +1036,41 @@ export default function Finance() {
       {/* ── RECOMMENDATIONS TAB ───────────────────────────────────────────── */}
       {tab === 'recommendations' && (
         <div className="space-y-6">
-          <RoboAdvisor f={f} savingsRate={savingsRate} />
+          {hasFinanceData ? (
+            <RoboAdvisor f={f} savingsRate={savingsRate} />
+          ) : (
+            <GlassCard className="border border-amber-500/20 bg-amber-500/[0.03]">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl flex-shrink-0">⚠️</span>
+                <div>
+                  <p className="text-sm font-semibold text-amber-300 mb-1">Log financial data first</p>
+                  <p className="text-xs text-slate-400">The portfolio advisor calculates allocations from your real income and expenses. Log them in the <button onClick={() => setTab('log')} className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">Log tab</button> to get accurate advice.</p>
+                </div>
+              </div>
+            </GlassCard>
+          )}
           <h3 className="text-sm font-semibold flex items-center gap-2"><span>💡</span> AI Spending Optimizations</h3>
           <FinanceRecommendations recommendations={recommendations} />
         </div>
       )}
 
       {/* ── INVEST TAB ────────────────────────────────────────────────────── */}
-      {tab === 'invest' && <InvestmentRoboAdvisor f={f} score={score} />}
+      {tab === 'invest' && (
+        hasFinanceData ? (
+          <InvestmentRoboAdvisor f={f} score={score} />
+        ) : (
+          <GlassCard className="text-center py-16 border border-white/[0.06]">
+            <div className="text-5xl mb-4">📊</div>
+            <h3 className="text-[15px] font-semibold text-slate-200 mb-2">No Financial Data Yet</h3>
+            <p className="text-[13px] text-slate-400 mb-6 max-w-sm mx-auto leading-relaxed">
+              Log your income and expenses first. The Robo-Advisor then calculates your investable surplus, risk profile, portfolio allocation, India tax savings (80C/80D), and SIP projections.
+            </p>
+            <button onClick={() => setTab('log')} className="btn-primary px-6 py-2.5 text-sm">
+              Log Financial Data →
+            </button>
+          </GlassCard>
+        )
+      )}
     </div>
   );
 }

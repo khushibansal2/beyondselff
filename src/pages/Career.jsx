@@ -1926,17 +1926,51 @@ export default function Career() {
 
       {/* ── JOB MARKET TAB ───────────────────────────────────────────────────── */}
       {tab === 'jobs' && (
-        <JobsTab userSkills={userSkills} />
+        <div className="space-y-4">
+          {userSkills.length === 0 && (
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] text-xs text-amber-300">
+              <span className="text-base flex-shrink-0">💡</span>
+              <span>
+                <strong>Tip:</strong> Upload your resume (Resume tab) to see personalised match scores and skill-gap highlights on each job card.
+              </span>
+              <button onClick={() => setTab('resume')} className="ml-auto flex-shrink-0 px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500/10 transition-all font-semibold whitespace-nowrap">
+                Upload →
+              </button>
+            </div>
+          )}
+          <JobsTab userSkills={userSkills} />
+        </div>
       )}
 
       {/* ── CAREER INTELLIGENCE TAB ──────────────────────────────────────────── */}
       {tab === 'intelligence' && (
-        <CareerIntelligenceTab
-          userSkills={userSkills}
-          targetRole={c.targetRole || ''}
-          health={health}
-          computed={computed}
-        />
+        userSkills.length === 0 ? (
+          <GlassCard className="text-center py-16 border border-white/[0.06]">
+            <div className="text-5xl mb-4">🎯</div>
+            <h3 className="text-[15px] font-semibold text-slate-200 mb-2">Connect Your Skills First</h3>
+            <p className="text-[13px] text-slate-400 mb-6 max-w-sm mx-auto leading-relaxed">
+              Upload your resume or log career skills to unlock job-market matching, salary benchmarks, skill-gap analysis, and personalised AI career coaching.
+            </p>
+            <div className="flex gap-3 justify-center flex-wrap">
+              <button onClick={() => setTab('resume')} className="btn-primary px-5 py-2.5 text-sm">
+                Upload Resume →
+              </button>
+              <button onClick={() => setTab('log')} className="btn-secondary px-5 py-2.5 text-sm">
+                Log Skills Manually
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-600 mt-5">
+              Resume skills auto-populate job match scores and skill-gap analysis.
+            </p>
+          </GlassCard>
+        ) : (
+          <CareerIntelligenceTab
+            userSkills={userSkills}
+            targetRole={c.targetRole || ''}
+            health={health}
+            computed={computed}
+          />
+        )
       )}
 
       {/* ── RESUME AI TAB ─────────────────────────────────────────────────────── */}
