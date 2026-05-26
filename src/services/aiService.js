@@ -11,6 +11,9 @@
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE + '/ai';
+const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 /** Strip PII from user data before sending to AI. */
 function stripPII(data) {
@@ -83,13 +86,47 @@ Use this data to give grounded, personalized, and emotionally intelligent coachi
 }
 
 /**
+ * Call Groq directly from the frontend using VITE_GROQ_API_KEY.
+ * Used as primary path when backend is unavailable.
+ */
+async function callGroqDirect(systemPrompt, conversationHistory, message) {
+  if (!GROQ_KEY) throw new Error('No Groq key');
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory.slice(-10),
+    { role: 'user', content: message },
+  ];
+  const res = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${GROQ_KEY}`,
+    },
+    body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7, max_tokens: 1024 }),
+  });
+  if (res.status === 429) throw new Error('RATE_LIMITED');
+  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+/**
  * Send a chat message to the AI Coach.
  * @param {string} message - User's message
  * @param {object} context - Computed user context (from DataContext)
+ * @param {Array} history - Prior conversation messages [{role, text}]
  * @returns {Promise<{response: string, source: string}>}
  */
-export async function chatWithAI(message, context = {}) {
+export async function chatWithAI(message, context = {}, history = []) {
   const systemPrompt = buildSystemPrompt(context);
+  const conversationHistory = history
+    .filter(m => m.text && m.text.trim())
+    .map(m => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.text,
+    }));
+
+  // 1. Try backend proxy first
   try {
     const res = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
@@ -98,27 +135,45 @@ export async function chatWithAI(message, context = {}) {
         message,
         context: stripPII(context),
         systemPrompt,
+        history: conversationHistory,
       }),
+      signal: AbortSignal.timeout(8000),
     });
 
     if (res.status === 429) {
-      // Rate limited — show friendly retry message, still grounded
       return {
-        response: `⏳ Gemini is rate-limited right now (free-tier quota). Here's what your data shows:\n\n${generateFallbackResponse(message, context)}\n\n_Gemini will be available again in ~1 minute._`,
+        response: `⏳ AI is rate-limited right now. Here's what your data shows:\n\n${generateFallbackResponse(message, context)}\n\n_Try again in ~1 minute._`,
         source: 'rate-limited',
       };
     }
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch (error) {
-    console.warn('AI chat failed, using fallback:', error.message);
-    return {
-      response: generateFallbackResponse(message, context),
-      source: 'fallback',
-      error: error.message,
-    };
+    if (res.ok) {
+      const data = await res.json();
+      return { response: data.response, source: data.source || 'groq' };
+    }
+  } catch (_) {
+    // Backend unavailable — fall through to direct Groq call
   }
+
+  // 2. Try direct Groq call (uses VITE_GROQ_API_KEY)
+  try {
+    const response = await callGroqDirect(systemPrompt, conversationHistory, message);
+    return { response, source: 'groq-direct' };
+  } catch (error) {
+    if (error.message === 'RATE_LIMITED') {
+      return {
+        response: `⏳ AI is rate-limited right now. Here's what your data shows:\n\n${generateFallbackResponse(message, context)}\n\n_Try again in ~1 minute._`,
+        source: 'rate-limited',
+      };
+    }
+    console.warn('Direct Groq failed, using deterministic fallback:', error.message);
+  }
+
+  // 3. Deterministic fallback
+  return {
+    response: generateFallbackResponse(message, context),
+    source: 'fallback',
+  };
 }
 
 /**

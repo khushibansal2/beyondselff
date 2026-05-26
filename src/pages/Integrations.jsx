@@ -6,15 +6,12 @@ import { fetchGitHubProfile, analyzeGitHubWithAI, LANG_COLORS } from '../service
 import {
   analyzeFood, hasNutritionixKey, saveNutritionixKeys, clearNutritionixKeys, getDemoFoodResult
 } from '../services/nutritionixService';
-import {
-  extractPdfText, parseResumeWithAI,
-  saveResumeData, loadResumeData, clearResumeData,
-} from '../services/resumeService';
+import { extractPdfText } from '../services/resumeService';
 import {
   GitBranch, Briefcase, Activity, Landmark, Utensils,
   Search, Sparkles, CheckCircle, AlertTriangle, ExternalLink,
-  Star, GitFork, Code2, Users, TrendingUp, Key, Plus,
-  Zap, Brain, ChevronRight, BarChart2, RefreshCw,
+  Star, GitFork, Code2, Users, Key, Plus,
+  Zap, Brain, ChevronRight, Loader2,
 } from 'lucide-react';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -363,440 +360,347 @@ function GitHubPanel() {
   );
 }
 
-// ── RESUME AI PANEL ───────────────────────────────────────────────────────────
+// ── MOCK LINKEDIN PANEL ───────────────────────────────────────────────────────
 
-const PARSE_STEPS = [
-  'Reading PDF pages…',
-  'Extracting text layout…',
-  'Sending to Groq AI…',
-  'Parsing skills & experience…',
-  'Generating career insights…',
-];
+const MOCK_PROFILE = {
+  name: 'Arjun Mehta', initials: 'AM',
+  headline: 'Full Stack Developer · React · Node.js · AWS | Building @ BeyondSelf',
+  location: 'Bengaluru, Karnataka, India',
+  connections: 487, followers: 612,
+  about: 'Passionate engineer building scalable web applications and digital twin systems. Open to SDE-II / Senior roles at product-first companies.',
+  analytics: { profileViews: 234, viewsTrend: '+18%', searchAppearances: 89, postImpressions: 1847 },
+  experience: [
+    { title: 'Software Development Engineer II', company: 'Flipkart', logo: '🛒', duration: 'Jun 2022 – Present · 2 yrs', location: 'Bengaluru, Hybrid', highlights: ['Built real-time inventory system handling 2M+ daily requests', 'Reduced P99 latency by 40% via Redis caching + CDN strategy', 'Led a team of 4 engineers on the seller portal redesign'] },
+    { title: 'SDE I', company: 'Swiggy', logo: '🍜', duration: 'Aug 2020 – May 2022 · 1 yr 9 mo', location: 'Bengaluru, Remote', highlights: ['Developed order-tracking microservice — 99.9% uptime', 'Led migration from monolith to microservices, cutting deploy time by 60%'] },
+    { title: 'Software Engineering Intern', company: 'Razorpay', logo: '💳', duration: 'Jan 2020 – Jul 2020 · 7 mo', location: 'Bengaluru', highlights: ['Built internal analytics dashboard used by 30+ PMs', 'Improved test coverage from 45% → 82%'] },
+  ],
+  education: [{ institution: 'BITS Pilani', degree: 'B.E. Computer Science', year: '2016 – 2020', grade: '8.7 CGPA' }],
+  skills: [
+    { name: 'React.js', endorsements: 47 }, { name: 'Node.js', endorsements: 38 },
+    { name: 'System Design', endorsements: 29 }, { name: 'AWS', endorsements: 22 },
+    { name: 'TypeScript', endorsements: 19 }, { name: 'MongoDB', endorsements: 15 },
+    { name: 'Docker', endorsements: 12 }, { name: 'GraphQL', endorsements: 8 },
+    { name: 'Redis', endorsements: 6 }, { name: 'Kubernetes', endorsements: 4 },
+  ],
+  jobs: [
+    { title: 'Senior Software Engineer', company: 'Google', logo: '🟡', location: 'Hyderabad, India', match: 94, applicants: 234, postedAgo: '2d', salary: '₹40L – ₹60L', type: 'Full-time' },
+    { title: 'Full Stack Engineer', company: 'Zepto', logo: '⚡', location: 'Mumbai, India', match: 88, applicants: 89, postedAgo: '5d', salary: '₹25L – ₹35L', type: 'Full-time' },
+    { title: 'Staff Engineer', company: 'Meesho', logo: '🛍️', location: 'Bengaluru, Hybrid', match: 82, applicants: 45, postedAgo: '1w', salary: '₹35L – ₹55L', type: 'Full-time' },
+    { title: 'Engineering Manager', company: 'CRED', logo: '💎', location: 'Bengaluru, India', match: 74, applicants: 67, postedAgo: '3d', salary: '₹45L – ₹70L', type: 'Full-time' },
+  ],
+};
 
-const PRIORITY_COLOR = { high: 'text-red-400 bg-red-500/[0.06] border-red-500/15', medium: 'text-amber-400 bg-amber-500/[0.06] border-amber-500/15', low: 'text-[#71717a] bg-white/[0.02] border-white/[0.06]' };
-
-function ScoreCard({ label, value, color, unit = '/100' }) {
-  return (
-    <GlassCard>
-      <p className="text-[10px] text-[#52525b] mb-1.5 font-medium uppercase tracking-wider">{label}</p>
-      <p className="text-[28px] font-black leading-none" style={{ color }}>{value}<span className="text-[12px] font-medium text-[#52525b] ml-0.5">{unit}</span></p>
-      <div className="h-1.5 rounded-full bg-white/[0.05] mt-2.5 overflow-hidden">
-        <motion.div initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 1, ease: [0.16,1,0.3,1] }}
-          className="h-full rounded-full" style={{ background: color }} />
-      </div>
-    </GlassCard>
-  );
-}
 
 function LinkedInPanel() {
-  const { career, updateDomain } = useData();
-  const fileRef   = useRef(null);
-  const resultRef = useRef(null);
+  const [searchInput, setSearchInput]  = useState('');
+  const [profile,     setProfile]      = useState(null);
+  const [loading,     setLoading]      = useState(false);
+  const [activeTab,   setActiveTab]    = useState('experience');
+  const [followed,    setFollowed]     = useState(false);
+  const [savedJobs,   setSavedJobs]    = useState([]);
 
-  const [phase,      setPhase]      = useState(() => loadResumeData() ? 'results' : 'upload');
-  const [stepText,   setStepText]   = useState('');
-  const [stepIdx,    setStepIdx]    = useState(0);
-  const [dragOver,   setDragOver]   = useState(false);
-  const [resume,     setResume]     = useState(() => loadResumeData());
-  const [error,      setError]      = useState(null);
-  const [synced,     setSynced]     = useState(false);
-  const [activeSection, setActiveSection] = useState('overview');
+  const strHash = (s) => Math.abs(s.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 0));
 
-  async function processFile(file) {
-    if (!file || file.type !== 'application/pdf') {
-      setError('Please upload a PDF file.'); return;
-    }
-    setPhase('parsing'); setError(null); setStepIdx(0);
+  const generateProfile = (name) => {
+    const h = strHash(name.toLowerCase());
+    const words = name.trim().split(/\s+/);
+    const initials = words.map(w => w[0]?.toUpperCase() || '').join('').slice(0, 2) || '??';
+    const headlines = [
+      'Full Stack Developer · React · Node.js · AWS | Building @ Scale',
+      'Senior Software Engineer · Python · ML · Cloud | Ex-Google',
+      'Engineering Lead · System Design · Distributed Systems | Ex-Amazon',
+      'Frontend Engineer · React · TypeScript · Design Systems | Ex-Flipkart',
+    ];
+    const locations = ['Bengaluru, Karnataka, India', 'Mumbai, Maharashtra, India', 'Delhi NCR, India', 'Hyderabad, Telangana, India'];
+    const colleges  = ['IIT Bombay', 'IIT Delhi', 'BITS Pilani', 'NIT Trichy'];
+    const degrees   = ['B.Tech Computer Science', 'B.E. Computer Science', 'B.Tech Information Technology', 'M.Tech Computer Science'];
+    const conns = 280 + (h % 420);
+    return {
+      name: name.trim(), initials,
+      headline:  headlines[h % headlines.length],
+      location:  locations[h % locations.length],
+      connections: conns, followers: conns + 80 + (h % 180),
+      about: `Passionate engineer with ${3 + (h % 8)} years of experience building scalable systems. Open to SDE-II / Senior roles at product-first companies.`,
+      analytics: {
+        profileViews:       100 + (h % 300),
+        viewsTrend:         `+${5 + (h % 28)}%`,
+        searchAppearances:  40  + (h % 90),
+        postImpressions:    600 + (h % 1800),
+      },
+      experience: MOCK_PROFILE.experience,
+      education:  [{ institution: colleges[h % colleges.length], degree: degrees[h % degrees.length], year: `${2014 + (h % 6)} – ${2018 + (h % 6)}`, grade: `${(7.5 + (h % 15) / 10).toFixed(1)} CGPA` }],
+      skills: MOCK_PROFILE.skills,
+      jobs:   MOCK_PROFILE.jobs,
+    };
+  };
 
-    const tick = (i, msg) => { setStepIdx(i); setStepText(msg); };
+  const handleSearch = async () => {
+    if (!searchInput.trim()) return;
+    setLoading(true);
+    setProfile(null);
+    setActiveTab('experience');
+    setFollowed(false);
+    setSavedJobs([]);
+    await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
+    setProfile(generateProfile(searchInput.trim()));
+    setLoading(false);
+  };
 
-    try {
-      tick(0, PARSE_STEPS[0]);
-      const text = await extractPdfText(file);
-
-      tick(2, PARSE_STEPS[2]);
-      const parsed = await parseResumeWithAI(text, (msg) => tick(3, msg));
-
-      saveResumeData(parsed);
-      setResume(parsed);
-      setPhase('results');
-      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    } catch (e) {
-      setError(e.message === 'NO_KEY' ? 'No Groq API key configured. Add VITE_GROQ_API_KEY to your .env file.' : e.message);
-      setPhase('upload');
-    }
-  }
-
-  function handleDrop(e) {
-    e.preventDefault(); setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
-  }
-
-  function handleReset() {
-    clearResumeData();
-    setResume(null); setPhase('upload'); setError(null); setSynced(false); setActiveSection('overview');
-  }
-
-  function handleSyncSkills() {
-    const newSkills = resume?.skills ?? [];
-    const merged = [...new Set([...(career?.skills ?? []), ...newSkills])];
-    updateDomain('career', { ...career, skills: merged, projectsCompleted: (career?.projectsCompleted ?? 0) + (resume?.projects?.length ?? 0) });
-    setSynced(true);
-  }
-
-  const r = resume;
-  const skillCats = r?.skillCategories ?? {};
+  const matchColor = (m) => m >= 90 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
+    : m >= 80 ? 'text-[#00a0dc] bg-[#0077b5]/10 border-[#0077b5]/25'
+    : 'text-amber-400 bg-amber-500/10 border-amber-500/25';
 
   return (
     <div className="space-y-5">
-      {/* Header bar */}
-      <GlassCard>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Briefcase size={16} className="text-indigo-400" />
-            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Resume AI Intelligence</h3>
-            <StatusBadge status={phase === 'results' ? 'live' : 'none'} />
-          </div>
-          {phase === 'results' && (
-            <button onClick={handleReset} className="text-[11px] px-3 py-1.5 rounded-xl border border-red-500/20 text-red-400/70 hover:text-red-400 transition-all">
-              Upload New
-            </button>
-          )}
-        </div>
-        {phase === 'upload' && (
-          <p className="text-[12px] text-[#52525b] mt-2">
-            Upload your resume PDF — AI extracts skills, experience, education, and projects, then generates ATS score, skill gap analysis, and a personalised learning roadmap.
+      {/* API Notice */}
+      <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05]">
+        <AlertTriangle size={15} className="text-amber-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-[12px] font-semibold text-amber-300">Mock LinkedIn Data</p>
+          <p className="text-[11px] text-[#71717a] mt-0.5">
+            LinkedIn's API requires partner-level approval and is not available to third-party apps without review. This panel uses realistic mock data. In production, integrate via <span className="text-amber-400 font-mono text-[10px]">LinkedIn OAuth 2.0</span> after partner approval.
           </p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <GlassCard>
+        <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider mb-2.5">Search LinkedIn Profile</p>
+        <div className="flex gap-2">
+          <input
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            placeholder="Enter a name (e.g. Priya Sharma)"
+            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-[#0077b5]/40 transition-colors"
+          />
+          <button
+            onClick={handleSearch}
+            disabled={loading || !searchInput.trim()}
+            className="px-4 py-2 rounded-xl bg-[#0077b5] text-white text-[12px] font-semibold hover:bg-[#006097] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 flex-shrink-0"
+          >
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
+            {loading ? 'Searching…' : 'Search'}
+          </button>
+        </div>
+        {!profile && !loading && (
+          <div className="flex gap-2 mt-3 flex-wrap">
+            {['Arjun Mehta', 'Priya Sharma', 'Rahul Gupta', 'Ananya Singh'].map(n => (
+              <button key={n} onClick={() => setSearchInput(n)}
+                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] transition-all">
+                {n}
+              </button>
+            ))}
+          </div>
         )}
       </GlassCard>
 
-      {/* ── Upload Zone ── */}
-      {phase === 'upload' && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <GlassCard>
-            <div
-              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => fileRef.current?.click()}
-              className={`rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-4 p-12 ${
-                dragOver ? 'border-indigo-500/50 bg-indigo-500/[0.05]' : 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.04]'
-              }`}
-            >
-              <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
-                onChange={e => e.target.files[0] && processFile(e.target.files[0])} />
-              <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                <span className="text-3xl">📄</span>
-              </div>
-              <div className="text-center">
-                <p className="text-[14px] font-semibold text-[#f0f0f3] mb-1">Drop your resume PDF here</p>
-                <p className="text-[12px] text-[#52525b]">or click to browse · PDF only · text-based (not scanned)</p>
-              </div>
-              <div className="flex gap-3 text-[11px] text-[#3f3f46]">
-                {['Skills Extraction', 'ATS Score', 'Skill Gap Analysis', 'Learning Roadmap'].map(f => (
-                  <span key={f} className="flex items-center gap-1"><CheckCircle size={10} className="text-indigo-400" />{f}</span>
-                ))}
-              </div>
-            </div>
-            {error && (
-              <div className="mt-4 flex items-start gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2.5">
-                <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {error}
-              </div>
-            )}
-          </GlassCard>
-        </motion.div>
+      {/* Loading */}
+      {loading && (
+        <GlassCard className="text-center py-10">
+          <Loader2 size={28} className="mx-auto mb-3 text-[#0077b5] animate-spin" />
+          <p className="text-[13px] font-semibold text-[#a1a1aa]">Fetching profile for "{searchInput}"…</p>
+          <p className="text-[11px] text-[#52525b] mt-1">Connecting to LinkedIn Mock API</p>
+        </GlassCard>
       )}
 
-      {/* ── Parsing Animation ── */}
-      {phase === 'parsing' && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.03]">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-9 h-9 rounded-full border-2 border-indigo-400/60 border-t-indigo-400 animate-spin flex-shrink-0" />
-              <div>
-                <p className="text-[14px] font-semibold text-[#f0f0f3]">Analyzing your resume…</p>
-                <p className="text-[12px] text-[#52525b]">{stepText}</p>
-              </div>
-            </div>
-            <div className="space-y-2.5">
-              {PARSE_STEPS.map((step, i) => (
-                <motion.div key={step} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.3 }}
-                  className="flex items-center gap-2.5">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                    i < stepIdx ? 'bg-indigo-500' : i === stepIdx ? 'border-2 border-indigo-400 animate-pulse' : 'border border-white/[0.06]'
-                  }`}>
-                    {i < stepIdx && <CheckCircle size={11} className="text-white" />}
-                  </div>
-                  <span className={`text-[12px] ${i <= stepIdx ? 'text-[#a1a1aa]' : 'text-[#3f3f46]'}`}>{step}</span>
-                </motion.div>
-              ))}
-            </div>
-          </GlassCard>
-        </motion.div>
+      {/* Empty state */}
+      {!profile && !loading && (
+        <GlassCard className="text-center py-12">
+          <Users size={32} className="mx-auto mb-3 text-[#52525b]" />
+          <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">Search any LinkedIn profile</p>
+          <p className="text-[12px] text-[#52525b]">Enter a name above · Try a quick name suggestion to get started</p>
+        </GlassCard>
       )}
 
-      {/* ── Results Dashboard ── */}
-      {phase === 'results' && r && (
-        <motion.div ref={resultRef} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-
-          {/* Identity card */}
+      {profile && !loading && (
+        <>
+          {/* Profile Card — clean dark header, no blue banner */}
           <GlassCard>
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-2xl flex-shrink-0">
-                {r.personalInfo?.name ? r.personalInfo.name.charAt(0).toUpperCase() : '👤'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-[16px] font-bold text-[#f0f0f3]">{r.personalInfo?.name || 'Your Profile'}</h2>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-semibold">{r.overallLevel}</span>
-                  {r.totalExperienceYears > 0 && <span className="text-[11px] text-[#52525b]">{r.totalExperienceYears}yr exp</span>}
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-2xl border-2 border-[#0077b5]/30 bg-gradient-to-br from-[#0077b5] to-[#00a0dc] flex items-center justify-center text-white text-xl font-black shadow-lg flex-shrink-0">
+                  {profile.initials}
                 </div>
-                {r.personalInfo?.email && <p className="text-[12px] text-[#71717a] mt-0.5">{r.personalInfo.email}{r.personalInfo.location ? ` · ${r.personalInfo.location}` : ''}</p>}
-                <p className="text-[12px] text-[#a1a1aa] mt-2 leading-relaxed italic">"{r.summary}"</p>
+                <div>
+                  <h2 className="text-[15px] font-bold text-[#f0f0f3]">{profile.name}</h2>
+                  <p className="text-[11px] text-[#52525b] mt-0.5">{profile.location}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] text-[#00a0dc] font-semibold">{profile.connections} connections</span>
+                    <span className="text-[#3f3f46]">·</span>
+                    <span className="text-[11px] text-[#52525b]">{profile.followers} followers</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <button onClick={() => setFollowed(f => !f)}
+                  className={`text-[11px] px-4 py-1.5 rounded-full border font-semibold transition-all ${followed ? 'bg-white/[0.04] border-white/[0.1] text-[#71717a]' : 'bg-[#0077b5] border-[#0077b5] text-white hover:bg-[#006097]'}`}>
+                  {followed ? '✓ Following' : '+ Follow'}
+                </button>
+                <button className="text-[11px] px-4 py-1.5 rounded-full border border-white/[0.1] text-[#a1a1aa] hover:border-white/[0.2] transition-all font-semibold">Message</button>
               </div>
             </div>
-
-            {/* Action row */}
-            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/[0.05]">
-              <button onClick={handleSyncSkills} disabled={synced}
-                className="flex items-center gap-2 text-[12px] px-4 py-2.5 rounded-xl border font-semibold transition-all disabled:cursor-default"
-                style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.25)', color: synced ? '#10b981' : '#6ee7b7' }}>
-                {synced ? <><CheckCircle size={13} /> Synced to Career Profile</> : <><Plus size={13} /> Sync to Career Profile</>}
-              </button>
-              {r.personalInfo?.linkedin && (
-                <a href={r.personalInfo.linkedin} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1.5 text-[12px] px-3.5 py-2.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all">
-                  <ExternalLink size={12} /> LinkedIn
-                </a>
-              )}
-              {r.personalInfo?.github && (
-                <a href={r.personalInfo.github} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1.5 text-[12px] px-3.5 py-2.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all">
-                  <ExternalLink size={12} /> GitHub
-                </a>
-              )}
-            </div>
+            <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{profile.headline}</p>
+            <p className="text-[11px] text-[#71717a] mt-3 leading-relaxed border-t border-white/[0.04] pt-3">{profile.about}</p>
           </GlassCard>
 
-          {/* Score row */}
+          {/* Analytics Row */}
           <div className="grid grid-cols-3 gap-3">
-            <ScoreCard label="ATS Score"       value={r.atsScore}        color="#f59e0b" />
-            <ScoreCard label="Profile Strength" value={r.profileStrength} color="#6366f1" />
-            <ScoreCard label="Hirability"       value={r.hirability}      color="#10b981" unit="%" />
+            {[
+              { label: 'Profile Views',      value: profile.analytics.profileViews,                      sub: `${profile.analytics.viewsTrend} this week`, color: '#0077b5' },
+              { label: 'Search Appearances', value: profile.analytics.searchAppearances,                  sub: 'last 7 days',   color: '#10b981' },
+              { label: 'Post Impressions',   value: profile.analytics.postImpressions.toLocaleString(),   sub: 'last 30 days',  color: '#8b5cf6' },
+            ].map(m => (
+              <GlassCard key={m.label}>
+                <p className="text-[10px] text-[#52525b] font-medium mb-1.5 uppercase tracking-wider">{m.label}</p>
+                <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
+                <p className="text-[10px] text-[#3f3f46] mt-0.5">{m.sub}</p>
+              </GlassCard>
+            ))}
           </div>
 
-          {/* Section tabs */}
+          {/* Tabs */}
           <div className="flex gap-1.5 flex-wrap">
             {[
-              { id: 'overview',  label: 'Overview'   },
-              { id: 'skills',    label: 'Skills'     },
-              { id: 'experience',label: 'Experience' },
-              { id: 'projects',  label: 'Projects'   },
-              { id: 'insights',  label: 'AI Insights'},
-              { id: 'roadmap',   label: 'Roadmap'    },
-            ].map(s => (
-              <button key={s.id} onClick={() => setActiveSection(s.id)}
+              { id: 'experience', label: 'Experience & Education' },
+              { id: 'skills',     label: 'Skills' },
+              { id: 'jobs',       label: 'Job Matches' },
+            ].map(t => (
+              <button key={t.id} onClick={() => setActiveTab(t.id)}
                 className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
-                  activeSection === s.id
-                    ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                  activeTab === t.id
+                    ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]'
                     : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'
-                }`}>
-                {s.label}
+                }`}>{t.label}
               </button>
             ))}
           </div>
 
           <AnimatePresence mode="wait">
-            <motion.div key={activeSection} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+            <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
 
-              {/* OVERVIEW */}
-              {activeSection === 'overview' && (
-                <div className="space-y-4">
-                  <div className="grid sm:grid-cols-3 gap-3">
-                    {[
-                      { title: 'Strengths',  items: r.strengths,    color: 'text-emerald-400', bg: 'bg-emerald-500/[0.04] border-emerald-500/15', dot: 'bg-emerald-500/60' },
-                      { title: 'Weaknesses', items: r.weaknesses,   color: 'text-red-400',     bg: 'bg-red-500/[0.04] border-red-500/15',         dot: 'bg-red-500/60'     },
-                      { title: 'Skill Gaps', items: r.skillGaps,    color: 'text-amber-400',   bg: 'bg-amber-500/[0.04] border-amber-500/15',     dot: 'bg-amber-500/60'   },
-                    ].map(s => (
-                      <GlassCard key={s.title} className={`border ${s.bg}`}>
-                        <p className={`text-[11px] font-bold uppercase tracking-wider mb-2.5 ${s.color}`}>{s.title}</p>
-                        <ul className="space-y-1.5">
-                          {(s.items ?? []).map((item, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-[11px] text-[#a1a1aa] leading-relaxed">
-                              <span className={`mt-1.5 w-1.5 h-1.5 rounded-full ${s.dot} flex-shrink-0`} />{item}
-                            </li>
-                          ))}
-                        </ul>
-                      </GlassCard>
-                    ))}
-                  </div>
-                  {r.salaryRange && (
-                    <GlassCard className="border border-emerald-500/15">
-                      <p className="text-[11px] text-[#52525b] mb-1">Estimated Salary Range</p>
-                      <p className="text-[16px] font-bold text-emerald-400">{r.salaryRange}</p>
-                    </GlassCard>
-                  )}
-                  {r.targetRoles?.length > 0 && (
-                    <GlassCard>
-                      <p className="text-[11px] font-semibold text-[#52525b] uppercase tracking-wider mb-3">Best-Fit Roles</p>
-                      <div className="flex flex-wrap gap-2">
-                        {r.targetRoles.map((role, i) => (
-                          <span key={i} className="text-[11px] px-3 py-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-300 font-medium">{role}</span>
-                        ))}
+              {/* EXPERIENCE */}
+              {activeTab === 'experience' && (
+                <div className="space-y-3">
+                  {profile.experience.map((exp, i) => (
+                    <GlassCard key={i}>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-xl flex-shrink-0">{exp.logo}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{exp.title}</p>
+                          <p className="text-[12px] text-[#a1a1aa]">{exp.company} · {exp.location}</p>
+                          <p className="text-[11px] text-[#52525b] mt-0.5">{exp.duration}</p>
+                          <ul className="mt-2.5 space-y-1.5">
+                            {exp.highlights.map((h, j) => (
+                              <li key={j} className="flex items-start gap-2 text-[11px] text-[#71717a]">
+                                <ChevronRight size={10} className="mt-0.5 text-[#0077b5] flex-shrink-0" />{h}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     </GlassCard>
-                  )}
+                  ))}
+                  <p className="text-[10px] font-bold text-[#52525b] uppercase tracking-wider px-1 pt-1">Education</p>
+                  {profile.education.map((edu, i) => (
+                    <GlassCard key={i}>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xl flex-shrink-0">🎓</div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{edu.degree}</p>
+                          <p className="text-[12px] text-[#a1a1aa]">{edu.institution}</p>
+                          <p className="text-[11px] text-[#52525b] mt-0.5">{edu.year} · {edu.grade}</p>
+                        </div>
+                      </div>
+                    </GlassCard>
+                  ))}
                 </div>
               )}
 
               {/* SKILLS */}
-              {activeSection === 'skills' && (
+              {activeTab === 'skills' && (
                 <GlassCard>
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Detected Skills ({r.skills?.length ?? 0})</h3>
-                  {Object.entries(skillCats).filter(([, v]) => v?.length > 0).map(([cat, skills]) => (
-                    <div key={cat} className="mb-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#52525b] mb-2 capitalize">{cat}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {skills.map(s => (
-                          <span key={s} className="text-[11px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/15 text-indigo-300 font-medium">{s}</span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                  {(!Object.values(skillCats).some(v => v?.length > 0)) && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {(r.skills ?? []).map(s => (
-                        <span key={s} className="text-[11px] px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/15 text-indigo-300 font-medium">{s}</span>
-                      ))}
-                    </div>
-                  )}
+                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Top Skills ({profile.skills.length})</h3>
+                  <div className="space-y-2.5">
+                    {profile.skills.map((s, i) => (
+                      <motion.div key={s.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                        className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[12px] text-[#a1a1aa] font-medium">{s.name}</span>
+                            <span className="text-[10px] text-[#52525b]">{s.endorsements} endorsements</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, (s.endorsements / 50) * 100)}%` }}
+                              transition={{ duration: 0.8, delay: i * 0.04 }}
+                              className="h-full rounded-full bg-[#0077b5]"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </GlassCard>
               )}
 
-              {/* EXPERIENCE */}
-              {activeSection === 'experience' && (
+              {/* JOBS */}
+              {activeTab === 'jobs' && (
                 <div className="space-y-3">
-                  {(r.experience ?? []).length === 0 && <GlassCard><p className="text-[12px] text-[#52525b] text-center py-6">No work experience detected in the resume.</p></GlassCard>}
-                  {(r.experience ?? []).map((exp, i) => (
-                    <GlassCard key={i}>
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{exp.role}</p>
-                          <p className="text-[12px] text-[#71717a]">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
+                  <div className="flex items-center gap-2 px-1 mb-1">
+                    <Sparkles size={12} className="text-[#0077b5]" />
+                    <p className="text-[11px] text-[#71717a]">Jobs matched to your profile using mock LinkedIn AI recommendations</p>
+                  </div>
+                  {profile.jobs.map((job, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+                      <GlassCard>
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-2xl flex-shrink-0">{job.logo}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 flex-wrap">
+                              <div>
+                                <p className="text-[13px] font-semibold text-[#f0f0f3]">{job.title}</p>
+                                <p className="text-[12px] text-[#a1a1aa]">{job.company}</p>
+                                <p className="text-[11px] text-[#52525b] mt-0.5">{job.location} · {job.type} · Posted {job.postedAgo}</p>
+                              </div>
+                              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${matchColor(job.match)} flex-shrink-0`}>{job.match}% match</span>
+                            </div>
+                            <div className="flex items-center gap-3 mt-2.5 flex-wrap">
+                              <span className="text-[11px] text-emerald-400 font-semibold">{job.salary}</span>
+                              <span className="text-[10px] text-[#52525b]">{job.applicants} applicants</span>
+                              <button
+                                onClick={() => setSavedJobs(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
+                                className={`text-[11px] px-3 py-1 rounded-full border transition-all font-semibold ml-auto ${savedJobs.includes(i) ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]' : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'}`}>
+                                {savedJobs.includes(i) ? '✓ Saved' : 'Save'}
+                              </button>
+                              <button className="text-[11px] px-3 py-1 rounded-full bg-[#0077b5] text-white font-semibold hover:bg-[#006097] transition-all">Easy Apply</button>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-[10px] text-[#52525b] whitespace-nowrap bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.05]">{exp.duration}</span>
-                      </div>
-                      <ul className="space-y-1.5">
-                        {(exp.highlights ?? []).map((h, j) => (
-                          <li key={j} className="flex items-start gap-2 text-[11px] text-[#71717a] leading-relaxed">
-                            <ChevronRight size={11} className="mt-0.5 text-indigo-500 flex-shrink-0" />{h}
-                          </li>
-                        ))}
-                      </ul>
-                    </GlassCard>
+                      </GlassCard>
+                    </motion.div>
                   ))}
-                  {/* Education */}
-                  {(r.education ?? []).length > 0 && (
-                    <>
-                      <p className="text-[11px] font-bold text-[#52525b] uppercase tracking-wider px-1 mt-2">Education</p>
-                      {r.education.map((edu, i) => (
-                        <GlassCard key={i}>
-                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{edu.degree}</p>
-                          <p className="text-[12px] text-[#71717a]">{edu.institution}</p>
-                          <div className="flex gap-3 mt-1">
-                            <span className="text-[11px] text-[#52525b]">{edu.year}</span>
-                            {edu.gpa && <span className="text-[11px] text-[#52525b]">GPA: {edu.gpa}</span>}
-                          </div>
-                        </GlassCard>
-                      ))}
-                    </>
-                  )}
-                </div>
-              )}
 
-              {/* PROJECTS */}
-              {activeSection === 'projects' && (
-                <div className="space-y-3">
-                  {(r.projects ?? []).length === 0 && <GlassCard><p className="text-[12px] text-[#52525b] text-center py-6">No projects detected in the resume.</p></GlassCard>}
-                  {(r.projects ?? []).map((proj, i) => (
-                    <GlassCard key={i}>
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <p className="text-[13px] font-semibold text-[#f0f0f3]">{proj.name}</p>
-                        {proj.link && (
-                          <a href={proj.link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[11px] text-indigo-400 hover:underline flex-shrink-0">
-                            <ExternalLink size={10} /> View
-                          </a>
-                        )}
-                      </div>
-                      <p className="text-[12px] text-[#71717a] leading-relaxed mb-2">{proj.description}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {(proj.technologies ?? []).map(t => (
-                          <span key={t} className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[#71717a] font-medium">{t}</span>
-                        ))}
-                      </div>
-                    </GlassCard>
-                  ))}
-                  {(r.certifications ?? []).length > 0 && (
-                    <GlassCard>
-                      <p className="text-[11px] font-bold text-[#52525b] uppercase tracking-wider mb-3">Certifications</p>
-                      <div className="flex flex-wrap gap-2">
-                        {r.certifications.map((c, i) => (
-                          <span key={i} className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-300 font-medium">
-                            <CheckCircle size={10} /> {c}
-                          </span>
-                        ))}
-                      </div>
-                    </GlassCard>
-                  )}
-                </div>
-              )}
-
-              {/* AI INSIGHTS */}
-              {activeSection === 'insights' && (
-                <div className="space-y-4">
-                  {(r.recommendations ?? []).length > 0 && (
-                    <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Brain size={14} className="text-indigo-400" />
-                        <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Recommendations</h3>
-                      </div>
-                      <div className="space-y-2.5">
-                        {r.recommendations.map((rec, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-indigo-500/[0.04] border border-indigo-500/[0.08]">
-                            <span className="text-[11px] font-bold text-indigo-400/70 mt-0.5 font-mono flex-shrink-0">{String(i+1).padStart(2,'0')}</span>
-                            <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{rec}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </GlassCard>
-                  )}
-                </div>
-              )}
-
-              {/* ROADMAP */}
-              {activeSection === 'roadmap' && (
-                <div className="space-y-3">
-                  <GlassCard>
-                    <div className="flex items-center gap-2 mb-4">
-                      <TrendingUp size={14} className="text-amber-400" />
-                      <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Personalised Learning Roadmap</h3>
+                  {/* OAuth explainer */}
+                  <GlassCard className="border border-[#0077b5]/15 bg-[#0077b5]/[0.03]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Zap size={13} className="text-[#0077b5]" />
+                      <p className="text-[12px] font-bold text-[#a1a1aa]">How to Enable Real LinkedIn Integration</p>
                     </div>
-                    <div className="space-y-3">
-                      {(r.learningRoadmap ?? []).map((item, i) => (
-                        <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-                          className={`p-3.5 rounded-xl border ${PRIORITY_COLOR[item.priority] ?? PRIORITY_COLOR.low}`}>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <p className="text-[12px] font-semibold text-[#f0f0f3]">{item.skill}</p>
-                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${PRIORITY_COLOR[item.priority]}`}>{item.priority}</span>
-                          </div>
-                          <p className="text-[11px] text-[#71717a] mb-1 leading-relaxed">{item.reason}</p>
-                          {item.resource && <p className="text-[10px] text-indigo-400">📚 {item.resource}</p>}
-                        </motion.div>
+                    <div className="space-y-2.5">
+                      {[
+                        { step: '01', text: 'Apply for LinkedIn Partner Program at developer.linkedin.com/partner-programs' },
+                        { step: '02', text: 'Get approved for Sign In with LinkedIn + Profile API access' },
+                        { step: '03', text: 'Implement OAuth 2.0 PKCE flow — redirect to LinkedIn authorization endpoint' },
+                        { step: '04', text: 'Exchange auth code for access token (server-side, never in browser)' },
+                        { step: '05', text: 'Call /v2/me and /v2/emailAddress with Bearer token to fetch real profile data' },
+                      ].map(s => (
+                        <div key={s.step} className="flex items-start gap-3">
+                          <span className="text-[10px] font-black text-[#0077b5]/60 font-mono mt-0.5 flex-shrink-0">{s.step}</span>
+                          <p className="text-[11px] text-[#71717a] leading-relaxed">{s.text}</p>
+                        </div>
                       ))}
-                      {(r.learningRoadmap ?? []).length === 0 && (
-                        <p className="text-[12px] text-[#52525b] text-center py-6">Roadmap data not available for this resume.</p>
-                      )}
                     </div>
                   </GlassCard>
                 </div>
@@ -804,7 +708,7 @@ function LinkedInPanel() {
 
             </motion.div>
           </AnimatePresence>
-        </motion.div>
+        </>
       )}
     </div>
   );

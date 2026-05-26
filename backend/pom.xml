@@ -37,11 +37,11 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <!-- H2 for testing only -->
+        <!-- H2 in-memory database (dev fallback when PostgreSQL unavailable) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- CSV Parsing -->

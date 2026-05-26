@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, PieChart, Pie, Cell } from 'recharts';
 
@@ -12,9 +11,24 @@ export default function Sustainability() {
   const [tab, setTab] = useState('dashboard');
   
   const sustainData = user?.sustainability || { carbonFootprint: { transport: 100, energy: 100, food: 80 }, ecoActions: [] };
-  const trendData = useMemo(() => generateTrendData(user, 30), [user]);
-  
   const totalCarbon = (sustainData.carbonFootprint?.transport || 0) + (sustainData.carbonFootprint?.energy || 0) + (sustainData.carbonFootprint?.food || 0);
+
+  // Build a 30-day carbon trend from real eco-actions log
+  const trendData = useMemo(() => {
+    const baseline = totalCarbon;
+    const actionsByDate = {};
+    (sustainData.ecoActions || []).forEach(a => {
+      const d = typeof a.date === 'string' ? a.date.split('T')[0] : new Date(a.date).toISOString().split('T')[0];
+      actionsByDate[d] = (actionsByDate[d] || 0) + (a.points || 0);
+    });
+    return Array.from({ length: 30 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      const dateStr = d.toISOString().split('T')[0];
+      const saved = actionsByDate[dateStr] || 0;
+      return { date: dateStr, carbon: Math.max(0, baseline - saved) };
+    });
+  }, [sustainData.ecoActions, totalCarbon]);
   const targetCarbon = Math.round(((user?.sustainability?.carbonFootprint?.transport || 100) + (user?.sustainability?.carbonFootprint?.energy || 100) + (user?.sustainability?.carbonFootprint?.food || 80)) * 0.85); // Dynamic target: 15% reduction from baseline
   const footprintScore = Math.max(0, 100 - (totalCarbon / targetCarbon) * 100);
 

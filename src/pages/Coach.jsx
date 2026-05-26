@@ -105,9 +105,9 @@ export default function Coach() {
     setLiveTranscript('');
     setTyping(true);
 
-    // Pass full computed context + simulation history if available
+    // Pass full computed context + simulation history + conversation history
     const contextWithSim = { ...computed, lastSimulation: aiCache.lastSimulation };
-    const result = await chatWithAI(text.trim(), contextWithSim);
+    const result = await chatWithAI(text.trim(), contextWithSim, newMessages);
 
     const aiMsg = {
       role: 'ai',
@@ -205,6 +205,9 @@ export default function Coach() {
                     🧠 AI Coach
                     {msg.source === 'fallback' && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">Local AI Mode</span>
+                    )}
+                    {msg.source === 'groq-direct' && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400">Groq Direct</span>
                     )}
                     {msg.source === 'rate-limited' && (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Rate Limited</span>

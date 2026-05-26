@@ -679,8 +679,10 @@ export default function Health() {
         water: r.water ?? null,
       }));
     }
-    return generateTrendData(user, 30);
-  }, [healthRecords, user]);
+    // Use data-context values (not raw auth user) to avoid crash for non-demo users
+    const safeState = { health: h, finance: { expenses: 0 }, career: { studyHoursDaily: 0 } };
+    return generateTrendData(safeState, 30);
+  }, [healthRecords, h]);
 
   // Consecutive-day logging streak
   const streak = useMemo(() => {

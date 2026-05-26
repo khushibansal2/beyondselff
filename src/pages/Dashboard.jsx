@@ -342,7 +342,28 @@ export default function Dashboard() {
   const crossDomain    = computed?.crossDomain || [];
 
   const currentState = useMemo(() => ({ ...user, health: h, finance: f, career: c, timeline }), [user, h, f, c, timeline]);
-  const trendData    = useMemo(() => generateTrendData(currentState, 14), [currentState]);
+
+  // Use real health records for trend/correlations when available; synthetic only as fallback
+  const trendData = useMemo(() => {
+    const healthRecs = records?.health || [];
+    if (healthRecs.length >= 3) {
+      return [...healthRecs]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(-14)
+        .map(r => ({
+          date: typeof r.date === 'string' ? r.date.split('T')[0] : new Date(r.date).toISOString().split('T')[0],
+          sleep: r.sleep ?? null,
+          stress: r.stress ?? null,
+          mood: r.mood ?? null,
+          productivity: r.mood != null ? Math.max(1, 10 - (r.stress ?? 5)) : null,
+          spending: null,
+          studyHours: null,
+          water: r.water ?? null,
+        }));
+    }
+    return generateTrendData(currentState, 14);
+  }, [records?.health, currentState]);
+
   const correlations = useMemo(() => generateCorrelations(trendData), [trendData]);
 
   const insights = useMemo(() => {

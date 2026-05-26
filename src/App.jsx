@@ -5,6 +5,7 @@ import { DataProvider } from './context/DataContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
 import Sidebar from './components/layout/Sidebar';
 import TopNavbar from './components/layout/TopNavbar';
+import VoiceLogger from './components/VoiceLogger';
 import Landing from './pages/Landing';
 import { Login, Signup } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -31,17 +32,20 @@ function ProtectedRoute() {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <div className="flex min-h-screen bg-[#0e1120]">
-      <Sidebar />
-      <div className="flex-1 min-w-0 flex flex-col">
-        <div className="hidden lg:block">
-          <TopNavbar />
+    <>
+      <div className="flex min-h-screen bg-[#0e1120]">
+        <Sidebar />
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="hidden lg:block">
+            <TopNavbar />
+          </div>
+          <main className="flex-1 min-w-0 overflow-y-auto">
+            <Outlet />
+          </main>
         </div>
-        <main className="flex-1 min-w-0 overflow-y-auto">
-          <Outlet />
-        </main>
       </div>
-    </div>
+      <VoiceLogger />
+    </>
   );
 }
 

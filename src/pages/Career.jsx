@@ -1,33 +1,598 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { ScoreRing, GlassCard, PageHeader, TabBar, MetricCard, showToast } from '../components/ui/Components';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast } from '../components/ui/Components';
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { generateLearningPath } from '../services/learningService';
+import { logSession, getSessions, getHeatmap, getStats, deleteSession } from '../services/studyService';
+import {
+  extractPdfText, parseResumeWithAI,
+  saveResumeData, loadResumeData, clearResumeData,
+} from '../services/resumeService';
+import { CheckCircle, AlertTriangle, TrendingUp, ChevronRight, Plus, ExternalLink, Brain } from 'lucide-react';
 
+// ── Cognitive Load Gauge ─────────────────────────────────────────────────────
+function CognitiveGauge({ value }) {
+  const pct = Math.min(100, Math.max(0, value));
+  const angle = -135 + (pct / 100) * 270;
+  const rad = (angle * Math.PI) / 180;
+  const cx = 80, cy = 80, r = 60;
+  const nx = cx + r * Math.cos(rad);
+  const ny = cy + r * Math.sin(rad);
+  const color = pct < 40 ? '#10b981' : pct < 70 ? '#f59e0b' : '#f43f5e';
+  const label = pct < 40 ? 'Low' : pct < 70 ? 'Moderate' : 'High';
+
+  const arcPath = (startAngle, endAngle, fill) => {
+    const s = ((startAngle - 90) * Math.PI) / 180;
+    const e = ((endAngle - 90) * Math.PI) / 180;
+    const x1 = cx + r * Math.cos(s), y1 = cy + r * Math.sin(s);
+    const x2 = cx + r * Math.cos(e), y2 = cy + r * Math.sin(e);
+    const large = endAngle - startAngle > 180 ? 1 : 0;
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <svg width="160" height="130" viewBox="0 0 160 130">
+        <path d={arcPath(-45, 45, '#10b981')} stroke="#10b981" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
+        <path d={arcPath(45, 90, '#f59e0b')} stroke="#f59e0b" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
+        <path d={arcPath(90, 135, '#f43f5e')} stroke="#f43f5e" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
+        <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={color} strokeWidth="3" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="5" fill={color} />
+        <text x={cx} y={cy + 28} textAnchor="middle" fill={color} fontSize="16" fontWeight="bold">{Math.round(pct)}</text>
+        <text x={cx} y={cy + 42} textAnchor="middle" fill="#9B9B9B" fontSize="9">{label} Load</text>
+      </svg>
+    </div>
+  );
+}
+
+// ── Focus Heatmap ────────────────────────────────────────────────────────────
+function FocusHeatmap({ heatmap }) {
+  if (!heatmap?.length) return <div className="h-24 flex items-center justify-center text-xs text-slate-500">No data yet</div>;
+  const LEVEL_COLORS = ['#1a1a1a', '#14532d', '#166534', '#15803d', '#22c55e'];
+  const weeks = [];
+  for (let i = 0; i < heatmap.length; i += 7) weeks.push(heatmap.slice(i, i + 7));
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="flex gap-1 min-w-max">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="flex flex-col gap-1">
+            {week.map((day, di) => (
+              <div
+                key={di}
+                className="w-3.5 h-3.5 rounded-sm cursor-pointer transition-transform hover:scale-125"
+                style={{ background: LEVEL_COLORS[day.level] }}
+                title={`${day.date}: ${day.minutes} min`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-1.5 mt-3 text-[10px] text-slate-500">
+        <span>Less</span>
+        {LEVEL_COLORS.map((c, i) => <div key={i} className="w-3 h-3 rounded-sm" style={{ background: c }} />)}
+        <span>More</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Twin Impact Feed ─────────────────────────────────────────────────────────
+function TwinImpactFeed({ session, onDone }) {
+  const impacts = [
+    { icon: '⚡', label: `+${session.xpEarned} XP earned`, color: '#f59e0b' },
+    { icon: '🧠', label: `${session.topic} memory reinforced`, color: '#8b5cf6' },
+    { icon: '🎯', label: `Focus quality: ${session.focusQuality}/5`, color: '#3b82f6' },
+    session.focusQuality >= 4 && { icon: '🔥', label: 'High focus session bonus!', color: '#f43f5e' },
+  ].filter(Boolean);
+
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-8 max-w-sm w-full text-center space-y-4">
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', bounce: 0.5 }}>
+          <span className="text-6xl">🏆</span>
+        </motion.div>
+        <h3 className="text-xl font-bold text-white">Session Complete!</h3>
+        <div className="space-y-2">
+          {impacts.map((imp, i) => (
+            <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.15 }}
+              className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+              <span className="text-xl">{imp.icon}</span>
+              <span className="text-sm font-medium" style={{ color: imp.color }}>{imp.label}</span>
+            </motion.div>
+          ))}
+        </div>
+        <div className="text-xs text-slate-400">{session.durationMinutes} min · {session.environment}</div>
+        <button onClick={onDone} className="btn-primary w-full mt-2">Continue</button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Resume Tab helpers ───────────────────────────────────────────────────────
+const RESUME_PARSE_STEPS = [
+  'Reading PDF pages…',
+  'Extracting text layout…',
+  'Sending to Groq AI…',
+  'Parsing skills & experience…',
+  'Generating career insights…',
+];
+const PRIORITY_COLOR = {
+  high:   'text-red-400 bg-red-500/[0.06] border-red-500/15',
+  medium: 'text-amber-400 bg-amber-500/[0.06] border-amber-500/15',
+  low:    'text-[#71717a] bg-white/[0.02] border-white/[0.06]',
+};
+function ResumeScoreCard({ label, value, color, unit = '/100' }) {
+  return (
+    <GlassCard>
+      <p className="text-[10px] text-slate-500 mb-1.5 font-medium uppercase tracking-wider">{label}</p>
+      <p className="text-[28px] font-black leading-none" style={{ color }}>{value}<span className="text-[12px] font-medium text-slate-600 ml-0.5">{unit}</span></p>
+      <div className="h-1.5 rounded-full bg-white/[0.05] mt-2.5 overflow-hidden">
+        <motion.div initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="h-full rounded-full" style={{ background: color }} />
+      </div>
+    </GlassCard>
+  );
+}
+
+function ResumeTab({ career: c, updateDomain }) {
+  const fileRef   = useRef(null);
+  const resultRef = useRef(null);
+  const [phase,        setPhase]        = useState(() => loadResumeData() ? 'results' : 'upload');
+  const [stepText,     setStepText]     = useState('');
+  const [stepIdx,      setStepIdx]      = useState(0);
+  const [dragOver,     setDragOver]     = useState(false);
+  const [resume,       setResume]       = useState(() => loadResumeData());
+  const [error,        setError]        = useState(null);
+  const [synced,       setSynced]       = useState(false);
+  const [activeSection,setActiveSection]= useState('overview');
+
+  async function processFile(file) {
+    if (!file || file.type !== 'application/pdf') { setError('Please upload a PDF file.'); return; }
+    setPhase('parsing'); setError(null); setStepIdx(0);
+    const tick = (i, msg) => { setStepIdx(i); setStepText(msg); };
+    try {
+      tick(0, RESUME_PARSE_STEPS[0]);
+      const text = await extractPdfText(file);
+      tick(2, RESUME_PARSE_STEPS[2]);
+      const parsed = await parseResumeWithAI(text, (msg) => tick(3, msg));
+      saveResumeData(parsed);
+      setResume(parsed);
+      setPhase('results');
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    } catch (e) {
+      setError(e.message === 'NO_KEY' ? 'No Groq API key configured. Add VITE_GROQ_API_KEY to your .env file.' : e.message);
+      setPhase('upload');
+    }
+  }
+
+  function handleReset() {
+    clearResumeData();
+    setResume(null); setPhase('upload'); setError(null); setSynced(false); setActiveSection('overview');
+  }
+
+  function handleSyncSkills() {
+    const newSkills = resume?.skills ?? [];
+    const merged = [...new Set([...(c?.skills ?? []), ...newSkills])];
+    updateDomain('career', { ...c, skills: merged, projectsCompleted: (c?.projectsCompleted ?? 0) + (resume?.projects?.length ?? 0) });
+    setSynced(true);
+    showToast(`Synced ${newSkills.length} skills to Career profile!`, 'success');
+  }
+
+  const r = resume;
+  const skillCats = r?.skillCategories ?? {};
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <GlassCard>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="text-lg">📄</span>
+            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Resume AI Intelligence</h3>
+            <span className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border font-semibold ${phase === 'results' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-[#27272a]/50 border-white/[0.06] text-[#71717a]'}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${phase === 'results' ? 'bg-emerald-400' : 'bg-[#52525b]'}`} />
+              {phase === 'results' ? 'Analyzed' : 'Not Uploaded'}
+            </span>
+          </div>
+          {phase === 'results' && (
+            <button onClick={handleReset} className="text-[11px] px-3 py-1.5 rounded-xl border border-red-500/20 text-red-400/70 hover:text-red-400 transition-all">
+              Upload New
+            </button>
+          )}
+        </div>
+        {phase === 'upload' && (
+          <p className="text-[12px] text-slate-500 mt-2">
+            Upload your resume PDF — AI extracts skills, experience, education, and projects, then generates ATS score, skill gap analysis, and a personalised learning roadmap.
+          </p>
+        )}
+      </GlassCard>
+
+      {/* Upload Zone */}
+      {phase === 'upload' && (
+        <GlassCard>
+          <div
+            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); }}
+            onClick={() => fileRef.current?.click()}
+            className={`rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-4 p-12 ${
+              dragOver ? 'border-blue-500/50 bg-blue-500/[0.05]' : 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.04]'
+            }`}
+          >
+            <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
+              onChange={e => e.target.files[0] && processFile(e.target.files[0])} />
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+              <span className="text-3xl">📄</span>
+            </div>
+            <div className="text-center">
+              <p className="text-[14px] font-semibold text-[#f0f0f3] mb-1">Drop your resume PDF here</p>
+              <p className="text-[12px] text-slate-500">or click to browse · PDF only · text-based (not scanned)</p>
+            </div>
+            <div className="flex gap-3 text-[11px] text-slate-600">
+              {['Skills Extraction', 'ATS Score', 'Skill Gap Analysis', 'Learning Roadmap'].map(f => (
+                <span key={f} className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-400" />{f}</span>
+              ))}
+            </div>
+          </div>
+          {error && (
+            <div className="mt-4 flex items-start gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2.5">
+              <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {error}
+            </div>
+          )}
+        </GlassCard>
+      )}
+
+      {/* Parsing Animation */}
+      {phase === 'parsing' && (
+        <GlassCard className="border border-blue-500/15 bg-blue-500/[0.03]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-full border-2 border-blue-400/60 border-t-blue-400 animate-spin flex-shrink-0" />
+            <div>
+              <p className="text-[14px] font-semibold text-[#f0f0f3]">Analyzing your resume…</p>
+              <p className="text-[12px] text-slate-500">{stepText}</p>
+            </div>
+          </div>
+          <div className="space-y-2.5">
+            {RESUME_PARSE_STEPS.map((step, i) => (
+              <div key={step} className="flex items-center gap-2.5">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                  i < stepIdx ? 'bg-blue-500' : i === stepIdx ? 'border-2 border-blue-400 animate-pulse' : 'border border-white/[0.06]'
+                }`}>
+                  {i < stepIdx && <CheckCircle size={11} className="text-white" />}
+                </div>
+                <span className={`text-[12px] ${i <= stepIdx ? 'text-slate-300' : 'text-slate-600'}`}>{step}</span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Results Dashboard */}
+      {phase === 'results' && r && (
+        <motion.div ref={resultRef} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+          {/* Identity card */}
+          <GlassCard>
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-2xl flex-shrink-0">
+                {r.personalInfo?.name ? r.personalInfo.name.charAt(0).toUpperCase() : '👤'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-[16px] font-bold text-[#f0f0f3]">{r.personalInfo?.name || 'Your Profile'}</h2>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 font-semibold">{r.overallLevel}</span>
+                  {r.totalExperienceYears > 0 && <span className="text-[11px] text-slate-500">{r.totalExperienceYears}yr exp</span>}
+                </div>
+                {r.personalInfo?.email && <p className="text-[12px] text-slate-500 mt-0.5">{r.personalInfo.email}{r.personalInfo.location ? ` · ${r.personalInfo.location}` : ''}</p>}
+                <p className="text-[12px] text-slate-400 mt-2 leading-relaxed italic">"{r.summary}"</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/[0.05]">
+              <button onClick={handleSyncSkills} disabled={synced}
+                className="flex items-center gap-2 text-[12px] px-4 py-2.5 rounded-xl border font-semibold transition-all disabled:cursor-default"
+                style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(59,130,246,0.1)', borderColor: synced ? 'rgba(16,185,129,0.25)' : 'rgba(59,130,246,0.25)', color: synced ? '#10b981' : '#93c5fd' }}>
+                {synced ? <><CheckCircle size={13} /> Synced to Career</> : <><Plus size={13} /> Sync Skills to Career</>}
+              </button>
+              {r.personalInfo?.linkedin && (
+                <a href={r.personalInfo.linkedin} target="_blank" rel="noreferrer"
+                  className="flex items-center gap-1.5 text-[12px] px-3.5 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 hover:text-slate-300 transition-all">
+                  <ExternalLink size={12} /> LinkedIn
+                </a>
+              )}
+            </div>
+          </GlassCard>
+
+          {/* Scores */}
+          <div className="grid grid-cols-3 gap-3">
+            <ResumeScoreCard label="ATS Score"        value={r.atsScore}        color="#f59e0b" />
+            <ResumeScoreCard label="Profile Strength" value={r.profileStrength} color="#6366f1" />
+            <ResumeScoreCard label="Hirability"       value={r.hirability}      color="#10b981" unit="%" />
+          </div>
+
+          {/* Section tabs */}
+          <div className="flex gap-1.5 flex-wrap">
+            {[
+              { id: 'overview',   label: 'Overview'    },
+              { id: 'skills',     label: 'Skills'      },
+              { id: 'experience', label: 'Experience'  },
+              { id: 'projects',   label: 'Projects'    },
+              { id: 'insights',   label: 'AI Insights' },
+              { id: 'roadmap',    label: 'Roadmap'     },
+            ].map(s => (
+              <button key={s.id} onClick={() => setActiveSection(s.id)}
+                className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
+                  activeSection === s.id
+                    ? 'bg-blue-500/15 border-blue-500/30 text-blue-300'
+                    : 'border-white/[0.06] text-slate-500 hover:text-slate-300'
+                }`}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div key={activeSection} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+              {/* OVERVIEW */}
+              {activeSection === 'overview' && (
+                <div className="space-y-4">
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    {[
+                      { title: 'Strengths',  items: r.strengths,  color: 'text-emerald-400', bg: 'bg-emerald-500/[0.04] border-emerald-500/15', dot: 'bg-emerald-500/60' },
+                      { title: 'Weaknesses', items: r.weaknesses, color: 'text-red-400',     bg: 'bg-red-500/[0.04] border-red-500/15',         dot: 'bg-red-500/60'     },
+                      { title: 'Skill Gaps', items: r.skillGaps,  color: 'text-amber-400',   bg: 'bg-amber-500/[0.04] border-amber-500/15',     dot: 'bg-amber-500/60'   },
+                    ].map(s => (
+                      <GlassCard key={s.title} className={`border ${s.bg}`}>
+                        <p className={`text-[11px] font-bold uppercase tracking-wider mb-2.5 ${s.color}`}>{s.title}</p>
+                        <ul className="space-y-1.5">
+                          {(s.items ?? []).map((item, i) => (
+                            <li key={i} className="flex items-start gap-1.5 text-[11px] text-slate-400 leading-relaxed">
+                              <span className={`mt-1.5 w-1.5 h-1.5 rounded-full ${s.dot} flex-shrink-0`} />{item}
+                            </li>
+                          ))}
+                        </ul>
+                      </GlassCard>
+                    ))}
+                  </div>
+                  {r.salaryRange && (
+                    <GlassCard className="border border-emerald-500/15">
+                      <p className="text-[11px] text-slate-500 mb-1">Estimated Salary Range</p>
+                      <p className="text-[16px] font-bold text-emerald-400">{r.salaryRange}</p>
+                    </GlassCard>
+                  )}
+                  {r.targetRoles?.length > 0 && (
+                    <GlassCard>
+                      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Best-Fit Roles</p>
+                      <div className="flex flex-wrap gap-2">
+                        {r.targetRoles.map((role, i) => (
+                          <span key={i} className="text-[11px] px-3 py-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-300 font-medium">{role}</span>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  )}
+                </div>
+              )}
+
+              {/* SKILLS */}
+              {activeSection === 'skills' && (
+                <GlassCard>
+                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Detected Skills ({r.skills?.length ?? 0})</h3>
+                  {Object.entries(skillCats).filter(([, v]) => v?.length > 0).map(([cat, skills]) => (
+                    <div key={cat} className="mb-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 capitalize">{cat}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {skills.map(s => (
+                          <span key={s} className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/15 text-blue-300 font-medium">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {(!Object.values(skillCats).some(v => v?.length > 0)) && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {(r.skills ?? []).map(s => (
+                        <span key={s} className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/15 text-blue-300 font-medium">{s}</span>
+                      ))}
+                    </div>
+                  )}
+                </GlassCard>
+              )}
+
+              {/* EXPERIENCE */}
+              {activeSection === 'experience' && (
+                <div className="space-y-3">
+                  {(r.experience ?? []).length === 0 && <GlassCard><p className="text-[12px] text-slate-500 text-center py-6">No work experience detected in the resume.</p></GlassCard>}
+                  {(r.experience ?? []).map((exp, i) => (
+                    <GlassCard key={i}>
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{exp.role}</p>
+                          <p className="text-[12px] text-slate-500">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
+                        </div>
+                        <span className="text-[10px] text-slate-500 whitespace-nowrap bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.05]">{exp.duration}</span>
+                      </div>
+                      <ul className="space-y-1.5">
+                        {(exp.highlights ?? []).map((h, j) => (
+                          <li key={j} className="flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed">
+                            <ChevronRight size={11} className="mt-0.5 text-blue-500 flex-shrink-0" />{h}
+                          </li>
+                        ))}
+                      </ul>
+                    </GlassCard>
+                  ))}
+                  {(r.education ?? []).length > 0 && (
+                    <>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1 mt-2">Education</p>
+                      {r.education.map((edu, i) => (
+                        <GlassCard key={i}>
+                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{edu.degree}</p>
+                          <p className="text-[12px] text-slate-500">{edu.institution}</p>
+                          <div className="flex gap-3 mt-1">
+                            <span className="text-[11px] text-slate-500">{edu.year}</span>
+                            {edu.gpa && <span className="text-[11px] text-slate-500">GPA: {edu.gpa}</span>}
+                          </div>
+                        </GlassCard>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* PROJECTS */}
+              {activeSection === 'projects' && (
+                <div className="space-y-3">
+                  {(r.projects ?? []).length === 0 && <GlassCard><p className="text-[12px] text-slate-500 text-center py-6">No projects detected in the resume.</p></GlassCard>}
+                  {(r.projects ?? []).map((proj, i) => (
+                    <GlassCard key={i}>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <p className="text-[13px] font-semibold text-[#f0f0f3]">{proj.name}</p>
+                        {proj.link && (
+                          <a href={proj.link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[11px] text-blue-400 hover:underline flex-shrink-0">
+                            <ExternalLink size={10} /> View
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-[12px] text-slate-500 leading-relaxed mb-2">{proj.description}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(proj.technologies ?? []).map(t => (
+                          <span key={t} className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-slate-500 font-medium">{t}</span>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  ))}
+                  {(r.certifications ?? []).length > 0 && (
+                    <GlassCard>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Certifications</p>
+                      <div className="flex flex-wrap gap-2">
+                        {r.certifications.map((cert, i) => (
+                          <span key={i} className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-300 font-medium">
+                            <CheckCircle size={10} /> {cert}
+                          </span>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  )}
+                </div>
+              )}
+
+              {/* AI INSIGHTS */}
+              {activeSection === 'insights' && (
+                <div className="space-y-4">
+                  {(r.recommendations ?? []).length > 0 && (
+                    <GlassCard className="border border-blue-500/15 bg-blue-500/[0.02]">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Brain size={14} className="text-blue-400" />
+                        <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Recommendations</h3>
+                      </div>
+                      <div className="space-y-2.5">
+                        {r.recommendations.map((rec, i) => (
+                          <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-blue-500/[0.04] border border-blue-500/[0.08]">
+                            <span className="text-[11px] font-bold text-blue-400/70 mt-0.5 font-mono flex-shrink-0">{String(i + 1).padStart(2, '0')}</span>
+                            <p className="text-[12px] text-slate-400 leading-relaxed">{rec}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  )}
+                </div>
+              )}
+
+              {/* ROADMAP */}
+              {activeSection === 'roadmap' && (
+                <GlassCard>
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp size={14} className="text-amber-400" />
+                    <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Personalised Learning Roadmap</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {(r.learningRoadmap ?? []).map((item, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                        className={`p-3.5 rounded-xl border ${PRIORITY_COLOR[item.priority] ?? PRIORITY_COLOR.low}`}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <p className="text-[12px] font-semibold text-[#f0f0f3]">{item.skill}</p>
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${PRIORITY_COLOR[item.priority]}`}>{item.priority}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mb-1 leading-relaxed">{item.reason}</p>
+                        {item.resource && <p className="text-[10px] text-blue-400">📚 {item.resource}</p>}
+                      </motion.div>
+                    ))}
+                    {(r.learningRoadmap ?? []).length === 0 && (
+                      <p className="text-[12px] text-slate-500 text-center py-6">Roadmap data not available for this resume.</p>
+                    )}
+                  </div>
+                </GlassCard>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
 export default function Career() {
   const { user } = useAuth();
   const { career, health, records, updateDomain, addRecords, computed } = useData();
-  const careerRecords = records?.career || [];
-  const [tab, setTab] = useState('overview');
+  const [tab, setTab] = useState('brain');
+
+  // Static career state
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
   const score = computed?.careerScore?.score || 0;
-  const [form, setForm] = useState({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
 
-  // ── Learning Path State ────────────────────────────────────────────────────
+  // Study session state
+  const [sessions, setSessions] = useState([]);
+  const [heatmapData, setHeatmapData] = useState({ heatmap: [], totalXP: 0, environmentData: [], forgettingCurve: [] });
+  const [statsData, setStatsData] = useState({ totalMinutes: 0, totalXP: 0, totalSessions: 0, streak: 0, bestTopic: '—' });
+  const [loading, setLoading] = useState(false);
+  const [impactSession, setImpactSession] = useState(null);
+
+  // Log form state
+  const TOPICS = ['Data Structures', 'Algorithms', 'System Design', 'Frontend', 'Backend', 'Machine Learning', 'DevOps', 'Database', 'Math', 'Physics', 'Chemistry', 'Biology', 'English', 'Economics', 'Other'];
+  const ENVS = [{ id: 'HOME', icon: '🏠', label: 'Home' }, { id: 'LIBRARY', icon: '📚', label: 'Library' }, { id: 'CAFE', icon: '☕', label: 'Café' }, { id: 'GROUP', icon: '👥', label: 'Group' }];
+  const [logForm, setLogForm] = useState({ durationMinutes: 30, topic: 'Data Structures', category: '', focusQuality: 3, mentalFatigue: 3, environment: 'HOME' });
+  const [logging, setLogging] = useState(false);
+
+  // Learning Path state
   const savedPath = career?.generatedLearningPath || null;
-  const [lpCurrentRole, setLpCurrentRole] = useState(career?.currentRole || c.currentRole || '');
+  const [lpCurrentRole, setLpCurrentRole] = useState(career?.currentRole || '');
   const [lpTargetRole, setLpTargetRole] = useState(career?.targetRole || '');
   const [lpLoading, setLpLoading] = useState(false);
   const [lpResult, setLpResult] = useState(savedPath);
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'log', label: 'Log Data', icon: '✏️' },
-    { id: 'recommendations', label: 'AI Recommendations', icon: '🤖' },
-    { id: 'roadmap', label: 'Learning Path', icon: '🗺️' },
-  ];
+  // Old-style career log state
+  const careerRecords = records?.career || [];
+  const [careerForm, setCareerForm] = useState({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [s, h, st] = await Promise.all([getSessions(), getHeatmap(), getStats()]);
+      setSessions(s);
+      setHeatmapData(h);
+      setStatsData(st);
+    } catch {
+      // silently handled in service
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  // Cognitive load calculation: study hours today + inverse sleep + mental stress
+  const cognitiveLoad = useMemo(() => {
+    const todaySessions = sessions.filter(s => {
+      const d = (s.sessionDate || s.createdAt || '').split('T')[0];
+      return d === new Date().toISOString().split('T')[0];
+    });
+    const todayMins = todaySessions.reduce((s, x) => s + (x.durationMinutes || 0), 0);
+    const studyLoad = Math.min(50, (todayMins / 240) * 50);
+    const sleepLoad = health?.sleepAvg ? Math.max(0, (8 - health.sleepAvg) * 5) : 15;
+    const stressLoad = health?.stressLevel ? health.stressLevel * 3.5 : 15;
+    return Math.min(100, studyLoad + sleepLoad + stressLoad);
+  }, [sessions, health]);
 
   const skillRadar = [
     { subject: 'DSA', A: Math.min(100, c.dsaPractice * 33) },
@@ -38,116 +603,167 @@ export default function Career() {
     { subject: 'GPA', A: Math.min(100, c.gpa * 11) },
   ];
 
-  const handleLog = (e) => {
+  const placementReadiness = Math.round(
+    (c.dsaPractice >= 3 ? 25 : c.dsaPractice * 8) +
+    (c.projectsCompleted >= 4 ? 25 : c.projectsCompleted * 6) +
+    (c.skills.length >= 5 ? 25 : c.skills.length * 5) +
+    (c.codingHoursDaily >= 4 ? 25 : c.codingHoursDaily * 6)
+  );
+
+  const handleLogSession = async () => {
+    if (!logForm.topic) { showToast('Select a topic', 'error'); return; }
+    setLogging(true);
+    try {
+      const result = await logSession(logForm);
+      showToast(`Session logged! +${result.xpEarned} XP`, 'success');
+      setImpactSession(result);
+      await loadData();
+      // Also update career domain for cross-domain effects
+      const todayHours = (logForm.durationMinutes / 60);
+      updateDomain('career', { ...c, studyHoursDaily: Math.max(c.studyHoursDaily, parseFloat(todayHours.toFixed(1))) });
+      addRecords('career', [{ date: new Date().toISOString(), studyHours: todayHours, topic: logForm.topic }]);
+    } catch {
+      showToast('Failed to log session', 'error');
+    } finally {
+      setLogging(false);
+    }
+  };
+
+  const handleCareerLog = (e) => {
     e.preventDefault();
     const updated = { ...c };
     const record = { date: new Date().toISOString() };
     let changes = 0;
-    if (form.studyHours)  { updated.studyHoursDaily  = parseFloat(form.studyHours);  record.studyHours  = parseFloat(form.studyHours);  changes++; }
-    if (form.codingHours) { updated.codingHoursDaily = parseFloat(form.codingHours); record.codingHours = parseFloat(form.codingHours); changes++; }
-    if (form.dsa)         { updated.dsaPractice      = parseInt(form.dsa);           record.dsa         = parseInt(form.dsa);           changes++; }
-    if (form.projects)    { updated.projectsCompleted = parseInt(form.projects);     record.projects    = parseInt(form.projects);      changes++; }
-    if (form.skill && !updated.skills.includes(form.skill.trim())) {
-      updated.skills = [...(updated.skills || []), form.skill.trim()];
-      record.skillAdded = form.skill.trim();
+    if (careerForm.studyHours)  { updated.studyHoursDaily  = parseFloat(careerForm.studyHours);  record.studyHours  = parseFloat(careerForm.studyHours);  changes++; }
+    if (careerForm.codingHours) { updated.codingHoursDaily = parseFloat(careerForm.codingHours); record.codingHours = parseFloat(careerForm.codingHours); changes++; }
+    if (careerForm.dsa)         { updated.dsaPractice      = parseInt(careerForm.dsa);           record.dsa         = parseInt(careerForm.dsa);           changes++; }
+    if (careerForm.projects)    { updated.projectsCompleted = parseInt(careerForm.projects);     record.projects    = parseInt(careerForm.projects);      changes++; }
+    if (careerForm.skill && !updated.skills.includes(careerForm.skill.trim())) {
+      updated.skills = [...(updated.skills || []), careerForm.skill.trim()];
+      record.skillAdded = careerForm.skill.trim();
       changes++;
     }
-    if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
+    if (changes === 0) { showToast('Fill at least one field', 'error'); return; }
     updateDomain('career', updated);
     addRecords('career', [record]);
-    setForm({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
+    setCareerForm({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
     showToast(`Career data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
-  };
-
-  // Consecutive logging streak
-  const streak = (() => {
-    if (careerRecords.length === 0) return 0;
-    const uniqueDays = [...new Set(careerRecords.map(r => (typeof r.date === 'string' ? r.date : new Date(r.date).toISOString()).split('T')[0]))].sort().reverse();
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    let count = 0; let cursor = new Date(today);
-    for (const d of uniqueDays) {
-      const day = new Date(d); day.setHours(0, 0, 0, 0);
-      const diff = Math.round((cursor - day) / 86400000);
-      if (diff === 0 || diff === 1) { count++; cursor = day; } else break;
-    }
-    return count;
-  })();
-
-  const recentLogs = [...careerRecords].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
-
-  const placementReadiness = Math.round((c.dsaPractice >= 3 ? 25 : c.dsaPractice * 8) + (c.projectsCompleted >= 4 ? 25 : c.projectsCompleted * 6) + (c.skills.length >= 5 ? 25 : c.skills.length * 5) + (c.codingHoursDaily >= 4 ? 25 : c.codingHoursDaily * 6));
-
-  const availableSkills = ['TypeScript', 'Docker', 'AWS', 'System Design', 'MongoDB', 'GraphQL', 'Kubernetes', 'Redis', 'Tailwind', 'Next.js', 'Go', 'Rust', 'Python', 'ML'];
-  const missingSkills = availableSkills.filter(s => !c.skills.includes(s));
-
-  const recommendations = [
-    { icon: '🧩', title: 'Skill Gap Analysis', text: c.skills.length < 5 ? `You have ${c.skills.length} skills. Top companies expect 5-7+ skills. Add: ${missingSkills.slice(0,3).join(', ')}.` : 'Strong skill set! Focus on deepening expertise in 2-3 core skills.', confidence: Math.max(70, 100 - Math.abs(5 - c.skills.length) * 5), risk: c.skills.length < 4 ? 'high' : 'low' },
-    { icon: '📚', title: 'DSA Strategy', text: c.dsaPractice < 3 ? `Increase from ${c.dsaPractice} to 3-5 problems/day. Focus: Arrays → Strings → Trees → Graphs → DP. Use spaced repetition.` : 'Excellent DSA practice! Add timed mock contests to simulate interview pressure.', confidence: c.dsaPractice < 3 ? 90 : 85, risk: c.dsaPractice < 2 ? 'high' : 'low' },
-    { icon: '🚀', title: 'Project Portfolio', text: c.projectsCompleted < 4 ? `${c.projectsCompleted} projects isn't enough. Build: 1 full-stack app, 1 ML/AI project, 1 open-source contribution.` : `${c.projectsCompleted} projects is strong! Add READMEs, demos, and deploy them for visibility.`, confidence: c.projectsCompleted < 4 ? 88 : 82, risk: 'medium' },
-    { icon: '🎯', title: 'Placement Readiness', text: `Readiness score: ${placementReadiness}%. ${placementReadiness < 60 ? 'Focus on DSA and projects to increase interview chances.' : 'You\'re well-prepared. Practice mock interviews to build confidence.'}`, confidence: Math.max(75, placementReadiness), risk: placementReadiness < 50 ? 'high' : 'low' },
-    { icon: '⏰', title: 'Study Efficiency', text: (health?.sleepAvg || 7) < 6 ? `Low sleep (${health?.sleepAvg || 7}h) is reducing your study efficiency. Even with ${c.studyHoursDaily}h of study, effective learning may be only ${Math.round(c.studyHoursDaily * 0.6)}h.` : 'Good sleep supports effective learning. Your study hours are productive.', confidence: (health?.sleepAvg || 7) < 6 ? 92 : 85, risk: (health?.sleepAvg || 7) < 6 ? 'high' : 'low' },
-  ];
-
-  const roadmap = [
-    { phase: 'Foundation', items: ['Data Structures & Algorithms', 'Object-Oriented Programming', 'Database Management', 'Git & Version Control'], status: c.dsaPractice >= 2 ? 'done' : 'active' },
-    { phase: 'Core Skills', items: ['Frontend (React/Vue)', 'Backend (Node/Spring)', 'API Design (REST/GraphQL)', 'Testing & Debugging'], status: c.skills.length >= 4 ? 'done' : c.dsaPractice >= 2 ? 'active' : 'locked' },
-    { phase: 'Projects', items: ['Full-Stack Web App', 'Mobile App / AI Project', 'Open Source Contribution', 'Technical Blog'], status: c.projectsCompleted >= 3 ? 'done' : c.skills.length >= 4 ? 'active' : 'locked' },
-    { phase: 'Interview Prep', items: ['250+ DSA Problems', 'System Design Basics', 'Mock Interviews', 'Resume & LinkedIn'], status: c.projectsCompleted >= 3 ? 'active' : 'locked' },
-  ];
-
-  const platformColor = (platform) => {
-    if (platform === 'Coursera') return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
-    if (platform === 'Udemy') return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
-    return 'text-red-400 bg-red-500/10 border-red-500/20'; // YouTube
   };
 
   const handleGenerateLearningPath = async (e) => {
     e.preventDefault();
-    if (!lpCurrentRole.trim() || !lpTargetRole.trim()) {
-      showToast('Please enter both current and target roles.', 'error');
-      return;
-    }
-    setLpLoading(true);
-    setLpResult(null);
+    if (!lpCurrentRole.trim() || !lpTargetRole.trim()) { showToast('Enter both roles', 'error'); return; }
+    setLpLoading(true); setLpResult(null);
     try {
       const result = await generateLearningPath(lpCurrentRole.trim(), lpTargetRole.trim());
       setLpResult(result);
-      updateDomain('career', {
-        ...c,
-        currentRole: lpCurrentRole.trim(),
-        targetRole: lpTargetRole.trim(),
-        generatedLearningPath: result,
-      });
+      updateDomain('career', { ...c, currentRole: lpCurrentRole.trim(), targetRole: lpTargetRole.trim(), generatedLearningPath: result });
       showToast('Learning path generated!', 'success');
-    } catch (err) {
-      showToast('Failed to generate path. Try again.', 'error');
-    } finally {
-      setLpLoading(false);
-    }
+    } catch { showToast('Failed to generate path', 'error'); }
+    finally { setLpLoading(false); }
   };
+
+  const tabs = [
+    { id: 'brain', label: 'Brain Twin', icon: '🧠' },
+    { id: 'log', label: 'Log Session', icon: '⚡' },
+    { id: 'history', label: 'History', icon: '📊' },
+    { id: 'recommendations', label: 'AI Tips', icon: '🤖' },
+    { id: 'roadmap', label: 'Learning Path', icon: '🗺️' },
+    { id: 'resume', label: 'Resume AI', icon: '📄' },
+  ];
+
+  const ENV_COLORS = { HOME: '#3b82f6', LIBRARY: '#8b5cf6', CAFE: '#f59e0b', GROUP: '#10b981' };
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="bg-[#252525] border border-white/10 p-2 rounded-xl text-xs">
+        <p className="text-slate-400 mb-1">{label}</p>
+        {payload.map(p => <p key={p.name} style={{ color: p.fill || p.color }}>{p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}</p>)}
+      </div>
+    );
+  };
+
+  const recentLogs = [...careerRecords].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+  const missingSkills = ['TypeScript', 'Docker', 'AWS', 'System Design', 'MongoDB', 'GraphQL', 'Kubernetes', 'Redis', 'Next.js', 'Go'].filter(s => !c.skills.includes(s));
+
+  const recommendations = [
+    { icon: '🧩', title: 'Skill Gap', text: c.skills.length < 5 ? `You have ${c.skills.length} skills. Add: ${missingSkills.slice(0, 3).join(', ')}.` : 'Strong skill set! Deepen 2-3 core skills.', risk: c.skills.length < 4 ? 'high' : 'low' },
+    { icon: '📚', title: 'DSA Strategy', text: c.dsaPractice < 3 ? `Increase to 3-5 problems/day. Focus: Arrays → Trees → Graphs → DP.` : 'Great! Add timed mock contests for pressure simulation.', risk: c.dsaPractice < 2 ? 'high' : 'low' },
+    { icon: '🚀', title: 'Projects', text: c.projectsCompleted < 4 ? `${c.projectsCompleted} projects. Build: 1 full-stack, 1 ML/AI, 1 open-source.` : 'Strong portfolio! Add demos and deploy for visibility.', risk: 'medium' },
+    { icon: '🎯', title: 'Placement Readiness', text: `${placementReadiness}% ready. ${placementReadiness < 60 ? 'Focus on DSA and projects.' : 'Practice mock interviews to build confidence.'}`, risk: placementReadiness < 50 ? 'high' : 'low' },
+    { icon: '💤', title: 'Sleep & Learning', text: (health?.sleepAvg || 7) < 6 ? `Low sleep (${health?.sleepAvg || '?'}h) cuts effective study by 40%. Your ${c.studyHoursDaily}h may yield only ${Math.round(c.studyHoursDaily * 0.6)}h of actual retention.` : 'Good sleep! Your study sessions are running efficiently.', risk: (health?.sleepAvg || 7) < 6 ? 'high' : 'low' },
+  ];
+
+  const roadmap = [
+    { phase: 'Foundation', items: ['Data Structures & Algorithms', 'OOP', 'Databases', 'Git'], status: c.dsaPractice >= 2 ? 'done' : 'active' },
+    { phase: 'Core Skills', items: ['Frontend (React)', 'Backend (Node/Spring)', 'REST/GraphQL', 'Testing'], status: c.skills.length >= 4 ? 'done' : c.dsaPractice >= 2 ? 'active' : 'locked' },
+    { phase: 'Projects', items: ['Full-Stack App', 'ML/AI Project', 'Open Source', 'Tech Blog'], status: c.projectsCompleted >= 3 ? 'done' : c.skills.length >= 4 ? 'active' : 'locked' },
+    { phase: 'Interview Prep', items: ['250+ DSA', 'System Design', 'Mock Interviews', 'Resume'], status: c.projectsCompleted >= 3 ? 'active' : 'locked' },
+  ];
+
+  const platformColor = (p) => p === 'Coursera' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' : p === 'Udemy' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20';
 
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
-      <PageHeader title="Career & Growth" subtitle="Track skills, prepare for placements, and accelerate your career." icon="🎯" />
-      <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      <AnimatePresence>
+        {impactSession && <TwinImpactFeed session={impactSession} onDone={() => { setImpactSession(null); setTab('history'); }} />}
+      </AnimatePresence>
 
-      {tab === 'overview' && (
+      <PageHeader title="Career & Brain Twin" subtitle="Study smarter — every session builds your digital twin." icon="🧠" />
+
+      {/* Tab Bar */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === t.id ? 'bg-gradient-to-r from-blue-600/80 to-violet-600/80 text-white shadow-lg' : 'bg-[#252525]/80 text-[#9B9B9B] hover:bg-white/5'}`}>
+            <span className="mr-1.5">{t.icon}</span>{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
+      {tab === 'brain' && (
         <div className="space-y-6">
+          {/* Metrics row */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <GlassCard className="flex justify-center col-span-2 md:col-span-1" glow="glow-blue">
               <ScoreRing score={score} color="auto" label="Career Score" size={100} />
             </GlassCard>
-            <MetricCard icon="📚" label="Study/day" value={`${c.studyHoursDaily}h`} color="#3b82f6" />
-            <MetricCard icon="💻" label="Coding/day" value={`${c.codingHoursDaily}h`} color="#8b5cf6" />
-            <MetricCard icon="🧩" label="DSA/day" value={c.dsaPractice} color="#06b6d4" />
-            <MetricCard icon="🚀" label="Projects" value={c.projectsCompleted} color="#10b981" />
-            <MetricCard icon="🎯" label="Placement" value={`${placementReadiness}%`} color="#f59e0b" />
+            <MetricCard icon="⚡" label="Total XP" value={statsData.totalXP.toLocaleString()} color="#f59e0b" />
+            <MetricCard icon="🔥" label="Streak" value={`${statsData.streak}d`} color="#f43f5e" />
+            <MetricCard icon="⏱" label="Total Study" value={`${Math.round(statsData.totalMinutes / 60)}h`} color="#3b82f6" />
+            <MetricCard icon="📝" label="Sessions" value={statsData.totalSessions} color="#8b5cf6" />
+            <MetricCard icon="🏆" label="Best Topic" value={statsData.bestTopic || '—'} color="#10b981" />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            <GlassCard>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Cognitive Load Meter */}
+            <GlassCard className="p-6 flex flex-col items-center" glow={cognitiveLoad > 70 ? 'glow-rose' : cognitiveLoad > 40 ? '' : 'glow-emerald'}>
+              <h3 className="text-sm font-semibold mb-2 self-start">Cognitive Load Meter</h3>
+              <p className="text-xs text-slate-500 mb-4 self-start">Based on today's study + sleep + stress</p>
+              <CognitiveGauge value={cognitiveLoad} />
+              <div className="grid grid-cols-3 gap-2 w-full mt-4 text-center">
+                <div className="p-2 rounded-lg bg-emerald-500/10">
+                  <p className="text-xs text-emerald-400 font-bold">&lt;40</p>
+                  <p className="text-[9px] text-slate-500">Optimal</p>
+                </div>
+                <div className="p-2 rounded-lg bg-amber-500/10">
+                  <p className="text-xs text-amber-400 font-bold">40-70</p>
+                  <p className="text-[9px] text-slate-500">Moderate</p>
+                </div>
+                <div className="p-2 rounded-lg bg-rose-500/10">
+                  <p className="text-xs text-rose-400 font-bold">&gt;70</p>
+                  <p className="text-[9px] text-slate-500">Burnout Risk</p>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Skill Radar */}
+            <GlassCard className="p-6">
               <h3 className="text-sm font-semibold mb-4">Skill Radar</h3>
-              <div className="h-64">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={skillRadar}>
                     <PolarGrid stroke="rgba(255,255,255,0.05)" />
@@ -158,217 +774,353 @@ export default function Career() {
               </div>
             </GlassCard>
 
-            <GlassCard>
+            {/* Skills Portfolio */}
+            <GlassCard className="p-6">
               <h3 className="text-sm font-semibold mb-4">Skills Portfolio</h3>
               <div className="flex flex-wrap gap-2 mb-4">
-                {c.skills.map(s => (
-                  <span key={s} className="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium">{s}</span>
-                ))}
+                {c.skills.length > 0 ? c.skills.map(s => (
+                  <span key={s} className="px-2.5 py-1 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium">{s}</span>
+                )) : <p className="text-xs text-slate-500">No skills logged yet</p>}
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="grid grid-cols-2 gap-3 mt-auto">
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
                   <p className="text-2xl font-bold text-blue-400">{c.coursesActive}</p>
                   <p className="text-[10px] text-slate-500">Active Courses</p>
                 </div>
                 <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                  <p className="text-2xl font-bold text-purple-400">{c.gpa}</p>
-                  <p className="text-[10px] text-slate-500">GPA</p>
+                  <p className="text-2xl font-bold text-purple-400">{placementReadiness}%</p>
+                  <p className="text-[10px] text-slate-500">Placement Ready</p>
                 </div>
               </div>
             </GlassCard>
           </div>
+
+          {/* Forgetting Curve */}
+          {heatmapData.forgettingCurve?.length > 0 && (
+            <GlassCard className="p-6">
+              <h3 className="text-sm font-semibold mb-1">Forgetting Curve — Topic Retention</h3>
+              <p className="text-xs text-slate-500 mb-4">Topics lose ~20% retention per day without review</p>
+              <div className="space-y-3">
+                {heatmapData.forgettingCurve.map((t, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-xs text-slate-300 w-32 truncate">{t.topic}</span>
+                    <div className="flex-1 h-2 rounded-full bg-white/5">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${t.retention}%` }}
+                        transition={{ delay: i * 0.05, duration: 0.8 }}
+                        className="h-full rounded-full"
+                        style={{ background: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }}
+                      />
+                    </div>
+                    <span className="text-xs font-mono w-10 text-right" style={{ color: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }}>{t.retention}%</span>
+                    <span className="text-[10px] text-slate-500 w-14">{t.daysSince}d ago</span>
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          )}
         </div>
       )}
 
+      {/* ── LOG SESSION TAB ─────────────────────────────────────────────────── */}
       {tab === 'log' && (
-        <GlassCard>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/[0.06] pb-4">
-            <h3 className="text-sm font-semibold">Log Today's Career Data</h3>
-            {streak > 0 && (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/20 bg-blue-500/[0.05]">
-                <span className="text-lg">🔥</span>
-                <span className="text-[12px] font-semibold text-blue-300">{streak}-Day Streak</span>
-                <span className="text-[10px] text-blue-500/60 ml-1">{careerRecords.length} entries</span>
-              </div>
-            )}
-          </div>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Study Hours Today</label><input type="number" value={form.studyHours} onChange={e => setForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium" placeholder="4" step="0.5" min="0" max="24" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Coding Hours Today</label><input type="number" value={form.codingHours} onChange={e => setForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium" placeholder="3" step="0.5" min="0" max="24" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">DSA Problems Solved</label><input type="number" value={form.dsa} onChange={e => setForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium" placeholder="3" min="0" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Projects Completed (total)</label><input type="number" value={form.projects} onChange={e => setForm(p => ({ ...p, projects: e.target.value }))} className="input-premium" placeholder={c.projectsCompleted || '2'} min="0" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Add New Skill</label><input type="text" value={form.skill} onChange={e => setForm(p => ({ ...p, skill: e.target.value }))} className="input-premium" placeholder="e.g. Docker, Kubernetes" /></div>
-            <div className="flex items-end"><button type="submit" className="btn-primary w-full">Save Entry ✓</button></div>
-          </form>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <GlassCard className="p-6">
+            <h3 className="text-sm font-semibold mb-1">Smart Study Logger</h3>
+            <p className="text-xs text-slate-500 mb-6">Log a focus session — saved to your digital twin's database</p>
 
-          {recentLogs.length > 0 && (
-            <div className="mt-8 border-t border-white/[0.04] pt-6">
-              <h4 className="text-[12px] font-semibold text-[#a1a1aa] mb-4 uppercase tracking-wide">Recent Logs</h4>
-              <div className="space-y-2">
+            <div className="space-y-5">
+              {/* Duration */}
+              <div>
+                <label className="text-xs text-slate-400 mb-2 block">Duration: <span className="text-white font-bold">{logForm.durationMinutes} min</span></label>
+                <input type="range" min="5" max="240" step="5" value={logForm.durationMinutes}
+                  onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
+                  className="w-full accent-blue-500" />
+                <div className="flex justify-between text-[10px] text-slate-600 mt-1"><span>5m</span><span>1h</span><span>2h</span><span>4h</span></div>
+              </div>
+
+              {/* Topic */}
+              <div>
+                <label className="text-xs text-slate-400 mb-2 block">Topic</label>
+                <select value={logForm.topic} onChange={e => setLogForm(p => ({ ...p, topic: e.target.value }))}
+                  className="input-premium w-full bg-[#1a1a1a]">
+                  {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+
+              {/* Environment */}
+              <div>
+                <label className="text-xs text-slate-400 mb-2 block">Where did you study?</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {ENVS.map(env => (
+                    <button key={env.id} onClick={() => setLogForm(p => ({ ...p, environment: env.id }))}
+                      className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all ${logForm.environment === env.id ? 'border-blue-500/60 bg-blue-500/10 text-blue-300' : 'border-white/[0.06] bg-white/[0.02] text-slate-400 hover:border-white/20'}`}>
+                      <span className="text-xl">{env.icon}</span>
+                      <span className="text-[10px]">{env.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Focus Quality */}
+              <div>
+                <label className="text-xs text-slate-400 mb-2 block">Focus Quality: <span className="text-white font-bold">{['', '😴 Distracted', '😐 Low', '🙂 Moderate', '😊 High', '🔥 Peak'][logForm.focusQuality]}</span></label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(v => (
+                    <button key={v} onClick={() => setLogForm(p => ({ ...p, focusQuality: v }))}
+                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all border ${logForm.focusQuality >= v ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'bg-white/[0.03] border-white/[0.06] text-slate-600'}`}>{v}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mental Fatigue */}
+              <div>
+                <label className="text-xs text-slate-400 mb-2 block">Mental Fatigue: <span className="text-white font-bold">{['', '😊 Fresh', '🙂 Light', '😐 Moderate', '😓 Tired', '🤯 Exhausted'][logForm.mentalFatigue]}</span></label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(v => (
+                    <button key={v} onClick={() => setLogForm(p => ({ ...p, mentalFatigue: v }))}
+                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all border ${logForm.mentalFatigue >= v ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' : 'bg-white/[0.03] border-white/[0.06] text-slate-600'}`}>{v}</button>
+                  ))}
+                </div>
+              </div>
+
+              <button onClick={handleLogSession} disabled={logging}
+                className="btn-primary w-full disabled:opacity-60 text-base py-3">
+                {logging ? 'Logging...' : '⚡ Log Session'}
+              </button>
+            </div>
+          </GlassCard>
+
+          {/* Career Metrics Quick Log */}
+          <GlassCard className="p-6">
+            <h3 className="text-sm font-semibold mb-1">Career Metrics Logger</h3>
+            <p className="text-xs text-slate-500 mb-5">Update your overall career profile data</p>
+            <form onSubmit={handleCareerLog} className="space-y-4">
+              <div><label className="text-xs text-slate-400 mb-1.5 block">Study Hours Today</label><input type="number" value={careerForm.studyHours} onChange={e => setCareerForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" min="0" max="24" /></div>
+              <div><label className="text-xs text-slate-400 mb-1.5 block">Coding Hours Today</label><input type="number" value={careerForm.codingHours} onChange={e => setCareerForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" min="0" max="24" /></div>
+              <div><label className="text-xs text-slate-400 mb-1.5 block">DSA Problems Solved</label><input type="number" value={careerForm.dsa} onChange={e => setCareerForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" min="0" /></div>
+              <div><label className="text-xs text-slate-400 mb-1.5 block">Projects Completed</label><input type="number" value={careerForm.projects} onChange={e => setCareerForm(p => ({ ...p, projects: e.target.value }))} className="input-premium w-full" placeholder={c.projectsCompleted || '2'} min="0" /></div>
+              <div><label className="text-xs text-slate-400 mb-1.5 block">Add New Skill</label><input type="text" value={careerForm.skill} onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))} className="input-premium w-full" placeholder="e.g. Docker, Kubernetes" /></div>
+              <button type="submit" className="btn-primary w-full">Save Career Data ✓</button>
+            </form>
+
+            {recentLogs.length > 0 && (
+              <div className="mt-6 border-t border-white/[0.04] pt-4 space-y-2">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Recent Career Logs</p>
                 {recentLogs.map((entry, i) => {
-                  const date = new Date(entry.date);
                   const parts = [];
-                  if (entry.studyHours != null)  parts.push(`📚 ${entry.studyHours}h study`);
-                  if (entry.codingHours != null) parts.push(`💻 ${entry.codingHours}h coding`);
-                  if (entry.dsa != null)         parts.push(`🧩 ${entry.dsa} DSA`);
-                  if (entry.projects != null)    parts.push(`🚀 ${entry.projects} projects`);
-                  if (entry.skillAdded)          parts.push(`🎯 +${entry.skillAdded}`);
+                  if (entry.studyHours != null) parts.push(`📚 ${entry.studyHours}h`);
+                  if (entry.codingHours != null) parts.push(`💻 ${entry.codingHours}h`);
+                  if (entry.dsa != null) parts.push(`🧩 ${entry.dsa} DSA`);
+                  if (entry.skillAdded) parts.push(`+${entry.skillAdded}`);
                   return (
-                    <div key={i} className="flex items-center gap-4 px-4 py-2.5 rounded-xl border border-white/[0.04] bg-white/[0.02] text-[11px]">
-                      <span className="text-[#52525b] font-mono min-w-[52px]">{date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-                      <div className="flex flex-wrap gap-2 text-[#a1a1aa]">{parts.map((p, j) => <span key={j}>{p}</span>)}</div>
+                    <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-[11px]">
+                      <span className="text-slate-500 font-mono">{new Date(entry.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+                      <div className="flex flex-wrap gap-2 text-slate-400">{parts.map((p, j) => <span key={j}>{p}</span>)}</div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
-        </GlassCard>
+            )}
+          </GlassCard>
+        </div>
       )}
 
+      {/* ── HISTORY TAB ─────────────────────────────────────────────────────── */}
+      {tab === 'history' && (
+        <div className="space-y-6">
+          {/* Stats bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <MetricCard icon="⚡" label="Total XP" value={heatmapData.totalXP?.toLocaleString() || '0'} color="#f59e0b" />
+            <MetricCard icon="🔥" label="Current Streak" value={`${statsData.streak}d`} color="#f43f5e" />
+            <MetricCard icon="⏱" label="Total Study" value={`${Math.round((statsData.totalMinutes || 0) / 60)}h`} color="#3b82f6" />
+            <MetricCard icon="📝" label="Sessions" value={statsData.totalSessions || 0} color="#8b5cf6" />
+          </div>
+
+          {/* GitHub-style Heatmap */}
+          <GlassCard className="p-6">
+            <h3 className="text-sm font-semibold mb-1">Focus Heatmap — Last 90 Days</h3>
+            <p className="text-xs text-slate-500 mb-5">Each square = one day. Darker = more study time.</p>
+            {loading ? (
+              <div className="h-20 flex items-center justify-center text-xs text-slate-500">Loading...</div>
+            ) : (
+              <FocusHeatmap heatmap={heatmapData.heatmap} />
+            )}
+          </GlassCard>
+
+          {/* Environment Efficiency */}
+          {heatmapData.environmentData?.length > 0 && (
+            <GlassCard className="p-6">
+              <h3 className="text-sm font-semibold mb-1">Environment Efficiency</h3>
+              <p className="text-xs text-slate-500 mb-5">Average focus quality per study environment</p>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={heatmapData.environmentData} barSize={40}>
+                    <XAxis dataKey="environment" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 5]} tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="avgFocus" name="Avg Focus" radius={[6, 6, 0, 0]}>
+                      {heatmapData.environmentData.map((e, i) => (
+                        <Cell key={i} fill={ENV_COLORS[e.environment] || '#3b82f6'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
+          )}
+
+          {/* Forgetting Curve */}
+          {heatmapData.forgettingCurve?.length > 0 && (
+            <GlassCard className="p-6">
+              <h3 className="text-sm font-semibold mb-1">Forgetting Curve — Review Urgency</h3>
+              <p className="text-xs text-slate-500 mb-5">Review topics with low retention before they're forgotten</p>
+              <div className="space-y-3">
+                {heatmapData.forgettingCurve.map((t, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                    className="flex items-center gap-3">
+                    <span className="text-xs text-slate-300 w-36 truncate">{t.topic}</span>
+                    <div className="flex-1 h-2.5 rounded-full bg-white/5 overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${t.retention}%` }} transition={{ duration: 0.8, delay: i * 0.05 }}
+                        className="h-full rounded-full"
+                        style={{ background: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }} />
+                    </div>
+                    <span className="text-xs font-mono w-10 text-right" style={{ color: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }}>{t.retention}%</span>
+                    {t.retention < 40 && <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 whitespace-nowrap">Review now!</span>}
+                  </motion.div>
+                ))}
+              </div>
+            </GlassCard>
+          )}
+
+          {/* Session List */}
+          <GlassCard className="p-6">
+            <h3 className="text-sm font-semibold mb-4">Recent Sessions</h3>
+            {sessions.length === 0 ? (
+              <div className="h-24 flex items-center justify-center text-xs text-slate-500 border border-dashed border-white/10 rounded-xl">
+                No sessions logged yet. Start with Log Session →
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                {sessions.slice(0, 20).map((s, i) => (
+                  <motion.div key={s.id || i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all group">
+                    <div className="w-2 h-2 rounded-full" style={{ background: ENV_COLORS[s.environment] || '#3b82f6' }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-200 font-medium truncate">{s.topic}</p>
+                      <p className="text-[10px] text-slate-500">{s.sessionDate || new Date(s.createdAt).toLocaleDateString()} · {s.environment}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-blue-400 font-mono">{s.durationMinutes}min</p>
+                      <p className="text-[10px] text-amber-400">+{s.xpEarned}xp</p>
+                    </div>
+                    <div className="flex gap-1 text-[10px]">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">F:{s.focusQuality}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400">M:{s.mentalFatigue}</span>
+                    </div>
+                    <button onClick={async () => { await deleteSession(s.id); await loadData(); setSessions(p => p.filter(x => x.id !== s.id)); }}
+                      className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-rose-400 text-xs transition-all px-1">×</button>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </GlassCard>
+        </div>
+      )}
+
+      {/* ── RECOMMENDATIONS TAB ─────────────────────────────────────────────── */}
       {tab === 'recommendations' && (
         <div className="space-y-4">
           {recommendations.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <GlassCard>
-                <div className="flex items-start gap-4"><span className="text-3xl">{r.icon}</span>
+                <div className="flex items-start gap-4">
+                  <span className="text-3xl">{r.icon}</span>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2"><h4 className="font-semibold">{r.title}</h4>
-                      <div className="flex gap-2"><span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span><span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}%</span></div></div>
-                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p></div></div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{r.title}</h4>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
+                    </div>
+                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
+                  </div>
+                </div>
               </GlassCard>
             </motion.div>
           ))}
         </div>
       )}
 
+      {/* ── LEARNING PATH TAB ───────────────────────────────────────────────── */}
       {tab === 'roadmap' && (
         <div className="space-y-6">
-
-          {/* ── AI Learning Path Generator ── */}
           <GlassCard>
             <div className="mb-5">
-              <h3 className="text-[16px] font-bold text-[#f0f0f3] tracking-tight mb-1">🎯 AI Learning Path Generator</h3>
-              <p className="text-[12px] text-slate-400">Enter your current and target roles to get a personalized AI-curated course roadmap.</p>
+              <h3 className="text-base font-bold text-white mb-1">🎯 AI Learning Path Generator</h3>
+              <p className="text-xs text-slate-400">Enter your current and target roles for a personalized roadmap.</p>
             </div>
             <form onSubmit={handleGenerateLearningPath} className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <label className="text-xs text-slate-400 mb-1.5 block">Current Role</label>
-                <input
-                  type="text"
-                  value={lpCurrentRole}
-                  onChange={e => setLpCurrentRole(e.target.value)}
-                  className="input-premium w-full"
-                  placeholder="e.g. Software Engineer"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="text-xs text-slate-400 mb-1.5 block">Target Role</label>
-                <input
-                  type="text"
-                  value={lpTargetRole}
-                  onChange={e => setLpTargetRole(e.target.value)}
-                  className="input-premium w-full"
-                  placeholder="e.g. Machine Learning Engineer"
-                />
-              </div>
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  disabled={lpLoading}
-                  className="btn-primary whitespace-nowrap disabled:opacity-60"
-                >
-                  {lpLoading ? 'Building...' : 'Generate Path 🚀'}
-                </button>
-              </div>
+              <div className="flex-1"><label className="text-xs text-slate-400 mb-1.5 block">Current Role</label><input type="text" value={lpCurrentRole} onChange={e => setLpCurrentRole(e.target.value)} className="input-premium w-full" placeholder="e.g. Software Engineer" /></div>
+              <div className="flex-1"><label className="text-xs text-slate-400 mb-1.5 block">Target Role</label><input type="text" value={lpTargetRole} onChange={e => setLpTargetRole(e.target.value)} className="input-premium w-full" placeholder="e.g. Machine Learning Engineer" /></div>
+              <div className="flex items-end"><button type="submit" disabled={lpLoading} className="btn-primary whitespace-nowrap disabled:opacity-60">{lpLoading ? 'Building...' : 'Generate Path 🚀'}</button></div>
             </form>
           </GlassCard>
 
-          {/* ── Loading skeleton ── */}
           {lpLoading && (
             <GlassCard>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-6 h-6 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
-                <p className="text-sm text-blue-300 font-medium">Building your learning path…</p>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-5 h-5 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+                <p className="text-sm text-blue-300 font-medium">Building your personalized learning path…</p>
               </div>
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-20 rounded-xl bg-white/[0.03] border border-white/[0.06] animate-pulse" />
-                ))}
-              </div>
+              <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 rounded-xl bg-white/[0.03] border border-white/[0.06] animate-pulse" />)}</div>
             </GlassCard>
           )}
 
-          {/* ── Generated Learning Path ── */}
           {lpResult && !lpLoading && (
             <motion.div className="space-y-4" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-
-              {/* Approximate match warning */}
               {lpResult.approximate && (
                 <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] flex items-center gap-2.5">
-                  <span className="text-amber-400 text-base">⚠️</span>
-                  <p className="text-[12px] text-amber-300">
-                    Showing closest available path for your transition — exact match not found in our database.
-                  </p>
+                  <span className="text-amber-400">⚠️</span>
+                  <p className="text-xs text-amber-300">Showing closest available path — exact match not in database.</p>
                 </div>
               )}
-
-              {/* Summary header */}
               <GlassCard>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-1">Learning Path</p>
-                    <h3 className="text-[18px] font-bold text-[#f0f0f3]">
-                      {lpResult.from} <span className="text-blue-400">→</span> {lpResult.to}
-                    </h3>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Learning Path</p>
+                    <h3 className="text-lg font-bold text-white">{lpResult.from} <span className="text-blue-400">→</span> {lpResult.to}</h3>
                   </div>
-                  <div className="flex gap-4">
-                    <div className="text-center">
-                      <p className="text-[22px] font-bold text-blue-400">{lpResult.totalHours}</p>
-                      <p className="text-[10px] text-slate-500">Total Hours</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[13px] font-bold text-emerald-400 mt-1">{lpResult.totalCost}</p>
-                      <p className="text-[10px] text-slate-500">Est. Cost</p>
-                    </div>
+                  <div className="flex gap-6">
+                    <div className="text-center"><p className="text-2xl font-bold text-blue-400">{lpResult.totalHours}</p><p className="text-[10px] text-slate-500">Total Hours</p></div>
+                    <div className="text-center"><p className="text-sm font-bold text-emerald-400 mt-2">{lpResult.totalCost}</p><p className="text-[10px] text-slate-500">Est. Cost</p></div>
                   </div>
                 </div>
               </GlassCard>
-
-              {/* Phases */}
               {lpResult.phases?.map((phase, pi) => (
                 <motion.div key={pi} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: pi * 0.1 }}>
                   <GlassCard>
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center justify-center">
-                        {pi + 1}
-                      </span>
-                      <h4 className="font-semibold text-[#f0f0f3] text-[14px]">{phase.phase}</h4>
+                      <span className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center justify-center">{pi + 1}</span>
+                      <h4 className="font-semibold text-white">{phase.phase}</h4>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {phase.courses?.map((course, ci) => (
                         <div key={ci} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-blue-500/20 transition-all">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <h5 className="text-[13px] font-semibold text-[#f0f0f3]">{course.title}</h5>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${platformColor(course.platform)}`}>
-                                  {course.platform}
-                                </span>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <h5 className="text-sm font-semibold text-white">{course.title}</h5>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${platformColor(course.platform)}`}>{course.platform}</span>
                               </div>
-                              <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                              <div className="flex gap-3 text-[11px] text-slate-400">
                                 <span>⏱ {course.hours} hrs</span>
                                 <span className={course.cost === 'Free' || course.cost === 'Free to audit' ? 'text-emerald-400' : 'text-amber-400'}>
                                   {course.cost === 'Free' || course.cost === 'Free to audit' ? '✓ ' : '💳 '}{course.cost}
                                 </span>
                               </div>
                             </div>
-                            <a
-                              href={course.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="shrink-0 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[12px] font-medium hover:bg-blue-500/20 hover:text-blue-300 transition-all whitespace-nowrap"
-                            >
+                            <a href={course.url} target="_blank" rel="noopener noreferrer"
+                              className="shrink-0 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-all whitespace-nowrap">
                               Open Course →
                             </a>
                           </div>
@@ -381,13 +1133,13 @@ export default function Career() {
             </motion.div>
           )}
 
-          {/* ── Static Skill Roadmap (always visible below) ── */}
+          {/* Static Roadmap */}
           <div>
-            <p className="text-[11px] text-slate-500 uppercase tracking-widest font-semibold mb-3 px-1">General Skill Roadmap</p>
-            <div className="space-y-4">
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-3 px-1">General Skill Roadmap</p>
+            <div className="space-y-3">
               {roadmap.map((phase, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.15 }}>
-                  <GlassCard className={phase.status === 'locked' ? 'opacity-50' : ''}>
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+                  <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>
                     <div className="flex items-center gap-3 mb-3">
                       <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${phase.status === 'done' ? 'bg-emerald-500/20 text-emerald-400' : phase.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-slate-600'}`}>
                         {phase.status === 'done' ? '✓' : i + 1}
@@ -408,8 +1160,12 @@ export default function Career() {
               ))}
             </div>
           </div>
-
         </div>
+      )}
+
+      {/* ── RESUME AI TAB ─────────────────────────────────────────────────────── */}
+      {tab === 'resume' && (
+        <ResumeTab career={c} updateDomain={updateDomain} />
       )}
     </div>
   );

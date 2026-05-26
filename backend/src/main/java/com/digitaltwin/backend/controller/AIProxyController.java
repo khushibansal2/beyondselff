@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,8 +36,9 @@ public class AIProxyController {
             String message = (String) request.getOrDefault("message", "");
             Map<String, Object> context = (Map<String, Object>) request.getOrDefault("context", Map.of());
             String systemPrompt = (String) request.getOrDefault("systemPrompt", "");
+            List<Map<String, Object>> history = (List<Map<String, Object>>) request.getOrDefault("history", List.of());
 
-            String response = geminiService.chat(message, context, systemPrompt);
+            String response = geminiService.chat(message, context, systemPrompt, history);
             return ResponseEntity.ok(Map.of(
                 "response", response,
                 "source", "gemini",
