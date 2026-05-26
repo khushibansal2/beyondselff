@@ -11,6 +11,8 @@ import { generateTrendData, generateCorrelations, generateInsights } from '../da
 import { computeHealthScore } from '../engines/healthScoreEngine';
 import { computeFinanceScore } from '../engines/financeScoreEngine';
 import { computeCareerScore } from '../engines/careerScoreEngine';
+import { fetchGitHubProfile } from '../services/githubService';
+import { CheckCircle, AlertTriangle, Activity, Landmark, Briefcase, Calendar, Check, ArrowRight, Loader2, Smartphone } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DOOM SWITCH
@@ -245,13 +247,297 @@ function RippleConnector({ hoveredDomain, containerRef, cascades }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ONBOARDING WIZARD
+// ─────────────────────────────────────────────────────────────────────────────
+function OnboardingWizard({ user, onComplete, updateDomain, career }) {
+  const [step, setStep] = useState(1);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [selections, setSelections] = useState({
+    finance: 'skipped',
+    health: 'skipped',
+    career: 'skipped',
+    calendar: 'skipped'
+  });
+  const [inputs, setInputs] = useState({
+    bankName: '',
+    upiId: '',
+    healthToken: '',
+    githubUsername: '',
+    mobileNumber: ''
+  });
+
+  const nextStep = () => setStep(s => s + 1);
+  const skipStep = (domain) => {
+    setSelections(s => ({ ...s, [domain]: 'skipped' }));
+    nextStep();
+  };
+  const connectStep = async (domain) => {
+    setIsConnecting(true);
+    
+    try {
+      if (domain === 'career' && inputs.githubUsername) {
+        const profile = await fetchGitHubProfile(inputs.githubUsername);
+        const newSkills = profile.languages.map(l => l.lang);
+        if (updateDomain) {
+          updateDomain('career', { 
+             skills: [...new Set([...(career?.skills || []), ...newSkills])],
+             githubConnected: true,
+             githubUsername: inputs.githubUsername
+          });
+        }
+      } else if (domain === 'finance' && updateDomain) {
+        updateDomain('finance', { bankName: inputs.bankName, upiId: inputs.upiId, financeConnected: true });
+      }
+    } catch (e) {
+       console.error("Failed to connect", e);
+    }
+
+    setTimeout(() => {
+      setSelections(s => ({ ...s, [domain]: 'connected' }));
+      setIsConnecting(false);
+      nextStep();
+    }, domain === 'career' ? 400 : 1200);
+  };
+
+  const steps = [
+    {
+      id: 1,
+      content: (
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-4xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)]">🧬</div>
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-3 tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>Let's set up your Digital Twin</h2>
+            <p className="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
+              We need to connect your real-world data streams so the AI can build an accurate simulation of your life.
+            </p>
+          </div>
+          <button onClick={nextStep} className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-white text-black font-semibold text-sm hover:bg-slate-200 transition-colors w-full sm:w-auto">
+            Let's Go <ArrowRight size={16} />
+          </button>
+        </div>
+      )
+    },
+    {
+      id: 2,
+      content: (
+        <div className="space-y-6 w-full max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
+            <Landmark className="text-amber-400" size={28} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>Connect Finance</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">Link your bank details to let the AI track your transactions, credit info, and financial fragility.</p>
+          </div>
+          <div className="space-y-2 mb-4">
+            <input 
+              type="text" 
+              placeholder="Bank Name (e.g. HDFC, Chase)" 
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-amber-500/50 outline-none transition-colors"
+              value={inputs.bankName}
+              onChange={e => setInputs(s => ({ ...s, bankName: e.target.value }))}
+            />
+            <input 
+              type="text" 
+              placeholder="UPI ID / Account Identity" 
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-amber-500/50 outline-none transition-colors"
+              value={inputs.upiId}
+              onChange={e => setInputs(s => ({ ...s, upiId: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-3">
+            <button onClick={() => connectStep('finance')} disabled={isConnecting || !inputs.bankName || !inputs.upiId} className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-semibold text-sm hover:bg-amber-500/20 transition-colors disabled:opacity-50">
+              {isConnecting ? <Loader2 size={16} className="animate-spin" /> : <Landmark size={16} />} 
+              {isConnecting ? 'Connecting Bank...' : 'Sync Bank Details'}
+            </button>
+            <button onClick={() => skipStep('finance')} disabled={isConnecting} className="w-full flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:bg-white/[0.06] hover:text-white transition-colors">
+              Skip for now
+            </button>
+          </div>
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10 mt-4">
+            <AlertTriangle size={14} className="text-amber-500/70 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-amber-500/70">If skipped, the Finance domain will use demo data.</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 3,
+      content: (
+        <div className="space-y-6 w-full max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6">
+            <Activity className="text-emerald-400" size={28} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>Connect Health</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">Sync your wearables (Apple HealthKit / Google Fit) to feed sleep, stress, and activity data into the simulation.</p>
+          </div>
+          <div className="mb-4">
+            <input 
+              type="text" 
+              placeholder="HealthKit / Google Fit API Token" 
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-emerald-500/50 outline-none transition-colors"
+              value={inputs.healthToken}
+              onChange={e => setInputs(s => ({ ...s, healthToken: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-3">
+            <button onClick={() => connectStep('health')} disabled={isConnecting || !inputs.healthToken} className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm hover:bg-emerald-500/20 transition-colors disabled:opacity-50">
+              {isConnecting ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />} 
+              {isConnecting ? 'Syncing Health Data...' : 'Connect Wearable'}
+            </button>
+            <button onClick={() => skipStep('health')} disabled={isConnecting} className="w-full flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:bg-white/[0.06] hover:text-white transition-colors">
+              Skip for now
+            </button>
+          </div>
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-white/5 border border-white/10 mt-4">
+            <CheckCircle size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-400">You can also log nutrition and workouts manually later.</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 4,
+      content: (
+        <div className="space-y-6 w-full max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6">
+            <Briefcase className="text-blue-400" size={28} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>Connect Career</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">Link your GitHub profile or upload a Resume PDF to calibrate your career velocity and skill obsolescence.</p>
+          </div>
+          <div className="mb-4">
+            <input 
+              type="text" 
+              placeholder="GitHub Username" 
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-blue-500/50 outline-none transition-colors"
+              value={inputs.githubUsername}
+              onChange={e => setInputs(s => ({ ...s, githubUsername: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-3">
+            <button onClick={() => connectStep('career')} disabled={isConnecting || !inputs.githubUsername} className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold text-sm hover:bg-blue-500/20 transition-colors disabled:opacity-50">
+              {isConnecting ? <Loader2 size={16} className="animate-spin" /> : <Briefcase size={16} />} 
+              {isConnecting ? 'Connecting GitHub...' : 'Connect GitHub'}
+            </button>
+            <button onClick={() => skipStep('career')} disabled={isConnecting} className="w-full flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:bg-white/[0.06] hover:text-white transition-colors">
+              Skip for now
+            </button>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 5,
+      content: (
+        <div className="space-y-6 w-full max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6">
+            <Smartphone className="text-purple-400" size={28} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>Connect Notifications</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">Sync your mobile number to access real-time SMS notifications for transaction control and alerts.</p>
+          </div>
+          <div className="mb-4">
+            <input 
+              type="tel" 
+              placeholder="Mobile Number (+91...)" 
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:border-purple-500/50 outline-none transition-colors"
+              value={inputs.mobileNumber}
+              onChange={e => setInputs(s => ({ ...s, mobileNumber: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-3">
+            <button onClick={() => connectStep('calendar')} disabled={isConnecting || !inputs.mobileNumber} className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 font-semibold text-sm hover:bg-purple-500/20 transition-colors disabled:opacity-50">
+              {isConnecting ? <Loader2 size={16} className="animate-spin" /> : <Smartphone size={16} />} 
+              {isConnecting ? 'Authenticating...' : 'Sync Mobile SMS'}
+            </button>
+            <button onClick={() => skipStep('calendar')} disabled={isConnecting} className="w-full flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:bg-white/[0.06] hover:text-white transition-colors">
+              Skip for now
+            </button>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 6,
+      content: (
+        <div className="space-y-6 w-full max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 mx-auto">
+            <CheckCircle className="text-emerald-400" size={28} />
+          </div>
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>You're Ready</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-8">Your Digital Twin is initialized. Here is your connection summary:</p>
+          </div>
+          <div className="space-y-2 mb-8">
+            {[
+              { domain: 'Finance', status: selections.finance, color: 'text-amber-400' },
+              { domain: 'Health', status: selections.health, color: 'text-emerald-400' },
+              { domain: 'Career', status: selections.career, color: 'text-blue-400' },
+              { domain: 'Notifications', status: selections.calendar, color: 'text-purple-400' }
+            ].map(item => (
+              <div key={item.domain} className="flex justify-between items-center p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                <span className="text-sm font-medium text-slate-300">{item.domain}</span>
+                {item.status === 'connected' ? (
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full bg-white/5 ${item.color} flex items-center gap-1.5`}><Check size={12} /> Connected</span>
+                ) : (
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white/5 text-slate-500 flex items-center gap-1.5">Skipped</span>
+                )}
+              </div>
+            ))}
+          </div>
+          <button onClick={onComplete} className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-white text-black font-bold text-sm hover:bg-slate-200 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            Launch My Dashboard <ArrowRight size={16} />
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  const currentStep = steps.find(s => s.id === step);
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#0a0a0f]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6">
+      {/* Progress Bar */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 flex items-center gap-2">
+        {steps.map((s) => (
+          <div key={s.id} className={`w-12 h-1.5 rounded-full transition-colors duration-500 ${step >= s.id ? 'bg-indigo-500' : 'bg-white/10'}`} />
+        ))}
+      </div>
+      <div className="absolute top-16 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-widest">
+        Step {step} of 6
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="w-full max-w-lg"
+        >
+          <GlassCard className="p-8 md:p-12 border-white/10 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none" />
+            {currentStep.content}
+          </GlassCard>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MAIN DASHBOARD
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuth();
-  const { health, finance, career, timeline, records, computed, aiCache, updateAICache, anomalies = [] } = useData();
+  const { health, finance, career, timeline, records, computed, aiCache, updateAICache, updateDomain, anomalies = [] } = useData();
   const [aiNarrative, setAiNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkedTasks, setCheckedTasks] = useState({});
   const [doomMode, setDoomMode] = useState(false);
   const [doomShake, setDoomShake] = useState(false);
@@ -259,6 +545,20 @@ export default function Dashboard() {
   const [showExplain, setShowExplain] = useState(false);
   const [activityTab, setActivityTab] = useState('activity');
   const scoreRingsRef = useRef(null);
+
+  useEffect(() => {
+    if (user && user.id) {
+      const isComplete = localStorage.getItem(`onboarding_completed_${user.id}`);
+      if (!isComplete && user.persona === 'New User') {
+        setShowOnboarding(true);
+      }
+    }
+  }, [user]);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem(`onboarding_completed_${user?.id}`, 'true');
+    setShowOnboarding(false);
+  };
 
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
@@ -425,6 +725,7 @@ export default function Dashboard() {
         doomMode ? 'doom-active' : 'bg-mesh'
       } ${doomShake ? 'doom-shake' : ''}`}
     >
+      {showOnboarding && <OnboardingWizard user={user} updateDomain={updateDomain} career={career} onComplete={handleOnboardingComplete} />}
       {/* Doom scanline overlay */}
       <AnimatePresence>
         {doomMode && (
