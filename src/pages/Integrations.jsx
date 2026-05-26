@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { GlassCard, PageHeader } from '../components/ui/Components';
@@ -11,7 +11,7 @@ import {
   GitBranch, Briefcase, Activity, Landmark, Utensils,
   Search, Sparkles, CheckCircle, AlertTriangle, ExternalLink,
   Star, GitFork, Code2, Users, Key, Plus,
-  Zap, Brain, ChevronRight, Loader2,
+  Zap, Brain, ChevronRight, Loader2, Heart, Moon, Footprints,
 } from 'lucide-react';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -899,114 +899,221 @@ function NutritionixPanel() {
   );
 }
 
-// ── GOOGLE FIT PANEL ──────────────────────────────────────────────────────────
+// ── FITBIT PANEL (real OAuth) ─────────────────────────────────────────────────
 
-const FIT_DEMO = {
-  steps: 7234, calories: 1847, activeMinutes: 45, sleepHours: 6.8,
-  heartRate: 72, distance: 5.1,
-  weekly: [
-    { day: 'Mon', steps: 8120, sleep: 7.2 },
-    { day: 'Tue', steps: 6450, sleep: 6.5 },
-    { day: 'Wed', steps: 9340, sleep: 7.8 },
-    { day: 'Thu', steps: 5200, sleep: 5.9 },
-    { day: 'Fri', steps: 7890, sleep: 6.8 },
-    { day: 'Sat', steps: 11200, sleep: 8.1 },
-    { day: 'Sun', steps: 7234, sleep: 7.0 },
-  ],
-};
+const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
-function GoogleFitPanel() {
-  const data = FIT_DEMO;
+function FitbitPanel() {
+  const [configured, setConfigured] = useState(null); // null=loading, true, false
+  const [connected,  setConnected]  = useState(false);
+  const [syncing,    setSyncing]    = useState(false);
+  const [data,       setData]       = useState(null);  // synced health data
+  const [notice,     setNotice]     = useState(null);  // {type:'success'|'error', msg}
 
-  function handleConnect() {
-    const clientId    = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID';
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/google/callback`);
-    const scope       = encodeURIComponent([
-      'https://www.googleapis.com/auth/fitness.activity.read',
-      'https://www.googleapis.com/auth/fitness.sleep.read',
-      'https://www.googleapis.com/auth/fitness.heart_rate.read',
-    ].join(' '));
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline`;
+  function getUserId() {
+    try { return JSON.parse(localStorage.getItem('dt_auth') || '{}')?.user?.id || 'default'; }
+    catch { return 'default'; }
   }
 
-  const maxSteps = Math.max(...data.weekly.map(d => d.steps));
+  // Check config + connection status on mount; also handle OAuth return
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fitbitStatus = params.get('fitbit');
+    const returnedUserId = params.get('userId');
+
+    if (fitbitStatus) {
+      // Clean the URL so refreshing doesn't retrigger
+      window.history.replaceState({}, '', window.location.pathname + '?tab=fitbit');
+      if (fitbitStatus === 'success') {
+        setNotice({ type: 'success', msg: 'Fitbit connected! Syncing your data...' });
+        setConnected(true);
+        if (returnedUserId) triggerSync(returnedUserId);
+      } else {
+        const msg = params.get('msg') || 'Connection failed';
+        setNotice({ type: 'error', msg: `OAuth error: ${msg}` });
+      }
+    }
+
+    // Check if backend has keys configured
+    fetch(`${BACKEND}/api/fitbit/config`, { signal: AbortSignal.timeout(5000) })
+      .then(r => r.json())
+      .then(d => {
+        setConfigured(d.configured);
+        if (d.configured) {
+          // Check if this user is already connected
+          const uid = returnedUserId || getUserId();
+          return fetch(`${BACKEND}/api/fitbit/status?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(5000) })
+            .then(r => r.json())
+            .then(s => {
+              if (s.connected) {
+                setConnected(true);
+                triggerSync(uid);
+              }
+            });
+        }
+      })
+      .catch(() => setConfigured(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function triggerSync(userId) {
+    setSyncing(true);
+    try {
+      const res  = await fetch(`${BACKEND}/api/fitbit/sync?userId=${encodeURIComponent(userId)}`, { signal: AbortSignal.timeout(12000) });
+      const json = await res.json();
+      if (json.connected && json.health) {
+        setData(json);
+        setNotice({ type: 'success', msg: `Synced from Fitbit${json.displayName ? ` · ${json.displayName}` : ''} · ${json.syncedAt}` });
+      }
+    } catch (e) {
+      setNotice({ type: 'error', msg: `Sync failed: ${e.message}` });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function handleConnect() {
+    const uid = getUserId();
+    try {
+      const res  = await fetch(`${BACKEND}/api/fitbit/connect?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(6000) });
+      const json = await res.json();
+      if (!json.configured) {
+        setNotice({ type: 'error', msg: 'Backend not configured. Set FITBIT_CLIENT_ID + FITBIT_CLIENT_SECRET env vars.' });
+        return;
+      }
+      window.location.href = json.url; // redirect to Fitbit login
+    } catch (e) {
+      setNotice({ type: 'error', msg: `Cannot reach backend: ${e.message}` });
+    }
+  }
+
+  async function handleDisconnect() {
+    const uid = getUserId();
+    await fetch(`${BACKEND}/api/fitbit/disconnect?userId=${encodeURIComponent(uid)}`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => {});
+    setConnected(false);
+    setData(null);
+    setNotice({ type: 'success', msg: 'Fitbit disconnected.' });
+  }
+
+  const h = data?.health || {};
 
   return (
     <div className="space-y-5">
+      {/* Header card */}
       <GlassCard>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
           <div className="flex items-center gap-2">
-            <Activity size={16} className="text-emerald-400" />
-            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Google Fit Health Sync</h3>
-            <StatusBadge status="demo" />
+            <Activity size={16} className="text-[#00b0b9]" />
+            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Fitbit Health Sync</h3>
+            <StatusBadge status={connected ? 'live' : 'none'} />
+            {syncing && <Loader2 size={13} className="text-[#00b0b9] animate-spin" />}
           </div>
-          <button onClick={handleConnect}
-            className="flex items-center gap-2 text-[12px] px-4 py-2 rounded-xl font-semibold text-white transition-all"
-            style={{ background: 'linear-gradient(135deg, #4285f4, #34a853)', boxShadow: '0 0 16px rgba(66,133,244,0.3)' }}>
-            <ExternalLink size={13} /> Connect Google Fit
-          </button>
+          <div className="flex items-center gap-2">
+            {connected
+              ? <button onClick={handleDisconnect}
+                  className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#71717a] hover:text-[#ef4444] hover:border-red-500/30 transition-all">
+                  Disconnect
+                </button>
+              : <button onClick={handleConnect}
+                  className="flex items-center gap-2 text-[12px] px-4 py-2 rounded-xl font-semibold text-white transition-all"
+                  style={{ background: 'linear-gradient(135deg, #00b0b9, #0077b6)', boxShadow: '0 0 16px rgba(0,176,185,0.3)' }}>
+                  <ExternalLink size={13} /> Connect Fitbit
+                </button>
+            }
+          </div>
         </div>
-        <p className="text-[12px] text-[#52525b]">
-          Connect to auto-sync steps, sleep, heart rate, and calories. Set <span className="font-mono text-[10px] bg-white/[0.04] px-1.5 py-0.5 rounded">VITE_GOOGLE_CLIENT_ID</span> in your .env — <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="text-[#4285f4] hover:underline">get it free here</a>.
-        </p>
+
+        {notice && (
+          <div className={`flex items-center gap-2 text-[12px] px-3 py-2 rounded-xl mb-3 ${
+            notice.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'
+          }`}>
+            {notice.type === 'success' ? <CheckCircle size={13} /> : <AlertTriangle size={13} />}
+            {notice.msg}
+          </div>
+        )}
+
+        {configured === false && !connected && (
+          <div className="text-[12px] text-[#52525b] bg-white/[0.02] border border-white/[0.04] rounded-xl p-3">
+            <p className="font-semibold text-[#a1a1aa] mb-1">Setup required</p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Register a free app at <a href="https://dev.fitbit.com/apps/new" target="_blank" rel="noreferrer" className="text-[#00b0b9] hover:underline">dev.fitbit.com/apps/new</a></li>
+              <li>Set OAuth 2.0 Application Type to <span className="font-mono text-[10px] bg-white/[0.04] px-1 rounded">Personal</span></li>
+              <li>Callback URL: <span className="font-mono text-[10px] bg-white/[0.04] px-1 rounded">http://localhost:8080/api/fitbit/callback</span></li>
+              <li>Start backend with: <span className="font-mono text-[10px] bg-white/[0.04] px-1 rounded">FITBIT_CLIENT_ID=xxx FITBIT_CLIENT_SECRET=yyy mvn spring-boot:run</span></li>
+            </ol>
+          </div>
+        )}
+
+        {configured === true && !connected && (
+          <p className="text-[12px] text-[#52525b]">
+            Click <strong className="text-[#a1a1aa]">Connect Fitbit</strong> to authorize via OAuth. We fetch sleep, steps, heart rate, and calories — no password stored.
+          </p>
+        )}
       </GlassCard>
 
-      {/* Today's metrics */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Steps Today',   value: data.steps.toLocaleString(), unit: 'steps',   color: '#6366f1', target: '10,000', pct: Math.round(data.steps/10000*100) },
-          { label: 'Calories Burned', value: data.calories,             unit: 'kcal',    color: '#f59e0b', target: '2,000',  pct: Math.round(data.calories/2000*100) },
-          { label: 'Active Minutes', value: data.activeMinutes,          unit: 'min',     color: '#10b981', target: '60',     pct: Math.round(data.activeMinutes/60*100) },
-        ].map(m => (
-          <GlassCard key={m.label}>
-            <p className="text-[11px] text-[#52525b] mb-2">{m.label}</p>
-            <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
-            <p className="text-[10px] text-[#3f3f46]">{m.unit} · goal {m.target}</p>
-            <div className="h-1.5 rounded-full bg-white/[0.05] mt-2.5 overflow-hidden">
-              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, m.pct)}%`, background: m.color }} />
-            </div>
-          </GlassCard>
-        ))}
-      </div>
-
-      {/* Weekly steps bar chart */}
-      <GlassCard>
-        <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Weekly Activity</h3>
-        <div className="flex items-end gap-2 h-28">
-          {data.weekly.map((d, i) => {
-            const pct = (d.steps / maxSteps) * 100;
-            const isToday = i === 6;
-            return (
-              <div key={d.day} className="flex-1 flex flex-col items-center gap-1.5">
-                <p className="text-[9px] text-[#52525b]">{d.steps >= 1000 ? `${(d.steps/1000).toFixed(1)}k` : d.steps}</p>
-                <div className="w-full flex items-end" style={{ height: '80px' }}>
-                  <motion.div
-                    initial={{ height: 0 }} animate={{ height: `${pct}%` }}
-                    transition={{ delay: i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full rounded-t-lg"
-                    style={{ background: isToday ? '#6366f1' : 'rgba(99,102,241,0.25)' }}
-                  />
+      {/* Live data — only shown after successful sync */}
+      {connected && data && (
+        <>
+          {/* Metrics row */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Steps Today',     value: (h.steps || 0).toLocaleString(), unit: 'steps',   color: '#6366f1', target: '10,000', pct: Math.round((h.steps||0)/10000*100), icon: <Footprints size={14} /> },
+              { label: 'Calories Burned', value: h.calories || '—',               unit: 'kcal',    color: '#f59e0b', target: '2,000',  pct: Math.round((h.calories||0)/2000*100), icon: <Zap size={14} /> },
+              { label: 'Distance',        value: h.distanceMetres ? `${(h.distanceMetres/1000).toFixed(1)}` : '—', unit: 'km', color: '#10b981', target: '8 km', pct: Math.round((h.distanceMetres||0)/8000*100), icon: <Activity size={14} /> },
+            ].map(m => (
+              <GlassCard key={m.label}>
+                <div className="flex items-center gap-1.5 mb-2" style={{ color: m.color }}>{m.icon}<p className="text-[11px] text-[#52525b]">{m.label}</p></div>
+                <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
+                <p className="text-[10px] text-[#3f3f46]">{m.unit} · goal {m.target}</p>
+                <div className="h-1.5 rounded-full bg-white/[0.05] mt-2.5 overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, m.pct)}%` }}
+                    transition={{ duration: 0.8, ease: [0.16,1,0.3,1] }}
+                    className="h-full rounded-full" style={{ background: m.color }} />
                 </div>
-                <p className="text-[10px] text-[#52525b]">{d.day}</p>
-              </div>
-            );
-          })}
-        </div>
-      </GlassCard>
+              </GlassCard>
+            ))}
+          </div>
 
-      {/* Sleep + Heart Rate */}
-      <div className="grid sm:grid-cols-2 gap-4">
+          {/* Sleep + Heart Rate */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <GlassCard>
+              <div className="flex items-center gap-2 mb-3">
+                <Moon size={14} className="text-[#8b5cf6]" />
+                <p className="text-[12px] font-semibold text-[#f0f0f3]">Sleep Last Night</p>
+              </div>
+              <p className="text-[36px] font-black text-[#8b5cf6]">{h.sleepHours ? `${h.sleepHours}h` : '—'}</p>
+              <p className="text-[11px] text-[#52525b] mt-1">
+                {!h.sleepHours ? 'No sleep data yet'
+                  : h.sleepHours >= 7 ? '✅ Good rest'
+                  : h.sleepHours >= 6 ? '⚠️ Below optimal (target 7–9h)'
+                  : '🔴 Sleep debt — affects focus & recovery'}
+              </p>
+            </GlassCard>
+            <GlassCard>
+              <div className="flex items-center gap-2 mb-3">
+                <Heart size={14} className="text-[#ef4444]" />
+                <p className="text-[12px] font-semibold text-[#f0f0f3]">Resting Heart Rate</p>
+              </div>
+              <p className="text-[36px] font-black text-[#ef4444]">{h.restingHeartRate || '—'}</p>
+              <p className="text-[11px] text-[#52525b] mt-1">
+                {!h.restingHeartRate ? 'No heart rate data yet'
+                  : h.restingHeartRate < 60 ? '🏅 Athlete range (< 60 bpm)'
+                  : h.restingHeartRate < 80 ? '✅ Normal range'
+                  : '⚠️ Slightly elevated — check hydration & stress'}
+              </p>
+            </GlassCard>
+          </div>
+        </>
+      )}
+
+      {/* Connected but still syncing */}
+      {connected && !data && syncing && (
         <GlassCard>
-          <p className="text-[11px] text-[#52525b] font-medium mb-3">Sleep Last Night</p>
-          <p className="text-[32px] font-black text-[#8b5cf6]">{data.sleepHours}h</p>
-          <p className="text-[11px] text-[#52525b]">{data.sleepHours >= 7 ? '✅ Good rest' : data.sleepHours >= 6 ? '⚠️ Below optimal' : '🔴 Sleep debt'}</p>
+          <div className="flex items-center gap-3 py-4 justify-center">
+            <Loader2 size={18} className="animate-spin text-[#00b0b9]" />
+            <span className="text-[13px] text-[#71717a]">Fetching your Fitbit data...</span>
+          </div>
         </GlassCard>
-        <GlassCard>
-          <p className="text-[11px] text-[#52525b] font-medium mb-3">Resting Heart Rate</p>
-          <p className="text-[32px] font-black text-[#ef4444]">{data.heartRate}</p>
-          <p className="text-[11px] text-[#52525b]">BPM · {data.heartRate < 60 ? 'Athlete range' : data.heartRate < 80 ? '✅ Normal range' : '⚠️ Slightly elevated'}</p>
-        </GlassCard>
-      </div>
+      )}
     </div>
   );
 }
@@ -1490,7 +1597,7 @@ const TABS = [
   { id: 'github',      label: 'GitHub',       icon: GitBranch,      color: 'text-[#a1a1aa]' },
   { id: 'linkedin',    label: 'LinkedIn',     icon: Briefcase,    color: 'text-[#0077b5]' },
   { id: 'nutritionix', label: 'Nutrition',    icon: Utensils,       color: 'text-emerald-400' },
-  { id: 'googlefit',   label: 'Google Fit',   icon: Activity,    color: 'text-[#4285f4]'  },
+  { id: 'fitbit',      label: 'Fitbit',        icon: Activity,    color: 'text-[#00b0b9]'  },
   { id: 'banking',      label: 'Banking',      icon: Landmark,    color: 'text-emerald-400' },
 ];
 
@@ -1518,7 +1625,7 @@ export default function Integrations() {
           {tab === 'github'      && <GitHubPanel />}
           {tab === 'linkedin'    && <LinkedInPanel />}
           {tab === 'nutritionix' && <NutritionixPanel />}
-          {tab === 'googlefit'   && <GoogleFitPanel />}
+          {tab === 'fitbit'      && <FitbitPanel />}
           {tab === 'banking'     && <IndiaBankingPanel />}
         </motion.div>
       </AnimatePresence>
