@@ -229,9 +229,9 @@ select.input-premium option {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
   color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 12px;
   padding: 12px 24px;
   font-family: var(--font-primary);
@@ -242,16 +242,16 @@ select.input-premium option {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.38);
   color: #fff;
 }
 
 /* Small action chips used inside cards */
 .btn-chip {
-  background: rgba(255, 255, 255, 0.07);
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
   padding: 6px 14px;
   font-family: var(--font-primary);
@@ -265,8 +265,8 @@ select.input-premium option {
 }
 
 .btn-chip:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.36);
   color: #fff;
 }
 
@@ -514,9 +514,9 @@ input[type="range"]::-moz-range-thumb {
 
 /* ===== FILTER / PILL BUTTONS (used in Goals, Finance, etc.) ===== */
 .pill-btn {
-  background: rgba(255, 255, 255, 0.07);
-  color: #94a3b8;
-  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.20);
   border-radius: 9999px;
   padding: 5px 14px;
   font-size: 0.78rem;
@@ -544,6 +544,142 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid rgba(59, 130, 246, 0.6);
   outline-offset: 2px;
+}
+
+/* ===== LIGHT MODE THEME ===== */
+[data-theme="light"] {
+  /* Override Tailwind v4 color variables to invert text palette */
+  --color-white: #0f172a;
+  --color-slate-50: #1e293b;
+  --color-slate-100: #1e293b;
+  --color-slate-200: #334155;
+  --color-slate-300: #334155;
+  --color-slate-400: #475569;
+  --color-slate-500: #64748b;
+  --color-slate-600: #94a3b8;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f0f4f8;
+  --color-slate-950: #f8fafc;
+
+  /* App CSS vars */
+  --color-bg-primary: #f0f4f8;
+  --color-bg-secondary: #e8edf2;
+  --color-bg-card: rgba(255, 255, 255, 0.85);
+  --color-bg-glass: rgba(255, 255, 255, 0.90);
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748b;
+  --color-border: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] body {
+  background: #f0f4f8;
+  color: #0f172a;
+}
+
+[data-theme="light"] .bg-mesh {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 40% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 50%),
+    #f0f4f8;
+}
+
+[data-theme="light"] .glass-card {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .glass-card:hover {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10) !important;
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.70) !important;
+  border-color: rgba(0, 0, 0, 0.07) !important;
+}
+
+[data-theme="light"] .glass-strong {
+  background: rgba(255, 255, 255, 0.90) !important;
+  border-color: rgba(0, 0, 0, 0.10) !important;
+}
+
+[data-theme="light"] .btn-primary {
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.30);
+}
+
+[data-theme="light"] .btn-secondary {
+  background: rgba(0, 0, 0, 0.05);
+  color: #334155;
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="light"] .btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.09);
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="light"] .btn-chip {
+  background: rgba(0, 0, 0, 0.05);
+  color: #334155;
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="light"] .btn-chip:hover {
+  background: rgba(0, 0, 0, 0.09);
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="light"] .pill-btn {
+  background: rgba(0, 0, 0, 0.05);
+  color: #475569;
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+[data-theme="light"] .pill-btn:hover {
+  background: rgba(0, 0, 0, 0.09);
+  color: #0f172a;
+}
+
+[data-theme="light"] .pill-btn.active {
+  background: #4f46e5;
+  color: #fff;
+  border-color: #6366f1;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .input-premium {
+  background: rgba(255, 255, 255, 0.80);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+}
+
+[data-theme="light"] .input-premium:focus {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--color-accent-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+[data-theme="light"] .input-premium::placeholder {
+  color: #94a3b8;
+}
+
+[data-theme="light"] select.input-premium option {
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 /* ===== LINE CLAMP UTILITY ===== */

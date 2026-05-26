@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
+import { useTheme } from '../../context/ThemeContext';
 import { AnomalyBell } from '../ui/Components';
 import {
   LayoutDashboard, Heart, Wallet, Target, Trophy, Sparkles,
@@ -62,6 +63,11 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { anomalies = [], gamification } = useData();
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+  const sidebarBg = isLight
+    ? 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+    : 'linear-gradient(180deg, #0f1224 0%, #111827 100%)';
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({});
@@ -270,8 +276,13 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-white/[0.07]"
-        style={{ background: 'rgba(15,18,36,0.95)', backdropFilter: 'blur(20px)' }}>
+      <div
+        className="lg:hidden fixed top-0 left-0 right-0 z-50"
+        style={{
+          background: isLight ? 'rgba(248,250,252,0.95)' : 'rgba(15,18,36,0.95)',
+          borderBottom: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.07)',
+          backdropFilter: 'blur(20px)',
+        }}>
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1.5 text-slate-400 hover:text-white transition-colors">
@@ -304,8 +315,11 @@ export default function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: -290 }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="lg:hidden fixed left-0 top-0 h-screen w-[280px] z-50 border-r border-white/[0.08]"
-              style={{ background: 'linear-gradient(180deg, #0f1224 0%, #111827 100%)' }}
+              className="lg:hidden fixed left-0 top-0 h-screen w-[280px] z-50"
+              style={{
+                background: sidebarBg,
+                borderRight: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.08)',
+              }}
             >
               <SidebarContent mobile onClose={() => setMobileOpen(false)} />
             </motion.aside>
@@ -315,17 +329,25 @@ export default function Sidebar() {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 border-r border-white/[0.07] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+        className={`hidden lg:flex flex-col fixed left-0 top-0 h-screen z-40 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
           collapsed ? 'w-[70px]' : 'w-[268px]'
         }`}
-        style={{ background: 'linear-gradient(180deg, #0f1224 0%, #111827 100%)' }}
+        style={{
+          background: sidebarBg,
+          borderRight: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.07)',
+        }}
       >
         <SidebarContent />
       </aside>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.07]"
-        style={{ background: 'rgba(15,18,36,0.97)', backdropFilter: 'blur(20px)' }}>
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
+        style={{
+          background: isLight ? 'rgba(248,250,252,0.97)' : 'rgba(15,18,36,0.97)',
+          borderTop: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.07)',
+          backdropFilter: 'blur(20px)',
+        }}>
         <div className="flex justify-around py-1.5 px-1">
           {mobileNavItems.map((item) => {
             const active = location.pathname === item.path;

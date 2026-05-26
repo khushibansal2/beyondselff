@@ -124,7 +124,7 @@ export function TabBar({ tabs, active, onChange }) {
             flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 border
             ${active === t.id
               ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/25'
-              : 'text-slate-300 bg-white/[0.06] border-white/[0.1] hover:bg-white/[0.1] hover:text-white hover:border-white/[0.18]'
+              : 'text-slate-200 bg-white/[0.07] border-white/[0.18] hover:bg-white/[0.12] hover:text-white hover:border-white/[0.30]'
             }
           `}
         >

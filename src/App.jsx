@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { Suspense, lazy } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
 import Sidebar from './components/layout/Sidebar';
 import TopNavbar from './components/layout/TopNavbar';
@@ -33,7 +34,7 @@ function ProtectedRoute() {
   if (!user) return <Navigate to="/login" replace />;
   return (
     <>
-      <div className="flex min-h-screen bg-[#0e1120]">
+      <div className="flex min-h-screen" style={{ background: 'var(--color-bg-primary)' }}>
         <Sidebar />
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="hidden lg:block">
@@ -59,6 +60,7 @@ function PublicRoute({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <ThemeProvider>
       <AuthProvider>
         <DataProvider>
         <ToastContainer />
@@ -87,6 +89,7 @@ export default function App() {
         </Routes>
         </DataProvider>
       </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

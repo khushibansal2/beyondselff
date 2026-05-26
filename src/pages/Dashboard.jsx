@@ -256,6 +256,8 @@ export default function Dashboard() {
   const [doomMode, setDoomMode] = useState(false);
   const [doomShake, setDoomShake] = useState(false);
   const [hoveredDomain, setHoveredDomain] = useState(null);
+  const [showExplain, setShowExplain] = useState(false);
+  const [activityTab, setActivityTab] = useState('activity');
   const scoreRingsRef = useRef(null);
 
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
@@ -419,7 +421,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className={`p-4 md:p-8 pb-24 lg:pb-8 min-h-screen transition-colors duration-700 relative ${
+      className={`p-4 md:p-6 pb-24 lg:pb-8 min-h-screen transition-colors duration-700 relative ${
         doomMode ? 'doom-active' : 'bg-mesh'
       } ${doomShake ? 'doom-shake' : ''}`}
     >
@@ -469,7 +471,7 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="grid md:grid-cols-3 gap-6 mb-8"
+        className="grid md:grid-cols-3 gap-5 mb-5"
       >
         {/* Avatar column */}
         <div className="flex justify-center items-center">
@@ -539,7 +541,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mb-8"
+        className="mb-5"
       >
         <p className={`text-[10px] font-semibold uppercase tracking-widest mb-3 transition-colors ${doomMode ? 'text-red-900' : 'text-slate-600'}`}>
           {doomMode ? '▶ CRITICAL SYSTEM METRICS' : 'Hover a domain to see cascade effects'}
@@ -635,23 +637,47 @@ export default function Dashboard() {
         </motion.div>
       )}
 
-      {/* ── EXPLAINABLE AI PANELS ─────────────────────────────────────────────── */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
-        <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${doomMode ? 'text-red-300' : 'text-white'}`}
-            style={{ fontFamily: 'var(--font-display)' }}>
-          <span className="text-lg">🔍</span>
-          {doomMode ? 'SYSTEM DIAGNOSTICS — WHY YOU\'RE FAILING' : 'Explainable AI — Why Your Scores'}
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Advanced</span>
-        </h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          <ExplainableScorePanel title={doomMode ? 'Physical Decay' : 'Health Score'}    score={healthScore}  factors={explainFactors.health}  color={doomMode ? '#ef4444' : '#10b981'} icon={doomMode ? '💀' : '❤️'} />
-          <ExplainableScorePanel title={doomMode ? 'Financial Fragility' : 'Finance Score'} score={financeScore} factors={explainFactors.finance} color={doomMode ? '#ef4444' : '#f59e0b'} icon={doomMode ? '📉' : '💰'} />
-          <ExplainableScorePanel title={doomMode ? 'Obsolescence Risk' : 'Career Score'}  score={careerScore}  factors={explainFactors.career}  color={doomMode ? '#ef4444' : '#3b82f6'} icon={doomMode ? '⏳' : '🎯'} />
-        </div>
+      {/* ── EXPLAINABLE AI PANELS (collapsible) ──────────────────────────────── */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-6">
+        <button
+          onClick={() => setShowExplain(v => !v)}
+          className={`flex items-center gap-2 mb-3 w-full text-left group`}
+        >
+          <span className="text-base">🔍</span>
+          <span className={`text-sm font-semibold transition-colors ${doomMode ? 'text-red-300' : 'text-white'}`}
+                style={{ fontFamily: 'var(--font-display)' }}>
+            {doomMode ? 'SYSTEM DIAGNOSTICS' : 'Explainable AI — Why Your Scores'}
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 ml-1">Advanced</span>
+          <motion.span
+            animate={{ rotate: showExplain ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="ml-auto text-slate-500 group-hover:text-slate-300 transition-colors"
+          >
+            ▾
+          </motion.span>
+        </button>
+        <AnimatePresence>
+          {showExplain && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden"
+            >
+              <div className="grid md:grid-cols-3 gap-4 pt-1">
+                <ExplainableScorePanel title={doomMode ? 'Physical Decay' : 'Health Score'}    score={healthScore}  factors={explainFactors.health}  color={doomMode ? '#ef4444' : '#10b981'} icon={doomMode ? '💀' : '❤️'} />
+                <ExplainableScorePanel title={doomMode ? 'Financial Fragility' : 'Finance Score'} score={financeScore} factors={explainFactors.finance} color={doomMode ? '#ef4444' : '#f59e0b'} icon={doomMode ? '📉' : '💰'} />
+                <ExplainableScorePanel title={doomMode ? 'Obsolescence Risk' : 'Career Score'}  score={careerScore}  factors={explainFactors.career}  color={doomMode ? '#ef4444' : '#3b82f6'} icon={doomMode ? '⏳' : '🎯'} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* ── GHOST TIMELINE + INSIGHTS ─────────────────────────────────────────── */}
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid lg:grid-cols-3 gap-5 mb-5">
         <div className="lg:col-span-2 space-y-4">
           {/* Metric cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -694,58 +720,75 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── ACTIVITY + CORRELATIONS ───────────────────────────────────────────── */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+      {/* ── ACTIVITY + CORRELATIONS (tabbed) ─────────────────────────────────── */}
+      <div className="mb-6">
         <GlassCard>
-          <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${doomMode ? 'text-red-300' : 'text-white'}`}
-              style={{ fontFamily: 'var(--font-display)' }}>
-            <span>{doomMode ? '📛' : '📅'}</span>
-            {doomMode ? 'Incident Log' : 'Recent Activity'}
-          </h3>
-          <div className="space-y-3">
-            {(timeline || []).slice(0, 6).map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                className="flex items-start gap-3 text-sm">
-                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                  item.sentiment === 'positive' ? (doomMode ? 'bg-amber-400' : 'bg-emerald-400')
-                  : item.sentiment === 'negative' ? 'bg-red-400' : 'bg-slate-500'
-                }`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-slate-300">{item.text}</p>
-                  <p className="text-[10px] text-slate-600 mt-0.5">{item.date} · {item.type}</p>
-                </div>
-              </motion.div>
+          {/* Tab header */}
+          <div className="flex items-center gap-1 mb-4 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+            {[
+              { id: 'activity', label: doomMode ? 'Incident Log' : 'Recent Activity', icon: doomMode ? '📛' : '📅' },
+              { id: 'correlations', label: doomMode ? 'Cascade Failures' : 'Habit Correlations', icon: '🔗' },
+            ].map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActivityTab(t.id)}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                  activityTab === t.id
+                    ? (doomMode ? 'bg-red-500/15 border-red-500/30 text-red-300' : 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300')
+                    : 'bg-transparent border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>{t.icon}</span>
+                {t.label}
+              </button>
             ))}
-            {(!timeline || timeline.length === 0) && (
-              <p className="text-xs text-slate-500 text-center py-4">No recent activity yet.</p>
-            )}
           </div>
-        </GlassCard>
 
-        <GlassCard>
-          <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${doomMode ? 'text-red-300' : 'text-white'}`}
-              style={{ fontFamily: 'var(--font-display)' }}>
-            <span>🔗</span>
-            {doomMode ? 'Cascade Failures' : 'Habit Correlations'}
-          </h3>
-          <div className="space-y-3">
-            {correlations.slice(0, 5).map((corr, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                className={`p-3 rounded-xl text-xs border ${
-                  corr.type === 'positive' ? (doomMode ? 'border-amber-900/30 bg-amber-950/10' : 'border-emerald-500/20 bg-emerald-500/5')
-                  : corr.type === 'negative' ? 'border-red-500/20 bg-red-500/5'
-                  : 'border-slate-500/20 bg-slate-500/5'
-                }`}>
-                <div className="flex justify-between items-center">
-                  <p className="text-slate-300">{corr.pattern}</p>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 flex-shrink-0 ml-2">{Math.round(corr.strength * 100)}%</span>
-                </div>
-                <div className="flex gap-1 mt-1.5">
-                  {corr.domains.map(d => <span key={d} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{d}</span>)}
+          <AnimatePresence mode="wait">
+            {activityTab === 'activity' ? (
+              <motion.div key="activity" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.18 }}>
+                <div className="space-y-3">
+                  {(timeline || []).slice(0, 6).map((item, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                      className="flex items-start gap-3 text-sm">
+                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                        item.sentiment === 'positive' ? (doomMode ? 'bg-amber-400' : 'bg-emerald-400')
+                        : item.sentiment === 'negative' ? 'bg-red-400' : 'bg-slate-500'
+                      }`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-slate-300">{item.text}</p>
+                        <p className="text-[10px] text-slate-600 mt-0.5">{item.date} · {item.type}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {(!timeline || timeline.length === 0) && (
+                    <p className="text-xs text-slate-500 text-center py-4">No recent activity yet.</p>
+                  )}
                 </div>
               </motion.div>
-            ))}
-          </div>
+            ) : (
+              <motion.div key="correlations" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }} transition={{ duration: 0.18 }}>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {correlations.slice(0, 6).map((corr, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                      className={`p-3 rounded-xl text-xs border ${
+                        corr.type === 'positive' ? (doomMode ? 'border-amber-900/30 bg-amber-950/10' : 'border-emerald-500/20 bg-emerald-500/5')
+                        : corr.type === 'negative' ? 'border-red-500/20 bg-red-500/5'
+                        : 'border-slate-500/20 bg-slate-500/5'
+                      }`}>
+                      <div className="flex justify-between items-start gap-2">
+                        <p className="text-slate-300 leading-snug">{corr.pattern}</p>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/5 text-slate-500 flex-shrink-0 tabular-nums">{Math.round(corr.strength * 100)}%</span>
+                      </div>
+                      <div className="flex gap-1 mt-1.5">
+                        {corr.domains.map(d => <span key={d} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{d}</span>)}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </GlassCard>
       </div>
 
@@ -833,29 +876,6 @@ export default function Dashboard() {
         </GlassCard>
       </motion.div>
 
-      {/* ── QUICK ACTIONS ─────────────────────────────────────────────────────── */}
-      <GlassCard>
-        <h3 className={`text-sm font-semibold mb-4 flex items-center gap-2 ${doomMode ? 'text-red-300' : 'text-white'}`}
-            style={{ fontFamily: 'var(--font-display)' }}>
-          {doomMode ? '🚑 Emergency Actions' : '⚡ Quick Actions'}
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { to: '/health',  icon: doomMode ? '🏥' : '❤️', label: doomMode ? 'Fix Health'   : 'Log Health',   color: '#10b981' },
-            { to: '/finance', icon: doomMode ? '💸' : '💰', label: doomMode ? 'Stop Bleeding' : 'Log Expense',  color: '#f59e0b' },
-            { to: '/career',  icon: doomMode ? '📚' : '📚', label: doomMode ? 'Catch Up Now'  : 'Log Study',    color: '#3b82f6' },
-            { to: '/coach',   icon: doomMode ? '🆘' : '💬', label: doomMode ? 'Emergency Help': 'Ask AI Coach', color: '#8b5cf6' },
-          ].map(action => (
-            <Link key={action.to} to={action.to}
-              className={`p-4 rounded-xl border text-center hover:bg-white/[0.04] transition-all group ${doomMode ? 'border-red-900/20 bg-red-950/10' : 'border-white/[0.06] bg-white/[0.02]'}`}>
-              <span className="text-2xl block mb-2 group-hover:scale-110 transition-transform">{action.icon}</span>
-              <p className={`text-xs font-medium transition-colors ${doomMode ? 'text-red-400 group-hover:text-red-200' : 'text-slate-400 group-hover:text-white'}`}>
-                {action.label}
-              </p>
-            </Link>
-          ))}
-        </div>
-      </GlassCard>
     </div>
   );
 }
