@@ -178,6 +178,182 @@ function LiveNotification({ tx, onDismiss }) {
   );
 }
 
+// ── Investment Robo-Advisor ──────────────────────────────────────────────────
+const ALLOC_META = [
+  { key: 'equity', label: 'Equity',     color: '#f43f5e', icon: '📈' },
+  { key: 'debt',   label: 'Debt/Bonds', color: '#3b82f6', icon: '🏛️' },
+  { key: 'gold',   label: 'Gold',       color: '#f59e0b', icon: '🪙' },
+  { key: 'cash',   label: 'Liquid',     color: '#10b981', icon: '💵' },
+];
+const RISK_META = {
+  conservative: { color: '#10b981', label: 'Conservative', desc: 'Capital preservation priority',  equity: 30, debt: 50, gold: 15, cash: 5 },
+  moderate:     { color: '#f59e0b', label: 'Moderate',     desc: 'Balanced growth + stability',   equity: 50, debt: 30, gold: 15, cash: 5 },
+  aggressive:   { color: '#f43f5e', label: 'Aggressive',   desc: 'Maximum growth potential',      equity: 70, debt: 15, gold: 10, cash: 5 },
+};
+const FUND_RECS = {
+  conservative: [
+    { name: 'PPF (Public Provident Fund)',     type: '80C Eligible',  ret: '7.1%',    risk: 'None',      tag: '80C'   },
+    { name: 'SBI Nifty 50 Index Fund',         type: 'Large Cap',     ret: '11–13%',  risk: 'Low',       tag: null    },
+    { name: 'NPS Tier-I (Govt Bond)',           type: '80CCD(1B)',     ret: '8–10%',   risk: 'Very Low',  tag: '80CCD' },
+    { name: 'HDFC Short Duration Debt Fund',    type: 'Debt',          ret: '6–8%',    risk: 'Very Low',  tag: null    },
+  ],
+  moderate: [
+    { name: 'Axis ELSS Tax Saver Fund',         type: '80C Eligible',  ret: '12–15%',  risk: 'Medium',    tag: '80C'   },
+    { name: 'HDFC Balanced Advantage Fund',     type: 'Hybrid',        ret: '10–13%',  risk: 'Medium',    tag: null    },
+    { name: 'NPS Tier-I (Equity 50%)',           type: '80CCD(1B)',     ret: '9–11%',   risk: 'Low-Med',   tag: '80CCD' },
+    { name: 'Mirae Asset Large & Mid Cap Fund', type: 'Flexi Cap',     ret: '13–16%',  risk: 'Medium',    tag: null    },
+  ],
+  aggressive: [
+    { name: 'Mirae Asset ELSS Tax Saver',       type: '80C Eligible',  ret: '14–17%',  risk: 'Med-High',  tag: '80C'   },
+    { name: 'Parag Parikh Flexi Cap Fund',      type: 'Flexi Cap',     ret: '15–18%',  risk: 'Medium',    tag: null    },
+    { name: 'Axis Midcap Fund',                 type: 'Mid Cap',       ret: '15–20%',  risk: 'High',      tag: null    },
+    { name: 'NPS Tier-I (Max Equity)',           type: '80CCD(1B)',     ret: '10–13%',  risk: 'Low-Med',   tag: '80CCD' },
+  ],
+};
+
+function InvestmentRoboAdvisor({ f, score }) {
+  const savingsRate = f.income > 0 ? Math.round(((f.income - f.expenses) / f.income) * 100) : 0;
+  const riskProfile = score >= 70 && savingsRate >= 25 ? 'aggressive'
+    : score >= 50 && savingsRate >= 15 ? 'moderate' : 'conservative';
+  const risk = RISK_META[riskProfile];
+
+  const annualInvestment = (f.investments || 0) * 12;
+  const used80C = Math.min(150000, annualInvestment * 0.6);
+  const remaining80C = Math.max(0, 150000 - used80C);
+
+  const taxRows = [
+    { section: '80C',      limit: '₹1,50,000', instruments: 'ELSS · PPF · NPS · LIC · NSC',     saving: Math.round(remaining80C * 0.3),   pct: Math.round((used80C / 150000) * 100) },
+    { section: '80CCD(1B)',limit: '₹50,000',   instruments: 'NPS additional contribution',        saving: Math.round(50000 * 0.3),          pct: 0 },
+    { section: '80D',      limit: '₹25,000',   instruments: 'Health Insurance Premium',           saving: Math.round(25000 * 0.3),          pct: 0 },
+  ];
+  const totalTaxSaving = taxRows.reduce((s, r) => s + r.saving, 0);
+
+  const defaultSip = Math.round(Math.max(500, f.income * 0.15));
+  const [sipAmt, setSipAmt] = useState(defaultSip || 2000);
+  const [sipYrs, setSipYrs] = useState(10);
+  const annualRate = riskProfile === 'aggressive' ? 0.13 : riskProfile === 'moderate' ? 0.11 : 0.09;
+  const mr = annualRate / 12;
+  const months = sipYrs * 12;
+  const sipFV = Math.round(sipAmt * ((Math.pow(1 + mr, months) - 1) / mr));
+  const sipInvested = sipAmt * months;
+
+  return (
+    <div className="space-y-6">
+      {/* Risk Profile */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-bold text-white">Your Risk Profile</h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">Finance Score {score} · Savings rate {savingsRate}%</p>
+          </div>
+          <span className="px-4 py-1.5 rounded-full text-sm font-bold" style={{ background: `${risk.color}20`, color: risk.color, border: `1px solid ${risk.color}40` }}>
+            {risk.label}
+          </span>
+        </div>
+        <p className="text-xs text-slate-400 mb-4">{risk.desc}</p>
+        <div className="space-y-2.5">
+          {ALLOC_META.map(a => (
+            <div key={a.key} className="space-y-1">
+              <div className="flex justify-between text-[11px]">
+                <span className="text-slate-400">{a.icon} {a.label}</span>
+                <span className="font-bold" style={{ color: a.color }}>{risk[a.key]}%</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${risk[a.key]}%` }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full rounded-full" style={{ background: a.color }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Tax Savings */}
+      <GlassCard>
+        <h3 className="text-sm font-bold mb-1">💸 India Tax Savings Optimizer</h3>
+        <p className="text-[11px] text-slate-500 mb-4">Maximize deductions under Income Tax Act FY 2025-26</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          {taxRows.map(row => (
+            <div key={row.section} className="p-4 rounded-2xl bg-emerald-500/[0.04] border border-emerald-500/20">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-emerald-300">§ {row.section}</span>
+                <span className="text-[10px] text-slate-500">{row.limit}</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mb-2">{row.instruments}</p>
+              <div className="h-1 rounded-full bg-white/[0.05] mb-2 overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.pct}%` }} />
+              </div>
+              <p className="text-[10px] text-slate-400">Potential tax saved</p>
+              <p className="text-lg font-black text-emerald-400">₹{row.saving.toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-between">
+          <div>
+            <p className="text-[11px] text-emerald-300 font-semibold">Total FY savings potential</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">Assuming 30% tax bracket</p>
+          </div>
+          <p className="text-2xl font-black text-white">₹{totalTaxSaving.toLocaleString()}</p>
+        </div>
+      </GlassCard>
+
+      {/* Fund Recommendations */}
+      <GlassCard>
+        <h3 className="text-sm font-bold mb-1">🏆 Recommended Funds</h3>
+        <p className="text-[11px] text-slate-500 mb-4">Curated for your {risk.label.toLowerCase()} profile · Not financial advice</p>
+        <div className="space-y-2.5">
+          {FUND_RECS[riskProfile].map((fund, i) => (
+            <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-all">
+              <span className="text-xl">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-sm font-semibold text-white">{fund.name}</p>
+                  {fund.tag && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">{fund.tag}</span>}
+                </div>
+                <p className="text-[10px] text-slate-500">{fund.type} · Risk: {fund.risk}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-sm font-bold text-white">{fund.ret}</p>
+                <p className="text-[9px] text-slate-500">Expected CAGR</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* SIP Calculator */}
+      <GlassCard>
+        <h3 className="text-sm font-bold mb-1">📅 SIP Wealth Planner</h3>
+        <p className="text-[11px] text-slate-500 mb-4">Project your wealth with monthly investments at {Math.round(annualRate * 100)}% CAGR</p>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-slate-400 mb-1.5 block">Monthly SIP (₹)</label>
+              <input type="number" value={sipAmt} min={100} onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))} className="input-premium" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-400 mb-1.5 block">Period: <span className="text-white font-semibold">{sipYrs} years</span></label>
+              <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)} className="w-full accent-amber-500" />
+              <div className="flex justify-between text-[10px] text-slate-600 mt-1"><span>1yr</span><span>30yr</span></div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="p-4 rounded-2xl bg-amber-500/[0.06] border border-amber-500/20">
+              <p className="text-[11px] text-slate-400">Total Invested</p>
+              <p className="text-xl font-black text-white">₹{sipInvested.toLocaleString()}</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-emerald-500/[0.08] border border-emerald-500/30">
+              <p className="text-[11px] text-slate-400">Estimated Value</p>
+              <p className="text-2xl font-black text-emerald-400">₹{sipFV.toLocaleString()}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Gains: ₹{(sipFV - sipInvested).toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+    </div>
+  );
+}
+
 function FinanceRecommendations({ recommendations }) {
   const [, forceUpdate] = useReducer(x => x + 1, 0);
   const feedback = loadFeedback();
@@ -415,6 +591,7 @@ export default function Finance() {
     { id: 'transactions', label: 'Transactions', icon: '📋' },
     { id: 'log', label: 'Log', icon: '✏️' },
     { id: 'recommendations', label: 'AI Advisor', icon: '🤖' },
+    { id: 'invest',          label: 'Invest',     icon: '📊' },
   ];
 
   return (
@@ -863,6 +1040,9 @@ export default function Finance() {
           <FinanceRecommendations recommendations={recommendations} />
         </div>
       )}
+
+      {/* ── INVEST TAB ────────────────────────────────────────────────────── */}
+      {tab === 'invest' && <InvestmentRoboAdvisor f={f} score={score} />}
     </div>
   );
 }

@@ -48,6 +48,17 @@ const GUILDS = [
   { id:'g6', name:'Recovery Guild',     icon:'🔥', desc:'Rising stronger after every setback. No shame here.',          stat:'Recovery',         members:1876, color:'#f97316', xp:'743K', rank:'Bronze'   },
 ];
 
+const SOCIAL_CHALLENGES = [
+  { id: 'sc1', icon: '🛡️', title: '30-Day No-Impulse Spend', domain: 'finance', duration: 30, xp: 500, participants: 1247, desc: 'Log 0 impulse purchases for 30 days' },
+  { id: 'sc2', icon: '😴', title: '7-Day 8h Sleep Streak',    domain: 'health',  duration: 7,  xp: 200, participants: 3421, desc: 'Maintain 8h sleep average for 7 days' },
+  { id: 'sc3', icon: '💻', title: '50 DSA in 14 Days',        domain: 'career',  duration: 14, xp: 400, participants: 892,  desc: 'Solve 50 DSA problems in 14 days' },
+  { id: 'sc4', icon: '🧘', title: 'Zero Stress Week',         domain: 'health',  duration: 7,  xp: 300, participants: 2156, desc: 'Keep stress level ≤ 4 for 7 days' },
+  { id: 'sc5', icon: '💰', title: '₹5K Savings Sprint',       domain: 'finance', duration: 30, xp: 350, participants: 678,  desc: 'Save an extra ₹5,000 this month' },
+  { id: 'sc6', icon: '🚶', title: '10K Steps × 14 Days',      domain: 'health',  duration: 14, xp: 280, participants: 1893, desc: 'Log 10,000+ steps daily for 14 days' },
+];
+
+const DOMAIN_COLOR = { health: '#10b981', finance: '#f59e0b', career: '#3b82f6' };
+
 const GRIND_ROOMS = [
   { id:'r1', name:'The Forge',       type:'Deep Work',      minutes:90, icon:'⚒️', sound:'Binaural 40Hz',   users:47  },
   { id:'r2', name:'Pomodoro Hall',   type:'Pomodoro 25/5',  minutes:25, icon:'🍅', sound:'Rain on Glass',   users:138 },
@@ -613,6 +624,119 @@ function GrindRoomPanel({ onXP }) {
   );
 }
 
+// ── PEERS PANEL ────────────────────────────────────────────────────────────────
+
+function PeersPanel({ userScores, codename }) {
+  const [joined, setJoined] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('joined_challenges') || '[]')); }
+    catch { return new Set(); }
+  });
+
+  const myTotal = Math.round(((userScores.health || 60) + (userScores.finance || 60) + (userScores.career || 60)) / 3);
+
+  const peers = useMemo(() => {
+    const names = PHANTOM_USERS.slice(0, 4);
+    const mults = [0.88, 1.10, 0.96, 1.05];
+    return names.map((name, i) => {
+      const v = mults[i];
+      const h  = Math.min(100, Math.max(20, Math.round((userScores.health  || 60) * v + (i * 4 - 8))));
+      const fi = Math.min(100, Math.max(20, Math.round((userScores.finance || 60) * v - (i * 3))));
+      const ca = Math.min(100, Math.max(20, Math.round((userScores.career  || 60) * v + (i * 5 - 6))));
+      return { name, health: h, finance: fi, career: ca, total: Math.round((h + fi + ca) / 3) };
+    });
+  }, [userScores]);
+
+  const leaderboard = useMemo(() => {
+    return [
+      { name: codename, ...userScores, total: myTotal, isMe: true },
+      ...peers,
+    ].sort((a, b) => b.total - a.total).map((p, i) => ({ ...p, rank: i + 1 }));
+  }, [peers, userScores, myTotal, codename]);
+
+  function toggleChallenge(id) {
+    const next = new Set(joined);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setJoined(next);
+    localStorage.setItem('joined_challenges', JSON.stringify(Array.from(next)));
+    showToast(next.has(id) ? 'Challenge joined! 🔥' : 'Challenge left', next.has(id) ? 'success' : 'info');
+  }
+
+  const rankIcon = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `#${r}`;
+
+  return (
+    <div className="space-y-6">
+      {/* Leaderboard */}
+      <GlassCard>
+        <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
+          <Trophy size={14} className="text-amber-400" /> Anonymous Leaderboard
+        </h3>
+        <p className="text-[11px] text-[#52525b] mb-4">You + 4 anonymised peers · Real scores, hidden identities</p>
+        <div className="space-y-2">
+          {leaderboard.map(p => (
+            <div key={p.name} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${p.isMe ? 'bg-indigo-500/[0.08] border border-indigo-500/30' : 'bg-white/[0.02] border border-white/[0.05]'}`}>
+              <span className="w-7 text-center text-sm font-black shrink-0">{rankIcon(p.rank)}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[12px] font-semibold text-white truncate">{p.name}</p>
+                  {p.isMe && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-300 font-bold shrink-0">YOU</span>}
+                </div>
+                <div className="flex gap-3 mt-0.5">
+                  {[['❤️', p.health || userScores.health], ['💰', p.finance || userScores.finance], ['🧠', p.career || userScores.career]].map(([icon, score]) => (
+                    <span key={icon} className="text-[10px] text-slate-500">{icon} {score || 60}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-base font-black text-white">{p.total}</p>
+                <p className="text-[9px] text-slate-500">Life Score</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Social Challenges */}
+      <div>
+        <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
+          <Swords size={14} className="text-rose-400" /> Global Challenges
+        </h3>
+        <p className="text-[11px] text-[#52525b] mb-4">Join a community challenge · Earn XP · Beat your peers</p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {SOCIAL_CHALLENGES.map(ch => {
+            const isJoined = joined.has(ch.id);
+            return (
+              <motion.div key={ch.id} whileHover={{ scale: 1.01 }}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all ${isJoined ? 'bg-indigo-500/[0.08] border-indigo-500/30' : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'}`}
+                onClick={() => toggleChallenge(ch.id)}>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{ch.icon}</span>
+                    <div>
+                      <p className="text-[12px] font-bold text-white leading-tight">{ch.title}</p>
+                      <p className="text-[10px] text-slate-500">{ch.duration} days · +{ch.xp} XP</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ml-1"
+                    style={{ background: `${DOMAIN_COLOR[ch.domain]}20`, color: DOMAIN_COLOR[ch.domain] }}>
+                    {ch.domain}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mb-3">{ch.desc}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-600">👥 {ch.participants.toLocaleString()} joined</span>
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all ${isJoined ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/[0.05] text-slate-400'}`}>
+                    {isJoined ? '✓ Joined' : 'Join'}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── GUILDS PANEL ───────────────────────────────────────────────────────────────
 
 function GuildsPanel({ myGuildId, onJoin }) {
@@ -731,11 +855,12 @@ function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
 // ── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'identity', label: 'Identity',   icon: Star     },
-  { id: 'quests',   label: 'Quests',     icon: Scroll   },
-  { id: 'grind',    label: 'Grind Room', icon: Clock    },
-  { id: 'guilds',   label: 'Guilds',     icon: Users    },
-  { id: 'badges',   label: 'Badges',     icon: Trophy   },
+  { id: 'identity', label: 'Identity',   icon: Star   },
+  { id: 'quests',   label: 'Quests',     icon: Scroll },
+  { id: 'grind',    label: 'Grind Room', icon: Clock  },
+  { id: 'peers',    label: 'Peers',      icon: Swords },
+  { id: 'guilds',   label: 'Guilds',     icon: Users  },
+  { id: 'badges',   label: 'Badges',     icon: Trophy },
 ];
 
 export default function Gamification() {
@@ -858,6 +983,7 @@ export default function Gamification() {
           {tab === 'identity' && <IdentityPanel codename={codename} tier={tier} xp={xp} stats={stats} prevStats={prevStats} isRecovery={isRecovery} />}
           {tab === 'quests'   && <QuestsPanel stats={stats} codename={codename} isRecovery={isRecovery} activeChallenges={activeChallenges} toggleChallenge={toggleChallenge} health={h} finance={f} career={c} />}
           {tab === 'grind'    && <GrindRoomPanel onXP={handleGrindXP} />}
+          {tab === 'peers'    && <PeersPanel codename={codename} userScores={{ health: computed?.healthScore?.score || 60, finance: computed?.financeScore?.score || 60, career: computed?.careerScore?.score || 60 }} />}
           {tab === 'guilds'   && <GuildsPanel myGuildId={myGuild} onJoin={handleGuildJoin} />}
           {tab === 'badges'   && <BadgesPanel badges={badges} streaks={streaks} showPopup={showPopup} setShowPopup={setShowPopup} />}
         </motion.div>
