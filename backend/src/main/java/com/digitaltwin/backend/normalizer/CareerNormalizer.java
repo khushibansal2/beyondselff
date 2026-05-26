@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,7 +25,6 @@ public class CareerNormalizer {
                 .build();
 
         if (type.equals("pdf")) {
-            // Raw text extraction for PDF (Resume)
             String text = row.get("raw_text");
             if (text != null) {
                 record.setActivityDate(LocalDate.now());
@@ -52,6 +53,13 @@ public class CareerNormalizer {
                     record.setSkillLearned(val);
                 } else if (key.contains("commit")) {
                     record.setGithubCommits(Integer.parseInt(val));
+                } else if (key.contains("language")) {
+                    List<String> langs = new ArrayList<>();
+                    for (String lang : val.split("[,;]+")) {
+                        String trimmed = lang.trim();
+                        if (!trimmed.isEmpty()) langs.add(trimmed);
+                    }
+                    record.setLanguages(langs);
                 }
             } catch (Exception e) {
                 // ignore specific parse errors
@@ -59,7 +67,7 @@ public class CareerNormalizer {
         }
 
         if (record.getActivityDate() == null) record.setActivityDate(LocalDate.now());
-        
+
         return record;
     }
 
@@ -75,24 +83,32 @@ public class CareerNormalizer {
         }
     }
 
-    private String extractSkillsFromText(String text) {
-        // Very basic NLP simulation for skills
-        String[] commonSkills = {"Java", "Python", "JavaScript", "React", "Spring Boot", "SQL", "AWS", "Docker", "Node.js", "C++"};
-        StringBuilder found = new StringBuilder();
-        for (String skill : commonSkills) {
-            if (Pattern.compile("\\b" + Pattern.quote(skill) + "\\b", Pattern.CASE_INSENSITIVE).matcher(text).find()) {
-                found.append(skill).append(", ");
+    private List<String> extractSkillsFromText(String text) {
+        String[] knownSkills = {
+            "Java", "Python", "JavaScript", "TypeScript", "React", "Spring Boot",
+            "SQL", "AWS", "Docker", "Kubernetes", "Node.js", "C++", "Go", "Rust",
+            "MongoDB", "PostgreSQL", "Redis", "GraphQL", "REST"
+        };
+        List<String> found = new ArrayList<>();
+        for (String skill : knownSkills) {
+            if (Pattern.compile("\\b" + Pattern.quote(skill) + "\\b", Pattern.CASE_INSENSITIVE)
+                    .matcher(text).find()) {
+                found.add(skill);
             }
         }
-        return found.length() > 0 ? found.substring(0, found.length() - 2) : "Unknown Skills";
+        if (found.isEmpty()) found.add("Unknown Skills");
+        return found;
     }
 
-    private String extractProjectsFromText(String text) {
-        // Just extract a snippet after the word "Project" or "Experience"
-        Matcher m = Pattern.compile("(?i)(projects?|experience).*?\\n(.{10,200})").matcher(text);
-        if (m.find()) {
-            return m.group(2).replaceAll("\\n", " ").trim();
+    private List<String> extractProjectsFromText(String text) {
+        List<String> projects = new ArrayList<>();
+        Matcher m = Pattern.compile("(?i)(projects?|experience).*?\\n(.{10,200})")
+                .matcher(text);
+        while (m.find() && projects.size() < 5) {
+            String title = m.group(2).replaceAll("\\n", " ").trim();
+            if (!title.isEmpty()) projects.add(title);
         }
-        return "Unknown Projects";
+        if (projects.isEmpty()) projects.add("Unknown Projects");
+        return projects;
     }
 }

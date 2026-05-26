@@ -5,11 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transaction_records", indexes = {
-    @Index(name = "idx_tx_user", columnList = "userId"),
+    @Index(name = "idx_tx_user",     columnList = "user_id"),
     @Index(name = "idx_tx_category", columnList = "category")
 })
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
@@ -19,8 +20,13 @@ public class TransactionRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private String userId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private User user;
 
     @Column(nullable = false)
     private double amount;

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -17,8 +18,13 @@ public class HealthRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private String userId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private User user;
 
     private LocalDate recordDate;
     private Double sleepHours;
@@ -32,7 +38,14 @@ public class HealthRecord {
     private Integer steps;
 
     private String source;          // csv, google_fit, manual
+
+    @Column(name = "import_id")
     private Long importId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "import_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private ImportHistory importBatch;
 
     private LocalDateTime createdAt;
 }

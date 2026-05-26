@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,8 +19,13 @@ public class FinanceRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private String userId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private User user;
 
     private LocalDate transactionDate;
     private BigDecimal amount;
@@ -30,7 +36,14 @@ public class FinanceRecord {
     private Boolean isImpulse;      // detected from late-night + non-essential
 
     private String source;          // csv, pdf_bank_statement, upi
+
+    @Column(name = "import_id")
     private Long importId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "import_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private ImportHistory importBatch;
 
     private LocalDateTime createdAt;
 }
