@@ -2,18 +2,18 @@
  * Job Service — Real job data from public APIs
  *
  * Sources (in priority order):
- *   1. Arbeitnow   — free, no auth, CORS-friendly, global tech jobs
- *   2. Remotive    — free, no auth, remote-only roles worldwide
- *   3. Adzuna IN   — India-specific, needs app_id + app_key → proxied via backend
- *   4. Jooble      — aggregates Naukri / Shine / TimesJobs / LinkedIn India
+ *   1. Remotive    — free, no auth, remote-only roles worldwide
+ *   2. Adzuna IN   — India-specific, needs app_id + app_key → proxied via backend
+ *   3. Jooble      — aggregates Naukri / Shine / TimesJobs / LinkedIn India
  *                    needs api key from jooble.org/api → proxied via backend
  *
  * Get free keys:
  *   Adzuna : https://developer.adzuna.com  (ADZUNA_APP_ID + ADZUNA_APP_KEY)
  *   Jooble : https://jooble.org/api/index  (JOOBLE_API_KEY)
+ *
+ * Note: Arbeitnow was removed — it is a German job board and always returns EU jobs.
  */
 
-const ARBEITNOW_URL = 'https://www.arbeitnow.com/api/job-board-api';
 const REMOTIVE_URL  = 'https://remotive.com/api/remote-jobs';
 const BACKEND_BASE  = (import.meta.env.VITE_API_BASE || 'http://localhost:8080');
 
@@ -80,28 +80,6 @@ export function extractSkillsFromText(text) {
 }
 
 // ── Normalizers ───────────────────────────────────────────────────────────────
-
-function normalizeArbeitnow(job) {
-  const rawTags = (job.tags || []).map(t => canonicalSkill(String(t)));
-  const descSkills = extractSkillsFromText(job.description || '');
-  return {
-    id:             `arbeitnow_${job.slug}`,
-    source:         'Arbeitnow',
-    sourceColor:    '#6366f1',
-    title:          job.title || 'Software Engineer',
-    company:        job.company_name || 'Company',
-    location:       job.location || 'Remote',
-    remote:         Boolean(job.remote),
-    description:    (job.description || '').replace(/<[^>]+>/g, ' ').slice(0, 600),
-    tags:           rawTags,
-    requiredSkills: [...new Set([...rawTags, ...descSkills])].filter(Boolean),
-    url:            job.url,
-    postedAt:       job.created_at ? new Date(job.created_at * 1000).toISOString() : null,
-    salary:         null,
-    type:           (job.job_types || ['full_time'])[0]?.replace('_', '-') || 'Full-time',
-    visaSponsorship: Boolean(job.visa_sponsorship),
-  };
-}
 
 function normalizeRemotive(job) {
   const rawTags = (job.tags || []).map(t => canonicalSkill(typeof t === 'string' ? t : t.name || ''));
@@ -179,14 +157,6 @@ function normalizeJooble(job) {
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 
-async function fetchArbeitnow(query, page = 1) {
-  const url = `${ARBEITNOW_URL}?${new URLSearchParams({ search: query, page })}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(9000) });
-  if (!res.ok) throw new Error(`Arbeitnow ${res.status}`);
-  const data = await res.json();
-  return (data.data || []).map(normalizeArbeitnow);
-}
-
 async function fetchRemotive(query, limit = 15) {
   const url = `${REMOTIVE_URL}?${new URLSearchParams({ search: query, limit })}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(9000) });
@@ -218,21 +188,35 @@ async function fetchViaProxy(endpoint, params = {}, method = 'GET') {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
+// Locations that are clearly NOT India — used to filter out Remotive listings
+// that specify a region where Indian applicants cannot apply.
+const NON_INDIA_REGIONS = [
+  'germany', 'berlin', 'munich', 'hamburg', 'frankfurt',
+  'uk only', 'united kingdom', 'london', 'europe only', 'eu only',
+  'us only', 'usa only', 'canada only', 'australia only',
+  'latam only', 'latin america only',
+];
+
+function isIndiaRelevant(job) {
+  if (job.remote) return true; // remote jobs are open to India
+  const loc = (job.location || '').toLowerCase();
+  if (NON_INDIA_REGIONS.some(r => loc.includes(r))) return false;
+  return true;
+}
+
 /**
  * Search jobs from all configured sources.
- * Always tries Arbeitnow + Remotive (free, no key needed).
+ * Always tries Remotive (free, no key needed).
  * Also fires Adzuna India + Jooble via backend if keys are configured.
  * Jooble aggregates Naukri, Shine, TimesJobs, LinkedIn India — best for Indian roles.
  */
 export async function fetchJobs(query, { location = 'India', limit = 24 } = {}) {
   if (!query?.trim()) return [];
-  const q = location ? `${query} ${location}` : query;
 
   const settled = await Promise.allSettled([
-    fetchArbeitnow(q),
     fetchRemotive(query),
     // Adzuna India — dedicated /in/ endpoint, returns INR salaries
-    fetchViaProxy('adzuna', { query: q, country: 'in' })
+    fetchViaProxy('adzuna', { query: `${query} ${location}`, country: 'in' })
       .then(d => (d.results || []).map(normalizeAdzuna))
       .catch(() => []),
     // Jooble — aggregates Naukri, Shine, TimesJobs, LinkedIn India
@@ -248,9 +232,10 @@ export async function fetchJobs(query, { location = 'India', limit = 24 } = {}) 
 
   if (!all.length) throw new Error('NO_RESULTS');
 
-  // Deduplicate on title+company
+  // Filter out non-India-relevant jobs, then deduplicate on title+company
   const seen = new Set();
   return all
+    .filter(isIndiaRelevant)
     .filter(j => {
       const key = `${j.title.toLowerCase().slice(0, 30)}_${j.company.toLowerCase().slice(0, 20)}`;
       if (seen.has(key)) return false;
