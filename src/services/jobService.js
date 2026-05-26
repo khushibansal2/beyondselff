@@ -2,12 +2,15 @@
  * Job Service — Real job data from public APIs
  *
  * Sources (in priority order):
- *   1. Arbeitnow   — free, no auth, CORS-friendly, tech-focused
- *   2. Remotive    — free, no auth, remote-only roles
- *   3. Adzuna      — needs app_id + app_key → proxied via Spring Boot backend
- *   4. JSearch     — needs RapidAPI key → proxied via Spring Boot backend
+ *   1. Arbeitnow   — free, no auth, CORS-friendly, global tech jobs
+ *   2. Remotive    — free, no auth, remote-only roles worldwide
+ *   3. Adzuna IN   — India-specific, needs app_id + app_key → proxied via backend
+ *   4. Jooble      — aggregates Naukri / Shine / TimesJobs / LinkedIn India
+ *                    needs api key from jooble.org/api → proxied via backend
  *
- * Add keys to backend/.env to unlock sources 3 & 4.
+ * Get free keys:
+ *   Adzuna : https://developer.adzuna.com  (ADZUNA_APP_ID + ADZUNA_APP_KEY)
+ *   Jooble : https://jooble.org/api/index  (JOOBLE_API_KEY)
  */
 
 const ARBEITNOW_URL = 'https://www.arbeitnow.com/api/job-board-api';
@@ -149,32 +152,27 @@ function normalizeAdzuna(job) {
   };
 }
 
-function normalizeJSearch(job) {
-  const requiredSkills = [
-    ...(job.job_required_skills || []).map(canonicalSkill),
-    ...extractSkillsFromText((job.job_description || '') + ' ' + (job.job_title || '')),
-  ];
-  const salary = (job.job_min_salary && job.job_max_salary)
-    ? `$${Math.round(job.job_min_salary / 1000)}k–$${Math.round(job.job_max_salary / 1000)}k`
-    : null;
+function normalizeJooble(job) {
+  // Jooble aggregates Indian portals: Naukri, Shine, TimesJobs, LinkedIn India, etc.
+  // The `source` field shows which portal the listing originally came from.
+  const descSkills = extractSkillsFromText((job.snippet || '') + ' ' + (job.title || ''));
+  // Jooble salary is a raw string like "₹3,00,000 – ₹5,00,000" — keep as-is
+  const salary = job.salary ? String(job.salary).trim() : null;
   return {
-    id:             `jsearch_${job.job_id}`,
-    source:         'JSearch',
-    sourceColor:    '#3b82f6',
-    title:          job.job_title || 'Software Engineer',
-    company:        job.employer_name || 'Company',
-    companyLogo:    job.employer_logo || null,
-    location:       [job.job_city, job.job_country].filter(Boolean).join(', ') || 'Remote',
-    remote:         Boolean(job.job_is_remote),
-    description:    (job.job_description || '').slice(0, 600),
-    tags:           requiredSkills.slice(0, 10),
-    requiredSkills: [...new Set(requiredSkills)],
-    url:            job.job_apply_link || job.job_google_link || '#',
-    postedAt:       job.job_posted_at_datetime_utc || null,
+    id:             `jooble_${encodeURIComponent(job.link || job.title || Math.random())}`,
+    source:         `Jooble · ${job.source || 'India'}`,
+    sourceColor:    '#f97316',
+    title:          job.title || 'Software Engineer',
+    company:        job.company || 'Company',
+    location:       job.location || 'India',
+    remote:         /remote/i.test(job.location || '') || /remote/i.test(job.type || ''),
+    description:    (job.snippet || '').replace(/<[^>]+>/g, ' ').slice(0, 600),
+    tags:           descSkills,
+    requiredSkills: descSkills,
+    url:            job.link || '#',
+    postedAt:       job.updated || null,
     salary,
-    salaryMin:      job.job_min_salary || null,
-    salaryMax:      job.job_max_salary || null,
-    type:           job.job_employment_type || 'FULLTIME',
+    type:           job.type || 'Full-time',
     visaSponsorship: false,
   };
 }
@@ -197,13 +195,23 @@ async function fetchRemotive(query, limit = 15) {
   return (data.jobs || []).map(normalizeRemotive);
 }
 
-async function fetchViaProxy(endpoint, params = {}) {
+async function fetchViaProxy(endpoint, params = {}, method = 'GET') {
   const stored = localStorage.getItem('dt_auth');
   const token  = stored ? JSON.parse(stored)?.token : null;
-  const url    = `${BACKEND_BASE}/api/jobs/${endpoint}?${new URLSearchParams(params)}`;
-  const headers = {};
+  const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(url, { headers, signal: AbortSignal.timeout(12000) });
+
+  const isPost = method === 'POST';
+  const url = isPost
+    ? `${BACKEND_BASE}/api/jobs/${endpoint}`
+    : `${BACKEND_BASE}/api/jobs/${endpoint}?${new URLSearchParams(params)}`;
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: isPost ? JSON.stringify(params) : undefined,
+    signal: AbortSignal.timeout(12000),
+  });
   if (!res.ok) throw new Error(`Proxy ${endpoint} ${res.status}`);
   return res.json();
 }
@@ -213,20 +221,23 @@ async function fetchViaProxy(endpoint, params = {}) {
 /**
  * Search jobs from all configured sources.
  * Always tries Arbeitnow + Remotive (free, no key needed).
- * Also fires Adzuna + JSearch via backend if keys are configured.
+ * Also fires Adzuna India + Jooble via backend if keys are configured.
+ * Jooble aggregates Naukri, Shine, TimesJobs, LinkedIn India — best for Indian roles.
  */
-export async function fetchJobs(query, { location = '', limit = 24 } = {}) {
+export async function fetchJobs(query, { location = 'India', limit = 24 } = {}) {
   if (!query?.trim()) return [];
   const q = location ? `${query} ${location}` : query;
 
   const settled = await Promise.allSettled([
     fetchArbeitnow(q),
     fetchRemotive(query),
+    // Adzuna India — dedicated /in/ endpoint, returns INR salaries
     fetchViaProxy('adzuna', { query: q, country: 'in' })
       .then(d => (d.results || []).map(normalizeAdzuna))
       .catch(() => []),
-    fetchViaProxy('jsearch', { q })
-      .then(d => (d.data || []).map(normalizeJSearch))
+    // Jooble — aggregates Naukri, Shine, TimesJobs, LinkedIn India
+    fetchViaProxy('jooble', { keywords: query, location: location || 'India' }, 'POST')
+      .then(d => (d.jobs || []).map(normalizeJooble))
       .catch(() => []),
   ]);
 

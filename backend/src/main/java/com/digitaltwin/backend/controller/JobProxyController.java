@@ -25,14 +25,14 @@ import java.util.Map;
  * when keys are not configured — the frontend free-tier APIs still work.
  *
  * Endpoints:
- *   GET /api/jobs/adzuna  ?query=&country=in
- *   GET /api/jobs/jsearch ?q=
- *   GET /api/jobs/salary  ?role=
+ *   GET  /api/jobs/adzuna  ?query=&country=in
+ *   POST /api/jobs/jooble  body: {keywords, location, page}
+ *   GET  /api/jobs/salary  ?role=
  *
  * Set environment variables before starting the backend:
  *   ADZUNA_APP_ID  — from developer.adzuna.com
  *   ADZUNA_APP_KEY — from developer.adzuna.com
- *   JSEARCH_KEY    — RapidAPI key subscribed to JSearch
+ *   JOOBLE_API_KEY — from jooble.org/api/index (aggregates Naukri/Shine/TimesJobs/LinkedIn India)
  */
 @RestController
 @RequestMapping("/api/jobs")
@@ -51,8 +51,8 @@ public class JobProxyController {
     @Value("${adzuna.app.key:}")
     private String adzunaAppKey;
 
-    @Value("${jsearch.rapidapi.key:}")
-    private String jsearchKey;
+    @Value("${jooble.api.key:}")
+    private String joobleApiKey;
 
     // ── Adzuna ──────────────────────────────────────────────────────────────────
 
@@ -97,46 +97,50 @@ public class JobProxyController {
         }
     }
 
-    // ── JSearch (RapidAPI) ──────────────────────────────────────────────────────
+    // ── Jooble (aggregates Naukri, Shine, TimesJobs, LinkedIn India) ───────────
 
     /**
-     * GET /api/jobs/jsearch?q=react+developer+india&page=1
-     * Returns raw JSearch JSON forwarded to the frontend for normalization.
+     * POST /api/jobs/jooble
+     * Body (JSON): { "keywords": "react developer", "location": "India", "page": 1 }
+     * Jooble aggregates Indian job portals — best source for IN roles.
+     * Get a free key at https://jooble.org/api/index
      */
-    @GetMapping("/jsearch")
-    public ResponseEntity<String> searchJSearch(
-            @RequestParam(defaultValue = "software engineer") String q,
-            @RequestParam(defaultValue = "1") int page) {
+    @PostMapping("/jooble")
+    public ResponseEntity<String> searchJooble(@RequestBody(required = false) Map<String, Object> body) {
 
-        if (jsearchKey.isBlank()) {
-            log.debug("JSearch key not configured — returning empty results");
-            return ResponseEntity.ok("{\"data\":[]}");
+        if (joobleApiKey.isBlank()) {
+            log.debug("Jooble key not configured — returning empty results");
+            return ResponseEntity.ok("{\"jobs\":[]}");
         }
 
+        String keywords = body != null && body.get("keywords") != null ? String.valueOf(body.get("keywords")) : "software engineer";
+        String location = body != null && body.get("location") != null ? String.valueOf(body.get("location")) : "India";
+        int    page     = body != null && body.get("page")     != null ? Integer.parseInt(String.valueOf(body.get("page"))) : 1;
+
         try {
-            String encoded = URLEncoder.encode(q, StandardCharsets.UTF_8);
-            String url = String.format(
-                    "https://jsearch.p.rapidapi.com/search?query=%s&page=%d&num_pages=1",
-                    encoded, page);
+            String requestBody = String.format(
+                    "{\"keywords\":\"%s\",\"location\":\"%s\",\"page\":%d}",
+                    keywords.replace("\"", "\\\""), location.replace("\"", "\\\""), page);
+
+            String url = "https://jooble.org/api/" + URLEncoder.encode(joobleApiKey, StandardCharsets.UTF_8);
 
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(12))
-                    .header("X-RapidAPI-Key",  jsearchKey)
-                    .header("X-RapidAPI-Host", "jsearch.p.rapidapi.com")
-                    .GET()
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
             HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() >= 400) {
-                log.warn("JSearch returned {}", resp.statusCode());
-                return ResponseEntity.ok("{\"data\":[]}");
+                log.warn("Jooble returned {}", resp.statusCode());
+                return ResponseEntity.ok("{\"jobs\":[]}");
             }
             return ResponseEntity.ok(resp.body());
 
         } catch (IOException | InterruptedException e) {
-            log.error("JSearch proxy error: {}", e.getMessage());
-            return ResponseEntity.ok("{\"data\":[]}");
+            log.error("Jooble proxy error: {}", e.getMessage());
+            return ResponseEntity.ok("{\"jobs\":[]}");
         }
     }
 
@@ -187,7 +191,7 @@ public class JobProxyController {
     public ResponseEntity<Map<String, Object>> config() {
         return ResponseEntity.ok(Map.of(
                 "adzuna",  !adzunaAppId.isBlank() && !adzunaAppKey.isBlank(),
-                "jsearch", !jsearchKey.isBlank(),
+                "jooble",  !joobleApiKey.isBlank(),
                 "freeTierActive", true
         ));
     }
