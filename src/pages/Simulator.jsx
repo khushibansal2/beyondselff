@@ -6,6 +6,7 @@ import { GlassCard, PageHeader, ScoreRing } from '../components/ui/Components';
 import {
   Brain, Sparkles, ChevronRight, AlertTriangle, CheckCircle,
   TrendingUp, TrendingDown, Minus, RotateCcw, Clock, Zap, Info,
+  GitCompare,
 } from 'lucide-react';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
@@ -128,6 +129,148 @@ function CustomTooltip({ active, payload, label }) {
         </div>
       ))}
     </div>
+  );
+}
+
+// ── Side-by-Side Comparison Panel ────────────────────────────────────────────
+
+function ScoreDeltaCell({ domain, scoreA, scoreB, baseline }) {
+  const ds     = DOMAIN_STYLE[domain] ?? DOMAIN_STYLE.wellbeing;
+  const deltaA = scoreA - (baseline[domain] ?? 0);
+  const deltaB = scoreB - (baseline[domain] ?? 0);
+  const winner = deltaA > deltaB ? 'A' : deltaB > deltaA ? 'B' : null;
+  return (
+    <div className="grid grid-cols-3 items-center gap-2 py-2.5 border-b border-white/[0.04]">
+      <div className="text-center">
+        <p className="text-[18px] font-black" style={{ color: ds.color }}>{scoreA}</p>
+        <p className={`text-[10px] font-bold ${deltaA > 0 ? 'text-emerald-400' : deltaA < 0 ? 'text-red-400' : 'text-[#71717a]'}`}>
+          {deltaA > 0 ? '+' : ''}{deltaA}
+        </p>
+      </div>
+      <div className="text-center">
+        <p className={`text-[10px] font-semibold capitalize ${ds.text}`}>{domain}</p>
+        {winner && (
+          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${winner === 'A' ? 'bg-blue-500/15 text-blue-400' : 'bg-purple-500/15 text-purple-400'}`}>
+            {winner} wins
+          </span>
+        )}
+      </div>
+      <div className="text-center">
+        <p className="text-[18px] font-black" style={{ color: ds.color }}>{scoreB}</p>
+        <p className={`text-[10px] font-bold ${deltaB > 0 ? 'text-emerald-400' : deltaB < 0 ? 'text-red-400' : 'text-[#71717a]'}`}>
+          {deltaB > 0 ? '+' : ''}{deltaB}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SideBySidePanel({ resultA, resultB, inputA, inputB, baseline }) {
+  const domains = Object.keys(resultA.scores.projected);
+
+  // Overall score = sum of projected scores
+  const totalA = domains.reduce((s, d) => s + (resultA.scores.projected[d] ?? 0), 0);
+  const totalB = domains.reduce((s, d) => s + (resultB.scores.projected[d] ?? 0), 0);
+  const overallWinner = totalA > totalB ? 'A' : totalB > totalA ? 'B' : null;
+
+  return (
+    <GlassCard className="border border-white/[0.08]">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-5">
+        <GitCompare size={15} className="text-indigo-400" />
+        <h3 className="text-[14px] font-bold text-[#f0f0f3]">Side-by-Side Comparison</h3>
+        {overallWinner && (
+          <span className={`ml-auto text-[11px] px-3 py-1 rounded-full font-bold border ${
+            overallWinner === 'A'
+              ? 'bg-blue-500/15 border-blue-500/25 text-blue-300'
+              : 'bg-purple-500/15 border-purple-500/25 text-purple-300'
+          }`}>
+            Scenario {overallWinner} recommended
+          </span>
+        )}
+      </div>
+
+      {/* Scenario labels */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="p-2.5 rounded-xl bg-blue-500/[0.06] border border-blue-500/15 text-center">
+          <p className="text-[9px] text-blue-400 font-bold uppercase tracking-wider mb-0.5">Scenario A</p>
+          <p className="text-[11px] text-[#a1a1aa] leading-snug line-clamp-2">{inputA}</p>
+        </div>
+        <div className="flex items-center justify-center">
+          <span className="text-[11px] text-[#52525b] font-bold">VS</span>
+        </div>
+        <div className="p-2.5 rounded-xl bg-purple-500/[0.06] border border-purple-500/15 text-center">
+          <p className="text-[9px] text-purple-400 font-bold uppercase tracking-wider mb-0.5">Scenario B</p>
+          <p className="text-[11px] text-[#a1a1aa] leading-snug line-clamp-2">{inputB}</p>
+        </div>
+      </div>
+
+      {/* Column headers */}
+      <div className="grid grid-cols-3 gap-2 mb-1">
+        <p className="text-[10px] text-blue-400 font-semibold text-center">A — Projected</p>
+        <p className="text-[10px] text-[#52525b] font-semibold text-center">Domain</p>
+        <p className="text-[10px] text-purple-400 font-semibold text-center">B — Projected</p>
+      </div>
+
+      {/* Score rows */}
+      <div className="mb-4">
+        {domains.map(d => (
+          <ScoreDeltaCell
+            key={d}
+            domain={d}
+            scoreA={resultA.scores.projected[d] ?? 0}
+            scoreB={resultB.scores.projected[d] ?? 0}
+            baseline={baseline}
+          />
+        ))}
+        {/* Total row */}
+        <div className="grid grid-cols-3 items-center gap-2 pt-3">
+          <p className="text-center text-[16px] font-black text-[#f0f0f3]">{totalA}</p>
+          <p className="text-center text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">Total Score</p>
+          <p className="text-center text-[16px] font-black text-[#f0f0f3]">{totalB}</p>
+        </div>
+      </div>
+
+      {/* Trade-offs A vs B */}
+      <div className="grid grid-cols-2 gap-3 mt-4 border-t border-white/[0.05] pt-4">
+        <div>
+          <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-2">Scenario A — Risks</p>
+          <ul className="space-y-1.5">
+            {(resultA.tradeoffs?.cons ?? []).slice(0, 3).map((c, i) => (
+              <li key={i} className="flex items-start gap-1.5 text-[11px] text-[#71717a]">
+                <span className="mt-1 w-1 h-1 rounded-full bg-red-500/50 flex-shrink-0" />{c}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2">Scenario B — Risks</p>
+          <ul className="space-y-1.5">
+            {(resultB.tradeoffs?.cons ?? []).slice(0, 3).map((c, i) => (
+              <li key={i} className="flex items-start gap-1.5 text-[11px] text-[#71717a]">
+                <span className="mt-1 w-1 h-1 rounded-full bg-red-500/50 flex-shrink-0" />{c}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Confidence */}
+      <div className="grid grid-cols-2 gap-3 mt-4 border-t border-white/[0.05] pt-4">
+        <div className="text-center">
+          <p className="text-[11px] text-[#52525b] mb-1">Confidence A</p>
+          <p className="text-[18px] font-bold" style={{ color: resultA.confidence >= 75 ? '#10b981' : resultA.confidence >= 55 ? '#f59e0b' : '#ef4444' }}>
+            {resultA.confidence}%
+          </p>
+        </div>
+        <div className="text-center">
+          <p className="text-[11px] text-[#52525b] mb-1">Confidence B</p>
+          <p className="text-[18px] font-bold" style={{ color: resultB.confidence >= 75 ? '#10b981' : resultB.confidence >= 55 ? '#f59e0b' : '#ef4444' }}>
+            {resultB.confidence}%
+          </p>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
 
@@ -273,33 +416,51 @@ export default function Simulator() {
   const { health, finance, career } = useData();
 
   const [input,        setInput]        = useState('');
+  const [inputB,       setInputB]       = useState('');
   const [loading,      setLoading]      = useState(false);
   const [result,       setResult]       = useState(null);
+  const [resultB,      setResultB]      = useState(null);
   const [error,        setError]        = useState(null);
   const [expandedStep, setExpandedStep] = useState(null);
+  const [compareMode,  setCompareMode]  = useState(false);
 
   const textareaRef = useRef(null);
   const resultsRef  = useRef(null);
 
   const baseline = computeBaselineScores(health, finance, career);
 
+  function parseError(err) {
+    const msg = err.message ?? 'Unknown error';
+    if (msg === 'NO_KEY')         return 'No API key found. Add VITE_GROQ_API_KEY to your .env file.';
+    if (msg.includes('429'))      return 'Rate limit reached. Wait a minute and try again.';
+    if (msg.includes('401'))      return 'Invalid API key. Check your VITE_GROQ_API_KEY.';
+    return msg;
+  }
+
   async function handleSimulate() {
     if (!input.trim() || loading) return;
     setLoading(true);
     setError(null);
     setResult(null);
+    setResultB(null);
     setExpandedStep(null);
 
     try {
-      const res = await runAISimulation(input.trim(), { health, finance, career });
-      setResult(res);
+      if (compareMode && inputB.trim()) {
+        // Run both in parallel
+        const [resA, resB] = await Promise.all([
+          runAISimulation(input.trim(),  { health, finance, career }),
+          runAISimulation(inputB.trim(), { health, finance, career }),
+        ]);
+        setResult(resA);
+        setResultB(resB);
+      } else {
+        const res = await runAISimulation(input.trim(), { health, finance, career });
+        setResult(res);
+      }
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
     } catch (err) {
-      const msg = err.message ?? 'Unknown error';
-      if (msg === 'NO_KEY')              setError('No API key found. Add VITE_GROQ_API_KEY to your .env file.');
-      else if (msg.includes('429'))      setError('Rate limit reached. Wait a minute and try again.');
-      else if (msg.includes('401'))      setError('Invalid API key. Check your VITE_GROQ_API_KEY.');
-      else                               setError(msg);
+      setError(parseError(err));
     } finally {
       setLoading(false);
     }
@@ -307,7 +468,9 @@ export default function Simulator() {
 
   function handleReset() {
     setInput('');
+    setInputB('');
     setResult(null);
+    setResultB(null);
     setError(null);
     setExpandedStep(null);
   }
@@ -335,16 +498,59 @@ export default function Simulator() {
             </div>
           </div>
 
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSimulate(); }}
-            placeholder="e.g. What if I quit my job to prepare for UPSC for 1 year?"
-            rows={3}
-            className="input-premium w-full resize-none text-[14px] leading-relaxed mb-4"
-            style={{ minHeight: '88px' }}
-          />
+          {/* Compare mode toggle */}
+          <div className="flex items-center gap-2 mb-3">
+            <button
+              onClick={() => { setCompareMode(p => !p); setResultB(null); }}
+              className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${
+                compareMode
+                  ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                  : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'
+              }`}
+            >
+              <GitCompare size={12} /> {compareMode ? 'Compare Mode ON' : 'Compare Two Scenarios'}
+            </button>
+            {compareMode && <span className="text-[11px] text-[#52525b]">Enter both scenarios and simulate together</span>}
+          </div>
+
+          {compareMode ? (
+            <div className="grid sm:grid-cols-2 gap-3 mb-4">
+              <div>
+                <p className="text-[11px] text-blue-400 font-semibold mb-1.5">Scenario A</p>
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  placeholder="e.g. What if I work overtime for 6 months?"
+                  rows={3}
+                  className="input-premium w-full resize-none text-[13px] leading-relaxed"
+                  style={{ minHeight: '80px', borderColor: 'rgba(59,130,246,0.2)' }}
+                />
+              </div>
+              <div>
+                <p className="text-[11px] text-purple-400 font-semibold mb-1.5">Scenario B</p>
+                <textarea
+                  value={inputB}
+                  onChange={e => setInputB(e.target.value)}
+                  placeholder="e.g. What if I take a 3-month sabbatical?"
+                  rows={3}
+                  className="input-premium w-full resize-none text-[13px] leading-relaxed"
+                  style={{ minHeight: '80px', borderColor: 'rgba(139,92,246,0.2)' }}
+                />
+              </div>
+            </div>
+          ) : (
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSimulate(); }}
+              placeholder="e.g. What if I quit my job to prepare for UPSC for 1 year?"
+              rows={3}
+              className="input-premium w-full resize-none text-[14px] leading-relaxed mb-4"
+              style={{ minHeight: '88px' }}
+            />
+          )}
 
           {/* Example chips */}
           <div className="mb-5">
@@ -439,10 +645,28 @@ export default function Simulator() {
         )}
       </AnimatePresence>
 
-      {/* ── Results ── */}
+      {/* ── Side-by-side comparison results ── */}
+      <AnimatePresence>
+        {result && resultB && (
+          <motion.div ref={resultsRef} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+            <SideBySidePanel
+              resultA={result}
+              resultB={resultB}
+              inputA={input}
+              inputB={inputB}
+              baseline={baseline}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Single / detailed results ── */}
       <AnimatePresence>
         {result && (
-          <motion.div ref={resultsRef} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+          <motion.div ref={!resultB ? resultsRef : undefined} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+            {resultB && (
+              <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider">Scenario A — Full Details</p>
+            )}
 
             {/* 1. Summary + Confidence */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}>
@@ -644,6 +868,65 @@ export default function Simulator() {
             <p className="text-center text-[10px] text-[#3f3f46] pb-4">
               AI predictions are probabilistic estimates, not guarantees. Results depend on many real-world factors.
             </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Scenario B detailed results (compare mode) ── */}
+      <AnimatePresence>
+        {resultB && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5 mt-4">
+            <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider">Scenario B — Full Details</p>
+
+            <GlassCard className="border border-purple-500/15 bg-purple-500/[0.02]">
+              <h2 className="text-[15px] font-bold text-[#f0f0f3] mb-2">{resultB.scenarioTitle}</h2>
+              <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-4">{resultB.summary}</p>
+              <ConfidenceMeter value={resultB.confidence} />
+            </GlassCard>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <GlassCard className="border border-emerald-500/15 bg-emerald-500/[0.02]">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle size={14} className="text-emerald-400" />
+                  <h3 className="text-[13px] font-semibold text-emerald-300">Advantages</h3>
+                </div>
+                <ul className="space-y-2">
+                  {(resultB.tradeoffs?.pros ?? []).map((pro, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[12px] text-[#a1a1aa]">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500/60 flex-shrink-0" />{pro}
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
+              <GlassCard className="border border-red-500/15 bg-red-500/[0.02]">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle size={14} className="text-red-400" />
+                  <h3 className="text-[13px] font-semibold text-red-300">Risks & Trade-offs</h3>
+                </div>
+                <ul className="space-y-2">
+                  {(resultB.tradeoffs?.cons ?? []).map((con, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[12px] text-[#a1a1aa]">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500/60 flex-shrink-0" />{con}
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
+            </div>
+
+            <GlassCard className="border border-purple-500/15 bg-purple-500/[0.02]">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap size={14} className="text-purple-400" />
+                <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Recommendations for Scenario B</h3>
+              </div>
+              <div className="space-y-2">
+                {(resultB.recommendations ?? []).map((rec, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-purple-500/[0.04] border border-purple-500/[0.08]">
+                    <span className="text-[11px] font-bold text-purple-400/70 mt-0.5 flex-shrink-0 font-mono">{String(i+1).padStart(2,'0')}</span>
+                    <p className="text-[12px] text-[#a1a1aa]">{rec}</p>
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
           </motion.div>
         )}
       </AnimatePresence>

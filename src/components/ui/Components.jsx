@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState, useCallback } from 'react';
+import { setFeedback, clearFeedback } from '../../services/recommendationFeedbackService';
 
 export function ScoreRing({ score, size = 120, strokeWidth = 8, color = '#3b82f6', label, delay = 0 }) {
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -422,5 +423,62 @@ export function AnomalyBell({ anomalies = [], collapsed = false }) {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/**
+ * RecommendationCard — displays a recommendation with Accept / Done / Dismiss feedback buttons.
+ * rec shape: { id, icon, title, text, risk, confidence }
+ * feedback: the full map from loadFeedback()
+ * onFeedback: called after any feedback action so parent can re-render
+ */
+export function RecommendationCard({ rec, index = 0, feedback = {}, onFeedback }) {
+  const fb     = feedback[rec.id]?.action;
+  const isDone = fb === 'done';
+
+  function handle(action) {
+    if (fb === action) { clearFeedback(rec.id); } else { setFeedback(rec.id, action); }
+    onFeedback?.();
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }}
+      className={isDone ? 'opacity-40' : ''}>
+      <GlassCard>
+        <div className="flex items-start gap-5">
+          <span className="text-4xl flex-shrink-0">{rec.icon}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+              <h4 className={`text-[15px] font-semibold ${isDone ? 'line-through text-[#52525b]' : 'text-[#f0f0f3]'}`}>{rec.title}</h4>
+              <div className="flex gap-2 flex-shrink-0 flex-wrap">
+                {rec.risk && (
+                  <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${rec.risk === 'high' ? 'bg-red-500/10 text-[#ef4444]' : rec.risk === 'medium' ? 'bg-amber-500/10 text-[#f59e0b]' : 'bg-emerald-500/10 text-[#22c55e]'}`}>
+                    Risk: {rec.risk}
+                  </span>
+                )}
+                {rec.confidence != null && (
+                  <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-[#a1a1aa]">{rec.confidence}% confidence</span>
+                )}
+              </div>
+            </div>
+            <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-4">{rec.text}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button onClick={() => handle('accept')}
+                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${fb === 'accept' ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' : 'border-white/[0.06] text-[#52525b] hover:text-emerald-400 hover:border-emerald-500/25'}`}>
+                {fb === 'accept' ? '✓ Accepted' : '👍 Accept'}
+              </button>
+              <button onClick={() => handle('done')}
+                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${isDone ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'border-white/[0.06] text-[#52525b] hover:text-blue-400 hover:border-blue-500/25'}`}>
+                {isDone ? '✓ Done' : '✅ Mark Done'}
+              </button>
+              <button onClick={() => handle('dismiss')}
+                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${fb === 'dismiss' ? 'bg-red-500/15 border-red-500/30 text-red-400' : 'border-white/[0.06] text-[#52525b] hover:text-red-400 hover:border-red-500/25'}`}>
+                {fb === 'dismiss' ? '✕ Dismissed' : '👎 Not helpful'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+    </motion.div>
   );
 }

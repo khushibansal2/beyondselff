@@ -1,11 +1,12 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { generateTrendData, generateInsights } from '../data/demoData';
 import { analyzeMealImage, analyzeSupplementImage, hasApiKey, saveApiKey, getDemoMealResult, getDemoSupplementResult } from '../services/visionService';
 import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionService';
-import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge } from '../components/ui/Components';
+import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge, RecommendationCard } from '../components/ui/Components';
+import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw } from 'lucide-react';
 
@@ -655,6 +656,20 @@ function NutritionPanel({ healthData, updateDomain }) {
   );
 }
 
+function HealthRecommendations({ recommendations }) {
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const feedback = loadFeedback();
+  const sorted   = sortByFeedback(recommendations, feedback);
+  return (
+    <div className="space-y-5">
+      <p className="text-[11px] text-[#52525b]">Accept to prioritize · Mark Done to track completion · Not helpful to deprioritize</p>
+      {sorted.map((r, i) => (
+        <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />
+      ))}
+    </div>
+  );
+}
+
 export default function Health() {
   const { user } = useAuth();
   const { health, finance, records, updateDomain, addRecords, computed } = useData();
@@ -765,12 +780,12 @@ export default function Health() {
     if (h.sleepAvg < 7) {
       const prodImpact = sleepProductivity ? ` This causes ~${sleepProductivity.computedImpact.productivityLoss}% career productivity loss.` : '';
       recs.push({
-        icon: '😴', title: 'Sleep Optimization', priority: sleepRisk === 'critical' ? 1 : sleepRisk === 'high' ? 2 : 4,
+        id: 'health-sleep', icon: '😴', title: 'Sleep Optimization', priority: sleepRisk === 'critical' ? 1 : sleepRisk === 'high' ? 2 : 4,
         text: `You're averaging ${h.sleepAvg}h — ${sleepDeficit.toFixed(1)}h below the 7-8h target. ${sleepRisk === 'critical' ? 'Severe sleep debt detected.' : 'Consistent shortfall accumulates over time.'} Actions: shift bedtime to ${Math.max(21, 23 - Math.ceil(sleepDeficit))}:00, cut caffeine after 14:00, avoid screens 1h before bed.${prodImpact}`,
         confidence: confidence(88), risk: sleepRisk,
       });
     } else {
-      recs.push({ icon: '😴', title: 'Sleep Quality', priority: 6, text: `Solid ${h.sleepAvg}h average — maintain this. To push quality further: consistent wake time within ±30 min daily, 18-20°C room temperature, magnesium glycinate before bed.`, confidence: confidence(85), risk: 'low' });
+      recs.push({ id: 'health-sleep', icon: '😴', title: 'Sleep Quality', priority: 6, text: `Solid ${h.sleepAvg}h average — maintain this. To push quality further: consistent wake time within ±30 min daily, 18-20°C room temperature, magnesium glycinate before bed.`, confidence: confidence(85), risk: 'low' });
     }
 
     // Stress — boosted if cross-domain spending cascade active
@@ -778,7 +793,7 @@ export default function Health() {
     const stressNote = stressSpend ? ` High cortisol is also driving ~₹${stressSpend.computedImpact.excessSpending.toLocaleString()} extra spending/month.` : '';
     const finStressNote = finStress ? ' Financial insecurity detected — address debt/savings to reduce anxiety at its root.' : '';
     recs.push({
-      icon: '🧘', title: 'Stress & Recovery', priority: stressRisk === 'critical' ? 1 : stressRisk === 'high' ? 2 : 5,
+      id: 'health-stress', icon: '🧘', title: 'Stress & Recovery', priority: stressRisk === 'critical' ? 1 : stressRisk === 'high' ? 2 : 5,
       text: h.stressLevel > 6
         ? `Stress at ${h.stressLevel}/10 — ${stressRisk === 'critical' ? 'critical level' : 'elevated'}. Daily protocol: 5-min box breathing (4-4-4-4), one 15-min outdoor walk, cap work at ${Math.min(10, 12 - Math.round(h.stressLevel / 2))}h/day.${stressNote}${finStressNote}`
         : `Stress at ${h.stressLevel}/10 — manageable. Protect this by scheduling one "buffer hour" daily with no meetings or screens.${finStressNote}`,
@@ -789,7 +804,7 @@ export default function Health() {
     const workoutGap = 4 - h.workoutsPerWeek;
     const workoutRisk = h.workoutsPerWeek === 0 ? 'high' : h.workoutsPerWeek < 2 ? 'medium' : 'low';
     recs.push({
-      icon: '🏃', title: 'Movement & Fitness', priority: workoutRisk === 'high' ? 3 : 5,
+      id: 'health-workout', icon: '🏃', title: 'Movement & Fitness', priority: workoutRisk === 'high' ? 3 : 5,
       text: h.workoutsPerWeek < 3
         ? `Only ${h.workoutsPerWeek} session${h.workoutsPerWeek !== 1 ? 's' : ''}/week — target is 4. Add ${workoutGap} session${workoutGap > 1 ? 's' : ''}: try ${workoutGap >= 2 ? '2× 25-min cardio + 1 strength' : '20-min HIIT'}. Even a 10-min walk counts. ${h.bmi > 25 ? `Current BMI ${h.bmi} — weight-bearing cardio recommended.` : ''}`
         : `${h.workoutsPerWeek} sessions/week is ${h.workoutsPerWeek >= 5 ? 'excellent' : 'good'}. For the next level: add one mobility/yoga session for injury prevention and recovery acceleration.`,
@@ -799,7 +814,7 @@ export default function Health() {
     // Hydration
     const hydrationGap = 8 - h.waterIntake;
     recs.push({
-      icon: '💧', title: 'Hydration', priority: h.waterIntake < 5 ? 3 : 6,
+      id: 'health-hydration', icon: '💧', title: 'Hydration', priority: h.waterIntake < 5 ? 3 : 6,
       text: h.waterIntake < 8
         ? `At ${h.waterIntake} glasses/day — ${hydrationGap} short of the 8-glass target. Dehydration by even 2% impairs cognitive performance. Fix: fill a 1L bottle in the morning, drink it by noon, refill. Set 3 phone alarms.`
         : `Hydration is optimal at ${h.waterIntake} glasses. Keep morning-front-loading: 2 glasses before 9am activates metabolism.`,
@@ -811,7 +826,7 @@ export default function Health() {
     const calDiff = h.calories - calTarget;
     const calRisk = Math.abs(calDiff) > calTarget * 0.3 ? 'high' : Math.abs(calDiff) > calTarget * 0.15 ? 'medium' : 'low';
     recs.push({
-      icon: '🥗', title: 'Nutrition & Calories', priority: calRisk === 'high' ? 3 : 6,
+      id: 'health-nutrition', icon: '🥗', title: 'Nutrition & Calories', priority: calRisk === 'high' ? 3 : 6,
       text: calDiff > calTarget * 0.15
         ? `At ${h.calories} kcal — ${Math.abs(calDiff)} over your ${calTarget} kcal target. Swap 1 processed snack for fruit/nuts daily. Meal prep 2 lunches on Sunday to avoid impulse eating.`
         : calDiff < -(calTarget * 0.15)
@@ -823,7 +838,7 @@ export default function Health() {
     // Mood — added only if mood is low
     if (h.moodAvg < 5) {
       recs.push({
-        icon: '😊', title: 'Mood & Mental Energy', priority: h.moodAvg < 3 ? 1 : 3,
+        id: 'health-mood', icon: '😊', title: 'Mood & Mental Energy', priority: h.moodAvg < 3 ? 1 : 3,
         text: `Mood averaging ${h.moodAvg}/10${h.moodAvg < 3 ? ' — critically low' : ''}. Three high-impact actions: (1) 10-min gratitude journaling before sleep, (2) one social connection per day, (3) reduce doomscrolling by removing social apps from home screen.${finStressNote}`,
         confidence: confidence(80), risk: h.moodAvg < 3 ? 'critical' : 'high',
       });
@@ -1226,27 +1241,7 @@ export default function Health() {
       )}
 
       {tab === 'recommendations' && (
-        <div className="space-y-10">
-          {recommendations.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-              <GlassCard>
-                <div className="flex items-start gap-6">
-                  <span className="text-4xl flex-shrink-0">{r.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-3 gap-4">
-                      <h4 className="text-[15px] font-semibold text-[#f0f0f3]">{r.title}</h4>
-                      <div className="flex gap-3 flex-shrink-0">
-                        <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${r.risk === 'high' ? 'bg-[rgba(224,62,62,0.1)] text-[#ef4444]' : r.risk === 'medium' ? 'bg-[rgba(217,115,13,0.1)] text-[#f59e0b]' : 'bg-[rgba(46,158,107,0.1)] text-[#22c55e]'}`}>Risk: {r.risk}</span>
-                        <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-[#a1a1aa]">{r.confidence}% confidence</span>
-                      </div>
-                    </div>
-                    <p className="text-[13px] text-[#a1a1aa] leading-relaxed">{r.text}</p>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
-        </div>
+        <HealthRecommendations recommendations={recommendations} />
       )}
     </div>
   );

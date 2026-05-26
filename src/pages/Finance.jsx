@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
 import { generateTrendData } from '../data/demoData';
-import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast } from '../components/ui/Components';
+import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
+import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import {
   parseTransactionSMS, detectOTP, CATEGORY_META, SAMPLE_MESSAGES, MERCHANT_MAP,
@@ -174,6 +175,18 @@ function LiveNotification({ tx, onDismiss }) {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function FinanceRecommendations({ recommendations }) {
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const feedback = loadFeedback();
+  const sorted = sortByFeedback(recommendations, feedback);
+  return (
+    <div className="space-y-5">
+      <p className="text-[11px] text-[#52525b]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
+      {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
+    </div>
   );
 }
 
@@ -382,12 +395,12 @@ export default function Finance() {
     : f.expenses > 0 ? defaultBreakdown : [{ name: 'Total', value: 1 }];
 
   const recommendations = [
-    { icon: '💳', title: 'Spending Optimization', text: savingsRate < 20 ? `Savings rate: ${savingsRate}%. Cut ₹${Math.round(f.expenses * 0.2)} in non-essentials. Start with subscriptions (₹${f.subscriptions}).` : `Great savings rate of ${savingsRate}%! Invest the surplus for compound growth.`, confidence: Math.max(70, 100 - Math.abs(20 - savingsRate) * 2), risk: savingsRate < 10 ? 'high' : 'low' },
-    { icon: '📈', title: 'Investment Allocation', text: f.investments === 0 ? 'Start investing! 60% index funds, 20% bonds, 20% emergency fund. Even ₹1000/month grows significantly.' : `₹${f.investments} invested. Diversify: ${savingsRate > 30 ? '60% equity, 20% debt, 20% gold' : '40% equity, 40% debt, 20% gold'}.`, confidence: f.investments > 0 ? 85 : 75, risk: 'medium' },
-    { icon: '🛡️', title: 'Emergency Fund', text: f.savings < f.expenses * 3 ? `Emergency fund covers ${(f.savings / Math.max(1, f.expenses)).toFixed(1)} months. Build to 3–6 months.` : 'Emergency fund solid. Move surplus to investments.', confidence: f.savings < f.expenses * 3 ? 95 : 88, risk: f.savings < f.expenses ? 'high' : 'low' },
-    { icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) = ${Math.round(f.subscriptions / Math.max(1, f.income) * 100)}% of income. Cancel one unused service → save ₹${Math.round(f.subscriptions * 0.3)}/month.` : 'Subscription spending is reasonable.', confidence: f.subscriptions > f.income * 0.1 ? 92 : 80, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
-    ...(emotionalSpending ? [{ icon: '😰', title: 'Emotional Spending Alert', text: `High stress level correlates with impulse purchases. Use 24-hour wait rule before purchases > ₹500.`, confidence: 85, risk: 'high' }] : []),
-    ...(allTxs.length >= 5 ? [{ icon: '🤖', title: 'Smart Parser Insights', text: `${allTxs.length} parsed transactions detected. ${categoryTotals[0] ? `Highest spend: ${categoryTotals[0].name} ₹${categoryTotals[0].value.toLocaleString()}. ` : ''}Use What-If Simulator to see savings potential.`, confidence: 88, risk: 'low' }] : []),
+    { id: 'fin-spending', icon: '💳', title: 'Spending Optimization', text: savingsRate < 20 ? `Savings rate: ${savingsRate}%. Cut ₹${Math.round(f.expenses * 0.2)} in non-essentials. Start with subscriptions (₹${f.subscriptions}).` : `Great savings rate of ${savingsRate}%! Invest the surplus for compound growth.`, confidence: Math.max(70, 100 - Math.abs(20 - savingsRate) * 2), risk: savingsRate < 10 ? 'high' : 'low' },
+    { id: 'fin-investment', icon: '📈', title: 'Investment Allocation', text: f.investments === 0 ? 'Start investing! 60% index funds, 20% bonds, 20% emergency fund. Even ₹1000/month grows significantly.' : `₹${f.investments} invested. Diversify: ${savingsRate > 30 ? '60% equity, 20% debt, 20% gold' : '40% equity, 40% debt, 20% gold'}.`, confidence: f.investments > 0 ? 85 : 75, risk: 'medium' },
+    { id: 'fin-emergency', icon: '🛡️', title: 'Emergency Fund', text: f.savings < f.expenses * 3 ? `Emergency fund covers ${(f.savings / Math.max(1, f.expenses)).toFixed(1)} months. Build to 3–6 months.` : 'Emergency fund solid. Move surplus to investments.', confidence: f.savings < f.expenses * 3 ? 95 : 88, risk: f.savings < f.expenses ? 'high' : 'low' },
+    { id: 'fin-subscriptions', icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) = ${Math.round(f.subscriptions / Math.max(1, f.income) * 100)}% of income. Cancel one unused service → save ₹${Math.round(f.subscriptions * 0.3)}/month.` : 'Subscription spending is reasonable.', confidence: f.subscriptions > f.income * 0.1 ? 92 : 80, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
+    ...(emotionalSpending ? [{ id: 'fin-emotional', icon: '😰', title: 'Emotional Spending Alert', text: `High stress level correlates with impulse purchases. Use 24-hour wait rule before purchases > ₹500.`, confidence: 85, risk: 'high' }] : []),
+    ...(allTxs.length >= 5 ? [{ id: 'fin-parser', icon: '🤖', title: 'Smart Parser Insights', text: `${allTxs.length} parsed transactions detected. ${categoryTotals[0] ? `Highest spend: ${categoryTotals[0].name} ₹${categoryTotals[0].value.toLocaleString()}. ` : ''}Use What-If Simulator to see savings potential.`, confidence: 88, risk: 'low' }] : []),
   ];
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -847,25 +860,7 @@ export default function Finance() {
         <div className="space-y-6">
           <RoboAdvisor f={f} savingsRate={savingsRate} />
           <h3 className="text-sm font-semibold flex items-center gap-2"><span>💡</span> AI Spending Optimizations</h3>
-          {recommendations.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-              <GlassCard>
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl">{r.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{r.title}</h4>
-                      <div className="flex gap-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{r.confidence}% AI Match</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
+          <FinanceRecommendations recommendations={recommendations} />
         </div>
       )}
     </div>

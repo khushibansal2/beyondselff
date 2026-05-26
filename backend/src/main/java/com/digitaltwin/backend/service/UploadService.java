@@ -18,11 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,10 @@ import java.util.stream.Collectors;
 @Service
 public class UploadService {
 
+    private static final Logger log = LoggerFactory.getLogger(UploadService.class);
+
     private final FileParserService fileParserService;
+    private final FileEncryptionService encryptionService;
     private final ImportHistoryRepository importRepo;
     private final HealthRecordRepository healthRepo;
     private final FinanceRecordRepository financeRepo;
@@ -45,11 +49,13 @@ public class UploadService {
     @Value("${upload.dir}")
     private String uploadDir;
 
-    public UploadService(FileParserService fileParserService, ImportHistoryRepository importRepo,
+    public UploadService(FileParserService fileParserService, FileEncryptionService encryptionService,
+                         ImportHistoryRepository importRepo,
                          HealthRecordRepository healthRepo, FinanceRecordRepository financeRepo,
                          CareerRecordRepository careerRepo, HealthNormalizer healthNormalizer,
                          FinanceNormalizer financeNormalizer, CareerNormalizer careerNormalizer) {
         this.fileParserService = fileParserService;
+        this.encryptionService = encryptionService;
         this.importRepo = importRepo;
         this.healthRepo = healthRepo;
         this.financeRepo = financeRepo;
@@ -66,9 +72,14 @@ public class UploadService {
         File dir = new File(uploadDir);
         if (!dir.exists()) dir.mkdirs();
 
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        // Append .enc suffix to signal the file is AES-256-GCM encrypted at rest
+        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename() + ".enc";
         Path targetLocation = Paths.get(uploadDir).resolve(filename);
-        Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+        if (!encryptionService.isEncryptionEnabled()) {
+            log.warn("FILE_ENCRYPTION_KEY not set — uploaded file stored WITHOUT encryption: {}", filename);
+        }
+        encryptionService.encryptToFile(file.getBytes(), targetLocation);
 
         ImportHistory history = ImportHistory.builder()
                 .userId(userId)

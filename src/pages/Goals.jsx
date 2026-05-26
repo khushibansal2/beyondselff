@@ -1,64 +1,80 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { GlassCard, PageHeader, showToast, EmptyState } from '../components/ui/Components';
+import { computeGoalProgress, METRIC_OPTIONS } from '../engines/goalProgressEngine';
+import { Zap } from 'lucide-react';
 
 const aiGoalSuggestions = [
-  { title: 'Fix Sleep Schedule', domain: 'health', milestones: 'Sleep by 11pm, No screens after 10pm, Morning routine, 7+ hours consistently', icon: '😴' },
-  { title: 'Build Emergency Fund', domain: 'finance', milestones: '₹10K saved, ₹25K saved, ₹50K saved, 3-month expenses buffer', icon: '🏦' },
-  { title: 'Crack FAANG Interview', domain: 'career', milestones: '200 DSA problems, System Design basics, 3 Projects, Mock interviews, Apply', icon: '🎯' },
-  { title: 'Run 5K Consistently', domain: 'health', milestones: 'Walk 2K daily, Jog 2K, Run 3K, Run 5K, Run 5K 3x/week', icon: '🏃' },
-  { title: 'Cut Subscriptions by 50%', domain: 'finance', milestones: 'List all subscriptions, Identify unused, Cancel 3+, Review monthly', icon: '✂️' },
-  { title: 'Learn System Design', domain: 'career', milestones: 'Basics, Load balancing, Database design, Caching, Microservices', icon: '🏗️' },
+  { title: 'Sleep 7.5h Every Night',    domain: 'health',  milestones: 'Sleep by 11pm, No screens after 10pm, Morning routine, 7+ hours consistently', icon: '😴', targetMetric: 'sleepAvg',         targetValue: 7.5  },
+  { title: 'Build Emergency Fund ₹1L',  domain: 'finance', milestones: '₹10K saved, ₹25K saved, ₹50K saved, 3-month expenses buffer',                  icon: '🏦', targetMetric: 'savings',          targetValue: 100000 },
+  { title: 'Crack FAANG Interview',     domain: 'career',  milestones: '200 DSA problems, System Design basics, 3 Projects, Mock interviews, Apply',    icon: '🎯', targetMetric: 'dsaPractice',      targetValue: 5    },
+  { title: 'Workout 5x Per Week',       domain: 'health',  milestones: 'Walk daily, Gym 3x, Gym 4x, Gym 5x, Maintain streak',                           icon: '🏃', targetMetric: 'workoutsPerWeek',  targetValue: 5    },
+  { title: 'Cut Expenses to ₹10000',    domain: 'finance', milestones: 'List all subscriptions, Identify unused, Cancel 3+, Review monthly',            icon: '✂️', targetMetric: 'expenses',         targetValue: 10000 },
+  { title: 'Complete 5 Projects',       domain: 'career',  milestones: 'Project 1, Project 2, Project 3, Project 4, Project 5',                         icon: '🏗️', targetMetric: 'projectsCompleted', targetValue: 5   },
 ];
 
+const EMPTY_FORM = { title: '', domain: 'health', deadline: '', milestones: '', priority: 'medium', targetMetric: '', targetValue: '' };
+
 export default function Goals() {
-  const { user } = useAuth();
-  const { goals, updateGoals } = useData();
-  const [showNew, setShowNew] = useState(false);
-  const [newGoal, setNewGoal] = useState({ title: '', domain: 'health', deadline: '', milestones: '', priority: 'medium' });
-  const [filter, setFilter] = useState('all');
+  const { health, finance, career, goals, updateGoals } = useData();
+  const [showNew,  setShowNew]  = useState(false);
+  const [newGoal,  setNewGoal]  = useState(EMPTY_FORM);
+  const [filter,   setFilter]   = useState('all');
+  const [showMeta, setShowMeta] = useState(false); // toggle advanced metric fields
+
+  // Build enriched goals with auto-computed progress
+  const enrichedGoals = (goals || []).map(g => {
+    const computed = computeGoalProgress(g, health || {}, finance || {}, career || {});
+    return { ...g, _computed: computed };
+  });
 
   const addGoal = (e) => {
     e.preventDefault();
     if (!newGoal.title.trim()) { showToast('Please enter a goal title', 'error'); return; }
-    if (!newGoal.deadline) { showToast('Please set a deadline', 'error'); return; }
+    if (!newGoal.deadline)    { showToast('Please set a deadline', 'error'); return; }
     const goal = {
-      id: 'g-' + Date.now(),
-      title: newGoal.title,
-      domain: newGoal.domain,
-      deadline: newGoal.deadline,
-      priority: newGoal.priority,
-      progress: 0,
-      milestones: newGoal.milestones.split(',').map(m => m.trim()).filter(Boolean),
-      createdAt: new Date().toISOString().split('T')[0],
+      id:           'g-' + Date.now(),
+      title:        newGoal.title,
+      domain:       newGoal.domain,
+      deadline:     newGoal.deadline,
+      priority:     newGoal.priority,
+      progress:     0,
+      milestones:   newGoal.milestones.split(',').map(m => m.trim()).filter(Boolean),
+      createdAt:    new Date().toISOString().split('T')[0],
+      targetMetric: newGoal.targetMetric || undefined,
+      targetValue:  newGoal.targetValue  ? Number(newGoal.targetValue) : undefined,
     };
     updateGoals([...(goals || []), goal]);
-    setNewGoal({ title: '', domain: 'health', deadline: '', milestones: '', priority: 'medium' });
+    setNewGoal(EMPTY_FORM);
     setShowNew(false);
+    setShowMeta(false);
     showToast(`Goal "${goal.title}" created!`, 'success');
   };
 
   const addSuggestedGoal = (suggestion) => {
     const goal = {
-      id: 'g-' + Date.now(),
-      title: suggestion.title,
-      domain: suggestion.domain,
-      deadline: new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
-      priority: 'medium',
-      progress: 0,
-      milestones: suggestion.milestones.split(',').map(m => m.trim()),
-      createdAt: new Date().toISOString().split('T')[0],
+      id:           'g-' + Date.now(),
+      title:        suggestion.title,
+      domain:       suggestion.domain,
+      deadline:     new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
+      priority:     'medium',
+      progress:     0,
+      milestones:   suggestion.milestones.split(',').map(m => m.trim()),
+      createdAt:    new Date().toISOString().split('T')[0],
+      targetMetric: suggestion.targetMetric,
+      targetValue:  suggestion.targetValue,
     };
     updateGoals([...(goals || []), goal]);
     showToast(`Goal "${goal.title}" added!`, 'success');
   };
 
   const updateProgress = (id, delta) => {
-    const updatedGoals = (goals || []).map(g => g.id === id ? { ...g, progress: Math.max(0, Math.min(100, g.progress + delta)) } : g);
-    updateGoals(updatedGoals);
-    const goal = updatedGoals.find(g => g.id === id);
+    const updated = (goals || []).map(g =>
+      g.id === id ? { ...g, progress: Math.max(0, Math.min(100, (g.progress || 0) + delta)) } : g
+    );
+    updateGoals(updated);
+    const goal = updated.find(g => g.id === id);
     if (goal?.progress >= 100) showToast(`🎉 Goal "${goal.title}" completed!`, 'success');
   };
 
@@ -68,31 +84,39 @@ export default function Goals() {
     showToast(`Goal "${goal?.title}" deleted`, 'info');
   };
 
-  const domainColors = { health: '#10b981', finance: '#f59e0b', career: '#3b82f6' };
-  const domainIcons = { health: '❤️', finance: '💰', career: '🎯' };
+  const domainColors  = { health: '#10b981', finance: '#f59e0b', career: '#3b82f6' };
+  const domainIcons   = { health: '❤️', finance: '💰', career: '🎯' };
   const priorityColors = { high: 'text-red-400 bg-red-500/10', medium: 'text-amber-400 bg-amber-500/10', low: 'text-emerald-400 bg-emerald-500/10' };
 
-  const filteredGoals = (goals || []).filter(g => filter === 'all' || g.domain === filter);
-  const completedGoals = (goals || []).filter(g => g.progress >= 100).length;
-  const activeGoals = (goals || []).filter(g => g.progress < 100).length;
+  const filteredGoals  = enrichedGoals.filter(g => filter === 'all' || g.domain === filter);
+  const completedGoals = enrichedGoals.filter(g => (g._computed.progress) >= 100).length;
+  const activeGoals    = enrichedGoals.filter(g => (g._computed.progress) < 100).length;
+  const autoCount      = enrichedGoals.filter(g => g._computed.auto).length;
+
+  // Only show metric options matching the selected domain
+  const filteredMetrics = METRIC_OPTIONS.filter(m => m.domain === newGoal.domain);
 
   return (
     <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
       <PageHeader title="SMART Goals" subtitle="Set, track, and achieve goals across health, finance, and career." icon="🏆" />
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-3 mb-6">
         <GlassCard className="text-center py-3">
-          <p className="text-2xl font-bold text-blue-400" style={{ fontFamily: 'var(--font-display)' }}>{(goals || []).length}</p>
+          <p className="text-2xl font-bold text-blue-400">{(goals || []).length}</p>
           <p className="text-[10px] text-slate-500">Total Goals</p>
         </GlassCard>
         <GlassCard className="text-center py-3">
-          <p className="text-2xl font-bold text-amber-400" style={{ fontFamily: 'var(--font-display)' }}>{activeGoals}</p>
+          <p className="text-2xl font-bold text-amber-400">{activeGoals}</p>
           <p className="text-[10px] text-slate-500">In Progress</p>
         </GlassCard>
         <GlassCard className="text-center py-3">
-          <p className="text-2xl font-bold text-emerald-400" style={{ fontFamily: 'var(--font-display)' }}>{completedGoals}</p>
+          <p className="text-2xl font-bold text-emerald-400">{completedGoals}</p>
           <p className="text-[10px] text-slate-500">Completed</p>
+        </GlassCard>
+        <GlassCard className="text-center py-3">
+          <p className="text-2xl font-bold text-purple-400">{autoCount}</p>
+          <p className="text-[10px] text-slate-500">Auto-tracked</p>
         </GlassCard>
       </div>
 
@@ -106,7 +130,9 @@ export default function Goals() {
             </button>
           ))}
         </div>
-        <button onClick={() => setShowNew(!showNew)} className="btn-primary text-sm">{showNew ? 'Cancel' : '+ New Goal'}</button>
+        <button onClick={() => setShowNew(!showNew)} className="btn-primary text-sm">
+          {showNew ? 'Cancel' : '+ New Goal'}
+        </button>
       </div>
 
       {/* New Goal Form */}
@@ -116,12 +142,65 @@ export default function Goals() {
             <GlassCard className="mb-6">
               <h3 className="text-sm font-semibold mb-4">Create New Goal</h3>
               <form onSubmit={addGoal} className="grid md:grid-cols-2 gap-4">
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Goal Title</label><input type="text" value={newGoal.title} onChange={e => setNewGoal(p => ({ ...p, title: e.target.value }))} className="input-premium" placeholder="e.g. Lose 10kg" required /></div>
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Domain</label><select value={newGoal.domain} onChange={e => setNewGoal(p => ({ ...p, domain: e.target.value }))} className="input-premium"><option value="health">❤️ Health</option><option value="finance">💰 Finance</option><option value="career">🎯 Career</option></select></div>
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Priority</label><select value={newGoal.priority} onChange={e => setNewGoal(p => ({ ...p, priority: e.target.value }))} className="input-premium"><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option></select></div>
-                <div><label className="text-xs text-slate-400 mb-1.5 block">Deadline</label><input type="date" value={newGoal.deadline} onChange={e => setNewGoal(p => ({ ...p, deadline: e.target.value }))} className="input-premium" required /></div>
-                <div className="md:col-span-2"><label className="text-xs text-slate-400 mb-1.5 block">Milestones (comma-separated)</label><input type="text" value={newGoal.milestones} onChange={e => setNewGoal(p => ({ ...p, milestones: e.target.value }))} className="input-premium" placeholder="Milestone 1, Milestone 2, ..." /></div>
-                <div className="md:col-span-2"><button type="submit" className="btn-primary">Create Goal 🎯</button></div>
+                <div>
+                  <label className="text-xs text-slate-400 mb-1.5 block">Goal Title</label>
+                  <input type="text" value={newGoal.title} onChange={e => setNewGoal(p => ({ ...p, title: e.target.value }))}
+                    className="input-premium" placeholder="e.g. Sleep 7.5h Every Night" required />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 mb-1.5 block">Domain</label>
+                  <select value={newGoal.domain} onChange={e => setNewGoal(p => ({ ...p, domain: e.target.value, targetMetric: '' }))} className="input-premium">
+                    <option value="health">❤️ Health</option>
+                    <option value="finance">💰 Finance</option>
+                    <option value="career">🎯 Career</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 mb-1.5 block">Priority</label>
+                  <select value={newGoal.priority} onChange={e => setNewGoal(p => ({ ...p, priority: e.target.value }))} className="input-premium">
+                    <option value="high">🔴 High</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="low">🟢 Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 mb-1.5 block">Deadline</label>
+                  <input type="date" value={newGoal.deadline} onChange={e => setNewGoal(p => ({ ...p, deadline: e.target.value }))} className="input-premium" required />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-slate-400 mb-1.5 block">Milestones (comma-separated)</label>
+                  <input type="text" value={newGoal.milestones} onChange={e => setNewGoal(p => ({ ...p, milestones: e.target.value }))}
+                    className="input-premium" placeholder="Milestone 1, Milestone 2, ..." />
+                </div>
+
+                {/* Auto-tracking toggle */}
+                <div className="md:col-span-2">
+                  <button type="button" onClick={() => setShowMeta(p => !p)}
+                    className="flex items-center gap-2 text-[11px] text-purple-400 hover:text-purple-300 transition-colors">
+                    <Zap size={12} /> {showMeta ? 'Hide' : 'Enable'} auto-tracking from live data
+                  </button>
+                </div>
+
+                {showMeta && (
+                  <>
+                    <div>
+                      <label className="text-xs text-slate-400 mb-1.5 block">Track Metric</label>
+                      <select value={newGoal.targetMetric} onChange={e => setNewGoal(p => ({ ...p, targetMetric: e.target.value }))} className="input-premium">
+                        <option value="">— auto-detect from title —</option>
+                        {filteredMetrics.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 mb-1.5 block">Target Value</label>
+                      <input type="number" step="any" value={newGoal.targetValue} onChange={e => setNewGoal(p => ({ ...p, targetValue: e.target.value }))}
+                        className="input-premium" placeholder="e.g. 7.5 or 100000" />
+                    </div>
+                  </>
+                )}
+
+                <div className="md:col-span-2">
+                  <button type="submit" className="btn-primary">Create Goal 🎯</button>
+                </div>
               </form>
             </GlassCard>
           </motion.div>
@@ -130,21 +209,34 @@ export default function Goals() {
 
       {/* Goals Grid */}
       {filteredGoals.length === 0 ? (
-        <EmptyState icon="🎯" title="No Goals Yet" subtitle={filter !== 'all' ? `No ${filter} goals. Try creating one!` : 'Set your first SMART goal to start tracking progress.'} action={<button onClick={() => setShowNew(true)} className="btn-primary text-sm">Create Goal</button>} />
+        <EmptyState icon="🎯" title="No Goals Yet"
+          subtitle={filter !== 'all' ? `No ${filter} goals. Try creating one!` : 'Set your first SMART goal to start tracking progress.'}
+          action={<button onClick={() => setShowNew(true)} className="btn-primary text-sm">Create Goal</button>} />
       ) : (
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           {filteredGoals.map((g, i) => {
-            const dc = domainColors[g.domain] || '#3b82f6';
+            const dc       = domainColors[g.domain] || '#3b82f6';
+            const computed = g._computed;
+            const pct      = computed.progress;
+            const isAuto   = computed.auto;
+
             return (
               <motion.div key={g.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-                <GlassCard className={g.progress >= 100 ? 'glow-emerald' : ''}>
+                <GlassCard className={pct >= 100 ? 'glow-emerald' : ''}>
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">{domainIcons[g.domain]}</span>
                       <div>
-                        <h4 className="font-semibold text-sm">{g.title}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-sm">{g.title}</h4>
+                          {isAuto && (
+                            <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/25 text-purple-400 font-semibold">
+                              <Zap size={8} /> AUTO
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-slate-500 capitalize">{g.domain} • Due {g.deadline}</span>
+                          <span className="text-[10px] text-slate-500 capitalize">{g.domain} · Due {g.deadline}</span>
                           {g.priority && <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${priorityColors[g.priority] || ''}`}>{g.priority}</span>}
                         </div>
                       </div>
@@ -152,29 +244,54 @@ export default function Goals() {
                     <button onClick={() => deleteGoal(g.id)} className="text-xs text-slate-600 hover:text-red-400 transition-colors">✕</button>
                   </div>
 
+                  {/* Progress bar */}
                   <div className="mb-3">
                     <div className="flex justify-between text-xs text-slate-400 mb-1">
-                      <span>Progress</span><span>{g.progress}%</span>
+                      <span className="flex items-center gap-1">
+                        Progress
+                        {isAuto && computed.label && (
+                          <span className="text-[10px] text-purple-400 opacity-70">
+                            · {computed.label}: {computed.currentValue}{computed.unit}
+                            {computed.targetValue ? ` / ${computed.targetValue}${computed.unit}` : ''}
+                          </span>
+                        )}
+                      </span>
+                      <span>{pct}%</span>
                     </div>
                     <div className="w-full h-3 rounded-full bg-white/5">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${g.progress}%` }} transition={{ duration: 1 }}
-                        className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${dc}, ${dc}cc)` }} />
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1 }}
+                        className="h-full rounded-full"
+                        style={{ background: isAuto
+                          ? `linear-gradient(90deg, #a855f7, #7c3aed)`
+                          : `linear-gradient(90deg, ${dc}, ${dc}cc)` }} />
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mb-3">
-                    <button onClick={() => updateProgress(g.id, 10)} className="btn-chip text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">+10%</button>
-                    <button onClick={() => updateProgress(g.id, 25)} className="btn-chip text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">+25%</button>
-                    <button onClick={() => updateProgress(g.id, -10)} className="btn-chip text-slate-400">-10%</button>
-                    {g.progress >= 100 && <span className="text-xs text-emerald-400 ml-auto font-semibold">✅ Done!</span>}
-                  </div>
+                  {/* Manual override buttons (only shown for non-auto goals) */}
+                  {!isAuto && (
+                    <div className="flex gap-2 mb-3">
+                      <button onClick={() => updateProgress(g.id, 10)}  className="btn-chip text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">+10%</button>
+                      <button onClick={() => updateProgress(g.id, 25)}  className="btn-chip text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">+25%</button>
+                      <button onClick={() => updateProgress(g.id, -10)} className="btn-chip text-slate-400">-10%</button>
+                      {pct >= 100 && <span className="text-xs text-emerald-400 ml-auto font-semibold">✅ Done!</span>}
+                    </div>
+                  )}
+                  {isAuto && pct >= 100 && (
+                    <p className="text-xs text-emerald-400 font-semibold mb-3">✅ Goal reached!</p>
+                  )}
+                  {isAuto && pct < 100 && (
+                    <p className="text-[11px] text-purple-400/70 mb-3">
+                      Live from your {g.domain} data · updates automatically
+                    </p>
+                  )}
 
+                  {/* Milestones */}
                   {g.milestones?.length > 0 && (
                     <div className="border-t border-white/[0.06] pt-3">
                       <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Milestones</p>
                       <div className="space-y-1.5">
                         {g.milestones.map((m, mi) => {
-                          const done = (mi + 1) / g.milestones.length * 100 <= g.progress;
+                          const done = (mi + 1) / g.milestones.length * 100 <= pct;
                           return (
                             <div key={mi} className="flex items-center gap-2 text-xs">
                               <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[8px] flex-shrink-0 ${done ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-slate-700 text-slate-600'}`}>
@@ -196,17 +313,20 @@ export default function Goals() {
 
       {/* AI Suggested Goals */}
       <GlassCard glow="glow-purple">
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>🤖 AI-Suggested Goals</h3>
-        <p className="text-xs text-slate-400 mb-4">Based on your cross-domain data, here are recommended goals:</p>
+        <h3 className="text-sm font-semibold mb-1 flex items-center gap-2">🤖 AI-Suggested Goals</h3>
+        <p className="text-xs text-slate-400 mb-4">Pre-wired with auto-tracking — progress updates from your live data.</p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
           {aiGoalSuggestions.map((sg, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
               className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-purple-500/30 transition-all">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">{sg.icon}</span>
                 <span className="text-xs font-medium">{sg.title}</span>
               </div>
-              <p className="text-[10px] text-slate-500 mb-3 capitalize">{sg.domain}</p>
+              <p className="text-[10px] text-slate-500 mb-1 capitalize">{sg.domain}</p>
+              <p className="text-[9px] text-purple-400/70 mb-3 flex items-center gap-1">
+                <Zap size={8} /> Auto-tracks {sg.targetMetric} → target {sg.targetValue?.toLocaleString()}
+              </p>
               <button onClick={() => addSuggestedGoal(sg)}
                 className="text-[10px] px-3 py-1 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-all w-full">
                 + Add This Goal

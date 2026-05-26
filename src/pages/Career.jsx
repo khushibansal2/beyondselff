@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast } from '../components/ui/Components';
+import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
+import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { generateLearningPath } from '../services/learningService';
 import { logSession, getSessions, getHeatmap, getStats, deleteSession } from '../services/studyService';
@@ -1299,6 +1300,18 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
+function CareerRecommendations({ recommendations }) {
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const feedback = loadFeedback();
+  const sorted = sortByFeedback(recommendations, feedback);
+  return (
+    <div className="space-y-5">
+      <p className="text-[11px] text-[#52525b]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
+      {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
+    </div>
+  );
+}
+
 // ── Main Component ───────────────────────────────────────────────────────────
 export default function Career() {
   useAuth();
@@ -1456,11 +1469,11 @@ export default function Career() {
   const missingSkills = ['TypeScript', 'Docker', 'AWS', 'System Design', 'MongoDB', 'GraphQL', 'Kubernetes', 'Redis', 'Next.js', 'Go'].filter(s => !c.skills.includes(s));
 
   const recommendations = [
-    { icon: '🧩', title: 'Skill Gap', text: c.skills.length < 5 ? `You have ${c.skills.length} skills. Add: ${missingSkills.slice(0, 3).join(', ')}.` : 'Strong skill set! Deepen 2-3 core skills.', risk: c.skills.length < 4 ? 'high' : 'low' },
-    { icon: '📚', title: 'DSA Strategy', text: c.dsaPractice < 3 ? `Increase to 3-5 problems/day. Focus: Arrays → Trees → Graphs → DP.` : 'Great! Add timed mock contests for pressure simulation.', risk: c.dsaPractice < 2 ? 'high' : 'low' },
-    { icon: '🚀', title: 'Projects', text: c.projectsCompleted < 4 ? `${c.projectsCompleted} projects. Build: 1 full-stack, 1 ML/AI, 1 open-source.` : 'Strong portfolio! Add demos and deploy for visibility.', risk: 'medium' },
-    { icon: '🎯', title: 'Placement Readiness', text: `${placementReadiness}% ready. ${placementReadiness < 60 ? 'Focus on DSA and projects.' : 'Practice mock interviews to build confidence.'}`, risk: placementReadiness < 50 ? 'high' : 'low' },
-    { icon: '💤', title: 'Sleep & Learning', text: (health?.sleepAvg || 7) < 6 ? `Low sleep (${health?.sleepAvg || '?'}h) cuts effective study by 40%. Your ${c.studyHoursDaily}h may yield only ${Math.round(c.studyHoursDaily * 0.6)}h of actual retention.` : 'Good sleep! Your study sessions are running efficiently.', risk: (health?.sleepAvg || 7) < 6 ? 'high' : 'low' },
+    { id: 'career-skills', icon: '🧩', title: 'Skill Gap', text: c.skills.length < 5 ? `You have ${c.skills.length} skills. Add: ${missingSkills.slice(0, 3).join(', ')}.` : 'Strong skill set! Deepen 2-3 core skills.', risk: c.skills.length < 4 ? 'high' : 'low', confidence: c.skills.length < 5 ? 88 : 80 },
+    { id: 'career-dsa', icon: '📚', title: 'DSA Strategy', text: c.dsaPractice < 3 ? `Increase to 3-5 problems/day. Focus: Arrays → Trees → Graphs → DP.` : 'Great! Add timed mock contests for pressure simulation.', risk: c.dsaPractice < 2 ? 'high' : 'low', confidence: 85 },
+    { id: 'career-projects', icon: '🚀', title: 'Projects', text: c.projectsCompleted < 4 ? `${c.projectsCompleted} projects. Build: 1 full-stack, 1 ML/AI, 1 open-source.` : 'Strong portfolio! Add demos and deploy for visibility.', risk: 'medium', confidence: 82 },
+    { id: 'career-placement', icon: '🎯', title: 'Placement Readiness', text: `${placementReadiness}% ready. ${placementReadiness < 60 ? 'Focus on DSA and projects.' : 'Practice mock interviews to build confidence.'}`, risk: placementReadiness < 50 ? 'high' : 'low', confidence: 90 },
+    { id: 'career-sleep', icon: '💤', title: 'Sleep & Learning', text: (health?.sleepAvg || 7) < 6 ? `Low sleep (${health?.sleepAvg || '?'}h) cuts effective study by 40%. Your ${c.studyHoursDaily}h may yield only ${Math.round(c.studyHoursDaily * 0.6)}h of actual retention.` : 'Good sleep! Your study sessions are running efficiently.', risk: (health?.sleepAvg || 7) < 6 ? 'high' : 'low', confidence: 78 },
   ];
 
   const roadmap = [
@@ -1797,26 +1810,7 @@ export default function Career() {
       )}
 
       {/* ── RECOMMENDATIONS TAB ─────────────────────────────────────────────── */}
-      {tab === 'recommendations' && (
-        <div className="space-y-4">
-          {recommendations.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-              <GlassCard>
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl">{r.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{r.title}</h4>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${r.risk === 'high' ? 'bg-red-500/10 text-red-400' : r.risk === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-400'}`}>Risk: {r.risk}</span>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">{r.text}</p>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ))}
-        </div>
-      )}
+      {tab === 'recommendations' && <CareerRecommendations recommendations={recommendations} />}
 
       {/* ── LEARNING PATH TAB ───────────────────────────────────────────────── */}
       {tab === 'roadmap' && (
