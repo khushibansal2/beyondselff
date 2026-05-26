@@ -21,9 +21,9 @@ function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) 
         style={{ background: `${color}14`, boxShadow: `0 0 24px ${color}18` }}>
         <Icon size={22} style={{ color }} />
       </div>
-      <p className="text-[10px] text-[#52525b] uppercase tracking-[0.1em] font-semibold mt-1">{label}</p>
+      <p className="text-[10px] text-[#71717a] uppercase tracking-[0.1em] font-semibold mt-1">{label}</p>
       <p className="text-[24px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
-      {subtitle && <p className="text-[11px] text-[#3f3f46] font-medium">{subtitle}</p>}
+      {subtitle && <p className="text-[11px] text-[#6b7280] font-medium">{subtitle}</p>}
     </motion.div>
   );
 }
@@ -32,9 +32,9 @@ function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) 
 function MacroPill({ label, value, unit, color }) {
   return (
     <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-2xl border border-white/[0.06]" style={{ background: `${color}0d` }}>
-      <span className="text-[10px] text-[#52525b] uppercase tracking-widest font-semibold">{label}</span>
+      <span className="text-[10px] text-[#71717a] uppercase tracking-widest font-semibold">{label}</span>
       <span className="text-[22px] font-bold tabular-nums leading-none" style={{ color }}>{value}</span>
-      <span className="text-[10px] text-[#52525b] font-medium">{unit}</span>
+      <span className="text-[10px] text-[#71717a] font-medium">{unit}</span>
     </div>
   );
 }
@@ -252,11 +252,11 @@ function ScanVisionPanel({ onApplyCalories }) {
           {!preview ? (
             <div className="flex flex-col items-center justify-center gap-3 p-10">
               <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                <Upload size={22} className="text-[#52525b]" />
+                <Upload size={22} className="text-[#71717a]" />
               </div>
               <div className="text-center">
                 <p className="text-[13px] font-medium text-[#a1a1aa]">Drop image here or click to browse</p>
-                <p className="text-[11px] text-[#52525b] mt-1">Also works on mobile — tap to use camera · PNG, JPG, WEBP</p>
+                <p className="text-[11px] text-[#71717a] mt-1">Also works on mobile — tap to use camera · PNG, JPG, WEBP</p>
               </div>
             </div>
           ) : (
@@ -309,7 +309,7 @@ function ScanVisionPanel({ onApplyCalories }) {
                 {/* Meal result */}
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
                   <div>
-                    <p className="text-[10px] text-[#52525b] uppercase tracking-widest font-semibold mb-1.5">Detected Food</p>
+                    <p className="text-[10px] text-[#71717a] uppercase tracking-widest font-semibold mb-1.5">Detected Food</p>
                     <h3 className="text-[20px] font-bold text-[#f0f0f3] tracking-tight">{result.foodName}</h3>
                     {result.portionSize && <p className="text-[12px] text-[#71717a] mt-1">{result.portionSize}</p>}
                   </div>
@@ -376,7 +376,7 @@ function ScanVisionPanel({ onApplyCalories }) {
                 )}
                 {/* Supplement result */}
                 <div className="mb-6">
-                  <p className="text-[10px] text-[#52525b] uppercase tracking-widest font-semibold mb-1.5">Product Detected</p>
+                  <p className="text-[10px] text-[#71717a] uppercase tracking-widest font-semibold mb-1.5">Product Detected</p>
                   <h3 className="text-[20px] font-bold text-[#f0f0f3] tracking-tight">{result.productName}</h3>
                   {result.brand && result.brand !== 'Unknown' && (
                     <p className="text-[12px] text-[#71717a] mt-1">by {result.brand} · {result.servingSize}</p>
@@ -390,12 +390,12 @@ function ScanVisionPanel({ onApplyCalories }) {
                 )}
 
                 <div className="mb-5">
-                  <p className="text-[11px] text-[#52525b] uppercase tracking-wider font-semibold mb-3">Key Ingredients</p>
+                  <p className="text-[11px] text-[#71717a] uppercase tracking-wider font-semibold mb-3">Key Ingredients</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {result.keyIngredients?.map((ing, i) => (
                       <div key={i} className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                         <p className="text-[11px] font-semibold text-[#f0f0f3]">{ing.name}</p>
-                        <p className="text-[10px] text-[#52525b] mt-0.5">{ing.amount}</p>
+                        <p className="text-[10px] text-[#71717a] mt-0.5">{ing.amount}</p>
                       </div>
                     ))}
                   </div>
@@ -423,7 +423,7 @@ function ScanVisionPanel({ onApplyCalories }) {
       </AnimatePresence>
 
       {/* ── Deployment note ── */}
-      <div className="text-[11px] text-[#3f3f46] text-center leading-relaxed">
+      <div className="text-[11px] text-[#6b7280] text-center leading-relaxed">
         For deployment: set <span className="font-mono bg-white/[0.04] px-1.5 py-0.5 rounded text-[10px]">VITE_GROQ_API_KEY=your_key</span> in your <span className="font-mono bg-white/[0.04] px-1.5 py-0.5 rounded text-[10px]">.env</span> file — no key prompt will appear for users.
       </div>
     </div>
@@ -624,7 +624,7 @@ function NutritionPanel({ healthData, updateDomain }) {
                <MacroPill label="Carbs" value={plan?.macros?.carbs || 0} unit="g" color="#f59e0b" />
                <MacroPill label="Fats" value={plan?.macros?.fat || 0} unit="g" color="#ef4444" />
                <div className="flex-1 flex flex-col items-center justify-center border border-white/[0.06] rounded-2xl bg-white/[0.02] p-4">
-                 <p className="text-[10px] text-[#52525b] uppercase tracking-widest font-semibold mb-1">Total Plan Calories</p>
+                 <p className="text-[10px] text-[#71717a] uppercase tracking-widest font-semibold mb-1">Total Plan Calories</p>
                  <p className="text-[28px] font-bold text-[#f0f0f3] leading-none">{plan?.totalCalories || 0}</p>
                </div>
             </div>
@@ -662,7 +662,7 @@ function HealthRecommendations({ recommendations }) {
   const sorted   = sortByFeedback(recommendations, feedback);
   return (
     <div className="space-y-5">
-      <p className="text-[11px] text-[#52525b]">Accept to prioritize · Mark Done to track completion · Not helpful to deprioritize</p>
+      <p className="text-[11px] text-[#71717a]">Accept to prioritize · Mark Done to track completion · Not helpful to deprioritize</p>
       {sorted.map((r, i) => (
         <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />
       ))}
@@ -896,7 +896,7 @@ export default function Health() {
               style={{ boxShadow: '0 0 30px rgba(249,115,22,0.05)' }}
             >
               <ScoreRing score={score} color="auto" label="" size={90} strokeWidth={7} />
-              <span className="text-[11px] text-[#52525b] uppercase tracking-[0.08em] font-semibold mt-2">Health Score</span>
+              <span className="text-[11px] text-[#71717a] uppercase tracking-[0.08em] font-semibold mt-2">Health Score</span>
             </motion.div>
 
             <HealthMetric icon={Moon} color="#a78bfa" label="Avg Sleep" value={`${h.sleepAvg}h`} subtitle="per night" delay={50} />
@@ -931,8 +931,8 @@ export default function Health() {
                       <linearGradient id="moodH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15}/><stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/></linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
-                    <YAxis tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
+                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="url(#sleepH)" strokeWidth={2} name="Sleep" />
                     <Area type="monotone" dataKey="mood" stroke="#f59e0b" fill="url(#moodH)" strokeWidth={2} name="Mood" />
@@ -959,8 +959,8 @@ export default function Health() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={trendData.slice(-14)} maxBarSize={16}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
-                    <YAxis tick={{ fill: '#52525b', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
+                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="stress" fill="#f43f5e" radius={[3, 3, 0, 0]} name="Stress" opacity={0.85} />
                     <Bar dataKey="water" fill="#0ea5e9" radius={[3, 3, 0, 0]} name="Water" opacity={0.85} />
@@ -978,20 +978,20 @@ export default function Health() {
                 <h3 className="dash-section-title">Body Metrics</h3>
                 <div className="grid grid-cols-4 gap-2.5">
                   {[
-                    { label: 'BMI', val: h.bmi || null, unit: '', color: h.bmi ? (h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#22c55e') : '#52525b', sub: h.bmi ? (h.bmi < 18.5 ? 'Underweight' : h.bmi > 25 ? 'Overweight' : 'Normal') : null },
-                    { label: 'Weight', val: h.weight || null, unit: 'kg', color: h.weight ? '#f0f0f3' : '#52525b', sub: null },
-                    { label: 'Body Fat', val: h.bodyFat || null, unit: '%', color: h.bodyFat ? '#f0f0f3' : '#52525b', sub: null },
-                    { label: 'Muscle', val: h.muscleMass || null, unit: 'kg', color: h.muscleMass ? '#f0f0f3' : '#52525b', sub: null },
+                    { label: 'BMI', val: h.bmi || null, unit: '', color: h.bmi ? (h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#22c55e') : '#71717a', sub: h.bmi ? (h.bmi < 18.5 ? 'Underweight' : h.bmi > 25 ? 'Overweight' : 'Normal') : null },
+                    { label: 'Weight', val: h.weight || null, unit: 'kg', color: h.weight ? '#f0f0f3' : '#71717a', sub: null },
+                    { label: 'Body Fat', val: h.bodyFat || null, unit: '%', color: h.bodyFat ? '#f0f0f3' : '#71717a', sub: null },
+                    { label: 'Muscle', val: h.muscleMass || null, unit: 'kg', color: h.muscleMass ? '#f0f0f3' : '#71717a', sub: null },
                   ].map(m => (
                     <div key={m.label} className="p-3.5 rounded-2xl border border-white/[0.04] bg-white/[0.02] text-center flex flex-col justify-center min-h-[85px]">
-                      <p className="text-[8px] text-[#52525b] uppercase tracking-wider font-semibold mb-1">{m.label}</p>
+                      <p className="text-[8px] text-[#71717a] uppercase tracking-wider font-semibold mb-1">{m.label}</p>
                       {m.val != null ? (
                         <p className="text-[18px] font-bold tracking-tight leading-none" style={{ color: m.color }}>
                           {typeof m.val === 'number' && !Number.isInteger(m.val) ? m.val.toFixed(1) : m.val}
-                          <span className="text-[9px] text-[#52525b] font-normal ml-0.5">{m.unit}</span>
+                          <span className="text-[9px] text-[#71717a] font-normal ml-0.5">{m.unit}</span>
                         </p>
                       ) : (
-                        <button onClick={() => setTab('log')} className="text-[13px] font-bold text-[#3f3f46] hover:text-[#a1a1aa] transition-colors" title="Log this metric">—</button>
+                        <button onClick={() => setTab('log')} className="text-[13px] font-bold text-[#6b7280] hover:text-[#a1a1aa] transition-colors" title="Log this metric">—</button>
                       )}
                       {m.sub && <p className="text-[8px] mt-1 font-medium" style={{ color: m.color }}>{m.sub}</p>}
                     </div>
@@ -999,14 +999,14 @@ export default function Health() {
                 </div>
               </div>
               <div className="pt-5 mt-5 border-t border-white/[0.04] flex items-center justify-between text-[11px]">
-                <span className="text-[#52525b]">Target BMI range</span>
+                <span className="text-[#71717a]">Target BMI range</span>
                 <span className="text-[#a1a1aa] font-semibold">18.5 - 24.9</span>
                 {h.bmi ? (
                   <span className={`font-bold px-2.5 py-0.5 rounded-lg text-[9px] uppercase tracking-wide ${h.bmi >= 18.5 && h.bmi <= 24.9 ? 'text-[#22c55e] bg-emerald-500/10' : 'text-[#f59e0b] bg-amber-500/10'}`}>
                     {h.bmi >= 18.5 && h.bmi <= 24.9 ? 'Normal' : h.bmi < 18.5 ? 'Low' : 'High'}
                   </span>
                 ) : (
-                  <span className="text-[#3f3f46] text-[9px]">Log BMI to track</span>
+                  <span className="text-[#6b7280] text-[9px]">Log BMI to track</span>
                 )}
               </div>
             </GlassCard>
@@ -1049,11 +1049,11 @@ export default function Health() {
                         <h4 className="font-semibold text-[12px] text-[#f0f0f3] truncate mb-0.5">{insight.title}</h4>
                         <p className="text-[11px] text-[#71717a] leading-relaxed line-clamp-2">{insight.text}</p>
                       </div>
-                      <span className="text-[#3f3f46] group-hover:text-[#71717a] transition-colors mt-1 text-sm">›</span>
+                      <span className="text-[#6b7280] group-hover:text-[#71717a] transition-colors mt-1 text-sm">›</span>
                     </div>
                   ))}
                   {healthInsights.length === 0 && (
-                    <p className="text-[12px] text-[#52525b] text-center py-8">No active insights. Keep logging your data.</p>
+                    <p className="text-[12px] text-[#71717a] text-center py-8">No active insights. Keep logging your data.</p>
                   )}
                 </div>
               </div>
@@ -1117,7 +1117,7 @@ export default function Health() {
                   return (
                     <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                       className="flex items-center gap-4 px-4 py-3 rounded-xl border border-white/[0.04] bg-white/[0.02]">
-                      <span className="text-[10px] text-[#52525b] font-mono min-w-[64px]">
+                      <span className="text-[10px] text-[#71717a] font-mono min-w-[64px]">
                         {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                       </span>
                       <div className="flex flex-wrap gap-2 flex-1">
@@ -1231,7 +1231,7 @@ export default function Health() {
               ].map((item, i) => (
                 <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                   className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                  <p className="text-[10px] text-[#52525b] font-semibold mb-3 uppercase tracking-wider">{item.label}</p>
+                  <p className="text-[10px] text-[#71717a] font-semibold mb-3 uppercase tracking-wider">{item.label}</p>
                   <p className="text-[13px] font-medium text-[#e4e4e7] leading-relaxed">{item.text}</p>
                 </motion.div>
               ))}

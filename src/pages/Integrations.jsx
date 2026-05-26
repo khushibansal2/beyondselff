@@ -26,7 +26,7 @@ function TabBar({ tabs, active, onChange }) {
           className={`flex items-center gap-2 flex-1 justify-center text-[12px] px-4 py-2.5 rounded-xl font-semibold transition-all min-w-[100px] ${
             active === t.id
               ? 'bg-[#18181b] border border-white/[0.08] text-[#f0f0f3] shadow-lg'
-              : 'text-[#52525b] hover:text-[#a1a1aa]'
+              : 'text-[#71717a] hover:text-[#a1a1aa]'
           }`}
         >
           <t.icon size={14} className={active === t.id ? t.color : ''} />
@@ -41,7 +41,7 @@ function StatusBadge({ status }) {
   const cfg = {
     live:  { cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400', dot: 'bg-emerald-400', label: 'Live' },
     demo:  { cls: 'bg-amber-500/10  border-amber-500/20  text-amber-400',   dot: 'bg-amber-400',   label: 'Demo' },
-    none:  { cls: 'bg-[#27272a]/50  border-white/[0.06]  text-[#71717a]',   dot: 'bg-[#52525b]',   label: 'Not Connected' },
+    none:  { cls: 'bg-[#27272a]/50  border-white/[0.06]  text-[#71717a]',   dot: 'bg-[#71717a]',   label: 'Not Connected' },
   };
   const c = cfg[status] ?? cfg.none;
   return (
@@ -163,7 +163,7 @@ function GitHubPanel() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-[16px] font-bold text-[#f0f0f3]">{profile.user.name || profile.user.login}</h2>
                     <a href={profile.user.html_url} target="_blank" rel="noreferrer"
-                      className="text-[11px] text-[#52525b] hover:text-indigo-400 transition-colors flex items-center gap-1">
+                      className="text-[11px] text-[#71717a] hover:text-indigo-400 transition-colors flex items-center gap-1">
                       @{profile.user.login} <ExternalLink size={10} />
                     </a>
                   </div>
@@ -184,7 +184,7 @@ function GitHubPanel() {
                       {profile.metrics.devScore}
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#52525b] mt-1">Dev Score</p>
+                  <p className="text-[10px] text-[#71717a] mt-1">Dev Score</p>
                 </div>
               </div>
 
@@ -199,7 +199,7 @@ function GitHubPanel() {
                   <div key={s.label} className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
                     <s.icon size={14} className="mx-auto mb-1.5" style={{ color: s.color }} />
                     <p className="text-[16px] font-bold text-[#f0f0f3]">{s.value}</p>
-                    <p className="text-[10px] text-[#52525b]">{s.label}</p>
+                    <p className="text-[10px] text-[#71717a]">{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -216,7 +216,7 @@ function GitHubPanel() {
                         <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: LANG_COLORS[l.lang] ?? '#6366f1' }} />
                         <span className="text-[12px] text-[#a1a1aa] font-medium">{l.lang}</span>
                       </div>
-                      <span className="text-[11px] text-[#52525b]">{l.count} repos · {l.pct}%</span>
+                      <span className="text-[11px] text-[#71717a]">{l.count} repos · {l.pct}%</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
                       <motion.div
@@ -240,9 +240,9 @@ function GitHubPanel() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-semibold text-[#a1a1aa] group-hover:text-indigo-300 transition-colors truncate">{r.name}</p>
-                        {r.description && <p className="text-[11px] text-[#52525b] mt-0.5 line-clamp-2 leading-relaxed">{r.description}</p>}
+                        {r.description && <p className="text-[11px] text-[#71717a] mt-0.5 line-clamp-2 leading-relaxed">{r.description}</p>}
                       </div>
-                      <ExternalLink size={11} className="text-[#3f3f46] group-hover:text-[#71717a] flex-shrink-0 mt-0.5" />
+                      <ExternalLink size={11} className="text-[#6b7280] group-hover:text-[#71717a] flex-shrink-0 mt-0.5" />
                     </div>
                     <div className="flex items-center gap-3 mt-2.5">
                       {r.language && (
@@ -285,9 +285,9 @@ function GitHubPanel() {
                       <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Career Analysis</h3>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-[#52525b]">Level:</span>
+                      <span className="text-[11px] text-[#71717a]">Level:</span>
                       <span className="text-[11px] font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full">{analysis.overallLevel}</span>
-                      <span className="text-[11px] text-[#52525b] ml-2">Hirability:</span>
+                      <span className="text-[11px] text-[#71717a] ml-2">Hirability:</span>
                       <span className="text-[12px] font-bold text-emerald-400">{analysis.hirability}%</span>
                     </div>
                   </div>
@@ -317,7 +317,7 @@ function GitHubPanel() {
                   </div>
 
                   <div className="mt-4">
-                    <p className="text-[11px] font-bold text-[#52525b] uppercase tracking-wider mb-2">Career Paths</p>
+                    <p className="text-[11px] font-bold text-[#71717a] uppercase tracking-wider mb-2">Career Paths</p>
                     <div className="flex flex-wrap gap-2">
                       {(analysis.careerPaths ?? []).map((p, i) => (
                         <span key={i} className="text-[11px] px-3 py-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-300 font-medium">{p}</span>
@@ -326,7 +326,7 @@ function GitHubPanel() {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-white/[0.05]">
-                    <p className="text-[11px] font-bold text-[#52525b] uppercase tracking-wider mb-2">Resume Tips</p>
+                    <p className="text-[11px] font-bold text-[#71717a] uppercase tracking-wider mb-2">Resume Tips</p>
                     <ul className="space-y-1.5">
                       {(analysis.resumeTips ?? []).map((t, i) => (
                         <li key={i} className="flex items-start gap-2 text-[12px] text-[#71717a]"><ChevronRight size={12} className="mt-0.5 text-indigo-500 flex-shrink-0" />{t}</li>
@@ -343,13 +343,13 @@ function GitHubPanel() {
       {/* Empty state */}
       {!profile && !loading && !error && (
         <GlassCard className="text-center py-12">
-          <GitBranch size={32} className="mx-auto mb-3 text-[#52525b]" />
+          <GitBranch size={32} className="mx-auto mb-3 text-[#71717a]" />
           <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">Analyze any GitHub profile</p>
-          <p className="text-[12px] text-[#52525b]">No authentication required · Works with any public profile</p>
+          <p className="text-[12px] text-[#71717a]">No authentication required · Works with any public profile</p>
           <div className="flex justify-center gap-2 mt-4 flex-wrap">
             {['torvalds', 'gvanrossum', 'sindresorhus', 'yyx990803'].map(u => (
               <button key={u} onClick={() => { setUsername(u); }}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] transition-all font-mono">
+                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all font-mono">
                 {u}
               </button>
             ))}
@@ -465,14 +465,14 @@ function LinkedInPanel() {
 
       {/* Search */}
       <GlassCard>
-        <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider mb-2.5">Search LinkedIn Profile</p>
+        <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider mb-2.5">Search LinkedIn Profile</p>
         <div className="flex gap-2">
           <input
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
             placeholder="Enter a name (e.g. Priya Sharma)"
-            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-[#0077b5]/40 transition-colors"
+            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-[#0077b5]/40 transition-colors"
           />
           <button
             onClick={handleSearch}
@@ -487,7 +487,7 @@ function LinkedInPanel() {
           <div className="flex gap-2 mt-3 flex-wrap">
             {['Arjun Mehta', 'Priya Sharma', 'Rahul Gupta', 'Ananya Singh'].map(n => (
               <button key={n} onClick={() => setSearchInput(n)}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] transition-all">
+                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all">
                 {n}
               </button>
             ))}
@@ -500,16 +500,16 @@ function LinkedInPanel() {
         <GlassCard className="text-center py-10">
           <Loader2 size={28} className="mx-auto mb-3 text-[#0077b5] animate-spin" />
           <p className="text-[13px] font-semibold text-[#a1a1aa]">Fetching profile for "{searchInput}"…</p>
-          <p className="text-[11px] text-[#52525b] mt-1">Connecting to LinkedIn Mock API</p>
+          <p className="text-[11px] text-[#71717a] mt-1">Connecting to LinkedIn Mock API</p>
         </GlassCard>
       )}
 
       {/* Empty state */}
       {!profile && !loading && (
         <GlassCard className="text-center py-12">
-          <Users size={32} className="mx-auto mb-3 text-[#52525b]" />
+          <Users size={32} className="mx-auto mb-3 text-[#71717a]" />
           <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">Search any LinkedIn profile</p>
-          <p className="text-[12px] text-[#52525b]">Enter a name above · Try a quick name suggestion to get started</p>
+          <p className="text-[12px] text-[#71717a]">Enter a name above · Try a quick name suggestion to get started</p>
         </GlassCard>
       )}
 
@@ -524,11 +524,11 @@ function LinkedInPanel() {
                 </div>
                 <div>
                   <h2 className="text-[15px] font-bold text-[#f0f0f3]">{profile.name}</h2>
-                  <p className="text-[11px] text-[#52525b] mt-0.5">{profile.location}</p>
+                  <p className="text-[11px] text-[#71717a] mt-0.5">{profile.location}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-[11px] text-[#00a0dc] font-semibold">{profile.connections} connections</span>
-                    <span className="text-[#3f3f46]">·</span>
-                    <span className="text-[11px] text-[#52525b]">{profile.followers} followers</span>
+                    <span className="text-[#6b7280]">·</span>
+                    <span className="text-[11px] text-[#71717a]">{profile.followers} followers</span>
                   </div>
                 </div>
               </div>
@@ -552,9 +552,9 @@ function LinkedInPanel() {
               { label: 'Post Impressions',   value: profile.analytics.postImpressions.toLocaleString(),   sub: 'last 30 days',  color: '#8b5cf6' },
             ].map(m => (
               <GlassCard key={m.label}>
-                <p className="text-[10px] text-[#52525b] font-medium mb-1.5 uppercase tracking-wider">{m.label}</p>
+                <p className="text-[10px] text-[#71717a] font-medium mb-1.5 uppercase tracking-wider">{m.label}</p>
                 <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
-                <p className="text-[10px] text-[#3f3f46] mt-0.5">{m.sub}</p>
+                <p className="text-[10px] text-[#6b7280] mt-0.5">{m.sub}</p>
               </GlassCard>
             ))}
           </div>
@@ -570,7 +570,7 @@ function LinkedInPanel() {
                 className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
                   activeTab === t.id
                     ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]'
-                    : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'
+                    : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
                 }`}>{t.label}
               </button>
             ))}
@@ -589,7 +589,7 @@ function LinkedInPanel() {
                         <div className="flex-1 min-w-0">
                           <p className="text-[13px] font-semibold text-[#f0f0f3]">{exp.title}</p>
                           <p className="text-[12px] text-[#a1a1aa]">{exp.company} · {exp.location}</p>
-                          <p className="text-[11px] text-[#52525b] mt-0.5">{exp.duration}</p>
+                          <p className="text-[11px] text-[#71717a] mt-0.5">{exp.duration}</p>
                           <ul className="mt-2.5 space-y-1.5">
                             {exp.highlights.map((h, j) => (
                               <li key={j} className="flex items-start gap-2 text-[11px] text-[#71717a]">
@@ -601,7 +601,7 @@ function LinkedInPanel() {
                       </div>
                     </GlassCard>
                   ))}
-                  <p className="text-[10px] font-bold text-[#52525b] uppercase tracking-wider px-1 pt-1">Education</p>
+                  <p className="text-[10px] font-bold text-[#71717a] uppercase tracking-wider px-1 pt-1">Education</p>
                   {profile.education.map((edu, i) => (
                     <GlassCard key={i}>
                       <div className="flex items-start gap-3">
@@ -609,7 +609,7 @@ function LinkedInPanel() {
                         <div>
                           <p className="text-[13px] font-semibold text-[#f0f0f3]">{edu.degree}</p>
                           <p className="text-[12px] text-[#a1a1aa]">{edu.institution}</p>
-                          <p className="text-[11px] text-[#52525b] mt-0.5">{edu.year} · {edu.grade}</p>
+                          <p className="text-[11px] text-[#71717a] mt-0.5">{edu.year} · {edu.grade}</p>
                         </div>
                       </div>
                     </GlassCard>
@@ -628,7 +628,7 @@ function LinkedInPanel() {
                         <div className="flex-1">
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-[12px] text-[#a1a1aa] font-medium">{s.name}</span>
-                            <span className="text-[10px] text-[#52525b]">{s.endorsements} endorsements</span>
+                            <span className="text-[10px] text-[#71717a]">{s.endorsements} endorsements</span>
                           </div>
                           <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
                             <motion.div
@@ -662,16 +662,16 @@ function LinkedInPanel() {
                               <div>
                                 <p className="text-[13px] font-semibold text-[#f0f0f3]">{job.title}</p>
                                 <p className="text-[12px] text-[#a1a1aa]">{job.company}</p>
-                                <p className="text-[11px] text-[#52525b] mt-0.5">{job.location} · {job.type} · Posted {job.postedAgo}</p>
+                                <p className="text-[11px] text-[#71717a] mt-0.5">{job.location} · {job.type} · Posted {job.postedAgo}</p>
                               </div>
                               <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${matchColor(job.match)} flex-shrink-0`}>{job.match}% match</span>
                             </div>
                             <div className="flex items-center gap-3 mt-2.5 flex-wrap">
                               <span className="text-[11px] text-emerald-400 font-semibold">{job.salary}</span>
-                              <span className="text-[10px] text-[#52525b]">{job.applicants} applicants</span>
+                              <span className="text-[10px] text-[#71717a]">{job.applicants} applicants</span>
                               <button
                                 onClick={() => setSavedJobs(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
-                                className={`text-[11px] px-3 py-1 rounded-full border transition-all font-semibold ml-auto ${savedJobs.includes(i) ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]' : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'}`}>
+                                className={`text-[11px] px-3 py-1 rounded-full border transition-all font-semibold ml-auto ${savedJobs.includes(i) ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]' : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'}`}>
                                 {savedJobs.includes(i) ? '✓ Saved' : 'Save'}
                               </button>
                               <button className="text-[11px] px-3 py-1 rounded-full bg-[#0077b5] text-white font-semibold hover:bg-[#006097] transition-all">Easy Apply</button>
@@ -767,7 +767,7 @@ function NutritionixPanel() {
             <Key size={11} /> {hasNutritionixKey() ? 'API Key Set' : 'Setup Keys'}
           </button>
         </div>
-        <p className="text-[12px] text-[#52525b] mb-4">Type your meal in plain English — the AI parses it into full nutritional data instantly.</p>
+        <p className="text-[12px] text-[#71717a] mb-4">Type your meal in plain English — the AI parses it into full nutritional data instantly.</p>
 
         {/* Key Setup */}
         <AnimatePresence>
@@ -810,7 +810,7 @@ function NutritionixPanel() {
         <div className="flex flex-wrap gap-1.5 mt-3">
           {['2 eggs and toast', 'chicken biryani', 'protein shake with banana', '1 cup oatmeal with berries'].map(ex => (
             <button key={ex} onClick={() => setQuery(ex)}
-              className="text-[10px] px-2.5 py-1 rounded-lg border border-white/[0.05] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] transition-all">
+              className="text-[10px] px-2.5 py-1 rounded-lg border border-white/[0.05] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all">
               {ex}
             </button>
           ))}
@@ -838,7 +838,7 @@ function NutritionixPanel() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Nutrition Breakdown</h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-[#52525b]">Health Score:</span>
+                  <span className="text-[11px] text-[#71717a]">Health Score:</span>
                   <span className="text-[14px] font-bold" style={{ color: result.healthScore >= 70 ? '#10b981' : result.healthScore >= 50 ? '#f59e0b' : '#ef4444' }}>
                     {result.healthScore}/100
                   </span>
@@ -848,7 +848,7 @@ function NutritionixPanel() {
               {/* Calorie hero */}
               <div className="text-center p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] mb-4">
                 <p className="text-[42px] font-black text-[#f0f0f3] leading-none">{result.total.calories}</p>
-                <p className="text-[12px] text-[#52525b] mt-1">total calories</p>
+                <p className="text-[12px] text-[#71717a] mt-1">total calories</p>
               </div>
 
               <div className="space-y-3">
@@ -872,12 +872,12 @@ function NutritionixPanel() {
                       </div>
                       <div>
                         <p className="text-[12px] font-medium text-[#a1a1aa] capitalize">{item.name}</p>
-                        <p className="text-[10px] text-[#52525b]">{item.qty}</p>
+                        <p className="text-[10px] text-[#71717a]">{item.qty}</p>
                       </div>
                     </div>
                     <div className="flex gap-3 text-right">
-                      <div><p className="text-[11px] font-bold text-[#f0f0f3]">{item.calories}</p><p className="text-[9px] text-[#52525b]">kcal</p></div>
-                      <div><p className="text-[11px] font-bold text-indigo-400">{item.protein}g</p><p className="text-[9px] text-[#52525b]">protein</p></div>
+                      <div><p className="text-[11px] font-bold text-[#f0f0f3]">{item.calories}</p><p className="text-[9px] text-[#71717a]">kcal</p></div>
+                      <div><p className="text-[11px] font-bold text-indigo-400">{item.protein}g</p><p className="text-[9px] text-[#71717a]">protein</p></div>
                     </div>
                   </div>
                 ))}
@@ -1032,7 +1032,7 @@ function FitbitPanel() {
         )}
 
         {configured === false && !connected && (
-          <div className="text-[12px] text-[#52525b] bg-white/[0.02] border border-white/[0.04] rounded-xl p-3">
+          <div className="text-[12px] text-[#71717a] bg-white/[0.02] border border-white/[0.04] rounded-xl p-3">
             <p className="font-semibold text-[#a1a1aa] mb-1">Setup required</p>
             <ol className="list-decimal list-inside space-y-1">
               <li>Register a free app at <a href="https://dev.fitbit.com/apps/new" target="_blank" rel="noreferrer" className="text-[#00b0b9] hover:underline">dev.fitbit.com/apps/new</a></li>
@@ -1044,7 +1044,7 @@ function FitbitPanel() {
         )}
 
         {configured === true && !connected && (
-          <p className="text-[12px] text-[#52525b]">
+          <p className="text-[12px] text-[#71717a]">
             Click <strong className="text-[#a1a1aa]">Connect Fitbit</strong> to authorize via OAuth. We fetch sleep, steps, heart rate, and calories — no password stored.
           </p>
         )}
@@ -1061,9 +1061,9 @@ function FitbitPanel() {
               { label: 'Distance',        value: h.distanceMetres ? `${(h.distanceMetres/1000).toFixed(1)}` : '—', unit: 'km', color: '#10b981', target: '8 km', pct: Math.round((h.distanceMetres||0)/8000*100), icon: <Activity size={14} /> },
             ].map(m => (
               <GlassCard key={m.label}>
-                <div className="flex items-center gap-1.5 mb-2" style={{ color: m.color }}>{m.icon}<p className="text-[11px] text-[#52525b]">{m.label}</p></div>
+                <div className="flex items-center gap-1.5 mb-2" style={{ color: m.color }}>{m.icon}<p className="text-[11px] text-[#71717a]">{m.label}</p></div>
                 <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
-                <p className="text-[10px] text-[#3f3f46]">{m.unit} · goal {m.target}</p>
+                <p className="text-[10px] text-[#6b7280]">{m.unit} · goal {m.target}</p>
                 <div className="h-1.5 rounded-full bg-white/[0.05] mt-2.5 overflow-hidden">
                   <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, m.pct)}%` }}
                     transition={{ duration: 0.8, ease: [0.16,1,0.3,1] }}
@@ -1081,7 +1081,7 @@ function FitbitPanel() {
                 <p className="text-[12px] font-semibold text-[#f0f0f3]">Sleep Last Night</p>
               </div>
               <p className="text-[36px] font-black text-[#8b5cf6]">{h.sleepHours ? `${h.sleepHours}h` : '—'}</p>
-              <p className="text-[11px] text-[#52525b] mt-1">
+              <p className="text-[11px] text-[#71717a] mt-1">
                 {!h.sleepHours ? 'No sleep data yet'
                   : h.sleepHours >= 7 ? '✅ Good rest'
                   : h.sleepHours >= 6 ? '⚠️ Below optimal (target 7–9h)'
@@ -1094,7 +1094,7 @@ function FitbitPanel() {
                 <p className="text-[12px] font-semibold text-[#f0f0f3]">Resting Heart Rate</p>
               </div>
               <p className="text-[36px] font-black text-[#ef4444]">{h.restingHeartRate || '—'}</p>
-              <p className="text-[11px] text-[#52525b] mt-1">
+              <p className="text-[11px] text-[#71717a] mt-1">
                 {!h.restingHeartRate ? 'No heart rate data yet'
                   : h.restingHeartRate < 60 ? '🏅 Athlete range (< 60 bpm)'
                   : h.restingHeartRate < 80 ? '✅ Normal range'
@@ -1310,13 +1310,13 @@ function IndiaBankingPanel() {
                 {synced ? <><CheckCircle size={11} /> Synced</> : <><Plus size={11} /> Sync to Finance</>}
               </button>
               <button onClick={handleReset}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa] transition-all">
+                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all">
                 Reset
               </button>
             </div>
           )}
         </div>
-        <p className="text-[12px] text-[#52525b] mt-2">
+        <p className="text-[12px] text-[#71717a] mt-2">
           Powered by India's <strong className="text-[#a1a1aa]">Account Aggregator (AA) framework</strong> — RBI-regulated, consent-based open banking. Choose a provider or upload a bank statement PDF for instant AI analysis.
         </p>
       </GlassCard>
@@ -1337,9 +1337,9 @@ function IndiaBankingPanel() {
                   </span>
                 </div>
                 <p className="text-[10px] font-semibold mb-1.5" style={{ color: p.color }}>{p.subtitle}</p>
-                <p className="text-[11px] text-[#52525b] leading-relaxed mb-3">{p.desc}</p>
+                <p className="text-[11px] text-[#71717a] leading-relaxed mb-3">{p.desc}</p>
                 <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.05]">
-                  <span className="text-[10px] text-[#3f3f46]">{p.banks}+ banks</span>
+                  <span className="text-[10px] text-[#6b7280]">{p.banks}+ banks</span>
                   <span className="text-[10px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>Connect →</span>
                 </div>
               </button>
@@ -1349,7 +1349,7 @@ function IndiaBankingPanel() {
           {/* Divider */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[11px] text-[#3f3f46] font-medium">or upload bank statement PDF directly</span>
+            <span className="text-[11px] text-[#6b7280] font-medium">or upload bank statement PDF directly</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
@@ -1369,11 +1369,11 @@ function IndiaBankingPanel() {
               <span className="text-3xl">🏦</span>
               <div className="text-center">
                 <p className="text-[13px] font-semibold text-[#f0f0f3] mb-1">Drop your bank statement PDF</p>
-                <p className="text-[11px] text-[#52525b]">AI extracts & categorises all transactions instantly</p>
+                <p className="text-[11px] text-[#71717a]">AI extracts & categorises all transactions instantly</p>
               </div>
               <div className="flex flex-wrap justify-center gap-1.5 mt-1">
                 {INDIA_BANKS.slice(0, 9).map(b => (
-                  <span key={b} className="text-[9px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[#52525b]">{b}</span>
+                  <span key={b} className="text-[9px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[#71717a]">{b}</span>
                 ))}
               </div>
             </div>
@@ -1385,7 +1385,7 @@ function IndiaBankingPanel() {
           </GlassCard>
 
           <button onClick={() => setPhase('demo')}
-            className="w-full text-[12px] py-2.5 rounded-xl border border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa] hover:bg-white/[0.02] transition-all">
+            className="w-full text-[12px] py-2.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] hover:bg-white/[0.02] transition-all">
             View Demo Data Instead
           </button>
         </motion.div>
@@ -1399,7 +1399,7 @@ function IndiaBankingPanel() {
               <div className="w-9 h-9 rounded-full border-2 border-emerald-400/60 border-t-emerald-400 animate-spin flex-shrink-0" />
               <div>
                 <p className="text-[14px] font-semibold text-[#f0f0f3]">Analysing bank statement…</p>
-                <p className="text-[12px] text-[#52525b]">Extracting · Categorising · Generating insights</p>
+                <p className="text-[12px] text-[#71717a]">Extracting · Categorising · Generating insights</p>
               </div>
             </div>
             <div className="space-y-2.5">
@@ -1408,7 +1408,7 @@ function IndiaBankingPanel() {
                   <div className="w-4 h-4 rounded-full border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
                   </div>
-                  <span className="text-[12px] text-[#52525b]">{step}</span>
+                  <span className="text-[12px] text-[#71717a]">{step}</span>
                 </div>
               ))}
             </div>
@@ -1434,17 +1434,17 @@ function IndiaBankingPanel() {
           {/* Summary row */}
           <div className="grid grid-cols-3 gap-3">
             <GlassCard>
-              <p className="text-[10px] text-[#52525b] mb-1.5 uppercase tracking-wider font-medium">Total Income</p>
+              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-medium">Total Income</p>
               <p className="text-[22px] font-black text-emerald-400">₹{totalIncome.toLocaleString('en-IN')}</p>
-              <p className="text-[10px] text-[#3f3f46]">this month</p>
+              <p className="text-[10px] text-[#6b7280]">this month</p>
             </GlassCard>
             <GlassCard>
-              <p className="text-[10px] text-[#52525b] mb-1.5 uppercase tracking-wider font-medium">Total Spent</p>
+              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-medium">Total Spent</p>
               <p className="text-[22px] font-black text-[#f97316]">₹{totalSpend.toLocaleString('en-IN')}</p>
-              <p className="text-[10px] text-[#3f3f46]">this month</p>
+              <p className="text-[10px] text-[#6b7280]">this month</p>
             </GlassCard>
             <GlassCard>
-              <p className="text-[10px] text-[#52525b] mb-1.5 uppercase tracking-wider font-medium">Savings Rate</p>
+              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-medium">Savings Rate</p>
               <p className="text-[22px] font-black text-indigo-400">{savingsRate}%</p>
               <div className="h-1.5 rounded-full bg-white/[0.05] mt-2 overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${savingsRate}%` }}
@@ -1464,7 +1464,7 @@ function IndiaBankingPanel() {
                 className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
                   activeView === v.id
                     ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                    : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'
+                    : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
                 }`}>
                 {v.label}
               </button>
@@ -1478,7 +1478,7 @@ function IndiaBankingPanel() {
               {activeView === 'transactions' && (
                 <GlassCard>
                   <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">
-                    Recent Transactions {isResults && <span className="text-[11px] font-normal text-[#52525b] ml-1">({txns.length} found)</span>}
+                    Recent Transactions {isResults && <span className="text-[11px] font-normal text-[#71717a] ml-1">({txns.length} found)</span>}
                   </h3>
                   <div className="space-y-2">
                     {txns.slice(0, 20).map((t, i) => {
@@ -1490,9 +1490,9 @@ function IndiaBankingPanel() {
                           <div className="flex-1 min-w-0">
                             <p className="text-[12px] font-medium text-[#a1a1aa] truncate">{t.name ?? t.description}</p>
                             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                              <span className="text-[10px] text-[#52525b]">{t.date}</span>
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#3f3f46] font-mono">{t.mode ?? 'UPI'}</span>
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#52525b]">{t.cat ?? t.category}</span>
+                              <span className="text-[10px] text-[#71717a]">{t.date}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#6b7280] font-mono">{t.mode ?? 'UPI'}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#71717a]">{t.cat ?? t.category}</span>
                             </div>
                           </div>
                           <span className={`text-[13px] font-bold flex-shrink-0 ${positive ? 'text-emerald-400' : 'text-[#f0f0f3]'}`}>
@@ -1544,11 +1544,11 @@ function IndiaBankingPanel() {
                       { label: 'NEFT / IMPS',      value: isResults ? txns.filter(t => ['NEFT','IMPS'].includes(t.mode) && t.debit).reduce((a,t)=>a+t.debit,0) : 18000, unit: 'wire transfers', color: '#10b981', prefix: '₹' },
                     ].map(m => (
                       <GlassCard key={m.label}>
-                        <p className="text-[10px] text-[#52525b] mb-1">{m.label}</p>
+                        <p className="text-[10px] text-[#71717a] mb-1">{m.label}</p>
                         <p className="text-[20px] font-black" style={{ color: m.color }}>
                           {m.prefix}{(m.isNum ? m.value : m.value).toLocaleString('en-IN')}
                         </p>
-                        <p className="text-[10px] text-[#3f3f46]">{m.unit}</p>
+                        <p className="text-[10px] text-[#6b7280]">{m.unit}</p>
                       </GlassCard>
                     ))}
                   </div>
@@ -1566,7 +1566,7 @@ function IndiaBankingPanel() {
                         { step: '04', text: 'You can revoke consent anytime — no data stored without permission' },
                       ].map(s => (
                         <div key={s.step} className="flex items-start gap-3">
-                          <span className="text-[10px] font-black text-[#3f3f46] font-mono mt-0.5 flex-shrink-0">{s.step}</span>
+                          <span className="text-[10px] font-black text-[#6b7280] font-mono mt-0.5 flex-shrink-0">{s.step}</span>
                           <p className="text-[12px] text-[#71717a] leading-relaxed">{s.text}</p>
                         </div>
                       ))}

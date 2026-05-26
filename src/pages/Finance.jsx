@@ -360,7 +360,7 @@ function FinanceRecommendations({ recommendations }) {
   const sorted = sortByFeedback(recommendations, feedback);
   return (
     <div className="space-y-5">
-      <p className="text-[11px] text-[#52525b]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
+      <p className="text-[11px] text-[#71717a]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
       {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
     </div>
   );
@@ -629,7 +629,7 @@ export default function Finance() {
             <MetricCard icon="🔄" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} color="#f59e0b" />
             <MetricCard icon="💎" label="Net Worth" value={`₹${((f.savings || 0) + (f.investments || 0) - (f.debt || 0)).toLocaleString()}`} color={(f.savings + f.investments - f.debt) >= 0 ? '#10b981' : '#ef4444'} />
             <div className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-4 flex flex-col items-center justify-center text-center">
-              <p className="text-[9px] text-[#52525b] uppercase tracking-widest font-semibold mb-1">Savings Rate</p>
+              <p className="text-[9px] text-[#71717a] uppercase tracking-widest font-semibold mb-1">Savings Rate</p>
               <p className="text-[24px] font-bold" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate}%</p>
               <p className="text-[9px] mt-1 font-medium" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate >= 20 ? 'Excellent' : savingsRate >= 10 ? 'Moderate' : 'Low'}</p>
             </div>
@@ -641,7 +641,7 @@ export default function Finance() {
               {f.expenses === 0 && categoryTotals.length === 0 ? (
                 <div className="h-52 flex flex-col items-center justify-center gap-3 text-center">
                   <span className="text-4xl opacity-30">📊</span>
-                  <p className="text-[13px] text-[#52525b]">No expenses yet — parse some SMS messages!</p>
+                  <p className="text-[13px] text-[#71717a]">No expenses yet — parse some SMS messages!</p>
                   <button onClick={() => setTab('parse')} className="text-[12px] px-4 py-2 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all">Open SMS Parser →</button>
                 </div>
               ) : (

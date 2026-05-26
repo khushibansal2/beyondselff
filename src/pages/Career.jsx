@@ -200,7 +200,7 @@ function ResumeTab({ career: c, updateDomain }) {
             <span className="text-lg">📄</span>
             <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Resume AI Intelligence</h3>
             <span className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border font-semibold ${phase === 'results' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-[#27272a]/50 border-white/[0.06] text-[#71717a]'}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${phase === 'results' ? 'bg-emerald-400' : 'bg-[#52525b]'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${phase === 'results' ? 'bg-emerald-400' : 'bg-[#71717a]'}`} />
               {phase === 'results' ? 'Analyzed' : 'Not Uploaded'}
             </span>
           </div>
@@ -578,7 +578,7 @@ function JobCard({ job, userSkills }) {
 
             {/* Meta row */}
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-              <span className="flex items-center gap-1 text-[11px] text-[#52525b]">
+              <span className="flex items-center gap-1 text-[11px] text-[#71717a]">
                 <MapPin size={10} />{job.location}
               </span>
               {job.remote && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold">Remote</span>}
@@ -595,12 +595,12 @@ function JobCard({ job, userSkills }) {
                     <span key={s} className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
                       isMatched
                         ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
-                        : 'bg-white/[0.03] border-white/[0.07] text-[#52525b]'
+                        : 'bg-white/[0.03] border-white/[0.07] text-[#71717a]'
                     }`}>{s}</span>
                   );
                 })}
                 {job.requiredSkills.length > 6 && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/[0.06] text-[#3f3f46]">+{job.requiredSkills.length - 6}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/[0.06] text-[#6b7280]">+{job.requiredSkills.length - 6}</span>
                 )}
               </div>
             )}
@@ -673,21 +673,21 @@ function JobsTab({ userSkills }) {
     <div className="space-y-5">
       {/* Search bar */}
       <GlassCard>
-        <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider mb-3">Live Job Market Search</p>
+        <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider mb-3">Live Job Market Search</p>
         <div className="flex gap-2 flex-col sm:flex-row">
           <div className="flex-1 relative">
-            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3f3f46]" />
+            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b7280]" />
             <input value={query} onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch()}
               placeholder="Role (e.g. React Developer, ML Engineer)"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-blue-500/40 transition-colors" />
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-blue-500/40 transition-colors" />
           </div>
           <div className="relative sm:w-44">
-            <MapPin size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3f3f46]" />
+            <MapPin size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b7280]" />
             <input value={location} onChange={e => setLocation(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch()}
               placeholder="Location (optional)"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-blue-500/40 transition-colors" />
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-blue-500/40 transition-colors" />
           </div>
           <button onClick={() => doSearch()} disabled={loading || !query.trim()}
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[12px] font-semibold hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0">
@@ -699,10 +699,10 @@ function JobsTab({ userSkills }) {
         {/* Suggestion chips */}
         {!searched && (
           <div className="flex gap-2 mt-3 flex-wrap">
-            <span className="text-[10px] text-[#3f3f46] self-center">Try:</span>
+            <span className="text-[10px] text-[#6b7280] self-center">Try:</span>
             {SUGGESTIONS.map(s => (
               <button key={s} onClick={() => { setQuery(s); doSearch(s); }}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] transition-all">
+                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all">
                 {s}
               </button>
             ))}
@@ -714,7 +714,7 @@ function JobsTab({ userSkills }) {
           <div className="flex items-center gap-3 mt-3 flex-wrap">
             <div className="flex gap-1.5 flex-wrap">
               {sources.map(src => (
-                <span key={src} className="text-[10px] px-2 py-0.5 rounded-full border font-semibold bg-white/[0.03] border-white/[0.08] text-[#52525b]">
+                <span key={src} className="text-[10px] px-2 py-0.5 rounded-full border font-semibold bg-white/[0.03] border-white/[0.08] text-[#71717a]">
                   {src} · {jobs.filter(j => j.source === src).length}
                 </span>
               ))}
@@ -722,7 +722,7 @@ function JobsTab({ userSkills }) {
             <div className="flex gap-1 ml-auto flex-wrap">
               {['all', 'remote', 'salary', 'match80'].map(f => (
                 <button key={f} onClick={() => setFilter(f)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${filter === f ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'}`}>
+                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${filter === f ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'}`}>
                   {f === 'all' ? 'All' : f === 'remote' ? '🌐 Remote' : f === 'salary' ? '💰 Salary' : '🎯 80%+ Match'}
                 </button>
               ))}
@@ -756,7 +756,7 @@ function JobsTab({ userSkills }) {
         <GlassCard className="text-center py-8 border border-rose-500/15">
           <AlertTriangle size={28} className="mx-auto mb-2 text-rose-400" />
           <p className="text-[13px] text-[#a1a1aa] font-semibold mb-1">Search Failed</p>
-          <p className="text-[11px] text-[#52525b]">{error}</p>
+          <p className="text-[11px] text-[#71717a]">{error}</p>
           <button onClick={() => doSearch()} className="mt-4 px-4 py-2 rounded-xl border border-white/[0.1] text-[12px] text-[#a1a1aa] hover:text-white transition-all flex items-center gap-2 mx-auto">
             <RefreshCw size={12} /> Retry
           </button>
@@ -766,10 +766,10 @@ function JobsTab({ userSkills }) {
       {/* Empty state */}
       {!searched && !loading && (
         <GlassCard className="text-center py-12">
-          <Briefcase size={32} className="mx-auto mb-3 text-[#52525b]" />
+          <Briefcase size={32} className="mx-auto mb-3 text-[#71717a]" />
           <p className="text-[14px] font-semibold text-[#a1a1aa] mb-1">Real-time Job Market</p>
-          <p className="text-[12px] text-[#52525b]">Powered by Arbeitnow · Remotive · Adzuna · JSearch</p>
-          <p className="text-[11px] text-[#3f3f46] mt-1">Enter a role above to search live job listings and see your match score on each card</p>
+          <p className="text-[12px] text-[#71717a]">Powered by Arbeitnow · Remotive · Adzuna · JSearch</p>
+          <p className="text-[11px] text-[#6b7280] mt-1">Enter a role above to search live job listings and see your match score on each card</p>
         </GlassCard>
       )}
 
@@ -785,7 +785,7 @@ function JobsTab({ userSkills }) {
       {filtered.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <p className="text-[11px] text-[#52525b]">{filtered.length} jobs{userSkills?.length ? ' · sorted by your skill match' : ''}</p>
+            <p className="text-[11px] text-[#71717a]">{filtered.length} jobs{userSkills?.length ? ' · sorted by your skill match' : ''}</p>
             {userSkills?.length === 0 && (
               <p className="text-[11px] text-amber-400">Upload your resume to see match scores</p>
             )}
@@ -886,13 +886,13 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
       <GlassCard>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex-1 relative min-w-0">
-            <Target size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3f3f46]" />
+            <Target size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b7280]" />
             <input value={roleInput} onChange={e => setRoleInput(e.target.value)}
               placeholder="Target role (e.g. Senior React Developer)"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-violet-500/40 transition-colors" />
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-violet-500/40 transition-colors" />
           </div>
           <button onClick={() => { setJobs([]); setCoach(null); handleLoadMarketJobs(); }}
-            className="text-[11px] px-3.5 py-2.5 rounded-xl border border-white/[0.08] text-[#52525b] hover:text-[#a1a1aa] transition-all flex items-center gap-1.5">
+            className="text-[11px] px-3.5 py-2.5 rounded-xl border border-white/[0.08] text-[#71717a] hover:text-[#a1a1aa] transition-all flex items-center gap-1.5">
             <RefreshCw size={12} /> Refresh
           </button>
         </div>
@@ -907,7 +907,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
               className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
                 section === s.id
                   ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
-                  : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'
+                  : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
               }`}>{s.icon} {s.label}
             </button>
           ))}
@@ -936,7 +936,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   { label: 'Gap Skills', value: missingAgg.filter(m => m.priority === 'critical' || m.priority === 'high').length, color: '#f59e0b', icon: '📚' },
                 ].map(m => (
                   <GlassCard key={m.label}>
-                    <p className="text-[9px] text-[#52525b] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
+                    <p className="text-[9px] text-[#71717a] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
                     <p className="text-[26px] font-black leading-none" style={{ color: m.color }}>{m.value}</p>
                   </GlassCard>
                 ))}
@@ -946,12 +946,12 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
               {jobsLoading && (
                 <GlassCard className="text-center py-6">
                   <Loader2 size={20} className="mx-auto mb-2 text-violet-400 animate-spin" />
-                  <p className="text-[12px] text-[#52525b]">Fetching live market data…</p>
+                  <p className="text-[12px] text-[#71717a]">Fetching live market data…</p>
                 </GlassCard>
               )}
               {!jobsLoading && !jobs.length && (
                 <GlassCard className="text-center py-6">
-                  <p className="text-[12px] text-[#52525b] mb-3">Fetch live job listings to generate skill gap analysis</p>
+                  <p className="text-[12px] text-[#71717a] mb-3">Fetch live job listings to generate skill gap analysis</p>
                   <button onClick={handleLoadMarketJobs}
                     className="px-5 py-2 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[12px] font-semibold hover:bg-violet-500/25 transition-all flex items-center gap-2 mx-auto">
                     <RefreshCw size={12} /> Load Market Data
@@ -965,7 +965,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   <div className="flex items-center gap-2 mb-3">
                     <Zap size={13} className="text-amber-400" />
                     <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Skills Gap — Market Demand</h3>
-                    <span className="text-[10px] text-[#52525b] ml-auto">Based on {jobs.length} live listings</span>
+                    <span className="text-[10px] text-[#71717a] ml-auto">Based on {jobs.length} live listings</span>
                   </div>
                   <div className="space-y-2">
                     {missingAgg.map((m, i) => (
@@ -978,7 +978,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                             <motion.div initial={{ width: 0 }} animate={{ width: `${m.pct}%` }} transition={{ duration: 0.8, delay: i * 0.04 }}
                               className="h-full rounded-full bg-amber-500" />
                           </div>
-                          <span className="text-[10px] text-[#52525b] w-8 text-right">{m.pct}%</span>
+                          <span className="text-[10px] text-[#71717a] w-8 text-right">{m.pct}%</span>
                         </div>
                       </motion.div>
                     ))}
@@ -1004,7 +1004,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
               {/* Top matching job preview */}
               {topJob && (
                 <GlassCard>
-                  <p className="text-[10px] text-[#52525b] uppercase tracking-wider font-semibold mb-2">🏆 Top Matching Job</p>
+                  <p className="text-[10px] text-[#71717a] uppercase tracking-wider font-semibold mb-2">🏆 Top Matching Job</p>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-semibold text-[#f0f0f3] truncate">{topJob.title}</p>
@@ -1028,9 +1028,9 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   { label: 'Max Estimate',  value: `₹${salary.max}L`,  color: '#10b981' },
                 ].map(m => (
                   <GlassCard key={m.label}>
-                    <p className="text-[9px] text-[#52525b] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
+                    <p className="text-[9px] text-[#71717a] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
                     <p className="text-[24px] font-black leading-none" style={{ color: m.color }}>{m.value}</p>
-                    <p className="text-[9px] text-[#3f3f46] mt-1">per annum</p>
+                    <p className="text-[9px] text-[#6b7280] mt-1">per annum</p>
                   </GlassCard>
                 ))}
               </div>
@@ -1053,8 +1053,8 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={salaryChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barSize={14}>
-                      <XAxis dataKey="role" tick={{ fill: '#52525b', fontSize: 9 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#52525b', fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="role" tick={{ fill: '#71717a', fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#71717a', fontSize: 9 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<SalaryTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                       <Bar dataKey="min" name="min" fill="#f43f5e" fillOpacity={0.6} radius={[3,3,0,0]} />
                       <Bar dataKey="mid" name="mid" fill="#3b82f6" fillOpacity={0.8} radius={[3,3,0,0]} />
@@ -1066,7 +1066,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   {[['#f43f5e','Min'],['#3b82f6','Mid'],['#10b981','Max']].map(([c,l]) => (
                     <div key={l} className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 rounded-sm" style={{ background: c }} />
-                      <span className="text-[10px] text-[#52525b]">{l}</span>
+                      <span className="text-[10px] text-[#71717a]">{l}</span>
                     </div>
                   ))}
                 </div>
@@ -1084,7 +1084,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                         <div className="h-full rounded-full bg-gradient-to-r from-blue-500/60 to-violet-500/60"
                           style={{ width: `${(row.max / 100) * 100}%` }} />
                       </div>
-                      <span className="text-[11px] text-[#52525b] w-24 text-right flex-shrink-0">₹{row.min}–{row.max}L</span>
+                      <span className="text-[11px] text-[#71717a] w-24 text-right flex-shrink-0">₹{row.min}–{row.max}L</span>
                     </motion.div>
                   ))}
                 </div>
@@ -1102,8 +1102,8 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                     <Brain size={26} className="text-violet-400" />
                   </div>
                   <h3 className="text-[14px] font-semibold text-[#f0f0f3] mb-1">AI Career Coach</h3>
-                  <p className="text-[12px] text-[#52525b] mb-1">Powered by Groq · llama-3.3-70b</p>
-                  <p className="text-[11px] text-[#3f3f46] mb-5">Generates a personalised roadmap, portfolio ideas, interview tips and weekly plan based on your resume + market data.</p>
+                  <p className="text-[12px] text-[#71717a] mb-1">Powered by Groq · llama-3.3-70b</p>
+                  <p className="text-[11px] text-[#6b7280] mb-5">Generates a personalised roadmap, portfolio ideas, interview tips and weekly plan based on your resume + market data.</p>
                   {coachError && (
                     <p className="text-[12px] text-rose-400 mb-4">{coachError}</p>
                   )}
@@ -1120,7 +1120,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   {/* Readiness + verdict */}
                   <div className="grid grid-cols-2 gap-3">
                     <GlassCard className="col-span-2 sm:col-span-1">
-                      <p className="text-[10px] text-[#52525b] uppercase tracking-wider mb-2">Career Readiness</p>
+                      <p className="text-[10px] text-[#71717a] uppercase tracking-wider mb-2">Career Readiness</p>
                       <div className="flex items-end gap-3">
                         <span className="text-[40px] font-black leading-none"
                           style={{ color: coach.readinessScore >= 70 ? '#10b981' : coach.readinessScore >= 50 ? '#f59e0b' : '#f43f5e' }}>
@@ -1130,7 +1130,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                       </div>
                     </GlassCard>
                     <GlassCard className="col-span-2 sm:col-span-1 border border-violet-500/10 bg-violet-500/[0.03]">
-                      <p className="text-[10px] text-[#52525b] uppercase tracking-wider mb-2">💡 Twin Insight</p>
+                      <p className="text-[10px] text-[#71717a] uppercase tracking-wider mb-2">💡 Twin Insight</p>
                       <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{coach.digitalTwinInsight}</p>
                     </GlassCard>
                   </div>
@@ -1148,7 +1148,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                             className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-[12px] font-semibold text-[#f0f0f3]">{item.skill}</span>
-                              <span className="text-[10px] text-[#52525b]">{item.weeks}w estimate</span>
+                              <span className="text-[10px] text-[#71717a]">{item.weeks}w estimate</span>
                             </div>
                             <p className="text-[11px] text-[#71717a] mb-1.5">{item.reason}</p>
                             {item.resource && (
@@ -1195,7 +1195,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                           <div key={i} className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                             <p className="text-[10px] font-bold text-emerald-400 mb-1">{day.days}</p>
                             <p className="text-[11px] font-semibold text-[#a1a1aa] mb-1">{day.focus}</p>
-                            <p className="text-[10px] text-[#52525b] leading-relaxed">{day.task}</p>
+                            <p className="text-[10px] text-[#71717a] leading-relaxed">{day.task}</p>
                           </div>
                         ))}
                       </div>
@@ -1226,7 +1226,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
 
                   {/* Regenerate button */}
                   <button onClick={() => { setCoach(null); setCoachError(null); }}
-                    className="w-full py-2.5 rounded-xl border border-white/[0.08] text-[12px] text-[#52525b] hover:text-[#a1a1aa] transition-all flex items-center justify-center gap-2">
+                    className="w-full py-2.5 rounded-xl border border-white/[0.08] text-[12px] text-[#71717a] hover:text-[#a1a1aa] transition-all flex items-center justify-center gap-2">
                     <RefreshCw size={12} /> Regenerate Career Plan
                   </button>
                 </div>
@@ -1275,8 +1275,8 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   ].map(d => (
                     <div key={d.domain} className={`p-3 rounded-xl border ${d.status ? 'border-emerald-500/20 bg-emerald-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                       <span className="text-xl">{d.icon}</span>
-                      <p className="text-[10px] text-[#52525b] mt-1">{d.domain}</p>
-                      <p className={`text-[9px] font-bold ${d.status ? 'text-emerald-400' : 'text-[#3f3f46]'}`}>{d.status ? 'Logged' : 'No data'}</p>
+                      <p className="text-[10px] text-[#71717a] mt-1">{d.domain}</p>
+                      <p className={`text-[9px] font-bold ${d.status ? 'text-emerald-400' : 'text-[#6b7280]'}`}>{d.status ? 'Logged' : 'No data'}</p>
                     </div>
                   ))}
                 </div>
@@ -1306,7 +1306,7 @@ function CareerRecommendations({ recommendations }) {
   const sorted = sortByFeedback(recommendations, feedback);
   return (
     <div className="space-y-5">
-      <p className="text-[11px] text-[#52525b]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
+      <p className="text-[11px] text-[#71717a]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
       {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
     </div>
   );

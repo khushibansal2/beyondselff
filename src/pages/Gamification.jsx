@@ -194,12 +194,12 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold">RECOVERY ARC</span>
               )}
             </div>
-            <p className="text-[12px] text-[#52525b] mb-3">Anonymous Identity · {tier.name} Tier</p>
+            <p className="text-[12px] text-[#71717a] mb-3">Anonymous Identity · {tier.name} Tier</p>
 
             {/* XP Progress */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-[10px]">
-                <span className="text-[#52525b] font-semibold uppercase tracking-wider">{currentTier.name} → {nextTier.name}</span>
+                <span className="text-[#71717a] font-semibold uppercase tracking-wider">{currentTier.name} → {nextTier.name}</span>
                 <span className="text-[#71717a]">{xp.toLocaleString()} / {nextTier.min.toLocaleString()} XP</span>
               </div>
               <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
@@ -207,7 +207,7 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
                   className="h-full rounded-full"
                   style={{ background: `linear-gradient(90deg, ${tier.color}, ${nextTier.color})`, boxShadow: `0 0 12px ${tier.color}60` }} />
               </div>
-              <p className="text-[10px] text-[#3f3f46]">{pct}% to {nextTier.name}</p>
+              <p className="text-[10px] text-[#6b7280]">{pct}% to {nextTier.name}</p>
             </div>
           </div>
 
@@ -219,7 +219,7 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
                 {Math.max(0, harmony)}
               </span>
             </div>
-            <p className="text-[9px] text-[#52525b] mt-1 font-semibold">HARMONY</p>
+            <p className="text-[9px] text-[#71717a] mt-1 font-semibold">HARMONY</p>
           </div>
         </div>
 
@@ -245,7 +245,7 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
           ))}
         </div>
         <div className="mt-4 pt-3 border-t border-white/[0.05] flex items-center justify-between">
-          <p className="text-[11px] text-[#52525b]">Overall improvement vs Shadow Self</p>
+          <p className="text-[11px] text-[#71717a]">Overall improvement vs Shadow Self</p>
           <span className="text-[13px] font-bold text-emerald-400">
             +{Math.round(STAT_META.reduce((a, m) => a + (stats[m.key] - prevStats[m.key]), 0) / STAT_META.length)} avg
           </span>
@@ -260,7 +260,7 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
             <GlassCard key={m.key} className="text-center !p-3">
               <Icon size={16} className="mx-auto mb-1.5" style={{ color: m.color }} />
               <p className="text-[18px] font-black text-[#f0f0f3]">{stats[m.key]}</p>
-              <p className="text-[9px] text-[#52525b] mt-0.5 leading-tight">{m.label}</p>
+              <p className="text-[9px] text-[#71717a] mt-0.5 leading-tight">{m.label}</p>
             </GlassCard>
           );
         })}
@@ -360,8 +360,8 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
         )}
 
         {aiQuests.length === 0 && !loading && (
-          <div className="text-center py-10 text-[#52525b]">
-            <Sparkles size={28} className="mx-auto mb-3 text-[#3f3f46]" />
+          <div className="text-center py-10 text-[#71717a]">
+            <Sparkles size={28} className="mx-auto mb-3 text-[#6b7280]" />
             <p className="text-[13px] font-semibold text-[#71717a] mb-1">No quests yet</p>
             <p className="text-[12px]">Click Generate to get AI-personalized quests based on your weakest stats.</p>
           </div>
@@ -377,9 +377,9 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
                   <span className="text-xl flex-shrink-0">{q.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <p className={`text-[12px] font-semibold ${done ? 'line-through text-[#52525b]' : 'text-[#f0f0f3]'}`}>{q.title}</p>
+                      <p className={`text-[12px] font-semibold ${done ? 'line-through text-[#71717a]' : 'text-[#f0f0f3]'}`}>{q.title}</p>
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold capitalize ${DIFF_COLOR[q.difficulty] ?? DIFF_COLOR.medium}`}>{q.difficulty}</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[#52525b] capitalize">{q.type}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[#71717a] capitalize">{q.type}</span>
                     </div>
                     <p className="text-[11px] text-[#71717a] leading-relaxed">{q.description}</p>
                     <div className="flex items-center justify-between mt-2">
@@ -418,13 +418,13 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
                   <span className="text-lg">{ch.icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-[12px] font-semibold text-[#f0f0f3] truncate">{ch.title}</p>
-                    <p className="text-[10px] text-[#52525b]">{ch.duration}</p>
+                    <p className="text-[10px] text-[#71717a]">{ch.duration}</p>
                   </div>
                 </div>
                 <p className="text-[11px] text-[#71717a] mb-2.5 leading-relaxed">{ch.desc}</p>
                 {isActive && (
                   <div className="mb-2.5">
-                    <div className="flex justify-between text-[10px] text-[#52525b] mb-1"><span>Progress</span><span>{progress}%</span></div>
+                    <div className="flex justify-between text-[10px] text-[#71717a] mb-1"><span>Progress</span><span>{progress}%</span></div>
                     <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
                       <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1 }}
                         className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" />
@@ -502,7 +502,7 @@ function GrindRoomPanel({ onXP }) {
             <Clock size={14} className="text-indigo-400" />
             <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Silent Grind Rooms</h3>
           </div>
-          <p className="text-[12px] text-[#52525b] mb-5">Join anonymously. Work in silence. Earn XP on completion. Others are grinding right now.</p>
+          <p className="text-[12px] text-[#71717a] mb-5">Join anonymously. Work in silence. Earn XP on completion. Others are grinding right now.</p>
           <div className="space-y-2.5">
             {GRIND_ROOMS.map(room => (
               <button key={room.id} onClick={() => enterRoom(room)}
@@ -510,13 +510,13 @@ function GrindRoomPanel({ onXP }) {
                 <span className="text-2xl flex-shrink-0">{room.icon}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-[#f0f0f3]">{room.name}</p>
-                  <p className="text-[11px] text-[#52525b]">{room.type} · {room.sound}</p>
+                  <p className="text-[11px] text-[#71717a]">{room.type} · {room.sound}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-[12px] font-bold text-[#a1a1aa]">{room.minutes} min</p>
                   <p className="text-[10px] text-emerald-400">{room.users} grinding</p>
                 </div>
-                <ChevronRight size={14} className="text-[#3f3f46] group-hover:text-[#71717a] flex-shrink-0" />
+                <ChevronRight size={14} className="text-[#6b7280] group-hover:text-[#71717a] flex-shrink-0" />
               </button>
             ))}
           </div>
@@ -524,7 +524,7 @@ function GrindRoomPanel({ onXP }) {
 
         {sessions > 0 && (
           <GlassCard className="border border-emerald-500/15">
-            <p className="text-[11px] text-[#52525b] mb-1 font-semibold uppercase tracking-wider">Today's Grind</p>
+            <p className="text-[11px] text-[#71717a] mb-1 font-semibold uppercase tracking-wider">Today's Grind</p>
             <p className="text-[24px] font-black text-emerald-400">{sessions} session{sessions !== 1 ? 's' : ''} completed</p>
           </GlassCard>
         )}
@@ -541,10 +541,10 @@ function GrindRoomPanel({ onXP }) {
             <span className="text-2xl">{selectedRoom.icon}</span>
             <div>
               <p className="text-[14px] font-bold text-[#f0f0f3]">{selectedRoom.name}</p>
-              <p className="text-[11px] text-[#52525b]">{selectedRoom.type} · {selectedRoom.sound}</p>
+              <p className="text-[11px] text-[#71717a]">{selectedRoom.type} · {selectedRoom.sound}</p>
             </div>
           </div>
-          <button onClick={() => setSelectedRoom(null)} className="text-[11px] text-[#52525b] hover:text-[#a1a1aa] transition-colors">← Rooms</button>
+          <button onClick={() => setSelectedRoom(null)} className="text-[11px] text-[#71717a] hover:text-[#a1a1aa] transition-colors">← Rooms</button>
         </div>
 
         {/* Timer */}
@@ -560,7 +560,7 @@ function GrindRoomPanel({ onXP }) {
             </svg>
             <div className="text-center z-10">
               <p className="text-[32px] font-black text-[#f0f0f3] tabular-nums leading-none">{fmtTime(timeLeft)}</p>
-              <p className="text-[10px] text-[#52525b] mt-1">{pct}% complete</p>
+              <p className="text-[10px] text-[#71717a] mt-1">{pct}% complete</p>
             </div>
           </div>
         </div>
@@ -579,14 +579,14 @@ function GrindRoomPanel({ onXP }) {
             style={{ background: running ? 'rgba(239,68,68,0.2)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: running ? '1px solid rgba(239,68,68,0.3)' : 'none', color: running ? '#fca5a5' : 'white' }}>
             {running ? <><Pause size={14} /> Pause</> : <><Play size={14} /> {done ? 'Done' : timeLeft === selectedRoom.minutes * 60 ? 'Start' : 'Resume'}</>}
           </button>
-          <button onClick={reset} className="p-2.5 rounded-xl border border-white/[0.08] text-[#52525b] hover:text-[#a1a1aa] transition-all">
+          <button onClick={reset} className="p-2.5 rounded-xl border border-white/[0.08] text-[#71717a] hover:text-[#a1a1aa] transition-all">
             <RotateCcw size={14} />
           </button>
         </div>
 
         {/* Live presence */}
         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-          <p className="text-[10px] text-[#52525b] font-semibold uppercase tracking-wider mb-3">
+          <p className="text-[10px] text-[#71717a] font-semibold uppercase tracking-wider mb-3">
             {selectedRoom.users + (running ? 1 : 0)} grinding in silence
           </p>
           <div className="flex flex-wrap gap-2">
@@ -594,7 +594,7 @@ function GrindRoomPanel({ onXP }) {
               <div key={name} className="flex items-center gap-1.5">
                 <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2 + i * 0.3, repeat: Infinity }}
                   className="w-2 h-2 rounded-full bg-indigo-400" />
-                <span className="text-[10px] text-[#52525b]">{name}</span>
+                <span className="text-[10px] text-[#71717a]">{name}</span>
               </div>
             ))}
             {running && (
@@ -616,7 +616,7 @@ function GrindRoomPanel({ onXP }) {
 
       {sessions > 0 && (
         <GlassCard className="border border-emerald-500/15">
-          <p className="text-[11px] text-[#52525b] mb-1 uppercase tracking-wider">Sessions today</p>
+          <p className="text-[11px] text-[#71717a] mb-1 uppercase tracking-wider">Sessions today</p>
           <p className="text-[22px] font-black text-emerald-400">{sessions} completed</p>
         </GlassCard>
       )}
@@ -670,7 +670,7 @@ function PeersPanel({ userScores, codename }) {
         <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
           <Trophy size={14} className="text-amber-400" /> Anonymous Leaderboard
         </h3>
-        <p className="text-[11px] text-[#52525b] mb-4">You + 4 anonymised peers · Real scores, hidden identities</p>
+        <p className="text-[11px] text-[#71717a] mb-4">You + 4 anonymised peers · Real scores, hidden identities</p>
         <div className="space-y-2">
           {leaderboard.map(p => (
             <div key={p.name} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${p.isMe ? 'bg-indigo-500/[0.08] border border-indigo-500/30' : 'bg-white/[0.02] border border-white/[0.05]'}`}>
@@ -700,7 +700,7 @@ function PeersPanel({ userScores, codename }) {
         <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
           <Swords size={14} className="text-rose-400" /> Global Challenges
         </h3>
-        <p className="text-[11px] text-[#52525b] mb-4">Join a community challenge · Earn XP · Beat your peers</p>
+        <p className="text-[11px] text-[#71717a] mb-4">Join a community challenge · Earn XP · Beat your peers</p>
         <div className="grid sm:grid-cols-2 gap-3">
           {SOCIAL_CHALLENGES.map(ch => {
             const isJoined = joined.has(ch.id);
@@ -747,7 +747,7 @@ function GuildsPanel({ myGuildId, onJoin }) {
           <Users size={14} className="text-purple-400" />
           <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Anonymous Guilds</h3>
         </div>
-        <p className="text-[12px] text-[#52525b] mb-5">Join a guild to share XP, complete collective quests, and build accountability — all anonymously. You will never need to reveal your identity.</p>
+        <p className="text-[12px] text-[#71717a] mb-5">Join a guild to share XP, complete collective quests, and build accountability — all anonymously. You will never need to reveal your identity.</p>
 
         {myGuildId && (
           <div className="mb-4 p-3 rounded-xl bg-indigo-500/[0.06] border border-indigo-500/15 flex items-center gap-2">
@@ -777,11 +777,11 @@ function GuildsPanel({ myGuildId, onJoin }) {
                 </div>
                 <p className="text-[11px] text-[#71717a] leading-relaxed mb-3">{guild.desc}</p>
                 <div className="flex items-center justify-between text-[10px] mb-3">
-                  <span className="text-[#52525b]">{guild.members.toLocaleString()} members</span>
+                  <span className="text-[#71717a]">{guild.members.toLocaleString()} members</span>
                   <span style={{ color: guild.color }} className="font-semibold">{guild.xp} collective XP</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[#52525b]">Focus: {guild.stat}</span>
+                  <span className="text-[10px] text-[#71717a]">Focus: {guild.stat}</span>
                   <button
                     onClick={() => { onJoin(isMine ? null : guild.id); showToast(isMine ? 'Left guild' : `Joined ${guild.name}!`, isMine ? 'info' : 'success'); }}
                     className="text-[10px] px-3 py-1.5 rounded-xl border font-semibold transition-all"
@@ -816,8 +816,8 @@ function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
             <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.07 }}
               className="text-center p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
               <span className="text-2xl block mb-2">{s.icon}</span>
-              <p className="text-[20px] font-black text-[#f0f0f3]">{s.value}<span className="text-[10px] text-[#52525b] font-normal ml-0.5">d</span></p>
-              <p className="text-[10px] text-[#52525b] mt-1">{s.label}</p>
+              <p className="text-[20px] font-black text-[#f0f0f3]">{s.value}<span className="text-[10px] text-[#71717a] font-normal ml-0.5">d</span></p>
+              <p className="text-[10px] text-[#71717a] mt-1">{s.label}</p>
               <div className="h-1 rounded-full bg-white/[0.04] mt-2 overflow-hidden">
                 <div className="h-full rounded-full" style={{ width: `${(s.value / s.max) * 100}%`, background: s.color }} />
               </div>
@@ -831,7 +831,7 @@ function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
         <div className="flex items-center gap-2 mb-4">
           <Trophy size={14} className="text-amber-400" />
           <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Achievement Badges</h3>
-          <span className="text-[10px] text-[#52525b] ml-auto">{badges.filter(b => b.unlocked).length}/{badges.length} earned</span>
+          <span className="text-[10px] text-[#71717a] ml-auto">{badges.filter(b => b.unlocked).length}/{badges.length} earned</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {badges.map((b, i) => (
@@ -840,10 +840,10 @@ function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
               className={`p-3.5 rounded-xl text-center cursor-pointer transition-all ${b.unlocked ? 'bg-white/[0.03] border border-amber-500/20 hover:border-amber-500/40' : 'bg-white/[0.01] border border-white/[0.04] opacity-40'}`}>
               <div className="flex justify-center mb-2"><Badge badge={b} /></div>
               <p className="text-[11px] font-semibold text-[#a1a1aa]">{b.name}</p>
-              <p className="text-[10px] text-[#52525b] mt-0.5">{b.desc}</p>
+              <p className="text-[10px] text-[#71717a] mt-0.5">{b.desc}</p>
               {b.unlocked
                 ? <span className="text-[9px] text-amber-400 mt-1 block">✨ +100 XP</span>
-                : <Lock size={10} className="mx-auto mt-1.5 text-[#3f3f46]" />}
+                : <Lock size={10} className="mx-auto mt-1.5 text-[#6b7280]" />}
             </motion.div>
           ))}
         </div>
@@ -938,11 +938,11 @@ export default function Gamification() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-[22px] font-black text-[#f0f0f3] tracking-tight">⚔️ Life Arena</h1>
-            <p className="text-[12px] text-[#52525b] mt-0.5">Anonymous RPG · {tier.name} Tier · {xp.toLocaleString()} XP</p>
+            <p className="text-[12px] text-[#71717a] mt-0.5">Anonymous RPG · {tier.name} Tier · {xp.toLocaleString()} XP</p>
           </div>
           <div className="flex items-center gap-2.5">
             <div className="text-right">
-              <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider">{codename}</p>
+              <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider">{codename}</p>
               <p className="text-[10px] font-bold" style={{ color: tier.color }}>{tier.name}</p>
             </div>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl border border-white/[0.08]"
@@ -968,7 +968,7 @@ export default function Gamification() {
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 flex-1 justify-center text-[11px] px-3 py-2.5 rounded-xl font-semibold transition-all min-w-[80px] ${
-                tab === t.id ? 'bg-[#18181b] border border-white/[0.08] text-[#f0f0f3] shadow-lg' : 'text-[#52525b] hover:text-[#a1a1aa]'
+                tab === t.id ? 'bg-[#18181b] border border-white/[0.08] text-[#f0f0f3] shadow-lg' : 'text-[#71717a] hover:text-[#a1a1aa]'
               }`}>
               <Icon size={13} className={tab === t.id ? 'text-indigo-400' : ''} />
               {t.label}

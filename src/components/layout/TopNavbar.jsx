@@ -26,8 +26,8 @@ export default function TopNavbar() {
     <header className="sticky top-0 z-30 w-full border-b border-white/[0.06]" style={{ background: 'rgba(9,9,11,0.8)', backdropFilter: 'blur(20px)' }}>
       <div className="flex items-center justify-between h-12 px-6">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[12px] text-[#3f3f46]">BeyondSelf</span>
-          <span className="text-[12px] text-[#3f3f46]">/</span>
+          <span className="text-[12px] text-[#6b7280]">BeyondSelf</span>
+          <span className="text-[12px] text-[#6b7280]">/</span>
           <h2 className="text-[13px] font-medium text-[#f0f0f3] truncate">{pageName}</h2>
         </div>
         <div className="flex items-center gap-3">

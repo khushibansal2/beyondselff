@@ -449,7 +449,7 @@ export function RecommendationCard({ rec, index = 0, feedback = {}, onFeedback }
           <span className="text-4xl flex-shrink-0">{rec.icon}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
-              <h4 className={`text-[15px] font-semibold ${isDone ? 'line-through text-[#52525b]' : 'text-[#f0f0f3]'}`}>{rec.title}</h4>
+              <h4 className={`text-[15px] font-semibold ${isDone ? 'line-through text-[#71717a]' : 'text-[#f0f0f3]'}`}>{rec.title}</h4>
               <div className="flex gap-2 flex-shrink-0 flex-wrap">
                 {rec.risk && (
                   <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg ${rec.risk === 'high' ? 'bg-red-500/10 text-[#ef4444]' : rec.risk === 'medium' ? 'bg-amber-500/10 text-[#f59e0b]' : 'bg-emerald-500/10 text-[#22c55e]'}`}>
@@ -464,15 +464,15 @@ export function RecommendationCard({ rec, index = 0, feedback = {}, onFeedback }
             <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-4">{rec.text}</p>
             <div className="flex items-center gap-2 flex-wrap">
               <button onClick={() => handle('accept')}
-                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${fb === 'accept' ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' : 'border-white/[0.06] text-[#52525b] hover:text-emerald-400 hover:border-emerald-500/25'}`}>
+                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${fb === 'accept' ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' : 'border-white/[0.06] text-[#71717a] hover:text-emerald-400 hover:border-emerald-500/25'}`}>
                 {fb === 'accept' ? '✓ Accepted' : '👍 Accept'}
               </button>
               <button onClick={() => handle('done')}
-                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${isDone ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'border-white/[0.06] text-[#52525b] hover:text-blue-400 hover:border-blue-500/25'}`}>
+                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${isDone ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'border-white/[0.06] text-[#71717a] hover:text-blue-400 hover:border-blue-500/25'}`}>
                 {isDone ? '✓ Done' : '✅ Mark Done'}
               </button>
               <button onClick={() => handle('dismiss')}
-                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${fb === 'dismiss' ? 'bg-red-500/15 border-red-500/30 text-red-400' : 'border-white/[0.06] text-[#52525b] hover:text-red-400 hover:border-red-500/25'}`}>
+                className={`text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${fb === 'dismiss' ? 'bg-red-500/15 border-red-500/30 text-red-400' : 'border-white/[0.06] text-[#71717a] hover:text-red-400 hover:border-red-500/25'}`}>
                 {fb === 'dismiss' ? '✕ Dismissed' : '👎 Not helpful'}
               </button>
             </div>

@@ -156,11 +156,11 @@ function SmartDocScanner({ onLogData }) {
         {!preview ? (
           <div className="flex flex-col items-center justify-center gap-3 p-8">
             <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-              <FileText size={20} className="text-[#52525b]" />
+              <FileText size={20} className="text-[#71717a]" />
             </div>
             <div className="text-center">
               <p className="text-[13px] font-medium text-[#a1a1aa]">Drop document image here or click to browse</p>
-              <p className="text-[11px] text-[#52525b] mt-1">Take a photo on mobile · Salary slips, bills, lab reports</p>
+              <p className="text-[11px] text-[#71717a] mt-1">Take a photo on mobile · Salary slips, bills, lab reports</p>
             </div>
           </div>
         ) : (

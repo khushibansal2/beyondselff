@@ -63,7 +63,7 @@ function ConfidenceMeter({ value }) {
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between items-center">
-        <span className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">Prediction Confidence</span>
+        <span className="text-[11px] font-medium text-[#71717a] uppercase tracking-wider">Prediction Confidence</span>
         <span className="text-[12px] font-bold" style={{ color }}>{value}% — {label}</span>
       </div>
       <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
@@ -93,7 +93,7 @@ function ImpactCard({ impact, delay }) {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <span className={`text-[10px] font-bold uppercase tracking-wider ${ds.text}`}>{impact.domain}</span>
-          <span className="text-[#3f3f46]">·</span>
+          <span className="text-[#6b7280]">·</span>
           <span className="text-[11px] text-[#a1a1aa] font-medium">{impact.metric}</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -197,7 +197,7 @@ function SideBySidePanel({ resultA, resultB, inputA, inputB, baseline }) {
           <p className="text-[11px] text-[#a1a1aa] leading-snug line-clamp-2">{inputA}</p>
         </div>
         <div className="flex items-center justify-center">
-          <span className="text-[11px] text-[#52525b] font-bold">VS</span>
+          <span className="text-[11px] text-[#71717a] font-bold">VS</span>
         </div>
         <div className="p-2.5 rounded-xl bg-purple-500/[0.06] border border-purple-500/15 text-center">
           <p className="text-[9px] text-purple-400 font-bold uppercase tracking-wider mb-0.5">Scenario B</p>
@@ -208,7 +208,7 @@ function SideBySidePanel({ resultA, resultB, inputA, inputB, baseline }) {
       {/* Column headers */}
       <div className="grid grid-cols-3 gap-2 mb-1">
         <p className="text-[10px] text-blue-400 font-semibold text-center">A — Projected</p>
-        <p className="text-[10px] text-[#52525b] font-semibold text-center">Domain</p>
+        <p className="text-[10px] text-[#71717a] font-semibold text-center">Domain</p>
         <p className="text-[10px] text-purple-400 font-semibold text-center">B — Projected</p>
       </div>
 
@@ -226,7 +226,7 @@ function SideBySidePanel({ resultA, resultB, inputA, inputB, baseline }) {
         {/* Total row */}
         <div className="grid grid-cols-3 items-center gap-2 pt-3">
           <p className="text-center text-[16px] font-black text-[#f0f0f3]">{totalA}</p>
-          <p className="text-center text-[10px] text-[#52525b] font-semibold uppercase tracking-wider">Total Score</p>
+          <p className="text-center text-[10px] text-[#71717a] font-semibold uppercase tracking-wider">Total Score</p>
           <p className="text-center text-[16px] font-black text-[#f0f0f3]">{totalB}</p>
         </div>
       </div>
@@ -258,13 +258,13 @@ function SideBySidePanel({ resultA, resultB, inputA, inputB, baseline }) {
       {/* Confidence */}
       <div className="grid grid-cols-2 gap-3 mt-4 border-t border-white/[0.05] pt-4">
         <div className="text-center">
-          <p className="text-[11px] text-[#52525b] mb-1">Confidence A</p>
+          <p className="text-[11px] text-[#71717a] mb-1">Confidence A</p>
           <p className="text-[18px] font-bold" style={{ color: resultA.confidence >= 75 ? '#10b981' : resultA.confidence >= 55 ? '#f59e0b' : '#ef4444' }}>
             {resultA.confidence}%
           </p>
         </div>
         <div className="text-center">
-          <p className="text-[11px] text-[#52525b] mb-1">Confidence B</p>
+          <p className="text-[11px] text-[#71717a] mb-1">Confidence B</p>
           <p className="text-[18px] font-bold" style={{ color: resultB.confidence >= 75 ? '#10b981' : resultB.confidence >= 55 ? '#f59e0b' : '#ef4444' }}>
             {resultB.confidence}%
           </p>
@@ -317,7 +317,7 @@ function TimelineChart({ result }) {
             className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
               activePeriod === i
                 ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
-                : 'border-white/[0.06] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] hover:border-white/[0.10]'
+                : 'border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] hover:border-white/[0.10]'
             }`}
           >
             {d.label}
@@ -332,7 +332,7 @@ function TimelineChart({ result }) {
           const delta = val - (baseline[key] ?? 0);
           return (
             <div key={key} className="p-3 rounded-xl border border-white/[0.05] bg-white/[0.02] text-center">
-              <p className="text-[11px] text-[#52525b] mb-1">{label}</p>
+              <p className="text-[11px] text-[#71717a] mb-1">{label}</p>
               <p className="text-[20px] font-bold leading-none" style={{ color }}>{val}</p>
               {activePeriod > 0 && (
                 <p className={`text-[10px] font-semibold mt-1 ${delta > 0 ? 'text-emerald-400' : delta < 0 ? 'text-red-400' : 'text-[#71717a]'}`}>
@@ -350,12 +350,12 @@ function TimelineChart({ result }) {
           <LineChart data={chartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
             <XAxis
               dataKey="label"
-              tick={{ fill: '#52525b', fontSize: 11 }}
+              tick={{ fill: '#71717a', fontSize: 11 }}
               axisLine={false} tickLine={false}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fill: '#52525b', fontSize: 10 }}
+              tick={{ fill: '#71717a', fontSize: 10 }}
               axisLine={false} tickLine={false}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -393,7 +393,7 @@ function TimelineChart({ result }) {
           animate={{ opacity: 1, y: 0 }}
           className="mt-4 pt-4 border-t border-white/[0.05]"
         >
-          <p className="text-[11px] font-semibold text-[#52525b] uppercase tracking-wider mb-2.5">
+          <p className="text-[11px] font-semibold text-[#71717a] uppercase tracking-wider mb-2.5">
             What happens at {selected.period}:
           </p>
           <ul className="space-y-1.5">
@@ -494,7 +494,7 @@ export default function Simulator() {
             </div>
             <div>
               <p className="text-[13px] font-semibold text-[#f0f0f3]">What decision do you want to simulate?</p>
-              <p className="text-[11px] text-[#52525b]">Type any life scenario in natural language</p>
+              <p className="text-[11px] text-[#71717a]">Type any life scenario in natural language</p>
             </div>
           </div>
 
@@ -505,12 +505,12 @@ export default function Simulator() {
               className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${
                 compareMode
                   ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
-                  : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'
+                  : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
               }`}
             >
               <GitCompare size={12} /> {compareMode ? 'Compare Mode ON' : 'Compare Two Scenarios'}
             </button>
-            {compareMode && <span className="text-[11px] text-[#52525b]">Enter both scenarios and simulate together</span>}
+            {compareMode && <span className="text-[11px] text-[#71717a]">Enter both scenarios and simulate together</span>}
           </div>
 
           {compareMode ? (
@@ -554,13 +554,13 @@ export default function Simulator() {
 
           {/* Example chips */}
           <div className="mb-5">
-            <p className="text-[11px] text-[#3f3f46] font-medium mb-2">Examples:</p>
+            <p className="text-[11px] text-[#6b7280] font-medium mb-2">Examples:</p>
             <div className="flex flex-wrap gap-2">
               {EXAMPLES.map((ex, i) => (
                 <button
                   key={i}
                   onClick={() => { setInput(ex); textareaRef.current?.focus(); }}
-                  className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] hover:border-white/[0.10] hover:bg-white/[0.04] transition-all"
+                  className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] hover:border-white/[0.10] hover:bg-white/[0.04] transition-all"
                 >
                   {ex.length > 45 ? ex.slice(0, 45) + '…' : ex}
                 </button>
@@ -569,7 +569,7 @@ export default function Simulator() {
           </div>
 
           <div className="flex items-center justify-between">
-            <p className="text-[11px] text-[#3f3f46]">Ctrl + Enter to simulate</p>
+            <p className="text-[11px] text-[#6b7280]">Ctrl + Enter to simulate</p>
             <div className="flex gap-2.5">
               {(result || input) && (
                 <button
@@ -616,7 +616,7 @@ export default function Simulator() {
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.45 }}
-                    className="flex items-center gap-2.5 text-[12px] text-[#52525b]"
+                    className="flex items-center gap-2.5 text-[12px] text-[#71717a]"
                   >
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/50 flex-shrink-0" />
                     {step}
@@ -665,7 +665,7 @@ export default function Simulator() {
         {result && (
           <motion.div ref={!resultB ? resultsRef : undefined} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
             {resultB && (
-              <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider">Scenario A — Full Details</p>
+              <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider">Scenario A — Full Details</p>
             )}
 
             {/* 1. Summary + Confidence */}
@@ -681,8 +681,8 @@ export default function Simulator() {
 
                 <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] mb-5">
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <Info size={11} className="text-[#52525b]" />
-                    <p className="text-[11px] text-[#52525b] font-medium uppercase tracking-wider">AI Interpretation</p>
+                    <Info size={11} className="text-[#71717a]" />
+                    <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wider">AI Interpretation</p>
                   </div>
                   <p className="text-[12px] text-[#71717a] leading-relaxed">{result.interpretation}</p>
                 </div>
@@ -696,7 +696,7 @@ export default function Simulator() {
               <div className="grid grid-cols-2 gap-4">
                 {/* Baseline */}
                 <GlassCard>
-                  <p className="text-[11px] font-semibold text-[#52525b] uppercase tracking-wider text-center mb-5">Baseline (Now)</p>
+                  <p className="text-[11px] font-semibold text-[#71717a] uppercase tracking-wider text-center mb-5">Baseline (Now)</p>
                   <div className="flex justify-around flex-wrap gap-y-3">
                     {Object.entries(result.scores.baseline).map(([d, s]) => (
                       <ScoreRing key={d} score={s} color={DOMAIN_STYLE[d]?.color ?? '#6366f1'}
@@ -707,7 +707,7 @@ export default function Simulator() {
 
                 {/* Projected */}
                 <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
-                  <p className="text-[11px] font-semibold text-[#52525b] uppercase tracking-wider text-center mb-5">Projected (1 year)</p>
+                  <p className="text-[11px] font-semibold text-[#71717a] uppercase tracking-wider text-center mb-5">Projected (1 year)</p>
                   <div className="flex justify-around flex-wrap gap-y-3">
                     {Object.entries(result.scores.projected).map(([d, s]) => {
                       const delta = s - result.scores.baseline[d];
@@ -782,7 +782,7 @@ export default function Simulator() {
                 <div className="flex items-center gap-2 mb-4">
                   <Brain size={14} className="text-purple-400" />
                   <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Reasoning Chain</h3>
-                  <span className="text-[11px] text-[#52525b]">— click any step to expand</span>
+                  <span className="text-[11px] text-[#71717a]">— click any step to expand</span>
                 </div>
                 <div className="space-y-2">
                   {(result.reasoning ?? []).map((step, i) => (
@@ -795,7 +795,7 @@ export default function Simulator() {
                           {step.step}
                         </span>
                         <span className="flex-1 text-[12px] font-medium text-[#a1a1aa]">{step.title}</span>
-                        <ChevronRight size={12} className={`text-[#52525b] transition-transform duration-200 ${expandedStep === i ? 'rotate-90' : ''}`} />
+                        <ChevronRight size={12} className={`text-[#71717a] transition-transform duration-200 ${expandedStep === i ? 'rotate-90' : ''}`} />
                       </button>
                       <AnimatePresence>
                         {expandedStep === i && (
@@ -865,7 +865,7 @@ export default function Simulator() {
             </motion.div>
 
             {/* Disclaimer */}
-            <p className="text-center text-[10px] text-[#3f3f46] pb-4">
+            <p className="text-center text-[10px] text-[#6b7280] pb-4">
               AI predictions are probabilistic estimates, not guarantees. Results depend on many real-world factors.
             </p>
           </motion.div>
@@ -876,7 +876,7 @@ export default function Simulator() {
       <AnimatePresence>
         {resultB && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5 mt-4">
-            <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider">Scenario B — Full Details</p>
+            <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider">Scenario B — Full Details</p>
 
             <GlassCard className="border border-purple-500/15 bg-purple-500/[0.02]">
               <h2 className="text-[15px] font-bold text-[#f0f0f3] mb-2">{resultB.scenarioTitle}</h2>
@@ -951,14 +951,14 @@ export default function Simulator() {
                 <div key={f.title} className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                   <span className="text-xl block mb-1.5">{f.icon}</span>
                   <p className="text-[12px] font-semibold text-[#a1a1aa]">{f.title}</p>
-                  <p className="text-[11px] text-[#52525b] mt-0.5">{f.desc}</p>
+                  <p className="text-[11px] text-[#71717a] mt-0.5">{f.desc}</p>
                 </div>
               ))}
             </div>
 
             {/* Current baseline display */}
             <div className="mt-8 p-4 rounded-2xl border border-white/[0.05] bg-white/[0.02] max-w-sm mx-auto">
-              <p className="text-[11px] text-[#52525b] font-medium uppercase tracking-wider mb-4">Your Current Baseline</p>
+              <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wider mb-4">Your Current Baseline</p>
               <div className="flex justify-around">
                 {Object.entries(baseline).map(([d, s]) => (
                   <ScoreRing key={d} score={s} color={DOMAIN_STYLE[d]?.color ?? '#6366f1'}

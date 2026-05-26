@@ -286,7 +286,7 @@ function TemplateCard({ tmpl, onAccept, alreadyActive }) {
           whileTap={{ scale: 0.96 }}
           onClick={() => !alreadyActive && onAccept(tmpl)}
           className="w-full py-2.5 rounded-xl text-xs font-bold transition-all mt-auto"
-          style={{ background: alreadyActive ? 'rgba(255,255,255,0.06)' : `linear-gradient(135deg, ${tmpl.color}, ${tmpl.color}aa)`, color: alreadyActive ? '#52525b' : 'white' }}
+          style={{ background: alreadyActive ? 'rgba(255,255,255,0.06)' : `linear-gradient(135deg, ${tmpl.color}, ${tmpl.color}aa)`, color: alreadyActive ? '#71717a' : 'white' }}
         >
           {alreadyActive ? '✓ Already Active' : '⚡ Sign Contract'}
         </motion.button>

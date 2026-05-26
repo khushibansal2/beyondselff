@@ -509,7 +509,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* ===== FORM INPUTS — brighter placeholder ===== */
 .input-premium::placeholder {
-  color: #475569;
+  color: #6b7280;
 }
 
 /* ===== FILTER / PILL BUTTONS (used in Goals, Finance, etc.) ===== */
