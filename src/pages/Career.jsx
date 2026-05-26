@@ -10,7 +10,12 @@ import {
   extractPdfText, parseResumeWithAI,
   saveResumeData, loadResumeData, clearResumeData,
 } from '../services/resumeService';
-import { CheckCircle, AlertTriangle, TrendingUp, ChevronRight, Plus, ExternalLink, Brain } from 'lucide-react';
+import { CheckCircle, AlertTriangle, TrendingUp, ChevronRight, Plus, ExternalLink, Brain, Search, Loader2, Briefcase, MapPin, DollarSign, Zap, Target, BarChart2, Sparkles, RefreshCw } from 'lucide-react';
+import { fetchJobs } from '../services/jobService';
+import {
+  calculateJobMatch, rankJobsByMatch, aggregateMissingSkills,
+  getSalaryBenchmark, getSalaryChartData, generateCareerCoach, getDigitalTwinInsights,
+} from '../services/careerIntelligenceService';
 
 // ── Cognitive Load Gauge ─────────────────────────────────────────────────────
 function CognitiveGauge({ value }) {
@@ -23,7 +28,7 @@ function CognitiveGauge({ value }) {
   const color = pct < 40 ? '#10b981' : pct < 70 ? '#f59e0b' : '#f43f5e';
   const label = pct < 40 ? 'Low' : pct < 70 ? 'Moderate' : 'High';
 
-  const arcPath = (startAngle, endAngle, fill) => {
+  const arcPath = (startAngle, endAngle) => {
     const s = ((startAngle - 90) * Math.PI) / 180;
     const e = ((endAngle - 90) * Math.PI) / 180;
     const x1 = cx + r * Math.cos(s), y1 = cy + r * Math.sin(s);
@@ -531,15 +536,785 @@ function ResumeTab({ career: c, updateDomain }) {
   );
 }
 
+// ── Job Card ─────────────────────────────────────────────────────────────────
+function JobCard({ job, userSkills }) {
+  const match = useMemo(() => calculateJobMatch(userSkills, job), [userSkills, job]);
+
+  const scoreColor = match.score >= 80 ? '#10b981' : match.score >= 60 ? '#f59e0b' : '#f43f5e';
+  const sourceStyle = { background: job.sourceColor + '18', border: `1px solid ${job.sourceColor}40`, color: job.sourceColor };
+  const initials = (job.company || 'C').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+      <GlassCard className="group hover:border-white/[0.12] transition-all">
+        <div className="flex items-start gap-3">
+          {/* Company logo / initials */}
+          <div className="w-11 h-11 rounded-xl flex-shrink-0 overflow-hidden border border-white/[0.08] bg-white/[0.04] flex items-center justify-center">
+            {job.companyLogo
+              ? <img src={job.companyLogo} alt={job.company} className="w-full h-full object-contain p-1" onError={e => { e.target.style.display = 'none'; e.target.parentNode.textContent = initials; }} />
+              : <span className="text-[13px] font-black text-[#a1a1aa]">{initials}</span>
+            }
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 flex-wrap">
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-[#f0f0f3] truncate">{job.title}</p>
+                <p className="text-[12px] text-[#a1a1aa]">{job.company}</p>
+              </div>
+              {/* Match score ring */}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="relative w-9 h-9">
+                  <svg viewBox="0 0 36 36" className="w-9 h-9 -rotate-90">
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="14" fill="none" stroke={scoreColor} strokeWidth="3"
+                      strokeDasharray={`${match.score * 0.879} 87.9`} strokeLinecap="round" />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold" style={{ color: scoreColor }}>{match.score}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Meta row */}
+            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+              <span className="flex items-center gap-1 text-[11px] text-[#52525b]">
+                <MapPin size={10} />{job.location}
+              </span>
+              {job.remote && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold">Remote</span>}
+              {job.salary && <span className="flex items-center gap-1 text-[11px] text-emerald-400"><DollarSign size={9} />{job.salary}</span>}
+              <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold" style={sourceStyle}>{job.source}</span>
+            </div>
+
+            {/* Required skills */}
+            {job.requiredSkills?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                {job.requiredSkills.slice(0, 6).map(s => {
+                  const isMatched = match.matched.some(m => m.toLowerCase() === s.toLowerCase());
+                  return (
+                    <span key={s} className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+                      isMatched
+                        ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                        : 'bg-white/[0.03] border-white/[0.07] text-[#52525b]'
+                    }`}>{s}</span>
+                  );
+                })}
+                {job.requiredSkills.length > 6 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/[0.06] text-[#3f3f46]">+{job.requiredSkills.length - 6}</span>
+                )}
+              </div>
+            )}
+
+            {/* Missing skills count + CTA */}
+            <div className="flex items-center gap-3 mt-3">
+              {match.missing.length > 0 && (
+                <span className="text-[11px] text-amber-500">⚠ {match.missing.length} skill{match.missing.length > 1 ? 's' : ''} missing</span>
+              )}
+              <a href={job.url} target="_blank" rel="noopener noreferrer"
+                className="ml-auto flex items-center gap-1.5 text-[11px] px-3.5 py-1.5 rounded-xl bg-[#0f172a] border border-white/[0.1] text-[#a1a1aa] hover:text-white hover:border-white/[0.2] transition-all font-semibold">
+                Apply <ExternalLink size={10} />
+              </a>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+    </motion.div>
+  );
+}
+
+// ── Jobs Tab ──────────────────────────────────────────────────────────────────
+function JobsTab({ userSkills }) {
+  const [query,     setQuery]     = useState('');
+  const [location,  setLocation]  = useState('');
+  const [jobs,      setJobs]      = useState([]);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState(null);
+  const [filter,    setFilter]    = useState('all');
+  const [searched,  setSearched]  = useState(false);
+
+  const SUGGESTIONS = useMemo(() => {
+    if (userSkills?.length) {
+      const hasReact = userSkills.some(s => /react/i.test(s));
+      const hasPython = userSkills.some(s => /python/i.test(s));
+      const hasML = userSkills.some(s => /machine learning|ml|ai/i.test(s));
+      if (hasML)    return ['AI Engineer', 'ML Engineer', 'Data Scientist', 'LLM Developer'];
+      if (hasPython) return ['Python Developer', 'Backend Engineer', 'Data Engineer', 'FastAPI Developer'];
+      if (hasReact)  return ['React Developer', 'Frontend Engineer', 'Full Stack Developer', 'Next.js Developer'];
+    }
+    return ['Software Engineer', 'Full Stack Developer', 'React Developer', 'Backend Engineer'];
+  }, [userSkills]);
+
+  async function doSearch(q = query, loc = location) {
+    if (!q.trim()) return;
+    setLoading(true); setError(null); setJobs([]); setSearched(true);
+    try {
+      const results = await fetchJobs(q.trim(), { location: loc.trim() });
+      // Enrich with match scores then sort
+      const ranked = rankJobsByMatch(userSkills || [], results);
+      setJobs(ranked);
+    } catch (e) {
+      if (e.message === 'NO_RESULTS') setError('No jobs found for this query. Try a broader search term.');
+      else setError('Could not reach job APIs. Check your internet connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filtered = useMemo(() => {
+    if (filter === 'remote')   return jobs.filter(j => j.remote);
+    if (filter === 'salary')   return jobs.filter(j => j.salary);
+    if (filter === 'match80')  return jobs.filter(j => (j.match?.score ?? 0) >= 80);
+    return jobs;
+  }, [jobs, filter]);
+
+  const sources = useMemo(() => [...new Set(jobs.map(j => j.source))], [jobs]);
+
+  return (
+    <div className="space-y-5">
+      {/* Search bar */}
+      <GlassCard>
+        <p className="text-[11px] text-[#52525b] font-semibold uppercase tracking-wider mb-3">Live Job Market Search</p>
+        <div className="flex gap-2 flex-col sm:flex-row">
+          <div className="flex-1 relative">
+            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3f3f46]" />
+            <input value={query} onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && doSearch()}
+              placeholder="Role (e.g. React Developer, ML Engineer)"
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-blue-500/40 transition-colors" />
+          </div>
+          <div className="relative sm:w-44">
+            <MapPin size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3f3f46]" />
+            <input value={location} onChange={e => setLocation(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && doSearch()}
+              placeholder="Location (optional)"
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-blue-500/40 transition-colors" />
+          </div>
+          <button onClick={() => doSearch()} disabled={loading || !query.trim()}
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[12px] font-semibold hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0">
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
+            {loading ? 'Searching…' : 'Search'}
+          </button>
+        </div>
+
+        {/* Suggestion chips */}
+        {!searched && (
+          <div className="flex gap-2 mt-3 flex-wrap">
+            <span className="text-[10px] text-[#3f3f46] self-center">Try:</span>
+            {SUGGESTIONS.map(s => (
+              <button key={s} onClick={() => { setQuery(s); doSearch(s); }}
+                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#52525b] hover:text-[#a1a1aa] transition-all">
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Source badges + filter */}
+        {jobs.length > 0 && (
+          <div className="flex items-center gap-3 mt-3 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap">
+              {sources.map(src => (
+                <span key={src} className="text-[10px] px-2 py-0.5 rounded-full border font-semibold bg-white/[0.03] border-white/[0.08] text-[#52525b]">
+                  {src} · {jobs.filter(j => j.source === src).length}
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-1 ml-auto flex-wrap">
+              {['all', 'remote', 'salary', 'match80'].map(f => (
+                <button key={f} onClick={() => setFilter(f)}
+                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${filter === f ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'}`}>
+                  {f === 'all' ? 'All' : f === 'remote' ? '🌐 Remote' : f === 'salary' ? '💰 Salary' : '🎯 80%+ Match'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </GlassCard>
+
+      {/* Loading skeletons */}
+      {loading && (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <GlassCard key={i}>
+              <div className="flex items-start gap-3 animate-pulse">
+                <div className="w-11 h-11 rounded-xl bg-white/[0.05] flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 bg-white/[0.05] rounded-full w-2/3" />
+                  <div className="h-3 bg-white/[0.04] rounded-full w-1/3" />
+                  <div className="flex gap-2 mt-2">
+                    {[1, 2, 3].map(j => <div key={j} className="h-5 w-16 bg-white/[0.04] rounded-full" />)}
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {error && !loading && (
+        <GlassCard className="text-center py-8 border border-rose-500/15">
+          <AlertTriangle size={28} className="mx-auto mb-2 text-rose-400" />
+          <p className="text-[13px] text-[#a1a1aa] font-semibold mb-1">Search Failed</p>
+          <p className="text-[11px] text-[#52525b]">{error}</p>
+          <button onClick={() => doSearch()} className="mt-4 px-4 py-2 rounded-xl border border-white/[0.1] text-[12px] text-[#a1a1aa] hover:text-white transition-all flex items-center gap-2 mx-auto">
+            <RefreshCw size={12} /> Retry
+          </button>
+        </GlassCard>
+      )}
+
+      {/* Empty state */}
+      {!searched && !loading && (
+        <GlassCard className="text-center py-12">
+          <Briefcase size={32} className="mx-auto mb-3 text-[#52525b]" />
+          <p className="text-[14px] font-semibold text-[#a1a1aa] mb-1">Real-time Job Market</p>
+          <p className="text-[12px] text-[#52525b]">Powered by Arbeitnow · Remotive · Adzuna · JSearch</p>
+          <p className="text-[11px] text-[#3f3f46] mt-1">Enter a role above to search live job listings and see your match score on each card</p>
+        </GlassCard>
+      )}
+
+      {/* No results */}
+      {searched && !loading && !error && filtered.length === 0 && (
+        <GlassCard className="text-center py-8">
+          <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">No results for this filter</p>
+          <button onClick={() => setFilter('all')} className="text-[12px] text-blue-400 hover:text-blue-300 transition-colors mt-1">Clear filter</button>
+        </GlassCard>
+      )}
+
+      {/* Results */}
+      {filtered.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <p className="text-[11px] text-[#52525b]">{filtered.length} jobs{userSkills?.length ? ' · sorted by your skill match' : ''}</p>
+            {userSkills?.length === 0 && (
+              <p className="text-[11px] text-amber-400">Upload your resume to see match scores</p>
+            )}
+          </div>
+          {filtered.map(job => (
+            <JobCard key={job.id} job={job} userSkills={userSkills || []} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Module-level tooltip component (must be outside render to avoid remounting)
+function SalaryTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-[#1a1a1a] border border-white/10 p-3 rounded-xl text-xs">
+      <p className="text-[#a1a1aa] mb-1.5 font-semibold">{label}</p>
+      {payload.map(p => (
+        <p key={p.name} style={{ color: p.color }}>
+          {p.name === 'min' ? 'Min' : p.name === 'max' ? 'Max' : 'Mid'}: ₹{p.value}L
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// ── Career Intelligence Tab ───────────────────────────────────────────────────
+function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
+  const [section,      setSection]      = useState('match');
+  const [jobs,         setJobs]         = useState([]);
+  const [jobsLoading,  setJobsLoading]  = useState(false);
+  const [coach,        setCoach]        = useState(null);
+  const [coachLoading, setCoachLoading] = useState(false);
+  const [coachError,   setCoachError]   = useState(null);
+  const [roleInput,    setRoleInput]    = useState(targetRole || 'Software Engineer');
+
+  const salary     = useMemo(() => getSalaryBenchmark(roleInput, userSkills), [roleInput, userSkills]);
+  const salaryChart = useMemo(() => getSalaryChartData(), []);
+  const twinInsights = useMemo(() => getDigitalTwinInsights({
+    sleepAvg:       health?.sleepAvg,
+    stressLevel:    health?.stressLevel,
+    financeScore:   computed?.financeScore?.score,
+    studyHoursDaily: 0,
+  }), [health, computed]);
+
+  const missingAgg = useMemo(() => aggregateMissingSkills(userSkills || [], jobs), [userSkills, jobs]);
+  const topJob     = useMemo(() => jobs[0] || null, [jobs]);
+  const avgMatch   = useMemo(() => jobs.length
+    ? Math.round(jobs.slice(0, 10).reduce((s, j) => s + (j.match?.score ?? 0), 0) / Math.min(10, jobs.length))
+    : 0, [jobs]);
+
+  async function handleLoadMarketJobs() {
+    if (jobsLoading) return;
+    setJobsLoading(true);
+    try {
+      const results = await fetchJobs(roleInput);
+      setJobs(rankJobsByMatch(userSkills || [], results));
+    } catch {
+      // silently skip — match section shows empty state
+    } finally {
+      setJobsLoading(false);
+    }
+  }
+
+  async function handleGenerateCoach() {
+    if (!userSkills?.length) { setCoachError('Upload your resume first to generate coaching.'); return; }
+    setCoachLoading(true); setCoachError(null);
+    try {
+      const result = await generateCareerCoach({
+        skills:        userSkills,
+        targetRole:    roleInput,
+        missingSkills: missingAgg.slice(0, 8).map(m => m.skill),
+        matchScore:    avgMatch,
+        salaryRange:   salary.label,
+        studyHours:    0,
+        sleepAvg:      health?.sleepAvg ?? 7,
+      });
+      setCoach(result);
+      setSection('coach');
+    } catch (e) {
+      setCoachError(e.message === 'NO_KEY' ? 'Add VITE_GROQ_API_KEY to .env to enable AI coaching.' : 'AI coaching failed. Please try again.');
+    } finally {
+      setCoachLoading(false);
+    }
+  }
+
+  const PRIORITY_BADGE = {
+    critical: 'bg-rose-500/10 border-rose-500/25 text-rose-400',
+    high:     'bg-amber-500/10 border-amber-500/25 text-amber-400',
+    medium:   'bg-blue-500/10 border-blue-500/25 text-blue-400',
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Role input + section nav */}
+      <GlassCard>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-1 relative min-w-0">
+            <Target size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3f3f46]" />
+            <input value={roleInput} onChange={e => setRoleInput(e.target.value)}
+              placeholder="Target role (e.g. Senior React Developer)"
+              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#3f3f46] outline-none focus:border-violet-500/40 transition-colors" />
+          </div>
+          <button onClick={() => { setJobs([]); setCoach(null); handleLoadMarketJobs(); }}
+            className="text-[11px] px-3.5 py-2.5 rounded-xl border border-white/[0.08] text-[#52525b] hover:text-[#a1a1aa] transition-all flex items-center gap-1.5">
+            <RefreshCw size={12} /> Refresh
+          </button>
+        </div>
+        <div className="flex gap-1.5 mt-3 flex-wrap">
+          {[
+            { id: 'match',  label: 'Match Analysis', icon: '🎯' },
+            { id: 'salary', label: 'Salary Analytics', icon: '💰' },
+            { id: 'coach',  label: 'AI Career Coach', icon: '🤖' },
+            { id: 'twin',   label: 'Twin Insights', icon: '🔗' },
+          ].map(s => (
+            <button key={s.id} onClick={() => setSection(s.id)}
+              className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
+                section === s.id
+                  ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
+                  : 'border-white/[0.06] text-[#52525b] hover:text-[#a1a1aa]'
+              }`}>{s.icon} {s.label}
+            </button>
+          ))}
+        </div>
+      </GlassCard>
+
+      <AnimatePresence mode="wait">
+        <motion.div key={section} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+
+          {/* ── MATCH ANALYSIS ─────────────────────────────────────────────── */}
+          {section === 'match' && (
+            <div className="space-y-4">
+              {/* No skills warning */}
+              {!userSkills?.length && (
+                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05]">
+                  <AlertTriangle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-[12px] text-[#71717a]">Upload your resume in the <strong className="text-amber-400">Resume AI</strong> tab to unlock personalised match analysis.</p>
+                </div>
+              )}
+
+              {/* Scores row */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Avg Market Match', value: `${avgMatch}%`, color: avgMatch >= 70 ? '#10b981' : avgMatch >= 50 ? '#f59e0b' : '#f43f5e', icon: '🎯' },
+                  { label: 'Your Skills', value: userSkills?.length ?? 0, color: '#3b82f6', icon: '⚡' },
+                  { label: 'Gap Skills', value: missingAgg.filter(m => m.priority === 'critical' || m.priority === 'high').length, color: '#f59e0b', icon: '📚' },
+                ].map(m => (
+                  <GlassCard key={m.label}>
+                    <p className="text-[9px] text-[#52525b] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
+                    <p className="text-[26px] font-black leading-none" style={{ color: m.color }}>{m.value}</p>
+                  </GlassCard>
+                ))}
+              </div>
+
+              {/* Market loading / load trigger */}
+              {jobsLoading && (
+                <GlassCard className="text-center py-6">
+                  <Loader2 size={20} className="mx-auto mb-2 text-violet-400 animate-spin" />
+                  <p className="text-[12px] text-[#52525b]">Fetching live market data…</p>
+                </GlassCard>
+              )}
+              {!jobsLoading && !jobs.length && (
+                <GlassCard className="text-center py-6">
+                  <p className="text-[12px] text-[#52525b] mb-3">Fetch live job listings to generate skill gap analysis</p>
+                  <button onClick={handleLoadMarketJobs}
+                    className="px-5 py-2 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[12px] font-semibold hover:bg-violet-500/25 transition-all flex items-center gap-2 mx-auto">
+                    <RefreshCw size={12} /> Load Market Data
+                  </button>
+                </GlassCard>
+              )}
+
+              {/* Critical gap skills */}
+              {missingAgg.length > 0 && (
+                <GlassCard>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap size={13} className="text-amber-400" />
+                    <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Skills Gap — Market Demand</h3>
+                    <span className="text-[10px] text-[#52525b] ml-auto">Based on {jobs.length} live listings</span>
+                  </div>
+                  <div className="space-y-2">
+                    {missingAgg.map((m, i) => (
+                      <motion.div key={m.skill} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                        className="flex items-center gap-3">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 w-16 text-center ${PRIORITY_BADGE[m.priority]}`}>{m.priority}</span>
+                        <span className="text-[12px] text-[#a1a1aa] font-medium flex-1">{m.skill}</span>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <div className="w-24 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${m.pct}%` }} transition={{ duration: 0.8, delay: i * 0.04 }}
+                              className="h-full rounded-full bg-amber-500" />
+                          </div>
+                          <span className="text-[10px] text-[#52525b] w-8 text-right">{m.pct}%</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </GlassCard>
+              )}
+
+              {/* Current skill strengths */}
+              {userSkills?.length > 0 && (
+                <GlassCard>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle size={13} className="text-emerald-400" />
+                    <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Your Verified Skills</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {userSkills.map(s => (
+                      <span key={s} className="text-[11px] px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium">{s}</span>
+                    ))}
+                  </div>
+                </GlassCard>
+              )}
+
+              {/* Top matching job preview */}
+              {topJob && (
+                <GlassCard>
+                  <p className="text-[10px] text-[#52525b] uppercase tracking-wider font-semibold mb-2">🏆 Top Matching Job</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-[#f0f0f3] truncate">{topJob.title}</p>
+                      <p className="text-[12px] text-[#a1a1aa]">{topJob.company} · {topJob.location}</p>
+                    </div>
+                    <div className="text-[22px] font-black flex-shrink-0" style={{ color: '#10b981' }}>{topJob.match?.score ?? 0}%</div>
+                  </div>
+                </GlassCard>
+              )}
+            </div>
+          )}
+
+          {/* ── SALARY ANALYTICS ───────────────────────────────────────────── */}
+          {section === 'salary' && (
+            <div className="space-y-4">
+              {/* Your estimated salary */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Min Estimate',  value: `₹${salary.min}L`,  color: '#f59e0b' },
+                  { label: 'Mid Estimate',  value: `₹${salary.mid}L`,  color: '#3b82f6' },
+                  { label: 'Max Estimate',  value: `₹${salary.max}L`,  color: '#10b981' },
+                ].map(m => (
+                  <GlassCard key={m.label}>
+                    <p className="text-[9px] text-[#52525b] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
+                    <p className="text-[24px] font-black leading-none" style={{ color: m.color }}>{m.value}</p>
+                    <p className="text-[9px] text-[#3f3f46] mt-1">per annum</p>
+                  </GlassCard>
+                ))}
+              </div>
+
+              {salary.premiumSkills.length > 0 && (
+                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04]">
+                  <Sparkles size={13} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-semibold text-emerald-300">Premium Skill Bonus Detected</p>
+                    <p className="text-[11px] text-[#71717a] mt-0.5">
+                      {salary.premiumSkills.join(', ')} command above-median compensation. Your max range reflects this premium.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Salary chart */}
+              <GlassCard>
+                <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Indian Tech Market — Salary by Role (LPA)</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={salaryChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }} barSize={14}>
+                      <XAxis dataKey="role" tick={{ fill: '#52525b', fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#52525b', fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<SalaryTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+                      <Bar dataKey="min" name="min" fill="#f43f5e" fillOpacity={0.6} radius={[3,3,0,0]} />
+                      <Bar dataKey="mid" name="mid" fill="#3b82f6" fillOpacity={0.8} radius={[3,3,0,0]} />
+                      <Bar dataKey="max" name="max" fill="#10b981" fillOpacity={0.6} radius={[3,3,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex items-center justify-center gap-4 mt-1">
+                  {[['#f43f5e','Min'],['#3b82f6','Mid'],['#10b981','Max']].map(([c,l]) => (
+                    <div key={l} className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-sm" style={{ background: c }} />
+                      <span className="text-[10px] text-[#52525b]">{l}</span>
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+
+              {/* Role-specific benchmarks */}
+              <GlassCard>
+                <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-3">Salary Benchmarks — Indian Tech Market</h3>
+                <div className="space-y-2.5">
+                  {salaryChart.map((row, i) => (
+                    <motion.div key={row.role} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                      className="flex items-center gap-3">
+                      <span className="text-[11px] text-[#a1a1aa] w-28 flex-shrink-0">{row.role}</span>
+                      <div className="flex-1 h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-blue-500/60 to-violet-500/60"
+                          style={{ width: `${(row.max / 100) * 100}%` }} />
+                      </div>
+                      <span className="text-[11px] text-[#52525b] w-24 text-right flex-shrink-0">₹{row.min}–{row.max}L</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </GlassCard>
+            </div>
+          )}
+
+          {/* ── AI CAREER COACH ─────────────────────────────────────────────── */}
+          {section === 'coach' && (
+            <div className="space-y-4">
+              {/* Generate button */}
+              {!coach && (
+                <GlassCard className="text-center py-8">
+                  <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Brain size={26} className="text-violet-400" />
+                  </div>
+                  <h3 className="text-[14px] font-semibold text-[#f0f0f3] mb-1">AI Career Coach</h3>
+                  <p className="text-[12px] text-[#52525b] mb-1">Powered by Groq · llama-3.3-70b</p>
+                  <p className="text-[11px] text-[#3f3f46] mb-5">Generates a personalised roadmap, portfolio ideas, interview tips and weekly plan based on your resume + market data.</p>
+                  {coachError && (
+                    <p className="text-[12px] text-rose-400 mb-4">{coachError}</p>
+                  )}
+                  <button onClick={handleGenerateCoach} disabled={coachLoading}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-[13px] font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto">
+                    {coachLoading ? <><Loader2 size={14} className="animate-spin" /> Generating…</> : <><Sparkles size={14} /> Generate My Career Plan</>}
+                  </button>
+                </GlassCard>
+              )}
+
+              {/* Coach results */}
+              {coach && (
+                <div className="space-y-4">
+                  {/* Readiness + verdict */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <GlassCard className="col-span-2 sm:col-span-1">
+                      <p className="text-[10px] text-[#52525b] uppercase tracking-wider mb-2">Career Readiness</p>
+                      <div className="flex items-end gap-3">
+                        <span className="text-[40px] font-black leading-none"
+                          style={{ color: coach.readinessScore >= 70 ? '#10b981' : coach.readinessScore >= 50 ? '#f59e0b' : '#f43f5e' }}>
+                          {coach.readinessScore}%
+                        </span>
+                        <p className="text-[11px] text-[#71717a] mb-1 leading-relaxed">{coach.verdict}</p>
+                      </div>
+                    </GlassCard>
+                    <GlassCard className="col-span-2 sm:col-span-1 border border-violet-500/10 bg-violet-500/[0.03]">
+                      <p className="text-[10px] text-[#52525b] uppercase tracking-wider mb-2">💡 Twin Insight</p>
+                      <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{coach.digitalTwinInsight}</p>
+                    </GlassCard>
+                  </div>
+
+                  {/* Top skills to learn */}
+                  {coach.topSkillsToLearn?.length > 0 && (
+                    <GlassCard>
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingUp size={13} className="text-amber-400" />
+                        <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Priority Skills to Learn</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {coach.topSkillsToLearn.map((item, i) => (
+                          <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                            className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[12px] font-semibold text-[#f0f0f3]">{item.skill}</span>
+                              <span className="text-[10px] text-[#52525b]">{item.weeks}w estimate</span>
+                            </div>
+                            <p className="text-[11px] text-[#71717a] mb-1.5">{item.reason}</p>
+                            {item.resource && (
+                              <p className="text-[10px] text-blue-400">📚 {item.resource}</p>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* Portfolio projects */}
+                  {coach.portfolioProjects?.length > 0 && (
+                    <GlassCard>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Zap size={13} className="text-blue-400" />
+                        <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Portfolio Project Ideas</h3>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {coach.portfolioProjects.map((p, i) => (
+                          <div key={i} className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                            <p className="text-[12px] font-semibold text-[#f0f0f3] mb-1">🚀 {p.title}</p>
+                            <p className="text-[11px] text-[#71717a] mb-2">{p.impact}</p>
+                            <div className="flex flex-wrap gap-1">
+                              {(p.stack || []).map(t => (
+                                <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">{t}</span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* Weekly plan */}
+                  {coach.weeklyPlan?.length > 0 && (
+                    <GlassCard>
+                      <div className="flex items-center gap-2 mb-3">
+                        <BarChart2 size={13} className="text-emerald-400" />
+                        <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Weekly Action Plan</h3>
+                      </div>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        {coach.weeklyPlan.map((day, i) => (
+                          <div key={i} className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                            <p className="text-[10px] font-bold text-emerald-400 mb-1">{day.days}</p>
+                            <p className="text-[11px] font-semibold text-[#a1a1aa] mb-1">{day.focus}</p>
+                            <p className="text-[10px] text-[#52525b] leading-relaxed">{day.task}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* Interview tips + salary tip */}
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {coach.interviewTips?.length > 0 && (
+                      <GlassCard>
+                        <p className="text-[11px] font-semibold text-[#a1a1aa] mb-2">🎤 Interview Tips</p>
+                        <ul className="space-y-2">
+                          {coach.interviewTips.map((tip, i) => (
+                            <li key={i} className="flex items-start gap-2 text-[11px] text-[#71717a]">
+                              <ChevronRight size={10} className="mt-0.5 text-blue-400 flex-shrink-0" />{tip}
+                            </li>
+                          ))}
+                        </ul>
+                      </GlassCard>
+                    )}
+                    {coach.salaryTip && (
+                      <GlassCard className="border border-emerald-500/15 bg-emerald-500/[0.03]">
+                        <p className="text-[11px] font-semibold text-emerald-300 mb-2">💰 Salary Negotiation</p>
+                        <p className="text-[11px] text-[#71717a] leading-relaxed">{coach.salaryTip}</p>
+                      </GlassCard>
+                    )}
+                  </div>
+
+                  {/* Regenerate button */}
+                  <button onClick={() => { setCoach(null); setCoachError(null); }}
+                    className="w-full py-2.5 rounded-xl border border-white/[0.08] text-[12px] text-[#52525b] hover:text-[#a1a1aa] transition-all flex items-center justify-center gap-2">
+                    <RefreshCw size={12} /> Regenerate Career Plan
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── DIGITAL TWIN INSIGHTS ──────────────────────────────────────── */}
+          {section === 'twin' && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-violet-500/20 bg-violet-500/[0.04]">
+                <Brain size={14} className="text-violet-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[12px] font-semibold text-violet-300">Cross-Domain Digital Twin Analysis</p>
+                  <p className="text-[11px] text-[#71717a] mt-0.5">Your health, finance, and career data are interconnected. These insights surface hidden relationships that affect your career performance.</p>
+                </div>
+              </div>
+
+              {twinInsights.map((insight, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+                  <GlassCard className={`border ${
+                    insight.type === 'warning'  ? 'border-amber-500/15 bg-amber-500/[0.02]' :
+                    insight.type === 'positive' ? 'border-emerald-500/15 bg-emerald-500/[0.02]' :
+                    'border-blue-500/15 bg-blue-500/[0.02]'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl flex-shrink-0">{insight.icon}</span>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{
+                          color: insight.type === 'warning' ? '#f59e0b' : insight.type === 'positive' ? '#10b981' : '#3b82f6'
+                        }}>{insight.domain}</p>
+                        <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{insight.text}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ))}
+
+              <GlassCard>
+                <p className="text-[11px] font-semibold text-[#a1a1aa] mb-3">Log more data to unlock deeper insights</p>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  {[
+                    { domain: 'Sleep', status: (health?.sleepAvg ?? 0) > 0, icon: '😴' },
+                    { domain: 'Stress', status: (health?.stressLevel ?? 0) > 0, icon: '🧠' },
+                    { domain: 'Study', status: false, icon: '📚' },
+                  ].map(d => (
+                    <div key={d.domain} className={`p-3 rounded-xl border ${d.status ? 'border-emerald-500/20 bg-emerald-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                      <span className="text-xl">{d.icon}</span>
+                      <p className="text-[10px] text-[#52525b] mt-1">{d.domain}</p>
+                      <p className={`text-[9px] font-bold ${d.status ? 'text-emerald-400' : 'text-[#3f3f46]'}`}>{d.status ? 'Logged' : 'No data'}</p>
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+            </div>
+          )}
+
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-[#252525] border border-white/10 p-2 rounded-xl text-xs">
+      <p className="text-slate-400 mb-1">{label}</p>
+      {payload.map(p => <p key={p.name} style={{ color: p.fill || p.color }}>{p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}</p>)}
+    </div>
+  );
+}
+
 // ── Main Component ───────────────────────────────────────────────────────────
 export default function Career() {
-  const { user } = useAuth();
+  useAuth();
   const { career, health, records, updateDomain, addRecords, computed } = useData();
   const [tab, setTab] = useState('brain');
 
   // Static career state
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
   const score = computed?.careerScore?.score || 0;
+
+  // User skills: prefer resume-parsed skills, fall back to career profile skills
+  const userSkills = useMemo(() => {
+    const resumeData = loadResumeData();
+    if (resumeData?.skills?.length) return resumeData.skills;
+    return c.skills || [];
+  }, [c.skills]);
 
   // Study session state
   const [sessions, setSessions] = useState([]);
@@ -579,7 +1354,7 @@ export default function Career() {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { void loadData(); }, [loadData]); // eslint-disable-line react-hooks/set-state-in-effect
 
   // Cognitive load calculation: study hours today + inverse sleep + mental stress
   const cognitiveLoad = useMemo(() => {
@@ -664,25 +1439,17 @@ export default function Career() {
   };
 
   const tabs = [
-    { id: 'brain', label: 'Brain Twin', icon: '🧠' },
-    { id: 'log', label: 'Log Session', icon: '⚡' },
-    { id: 'history', label: 'History', icon: '📊' },
-    { id: 'recommendations', label: 'AI Tips', icon: '🤖' },
-    { id: 'roadmap', label: 'Learning Path', icon: '🗺️' },
-    { id: 'resume', label: 'Resume AI', icon: '📄' },
+    { id: 'brain',        label: 'Brain Twin',      icon: '🧠' },
+    { id: 'jobs',         label: 'Job Market',       icon: '💼' },
+    { id: 'intelligence', label: 'Intelligence',     icon: '🎯' },
+    { id: 'log',          label: 'Log Session',      icon: '⚡' },
+    { id: 'history',      label: 'History',          icon: '📊' },
+    { id: 'recommendations', label: 'AI Tips',       icon: '🤖' },
+    { id: 'roadmap',      label: 'Learning Path',    icon: '🗺️' },
+    { id: 'resume',       label: 'Resume AI',        icon: '📄' },
   ];
 
   const ENV_COLORS = { HOME: '#3b82f6', LIBRARY: '#8b5cf6', CAFE: '#f59e0b', GROUP: '#10b981' };
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-[#252525] border border-white/10 p-2 rounded-xl text-xs">
-        <p className="text-slate-400 mb-1">{label}</p>
-        {payload.map(p => <p key={p.name} style={{ color: p.fill || p.color }}>{p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}</p>)}
-      </div>
-    );
-  };
 
   const recentLogs = [...careerRecords].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
@@ -1161,6 +1928,21 @@ export default function Career() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── JOB MARKET TAB ───────────────────────────────────────────────────── */}
+      {tab === 'jobs' && (
+        <JobsTab userSkills={userSkills} />
+      )}
+
+      {/* ── CAREER INTELLIGENCE TAB ──────────────────────────────────────────── */}
+      {tab === 'intelligence' && (
+        <CareerIntelligenceTab
+          userSkills={userSkills}
+          targetRole={c.targetRole || ''}
+          health={health}
+          computed={computed}
+        />
       )}
 
       {/* ── RESUME AI TAB ─────────────────────────────────────────────────────── */}
