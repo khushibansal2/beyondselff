@@ -15,47 +15,51 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * RecordController — health, finance, and career CRUD.
+ *
+ * Auth is handled entirely by JwtAuthFilter before this controller is reached.
+ * AuthUtil.getUserId() reads the userId attribute the filter set on the request.
+ * No @RequestHeader("Authorization") parameters needed — they were causing
+ * Spring to return 400 when the header was missing, racing with the filter.
+ */
 @RestController
 @RequestMapping("/api/records")
 public class RecordController {
 
-    private final HealthRecordRepository healthRepo;
+    private final HealthRecordRepository  healthRepo;
     private final FinanceRecordRepository financeRepo;
-    private final CareerRecordRepository careerRepo;
+    private final CareerRecordRepository  careerRepo;
     private final AuthUtil authUtil;
 
     public RecordController(HealthRecordRepository healthRepo,
                             FinanceRecordRepository financeRepo,
                             CareerRecordRepository careerRepo,
                             AuthUtil authUtil) {
-        this.healthRepo = healthRepo;
+        this.healthRepo  = healthRepo;
         this.financeRepo = financeRepo;
-        this.careerRepo = careerRepo;
-        this.authUtil = authUtil;
+        this.careerRepo  = careerRepo;
+        this.authUtil    = authUtil;
     }
 
-    // ─── Health ──────────────────────────────────────────────────────────────
+    // ─── Health ───────────────────────────────────────────────────────────────
 
     @GetMapping("/health")
-    public ResponseEntity<List<HealthRecord>> getHealth(@RequestHeader("Authorization") String auth) {
-        String userId = authUtil.getUserIdFromToken(auth);
-        return ResponseEntity.ok(healthRepo.findByUserIdOrderByRecordDateDesc(userId));
+    public ResponseEntity<List<HealthRecord>> getHealth() {
+        return ResponseEntity.ok(healthRepo.findByUserIdOrderByRecordDateDesc(authUtil.getUserId()));
     }
 
     @GetMapping("/health/import/{importId}")
-    public ResponseEntity<List<HealthRecord>> getHealthByImport(@RequestHeader("Authorization") String auth,
-                                                                @PathVariable Long importId) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<List<HealthRecord>> getHealthByImport(@PathVariable Long importId) {
+        String userId = authUtil.getUserId();
         List<HealthRecord> records = healthRepo.findByImportId(importId);
-        // Enforce ownership — only return records belonging to the caller
-        records.removeIf(r -> !userId.equals(r.getUserId()));
+        records.removeIf(r -> !userId.equals(r.getUserId())); // ownership check
         return ResponseEntity.ok(records);
     }
 
     @PostMapping("/health")
-    public ResponseEntity<HealthRecord> createHealth(@RequestHeader("Authorization") String auth,
-                                                     @RequestBody HealthRecord record) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<HealthRecord> createHealth(@RequestBody HealthRecord record) {
+        String userId = authUtil.getUserId();
         record.setId(null);
         record.setUserId(userId);
         record.setSource("manual");
@@ -64,15 +68,13 @@ public class RecordController {
     }
 
     @PutMapping("/health/{id}")
-    public ResponseEntity<HealthRecord> updateHealth(@RequestHeader("Authorization") String auth,
-                                                     @PathVariable Long id,
+    public ResponseEntity<HealthRecord> updateHealth(@PathVariable Long id,
                                                      @RequestBody HealthRecord updated) {
-        String userId = authUtil.getUserIdFromToken(auth);
+        String userId = authUtil.getUserId();
         HealthRecord existing = healthRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found"));
-        if (!existing.getUserId().equals(userId)) {
+        if (!existing.getUserId().equals(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
         updated.setId(id);
         updated.setUserId(userId);
         updated.setCreatedAt(existing.getCreatedAt());
@@ -80,39 +82,34 @@ public class RecordController {
     }
 
     @DeleteMapping("/health/{id}")
-    public ResponseEntity<Void> deleteHealth(@RequestHeader("Authorization") String auth,
-                                             @PathVariable Long id) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<Void> deleteHealth(@PathVariable Long id) {
+        String userId = authUtil.getUserId();
         HealthRecord existing = healthRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found"));
-        if (!existing.getUserId().equals(userId)) {
+        if (!existing.getUserId().equals(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
         healthRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ─── Finance ─────────────────────────────────────────────────────────────
+    // ─── Finance ──────────────────────────────────────────────────────────────
 
     @GetMapping("/finance")
-    public ResponseEntity<List<FinanceRecord>> getFinance(@RequestHeader("Authorization") String auth) {
-        String userId = authUtil.getUserIdFromToken(auth);
-        return ResponseEntity.ok(financeRepo.findByUserIdOrderByTransactionDateDesc(userId));
+    public ResponseEntity<List<FinanceRecord>> getFinance() {
+        return ResponseEntity.ok(financeRepo.findByUserIdOrderByTransactionDateDesc(authUtil.getUserId()));
     }
 
     @GetMapping("/finance/import/{importId}")
-    public ResponseEntity<List<FinanceRecord>> getFinanceByImport(@RequestHeader("Authorization") String auth,
-                                                                   @PathVariable Long importId) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<List<FinanceRecord>> getFinanceByImport(@PathVariable Long importId) {
+        String userId = authUtil.getUserId();
         List<FinanceRecord> records = financeRepo.findByImportId(importId);
         records.removeIf(r -> !userId.equals(r.getUserId()));
         return ResponseEntity.ok(records);
     }
 
     @PostMapping("/finance")
-    public ResponseEntity<FinanceRecord> createFinance(@RequestHeader("Authorization") String auth,
-                                                       @RequestBody FinanceRecord record) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<FinanceRecord> createFinance(@RequestBody FinanceRecord record) {
+        String userId = authUtil.getUserId();
         record.setId(null);
         record.setUserId(userId);
         record.setSource("manual");
@@ -121,15 +118,13 @@ public class RecordController {
     }
 
     @PutMapping("/finance/{id}")
-    public ResponseEntity<FinanceRecord> updateFinance(@RequestHeader("Authorization") String auth,
-                                                       @PathVariable Long id,
+    public ResponseEntity<FinanceRecord> updateFinance(@PathVariable Long id,
                                                        @RequestBody FinanceRecord updated) {
-        String userId = authUtil.getUserIdFromToken(auth);
+        String userId = authUtil.getUserId();
         FinanceRecord existing = financeRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found"));
-        if (!existing.getUserId().equals(userId)) {
+        if (!existing.getUserId().equals(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
         updated.setId(id);
         updated.setUserId(userId);
         updated.setCreatedAt(existing.getCreatedAt());
@@ -137,39 +132,34 @@ public class RecordController {
     }
 
     @DeleteMapping("/finance/{id}")
-    public ResponseEntity<Void> deleteFinance(@RequestHeader("Authorization") String auth,
-                                              @PathVariable Long id) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<Void> deleteFinance(@PathVariable Long id) {
+        String userId = authUtil.getUserId();
         FinanceRecord existing = financeRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found"));
-        if (!existing.getUserId().equals(userId)) {
+        if (!existing.getUserId().equals(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
         financeRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ─── Career ──────────────────────────────────────────────────────────────
+    // ─── Career ───────────────────────────────────────────────────────────────
 
     @GetMapping("/career")
-    public ResponseEntity<List<CareerRecord>> getCareer(@RequestHeader("Authorization") String auth) {
-        String userId = authUtil.getUserIdFromToken(auth);
-        return ResponseEntity.ok(careerRepo.findByUserIdOrderByActivityDateDesc(userId));
+    public ResponseEntity<List<CareerRecord>> getCareer() {
+        return ResponseEntity.ok(careerRepo.findByUserIdOrderByActivityDateDesc(authUtil.getUserId()));
     }
 
     @GetMapping("/career/import/{importId}")
-    public ResponseEntity<List<CareerRecord>> getCareerByImport(@RequestHeader("Authorization") String auth,
-                                                                 @PathVariable Long importId) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<List<CareerRecord>> getCareerByImport(@PathVariable Long importId) {
+        String userId = authUtil.getUserId();
         List<CareerRecord> records = careerRepo.findByImportId(importId);
         records.removeIf(r -> !userId.equals(r.getUserId()));
         return ResponseEntity.ok(records);
     }
 
     @PostMapping("/career")
-    public ResponseEntity<CareerRecord> createCareer(@RequestHeader("Authorization") String auth,
-                                                     @RequestBody CareerRecord record) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<CareerRecord> createCareer(@RequestBody CareerRecord record) {
+        String userId = authUtil.getUserId();
         record.setId(null);
         record.setUserId(userId);
         record.setSource("manual");
@@ -178,15 +168,13 @@ public class RecordController {
     }
 
     @PutMapping("/career/{id}")
-    public ResponseEntity<CareerRecord> updateCareer(@RequestHeader("Authorization") String auth,
-                                                     @PathVariable Long id,
+    public ResponseEntity<CareerRecord> updateCareer(@PathVariable Long id,
                                                      @RequestBody CareerRecord updated) {
-        String userId = authUtil.getUserIdFromToken(auth);
+        String userId = authUtil.getUserId();
         CareerRecord existing = careerRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found"));
-        if (!existing.getUserId().equals(userId)) {
+        if (!existing.getUserId().equals(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
         updated.setId(id);
         updated.setUserId(userId);
         updated.setCreatedAt(existing.getCreatedAt());
@@ -194,14 +182,12 @@ public class RecordController {
     }
 
     @DeleteMapping("/career/{id}")
-    public ResponseEntity<Void> deleteCareer(@RequestHeader("Authorization") String auth,
-                                             @PathVariable Long id) {
-        String userId = authUtil.getUserIdFromToken(auth);
+    public ResponseEntity<Void> deleteCareer(@PathVariable Long id) {
+        String userId = authUtil.getUserId();
         CareerRecord existing = careerRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found"));
-        if (!existing.getUserId().equals(userId)) {
+        if (!existing.getUserId().equals(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-        }
         careerRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }

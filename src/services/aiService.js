@@ -11,9 +11,8 @@
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE + '/ai';
-const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+// NOTE: No VITE_GROQ_API_KEY used here. All AI calls go through the backend proxy.
+// The Groq key lives server-side only in application.properties / .env.
 
 /** Strip PII from user data before sending to AI. */
 function stripPII(data) {
@@ -85,30 +84,7 @@ ${alertSummary}
 Use this data to give grounded, personalized, and emotionally intelligent coaching. If asked about burnout, explain which factors are causing it from the data above. If asked about finance, reference the actual finance score.`;
 }
 
-/**
- * Call Groq directly from the frontend using VITE_GROQ_API_KEY.
- * Used as primary path when backend is unavailable.
- */
-async function callGroqDirect(systemPrompt, conversationHistory, message) {
-  if (!GROQ_KEY) throw new Error('No Groq key');
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    ...conversationHistory.slice(-10),
-    { role: 'user', content: message },
-  ];
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GROQ_KEY}`,
-    },
-    body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.7, max_tokens: 1024 }),
-  });
-  if (res.status === 429) throw new Error('RATE_LIMITED');
-  if (!res.ok) throw new Error(`Groq ${res.status}`);
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
-}
+
 
 /**
  * Send a chat message to the AI Coach.
@@ -151,25 +127,8 @@ export async function chatWithAI(message, context = {}, history = []) {
       const data = await res.json();
       return { response: data.response, source: data.source || 'groq' };
     }
-  } catch (_) {
-    // Backend unavailable — fall through to direct Groq call
-  }
-
-  // 2. Try direct Groq call (uses VITE_GROQ_API_KEY)
-  try {
-    const response = await callGroqDirect(systemPrompt, conversationHistory, message);
-    return { response, source: 'groq-direct' };
-  } catch (error) {
-    if (error.message === 'RATE_LIMITED') {
-      return {
-        response: `⏳ AI is rate-limited right now. Here's what your data shows:\n\n${generateFallbackResponse(message, context)}\n\n_Try again in ~1 minute._`,
-        source: 'rate-limited',
-      };
-    }
-    console.warn('Direct Groq failed, using deterministic fallback:', error.message);
-  }
-
-  // 3. Deterministic fallback
+  // 2. Deterministic fallback — no Groq key needed, no external call
+  console.warn('Backend AI unavailable, using deterministic fallback');
   return {
     response: generateFallbackResponse(message, context),
     source: 'fallback',
