@@ -180,9 +180,48 @@ public class UploadService {
         return importRepo.findByUserIdOrderByUploadedAtDesc(userId);
     }
 
-    public void deleteImport(Long id) {
+    @Transactional
+    public Map<String, Object> deleteImport(Long id) {
+        ImportHistory history = importRepo.findById(id).orElse(null);
+        if (history == null) {
+            Map<String, Object> r = new java.util.HashMap<>();
+            r.put("deleted", false);
+            r.put("reason", "Import not found");
+            return r;
+        }
+
+        // 1. Cascade-delete all child records for this import batch
+        int recordsRemoved = 0;
+        String domain = history.getDetectedDomain();
+        if ("health".equals(domain)) {
+            recordsRemoved = healthRepo.countByImportId(id);
+            healthRepo.deleteByImportId(id);
+        } else if ("finance".equals(domain)) {
+            recordsRemoved = financeRepo.countByImportId(id);
+            financeRepo.deleteByImportId(id);
+        } else if ("career".equals(domain)) {
+            recordsRemoved = careerRepo.countByImportId(id);
+            careerRepo.deleteByImportId(id);
+        }
+
+        // 2. Delete the encrypted file from disk
+        String storagePath = history.getStoragePath();
+        if (storagePath != null) {
+            try {
+                java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(storagePath));
+            } catch (Exception e) {
+                log.warn("Could not delete uploaded file {}: {}", storagePath, e.getMessage());
+            }
+        }
+
+        // 3. Delete the import history row itself
         importRepo.deleteById(id);
-        // Note: Realistically we should delete the associated records from Health/Finance/Career 
-        // as well using the importId, but keeping it simple for now.
+
+        Map<String, Object> r = new java.util.HashMap<>();
+        r.put("deleted", true);
+        r.put("recordsRemoved", recordsRemoved);
+        r.put("domain", domain != null ? domain : "unknown");
+        r.put("filename", history.getOriginalFilename());
+        return r;
     }
 }

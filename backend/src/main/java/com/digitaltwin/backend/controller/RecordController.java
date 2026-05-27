@@ -6,6 +6,7 @@ import com.digitaltwin.backend.entity.HealthRecord;
 import com.digitaltwin.backend.repository.CareerRecordRepository;
 import com.digitaltwin.backend.repository.FinanceRecordRepository;
 import com.digitaltwin.backend.repository.HealthRecordRepository;
+import com.digitaltwin.backend.service.GamificationService;
 import com.digitaltwin.backend.util.AuthUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * RecordController — health, finance, and career CRUD.
@@ -30,16 +32,19 @@ public class RecordController {
     private final HealthRecordRepository  healthRepo;
     private final FinanceRecordRepository financeRepo;
     private final CareerRecordRepository  careerRepo;
+    private final GamificationService     gamificationService;
     private final AuthUtil authUtil;
 
     public RecordController(HealthRecordRepository healthRepo,
                             FinanceRecordRepository financeRepo,
                             CareerRecordRepository careerRepo,
+                            GamificationService gamificationService,
                             AuthUtil authUtil) {
-        this.healthRepo  = healthRepo;
-        this.financeRepo = financeRepo;
-        this.careerRepo  = careerRepo;
-        this.authUtil    = authUtil;
+        this.healthRepo          = healthRepo;
+        this.financeRepo         = financeRepo;
+        this.careerRepo          = careerRepo;
+        this.gamificationService = gamificationService;
+        this.authUtil            = authUtil;
     }
 
     // ─── Health ───────────────────────────────────────────────────────────────
@@ -58,13 +63,15 @@ public class RecordController {
     }
 
     @PostMapping("/health")
-    public ResponseEntity<HealthRecord> createHealth(@RequestBody HealthRecord record) {
+    public ResponseEntity<Map<String, Object>> createHealth(@RequestBody HealthRecord record) {
         String userId = authUtil.getUserId();
         record.setId(null);
         record.setUserId(userId);
         record.setSource("manual");
         record.setCreatedAt(LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.CREATED).body(healthRepo.save(record));
+        HealthRecord saved = healthRepo.save(record);
+        Map<String, Object> award = gamificationService.awardActivity(userId, "health");
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("record", saved, "award", award));
     }
 
     @PutMapping("/health/{id}")
@@ -108,13 +115,15 @@ public class RecordController {
     }
 
     @PostMapping("/finance")
-    public ResponseEntity<FinanceRecord> createFinance(@RequestBody FinanceRecord record) {
+    public ResponseEntity<Map<String, Object>> createFinance(@RequestBody FinanceRecord record) {
         String userId = authUtil.getUserId();
         record.setId(null);
         record.setUserId(userId);
         record.setSource("manual");
         record.setCreatedAt(LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.CREATED).body(financeRepo.save(record));
+        FinanceRecord saved = financeRepo.save(record);
+        Map<String, Object> award = gamificationService.awardActivity(userId, "finance");
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("record", saved, "award", award));
     }
 
     @PutMapping("/finance/{id}")
@@ -158,13 +167,15 @@ public class RecordController {
     }
 
     @PostMapping("/career")
-    public ResponseEntity<CareerRecord> createCareer(@RequestBody CareerRecord record) {
+    public ResponseEntity<Map<String, Object>> createCareer(@RequestBody CareerRecord record) {
         String userId = authUtil.getUserId();
         record.setId(null);
         record.setUserId(userId);
         record.setSource("manual");
         record.setCreatedAt(LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.CREATED).body(careerRepo.save(record));
+        CareerRecord saved = careerRepo.save(record);
+        Map<String, Object> award = gamificationService.awardActivity(userId, "career");
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("record", saved, "award", award));
     }
 
     @PutMapping("/career/{id}")

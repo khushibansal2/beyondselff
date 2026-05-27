@@ -50,6 +50,11 @@ public class GeminiService {
         return callGroq(buildExplainPrompt(insightData));
     }
 
+    public String generateRecommendations(Map<String, Object> userContext) throws Exception {
+        if (!isAvailable()) throw new RuntimeException("Groq API key not configured");
+        return callGroq(buildRecommendationsPrompt(userContext));
+    }
+
     private String callGroqMultiTurn(String systemPrompt, Map<String, Object> context, List<Map<String, Object>> history, String userMessage) throws Exception {
         List<Map<String, Object>> messages = new ArrayList<>();
 
@@ -161,6 +166,25 @@ public class GeminiService {
         sb.append("COMPUTED DATA:\n");
         try { sb.append(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(computedData)); }
         catch (Exception e) { sb.append(computedData.toString()); }
+        return sb.toString();
+    }
+
+    private String buildRecommendationsPrompt(Map<String, Object> userContext) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are an emotionally intelligent AI life coach for a Digital Twin app.\n");
+        sb.append("Based on the user's REAL computed scores below, generate exactly 3 specific, actionable recommendations.\n");
+        sb.append("Return ONLY a valid JSON array (no markdown, no extra text) with 3 objects, each with these fields:\n");
+        sb.append("{\"domain\": \"health|finance|career|cross\", \"priority\": \"high|medium|low\", ");
+        sb.append("\"title\": \"short title (max 8 words)\", \"action\": \"one specific step to take today\", ");
+        sb.append("\"reason\": \"why this matters, referencing their actual score\", \"impact\": \"expected outcome in 2-4 weeks\"}\n\n");
+        sb.append("Rules:\n");
+        sb.append("- Reference actual score values from the data. Do NOT invent numbers.\n");
+        sb.append("- Prioritize the domain with the lowest score.\n");
+        sb.append("- Include at least one cross-domain recommendation if cascade effects are present.\n");
+        sb.append("- Keep each field concise (under 20 words).\n\n");
+        sb.append("USER STATE:\n");
+        try { sb.append(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(anonymizeContext(userContext))); }
+        catch (Exception e) { sb.append(userContext.toString()); }
         return sb.toString();
     }
 

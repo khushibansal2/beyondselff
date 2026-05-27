@@ -6,9 +6,15 @@ const AuthContext = createContext(null);
 
 // ─── JWT helpers ─────────────────────────────────────────────────────────────
 
-/** Decode a real signed JWT payload (base64url). No signature verification — server does that. */
-function decodeJwtPayload(token) {
+/** Decode payload from either a real JWT or a legacy dt_jwt_ token. */
+function decodeTokenPayload(token) {
   try {
+    if (token.startsWith('dt_jwt_')) {
+      return JSON.parse(atob(token.replace('dt_jwt_', '')));
+    }
+    if (token.startsWith('DEMO_SESSION_')) {
+      return null; // expiry tracked in localStorage, not in token
+    }
     const base64url = token.split('.')[1];
     if (!base64url) return null;
     const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
@@ -20,9 +26,11 @@ function decodeJwtPayload(token) {
 
 /** Returns true if a real signed JWT is still within its exp claim (exp is in seconds). */
 function isRealJwtValid(token) {
-  const payload = decodeJwtPayload(token);
+  const payload = decodeTokenPayload(token);
   if (!payload || !payload.exp) return false;
-  return payload.exp * 1000 > Date.now();
+  // Legacy dt_jwt_ stores exp in ms; real JWTs store in seconds
+  const expMs = token.startsWith('dt_jwt_') ? payload.exp : payload.exp * 1000;
+  return expMs > Date.now();
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -95,8 +103,20 @@ export function AuthProvider({ children }) {
       localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
       return { success: true, isDemo: false };
     } catch {
-      return { success: false, error: 'Cannot connect to server. Is the backend running on port 8080?' };
+      // Backend offline — fall through to localStorage custom users
     }
+
+    // Offline fallback: custom users created when backend was down
+    const customs = JSON.parse(localStorage.getItem('dt_custom_users') || '[]');
+    const local = customs.find(u => u.email === email && u.password === password);
+    if (local) {
+      const jwt = 'dt_jwt_' + btoa(JSON.stringify({ id: local.id, email, exp: Date.now() + 86400000 }));
+      setUser(local); setToken(jwt); setIsDemo(false);
+      localStorage.setItem('dt_auth', JSON.stringify({ user: local, token: jwt, isDemo: false }));
+      return { success: true, isDemo: false };
+    }
+
+    return { success: false, error: 'Cannot connect to server. Is the backend running on port 8080?' };
   };
 
   // ── Unified login — picks demo or real path automatically ────────────────────
@@ -111,6 +131,9 @@ export function AuthProvider({ children }) {
 
   // ── Real signup — backend registers user & issues signed JWT ─────────────────
   const signup = async (name, email, password) => {
+    if (Object.values(demoUsers).find(u => u.email === email))
+      return { success: false, error: 'Email already exists' };
+
     try {
       const res = await fetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
@@ -124,8 +147,19 @@ export function AuthProvider({ children }) {
       localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
       return { success: true, isNew: true };
     } catch {
-      return { success: false, error: 'Cannot connect to server. Is the backend running on port 8080?' };
+      // Backend offline — save to localStorage
     }
+
+    // Offline fallback signup
+    const customs = JSON.parse(localStorage.getItem('dt_custom_users') || '[]');
+    if (customs.find(u => u.email === email)) return { success: false, error: 'Email already exists' };
+    const newUser = { id: 'user-' + Date.now(), name, email, password, avatar: '👤', role: 'user', persona: 'New User', health: {}, finance: {}, career: {}, goals: [], timeline: [] };
+    customs.push(newUser);
+    localStorage.setItem('dt_custom_users', JSON.stringify(customs));
+    const jwt = 'dt_jwt_' + btoa(JSON.stringify({ id: newUser.id, email, exp: Date.now() + 86400000 }));
+    setUser(newUser); setToken(jwt); setIsDemo(false);
+    localStorage.setItem('dt_auth', JSON.stringify({ user: newUser, token: jwt, isDemo: false }));
+    return { success: true, isNew: true };
   };
 
   const logout = () => {
@@ -140,9 +174,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('dt_auth', JSON.stringify({ ...saved, user: updated }));
   };
 
-  const registerAuthCallback = useCallback((cb) => {
-    setOnAuthChange(() => cb);
-  }, []);
+  const registerAuthCallback = useCallback((cb) => setOnAuthChange(() => cb), []);
 
   return (
     <AuthContext.Provider value={{ user, token, isDemo, loading, login, signup, logout, updateUser, registerAuthCallback }}>

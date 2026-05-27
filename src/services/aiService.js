@@ -188,6 +188,97 @@ export async function explainInsight(insightData) {
 }
 
 /**
+ * Fetch 3 AI-generated, data-grounded recommendations for the user.
+ * Each recommendation: { domain, priority, title, action, reason, impact }
+ * Falls back to deterministic rules when the backend/Groq is unavailable.
+ */
+export async function fetchRecommendations(context = {}) {
+  // 1. Try backend
+  try {
+    const res = await fetch(`${API_BASE}/recommendations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context: stripPII(context) }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.recommendations) && data.recommendations.length > 0)
+        return { recommendations: data.recommendations, source: data.source || 'groq' };
+    }
+  } catch (_) { /* backend unavailable */ }
+
+  // 2. Try Groq direct
+  if (GROQ_KEY) {
+    try {
+      const sysPr = buildSystemPrompt(context);
+      const prompt = 'Based on the user state in the system prompt, return ONLY a JSON array of exactly 3 recommendation objects with fields: domain, priority, title, action, reason, impact. No markdown, no extra text.';
+      const raw = await callGroqDirect(sysPr, [], prompt);
+      const cleaned = raw.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+      const recs = JSON.parse(cleaned);
+      if (Array.isArray(recs) && recs.length > 0)
+        return { recommendations: recs, source: 'groq-direct' };
+    } catch (_) { /* parse or network error */ }
+  }
+
+  // 3. Deterministic fallback
+  return { recommendations: _fallbackRecommendations(context), source: 'fallback' };
+}
+
+function _fallbackRecommendations(context) {
+  const health  = context?.healthScore?.score  ?? 50;
+  const finance = context?.financeScore?.score ?? 50;
+  const career  = context?.careerScore?.score  ?? 50;
+  const burnout = context?.burnout?.risk ?? 0;
+  const crossDomain = context?.crossDomain ?? [];
+
+  const pool = {
+    health: {
+      domain: 'health', priority: health < 40 ? 'high' : 'medium',
+      title: 'Improve sleep consistency',
+      action: 'Set a fixed bedtime and log 7+ hours for 7 consecutive days',
+      reason: `Health score is ${health}/100 — sleep is the highest-leverage lever`,
+      impact: 'Health score typically rises 8-12 points within 2 weeks',
+    },
+    finance: {
+      domain: 'finance', priority: finance < 40 ? 'high' : 'medium',
+      title: 'Reduce discretionary spending',
+      action: 'Audit last 30 days of expenses and cut one recurring subscription',
+      reason: `Finance score is ${finance}/100 — expense control has the fastest impact`,
+      impact: 'Cutting 10% of expenses can add 5-8 points to finance score',
+    },
+    career: {
+      domain: 'career', priority: career < 40 ? 'high' : 'medium',
+      title: 'Log daily study sessions',
+      action: 'Solve 2 DSA problems and log 1+ study hours every day this week',
+      reason: `Career score is ${career}/100 — consistency drives placement readiness`,
+      impact: 'Daily logging raises career score by 6-10 points per week',
+    },
+  };
+
+  const sorted = ['health', 'finance', 'career'].sort(
+    (a, b) => (context?.[`${a}Score`]?.score ?? 50) - (context?.[`${b}Score`]?.score ?? 50)
+  );
+
+  const recs = [pool[sorted[0]], pool[sorted[1]]];
+
+  const stressSpend = crossDomain.find(c => c.id === 'stress-spending');
+  if (burnout > 40 || stressSpend) {
+    recs.push({
+      domain: 'cross', priority: burnout > 60 ? 'high' : 'medium',
+      title: 'Break the stress-spending loop',
+      action: 'Replace one stress-triggered purchase with a 10-min walk',
+      reason: `Burnout at ${burnout}% is linked to emotional overspending in your data`,
+      impact: 'Improves both finance and health scores simultaneously',
+    });
+  } else {
+    recs.push(pool[sorted[2]]);
+  }
+
+  return recs.slice(0, 3);
+}
+
+/**
  * Check if the AI service is available.
  */
 export async function checkAIStatus() {

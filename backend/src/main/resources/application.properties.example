@@ -1,0 +1,30 @@
+spring.application.name=digital-twin-backend
+server.port=8080
+
+# PostgreSQL - copy this file to application.properties and fill in your values
+spring.datasource.url=jdbc:postgresql://localhost:5432/digitaltwin
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.username=YOUR_POSTGRES_USERNAME
+spring.datasource.password=YOUR_POSTGRES_PASSWORD
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.open-in-view=false
+
+# File upload limits
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=50MB
+spring.servlet.multipart.max-request-size=50MB
+
+# Upload storage directory
+upload.dir=./uploads
+
+# CORS (allow React dev server)
+cors.allowed-origins=http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176
+
+# Gemini AI
+gemini.api.key=YOUR_GEMINI_API_KEY
+
+# JWT
+jwt.secret=YOUR_JWT_SECRET_MIN_32_CHARS
+jwt.expiration=86400000

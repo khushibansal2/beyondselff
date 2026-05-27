@@ -5,3 +5,5 @@ target/
 dist/
 build/
 CLAUDE.md
+backend/src/main/resources/application.properties
+

@@ -441,8 +441,38 @@ function LinkedInPanel() {
     setActiveTab('experience');
     setFollowed(false);
     setSavedJobs([]);
-    await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
-    setProfile(generateProfile(searchInput.trim()));
+    try {
+      const res = await fetch(
+        `${BACKEND}/api/linkedin/profile?username=${encodeURIComponent(searchInput.trim())}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        // Map backend response to the UI's expected shape, filling gaps with generated data
+        const gen = generateProfile(searchInput.trim());
+        setProfile({
+          ...gen,
+          name:        data.name        || gen.name,
+          headline:    data.headline    || gen.headline,
+          location:    data.location    || gen.location,
+          connections: data.connections || gen.connections,
+          followers:   data.followers   || gen.followers,
+          about:       data.summary     || gen.about,
+          skills:      (data.skills || []).map(s => ({ name: s, endorsements: Math.floor(Math.random() * 40) + 3 })),
+          experience:  data.experience?.length ? data.experience.map(e => ({
+            title: e.title, company: e.company, logo: '💼',
+            duration: e.duration, location: e.location,
+            highlights: e.skills ? e.skills.map(sk => `Worked with ${sk}`) : [],
+          })) : gen.experience,
+          source: data.source || 'linkedin_demo',
+        });
+      } else {
+        setProfile(generateProfile(searchInput.trim()));
+      }
+    } catch (_) {
+      // Backend unavailable — fall back to local generation
+      await new Promise(r => setTimeout(r, 600));
+      setProfile(generateProfile(searchInput.trim()));
+    }
     setLoading(false);
   };
 

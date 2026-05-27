@@ -63,9 +63,8 @@ public class UploadController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteImport(@PathVariable Long id) {
-        String userId = authUtil.getUserId(); // Rejects unauthenticated
+        String userId = authUtil.getUserId();
         log.info("[SECURITY AUDIT] User {} deleted import ID {}", userId, id);
-        uploadService.deleteImport(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(uploadService.deleteImport(id));
     }
 }

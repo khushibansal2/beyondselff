@@ -1,6 +1,7 @@
 package com.digitaltwin.backend.controller;
 
 import com.digitaltwin.backend.service.GeminiService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class AIProxyController {
     private static final Logger log = LoggerFactory.getLogger(AIProxyController.class);
 
     private final GeminiService geminiService;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public AIProxyController(GeminiService geminiService) {
         this.geminiService = geminiService;
@@ -100,6 +102,33 @@ public class AIProxyController {
             return ResponseEntity.ok(Map.of(
                 "explanation", "This insight is based on patterns detected in your data. The deterministic analysis identified the relationship from your imported records.",
                 "source", "fallback",
+                "timestamp", System.currentTimeMillis()
+            ));
+        }
+    }
+
+    /**
+     * POST /api/ai/recommendations
+     * Generates 3 prioritised, data-grounded recommendations from the user's live scores.
+     */
+    @PostMapping("/recommendations")
+    public ResponseEntity<Map<String, Object>> recommendations(@RequestBody Map<String, Object> request) {
+        try {
+            Map<String, Object> context = (Map<String, Object>) request.getOrDefault("context", Map.of());
+            String raw = geminiService.generateRecommendations(context);
+            // Strip markdown fences if model wrapped the JSON
+            String cleaned = raw.trim().replaceAll("^```json\\s*", "").replaceAll("^```\\s*", "").replaceAll("\\s*```$", "").trim();
+            List<Object> recs = mapper.readValue(cleaned, List.class);
+            return ResponseEntity.ok(Map.of(
+                "recommendations", recs,
+                "source", "groq",
+                "timestamp", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            log.error("Recommendations failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "error", e.getMessage() != null ? e.getMessage() : "AI unavailable",
+                "source", "error",
                 "timestamp", System.currentTimeMillis()
             ));
         }
