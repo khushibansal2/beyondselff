@@ -364,10 +364,11 @@ export function DataProvider({ children }) {
 
         if (isRealToken) {
           try {
-            const { health, finance, career } = await fetchAllRecords();
+            const { health, finance, career, goals } = await fetchAllRecords();
             if (health.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'health',  records: health  } });
             if (finance.length) dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'finance', records: finance } });
             if (career.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'career',  records: career  } });
+            if (goals && goals.length > 0) dispatch({ type: ACTIONS.UPDATE_GOALS, payload: goals });
           } catch (e) {
             console.warn('DataContext: Backend sync failed (non-critical):', e.message);
           }

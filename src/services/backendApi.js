@@ -306,25 +306,104 @@ export const careerApi = {
   },
 };
 
-// ─── Sync helper — fetch all three domains on login ──────────────────────────
+// ─── Goals API ─────────────────────────────────────────────────────────────────
+
+function toGoalRecord(frontendGoal) {
+  return {
+    title:        frontendGoal.title,
+    domain:       frontendGoal.domain,
+    deadline:     frontendGoal.deadline ? new Date(frontendGoal.deadline).toISOString().split('T')[0] : null,
+    priority:     frontendGoal.priority || 'medium',
+    status:       frontendGoal.status || 'active',
+    description:  frontendGoal.targetMetric || '', // We use description to store the targetMetric
+    targetValue:  frontendGoal.targetValue ?? null,
+    currentValue: frontendGoal.progress ?? 0,
+    milestones:   JSON.stringify(frontendGoal.milestones || []),
+  };
+}
+
+function fromGoalRecord(r) {
+  let parsedMilestones = [];
+  try {
+    parsedMilestones = r.milestones ? JSON.parse(r.milestones) : [];
+  } catch (e) {
+    parsedMilestones = [];
+  }
+  return {
+    id:           r.id,
+    title:        r.title,
+    domain:       r.domain,
+    deadline:     r.deadline,
+    priority:     r.priority,
+    status:       r.status,
+    targetMetric: r.description,
+    targetValue:  r.targetValue,
+    progress:     r.currentValue,
+    milestones:   parsedMilestones,
+    createdAt:    r.createdAt,
+  };
+}
+
+export const goalsApi = {
+  isEnabled: isAuthenticated,
+
+  async getAll() {
+    const records = await authFetch('/goals');
+    return records.map(fromGoalRecord);
+  },
+
+  async create(frontendGoal) {
+    const body = toGoalRecord(frontendGoal);
+    const saved = await authFetch('/goals', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    return fromGoalRecord(saved.goal || saved);
+  },
+
+  async update(id, frontendGoal) {
+    const body = toGoalRecord(frontendGoal);
+    const saved = await authFetch(`/goals/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+    return fromGoalRecord(saved);
+  },
+
+  async updateProgress(id, progress) {
+    const saved = await authFetch(`/goals/${id}/progress`, {
+      method: 'PATCH',
+      body: JSON.stringify({ currentValue: progress }),
+    });
+    return fromGoalRecord(saved.goal || saved);
+  },
+
+  async delete(id) {
+    return authFetch(`/goals/${id}`, { method: 'DELETE' });
+  },
+};
+
+// ─── Sync helper — fetch all records on login ────────────────────────────
 
 /**
  * Fetch all backend records for the authenticated user.
- * Returns { health, finance, career } arrays.
+ * Returns { health, finance, career, goals } arrays.
  * Silently returns empty arrays on any error (e.g. demo mode).
  */
 export async function fetchAllRecords() {
-  if (!isAuthenticated()) return { health: [], finance: [], career: [] };
+  if (!isAuthenticated()) return { health: [], finance: [], career: [], goals: [] };
 
-  const [health, finance, career] = await Promise.allSettled([
+  const [health, finance, career, goals] = await Promise.allSettled([
     healthApi.getAll(),
     financeApi.getAll(),
     careerApi.getAll(),
+    goalsApi.getAll(),
   ]);
 
   return {
     health:  health.status  === 'fulfilled' ? health.value  : [],
     finance: finance.status === 'fulfilled' ? finance.value : [],
     career:  career.status  === 'fulfilled' ? career.value  : [],
+    goals:   goals.status   === 'fulfilled' ? goals.value   : [],
   };
 }

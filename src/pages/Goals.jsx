@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { GlassCard, PageHeader, showToast, EmptyState } from '../components/ui/Components';
 import { computeGoalProgress, METRIC_OPTIONS } from '../engines/goalProgressEngine';
+import { goalsApi } from '../services/backendApi';
 import { Zap } from 'lucide-react';
 
 const aiGoalSuggestions = [
@@ -29,59 +30,88 @@ export default function Goals() {
     return { ...g, _computed: computed };
   });
 
-  const addGoal = (e) => {
+  // We want to fetch all goals if we land directly here
+  useEffect(() => {
+    if (goalsApi.isEnabled()) {
+      goalsApi.getAll().then(data => updateGoals(data)).catch(console.error);
+    }
+  }, []);
+
+  const addGoal = async (e) => {
     e.preventDefault();
     if (!newGoal.title.trim()) { showToast('Please enter a goal title', 'error'); return; }
     if (!newGoal.deadline)    { showToast('Please set a deadline', 'error'); return; }
-    const goal = {
-      id:           'g-' + Date.now(),
+    const goalData = {
       title:        newGoal.title,
       domain:       newGoal.domain,
       deadline:     newGoal.deadline,
       priority:     newGoal.priority,
       progress:     0,
       milestones:   newGoal.milestones.split(',').map(m => m.trim()).filter(Boolean),
-      createdAt:    new Date().toISOString().split('T')[0],
       targetMetric: newGoal.targetMetric || undefined,
       targetValue:  newGoal.targetValue  ? Number(newGoal.targetValue) : undefined,
     };
-    updateGoals([...(goals || []), goal]);
-    setNewGoal(EMPTY_FORM);
-    setShowNew(false);
-    setShowMeta(false);
-    showToast(`Goal "${goal.title}" created!`, 'success');
+    try {
+      const saved = goalsApi.isEnabled() ? await goalsApi.create(goalData) : { ...goalData, id: 'g-' + Date.now(), createdAt: new Date().toISOString() };
+      updateGoals([...(goals || []), saved]);
+      setNewGoal(EMPTY_FORM);
+      setShowNew(false);
+      setShowMeta(false);
+      showToast(`Goal "${saved.title}" created!`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   };
 
-  const addSuggestedGoal = (suggestion) => {
-    const goal = {
-      id:           'g-' + Date.now(),
+  const addSuggestedGoal = async (suggestion) => {
+    const goalData = {
       title:        suggestion.title,
       domain:       suggestion.domain,
       deadline:     new Date(Date.now() + 90 * 86400000).toISOString().split('T')[0],
       priority:     'medium',
       progress:     0,
       milestones:   suggestion.milestones.split(',').map(m => m.trim()),
-      createdAt:    new Date().toISOString().split('T')[0],
       targetMetric: suggestion.targetMetric,
       targetValue:  suggestion.targetValue,
     };
-    updateGoals([...(goals || []), goal]);
-    showToast(`Goal "${goal.title}" added!`, 'success');
+    try {
+      const saved = goalsApi.isEnabled() ? await goalsApi.create(goalData) : { ...goalData, id: 'g-' + Date.now(), createdAt: new Date().toISOString() };
+      updateGoals([...(goals || []), saved]);
+      showToast(`Goal "${saved.title}" added!`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   };
 
-  const updateProgress = (id, delta) => {
-    const updated = (goals || []).map(g =>
-      g.id === id ? { ...g, progress: Math.max(0, Math.min(100, (g.progress || 0) + delta)) } : g
-    );
-    updateGoals(updated);
-    const goal = updated.find(g => g.id === id);
-    if (goal?.progress >= 100) showToast(`🎉 Goal "${goal.title}" completed!`, 'success');
-  };
-
-  const deleteGoal = (id) => {
+  const updateProgress = async (id, delta) => {
     const goal = (goals || []).find(g => g.id === id);
-    updateGoals((goals || []).filter(g => g.id !== id));
-    showToast(`Goal "${goal?.title}" deleted`, 'info');
+    if (!goal) return;
+    const newProgress = Math.max(0, Math.min(100, (goal.progress || 0) + delta));
+    try {
+      if (goalsApi.isEnabled() && String(id).indexOf('g-') !== 0) {
+        await goalsApi.updateProgress(id, newProgress);
+      }
+      const updated = (goals || []).map(g =>
+        g.id === id ? { ...g, progress: newProgress } : g
+      );
+      updateGoals(updated);
+      if (newProgress >= 100) showToast(`🎉 Goal "${goal.title}" completed!`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const deleteGoal = async (id) => {
+    const goal = (goals || []).find(g => g.id === id);
+    try {
+      if (goalsApi.isEnabled() && String(id).indexOf('g-') !== 0) {
+        await goalsApi.delete(id);
+      }
+      updateGoals((goals || []).filter(g => g.id !== id));
+      showToast(`Goal "${goal?.title}" deleted`, 'info');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   };
 
   const domainColors  = { health: '#10b981', finance: '#f59e0b', career: '#3b82f6' };
