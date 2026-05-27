@@ -127,8 +127,11 @@ export async function chatWithAI(message, context = {}, history = []) {
       const data = await res.json();
       return { response: data.response, source: data.source || 'groq' };
     }
+  } catch (error) {
+    console.warn('Backend AI unavailable, using deterministic fallback:', error.message);
+  }
+
   // 2. Deterministic fallback — no Groq key needed, no external call
-  console.warn('Backend AI unavailable, using deterministic fallback');
   return {
     response: generateFallbackResponse(message, context),
     source: 'fallback',
