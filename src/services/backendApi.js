@@ -46,6 +46,15 @@ async function authFetch(path, options = {}) {
   });
 
   if (res.status === 401 || res.status === 403) {
+    // Check if this is a stale session (token valid but user wiped from DB on server restart)
+    const body = await res.json().catch(() => ({}));
+    if (body.error === 'STALE_SESSION') {
+      // Auto-clear the dead session so the user gets sent to the login page
+      localStorage.removeItem('dt_auth');
+      // Trigger a page reload to force AuthContext to pick up the cleared session
+      window.location.href = '/';
+      throw new Error('STALE_SESSION');
+    }
     throw new Error('UNAUTHORIZED');
   }
   if (!res.ok) {

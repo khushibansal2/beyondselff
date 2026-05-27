@@ -1,5 +1,6 @@
 package com.digitaltwin.backend.config;
 
+import com.digitaltwin.backend.repository.UserRepository;
 import com.digitaltwin.backend.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,9 +37,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     );
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public JwtAuthFilter(JwtUtil jwtUtil) {
+    public JwtAuthFilter(JwtUtil jwtUtil, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -66,7 +69,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Reject missing or malformed header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("[SECURITY AUDIT] Missing or malformed Authorization header from IP: {}", request.getRemoteAddr());
-            sendUnauthorized(response, "Missing or malformed Authorization header", request.getRequestURI());
+            sendError(response, 401, "Missing or malformed Authorization header", request.getRequestURI());
             return;
         }
 
@@ -75,7 +78,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Reject legacy insecure frontend tokens — they are NOT signed and must not be trusted
         if (token.startsWith("dt_jwt_") || token.startsWith("DEMO_SESSION_")) {
             log.warn("[SECURITY AUDIT] Blocked legacy/demo token attempt from IP: {} for path: {}", request.getRemoteAddr(), request.getRequestURI());
-            sendUnauthorized(response, "Demo tokens are not accepted by the backend API. Please use a real account.", request.getRequestURI());
+            sendError(response, 401, "Demo tokens are not accepted by the backend API. Please use a real account.", request.getRequestURI());
             return;
         }
 
@@ -84,7 +87,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String userId = jwtUtil.getUserIdFromToken(token);
             if (userId == null || userId.isBlank()) {
                 log.warn("[SECURITY AUDIT] Empty token subject from IP: {}", request.getRemoteAddr());
-                sendUnauthorized(response, "Invalid token: empty subject", request.getRequestURI());
+                sendError(response, 401, "Invalid token: empty subject", request.getRequestURI());
+                return;
+            }
+            // Check the userId actually exists in the current DB (guards against stale tokens after server restart)
+            if (!userRepository.existsById(userId)) {
+                log.warn("[SECURITY AUDIT] Stale JWT — userId {} not found in DB. IP: {}", userId, request.getRemoteAddr());
+                sendError(response, 401, "STALE_SESSION", request.getRequestURI());
                 return;
             }
             // Propagate userId to controllers via request attribute
@@ -92,18 +101,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
         } catch (Exception e) {
             log.warn("[SECURITY AUDIT] JWT validation failed for path {}: {}", request.getRequestURI(), e.getMessage());
-            sendUnauthorized(response, "Invalid or expired JWT token", request.getRequestURI());
+            sendError(response, 401, "Invalid or expired JWT token", request.getRequestURI());
         }
     }
 
-    private void sendUnauthorized(HttpServletResponse response, String message, String path) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    private void sendError(HttpServletResponse response, int status, String message, String path) throws IOException {
+        response.setStatus(status);
         response.setContentType("application/json");
         String timestamp = java.time.Instant.now().toString();
-        // Standardized error JSON response
         response.getWriter().write(String.format(
-            "{\"timestamp\":\"%s\",\"status\":401,\"error\":\"%s\",\"path\":\"%s\"}",
-            timestamp, message, path
+            "{\"timestamp\":\"%s\",\"status\":%d,\"error\":\"%s\",\"path\":\"%s\"}",
+            timestamp, status, message, path
         ));
     }
 }
