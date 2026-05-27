@@ -11,16 +11,19 @@ export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setTimeout(() => {
-      const result = login(email, password);
+    try {
+      const result = await login(email, password);
       if (result.success) navigate('/dashboard');
-      else setError(result.error);
+      else setError(result.error || 'Invalid credentials');
+    } catch {
+      setError('Unexpected error. Please try again.');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   const demoAccounts = [
@@ -32,14 +35,11 @@ export function Login() {
   ];
 
   const handleDemoLogin = (email) => {
-    setLoading(true);
     setError('');
-    setTimeout(() => {
-      const result = login(email, 'demo123');
-      if (result.success) navigate('/dashboard');
-      else setError(result.error);
-      setLoading(false);
-    }, 400);
+    // Demo login is synchronous (purely frontend — no network call)
+    const result = login(email, 'demo123');
+    if (result && result.success) navigate('/dashboard');
+    else setError(result?.error || 'Demo login failed');
   };
 
   return (
@@ -106,17 +106,20 @@ export function Signup() {
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
     setError('');
-    setTimeout(() => {
-      const result = signup(name, email, password);
+    try {
+      const result = await signup(name, email, password);
       if (result.success) navigate('/dashboard');
-      else setError(result.error);
+      else setError(result.error || 'Signup failed');
+    } catch {
+      setError('Unexpected error. Please try again.');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (

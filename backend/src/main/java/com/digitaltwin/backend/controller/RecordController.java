@@ -43,8 +43,13 @@ public class RecordController {
     }
 
     @GetMapping("/health/import/{importId}")
-    public ResponseEntity<List<HealthRecord>> getHealthByImport(@PathVariable Long importId) {
-        return ResponseEntity.ok(healthRepo.findByImportId(importId));
+    public ResponseEntity<List<HealthRecord>> getHealthByImport(@RequestHeader("Authorization") String auth,
+                                                                @PathVariable Long importId) {
+        String userId = authUtil.getUserIdFromToken(auth);
+        List<HealthRecord> records = healthRepo.findByImportId(importId);
+        // Enforce ownership — only return records belonging to the caller
+        records.removeIf(r -> !userId.equals(r.getUserId()));
+        return ResponseEntity.ok(records);
     }
 
     @PostMapping("/health")
@@ -96,8 +101,12 @@ public class RecordController {
     }
 
     @GetMapping("/finance/import/{importId}")
-    public ResponseEntity<List<FinanceRecord>> getFinanceByImport(@PathVariable Long importId) {
-        return ResponseEntity.ok(financeRepo.findByImportId(importId));
+    public ResponseEntity<List<FinanceRecord>> getFinanceByImport(@RequestHeader("Authorization") String auth,
+                                                                   @PathVariable Long importId) {
+        String userId = authUtil.getUserIdFromToken(auth);
+        List<FinanceRecord> records = financeRepo.findByImportId(importId);
+        records.removeIf(r -> !userId.equals(r.getUserId()));
+        return ResponseEntity.ok(records);
     }
 
     @PostMapping("/finance")
@@ -149,8 +158,12 @@ public class RecordController {
     }
 
     @GetMapping("/career/import/{importId}")
-    public ResponseEntity<List<CareerRecord>> getCareerByImport(@PathVariable Long importId) {
-        return ResponseEntity.ok(careerRepo.findByImportId(importId));
+    public ResponseEntity<List<CareerRecord>> getCareerByImport(@RequestHeader("Authorization") String auth,
+                                                                 @PathVariable Long importId) {
+        String userId = authUtil.getUserIdFromToken(auth);
+        List<CareerRecord> records = careerRepo.findByImportId(importId);
+        records.removeIf(r -> !userId.equals(r.getUserId()));
+        return ResponseEntity.ok(records);
     }
 
     @PostMapping("/career")
