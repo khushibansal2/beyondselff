@@ -25,11 +25,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-    // Public endpoints that do NOT require a JWT
     private static final Set<String> PUBLIC_PREFIXES = Set.of(
             "/api/auth/login",
             "/api/auth/signup",
             "/api/ai/status",
+            "/api/ai/chat",
+            "/api/ai/narrative",
+            "/api/ai/explain",
             "/h2-console"
     );
 
