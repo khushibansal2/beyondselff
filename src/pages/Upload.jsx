@@ -4,6 +4,7 @@ import { GlassCard, PageHeader, SecurityBadge, showToast } from '../components/u
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { analyzeDocument, hasApiKey, saveApiKey, getDemoMealResult } from '../services/visionService';
+import { authFetch } from '../services/backendApi';
 import { Upload as UploadIcon, FileText, X, Key, CheckCircle, Scan } from 'lucide-react';
 
 const fileTypes = [
@@ -262,12 +263,8 @@ export default function Upload() {
   const fetchHistory = async () => {
     if (!user || !token) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/uploads/history`, {
-        headers: { 'Authorization': token }
-      });
-      if (res.ok) {
-        setImportHistory(await res.json());
-      }
+      const res = await authFetch('/uploads/history');
+      setImportHistory(res);
     } catch (e) {
       console.error("Failed to fetch history", e);
     }
@@ -287,14 +284,10 @@ export default function Upload() {
     // userId is now extracted securely from the JWT token on the backend
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/uploads`, {
+      const history = await authFetch('/uploads', {
         method: 'POST',
-        headers: { 'Authorization': token },
         body: formData,
       });
-      
-      if (!res.ok) throw new Error(await res.text());
-      const history = await res.json();
       
       const sampleRows = history.sampleData ? JSON.parse(history.sampleData) : [];
       const columns = history.columnHeaders ? JSON.parse(history.columnHeaders) : [];
@@ -324,11 +317,7 @@ export default function Upload() {
     setImporting(true);
     try {
       showToast(`Fetching ${preview.valid} records from ${preview.name}...`, 'info');
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/records/${preview.domain}/import/${preview.id}`, {
-        headers: { 'Authorization': token }
-      });
-      if (!res.ok) throw new Error("Failed to fetch parsed records.");
-      const records = await res.json();
+      const records = await authFetch(`/records/${preview.domain}/import/${preview.id}`);
       
       let newTimeline = [...timeline];
       let newHealth = { ...health };
@@ -401,13 +390,9 @@ export default function Upload() {
     setImporting(true);
     try {
       showToast(`Syncing with GitHub...`, 'info');
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/sync/github?githubUsername=${githubUsername}`, { 
-        method: 'POST',
-        headers: { 'Authorization': token }
+      const data = await authFetch(`/sync/github?githubUsername=${githubUsername}`, { 
+        method: 'POST'
       });
-      
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
       
       setConnectedApis(prev => new Set(prev).add('GitHub'));
       showToast(`Synced ${data.repos} repos and ${data.commits} commits from GitHub!`, 'success');
@@ -617,7 +602,7 @@ export default function Upload() {
               <button 
                 onClick={async () => {
                   if (h.id) {
-                    await fetch(`${import.meta.env.VITE_API_BASE}/uploads/${h.id}`, { method: 'DELETE' });
+                    await authFetch(`/uploads/${h.id}`, { method: 'DELETE' });
                     fetchHistory();
                     showToast('Import deleted', 'info');
                   }

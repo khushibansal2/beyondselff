@@ -32,17 +32,23 @@ function isAuthenticated() {
   return !!getToken();
 }
 
-async function authFetch(path, options = {}) {
+export async function authFetch(path, options = {}) {
   const token = getToken();
   if (!token) throw new Error('NOT_AUTHENTICATED');
 
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    ...(options.headers || {}),
+  };
+
+  // Only default to application/json if not sending FormData
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
+    headers,
   });
 
   if (res.status === 401 || res.status === 403) {
