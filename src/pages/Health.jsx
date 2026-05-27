@@ -1,7 +1,8 @@
-import { useState, useMemo, useRef, useCallback, useReducer } from 'react';
+import { useState, useMemo, useRef, useCallback, useReducer, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { healthApi } from '../services/backendApi';
 import { generateTrendData, generateInsights } from '../data/demoData';
 import { analyzeMealImage, analyzeSupplementImage, hasApiKey, saveApiKey, getDemoMealResult, getDemoSupplementResult } from '../services/visionService';
 import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionService';
@@ -672,13 +673,22 @@ function HealthRecommendations({ recommendations }) {
 
 export default function Health() {
   const { user } = useAuth();
-  const { health, finance, records, updateDomain, addRecords, computed } = useData();
+  const { health, finance, records, updateDomain, addRecords, setRecords, computed } = useData();
   const healthRecords = records?.health || [];
   const [tab, setTab] = useState('overview');
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
   const score = computed?.healthScore?.score || 0;
   const burnout = computed?.burnout?.risk || 0;
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
+
+  // Load health records from backend on mount (for real users)
+  useEffect(() => {
+    if (!healthApi.isEnabled()) return;
+    healthApi.getAll()
+      .then(records => { if (records.length > 0) setRecords('health', records); })
+      .catch(err => console.warn('Health: backend load failed:', err.message));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Build chart data from real logs when available, else fall back to generated demo data
   const trendData = useMemo(() => {
@@ -739,7 +749,7 @@ export default function Health() {
     { id: 'recommendations', label: 'AI Recommendations', icon: '🤖' },
   ];
 
-  const handleLog = (e) => {
+  const handleLog = async (e) => {
     e.preventDefault();
     const updated = { ...h };
     const record = { date: new Date().toISOString() };
@@ -753,10 +763,23 @@ export default function Health() {
     if (form.weight)   { updated.weight         = Number(form.weight);         record.weight   = Number(form.weight);         changes++; }
     if (form.bmi)      { updated.bmi            = Number(form.bmi);            record.bmi      = Number(form.bmi);            changes++; }
     if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
+
+    // 1. Update local state immediately (optimistic)
     updateDomain('health', updated);
     addRecords('health', [record]);
     setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
-    showToast(`Health data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
+    showToast(`Health data saved (${changes} field${changes > 1 ? 's' : ''})`, 'success');
+
+    // 2. Persist to backend (non-blocking for real users)
+    if (healthApi.isEnabled()) {
+      try {
+        await healthApi.create(record);
+      } catch (err) {
+        if (err.message !== 'NOT_AUTHENTICATED' && err.message !== 'UNAUTHORIZED') {
+          console.warn('Health: backend save failed:', err.message);
+        }
+      }
+    }
   };
 
   const handleApplyCalories = (calories) => {

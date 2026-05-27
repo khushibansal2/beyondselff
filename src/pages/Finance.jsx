@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback, useReducer } from 'r
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { financeApi } from '../services/backendApi';
 import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
 import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
@@ -369,13 +370,22 @@ function FinanceRecommendations({ recommendations }) {
 // ── Main Finance Component ───────────────────────────────────────────────────
 export default function Finance() {
   const { user } = useAuth();
-  const { finance, records, computed, updateDomain, addRecords, addTimelineEvent } = useData();
+  const { finance, records, computed, updateDomain, addRecords, setRecords, addTimelineEvent } = useData();
   const [tab, setTab] = useState('overview');
 
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const score = computed?.financeScore?.score || 0;
   const financeRecords = records?.finance || [];
   const hasFinanceData = f.income > 0 || f.expenses > 0 || f.savings > 0;
+
+  // Load finance records from backend on mount (for real users)
+  useEffect(() => {
+    if (!financeApi.isEnabled()) return;
+    financeApi.getAll()
+      .then(records => { if (records.length > 0) setRecords('finance', records); })
+      .catch(err => console.warn('Finance: backend load failed:', err.message));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Spending trend ────────────────────────────────────────────────────────
   const trendData = useMemo(() => {
@@ -483,7 +493,7 @@ export default function Finance() {
     setEditResult({ ...result });
   };
 
-  const handleConfirmTx = () => {
+  const handleConfirmTx = async () => {
     if (!editResult) return;
     const confirmed = { ...editResult, id: Date.now(), source: 'manual', parsedAt: new Date().toISOString() };
     const updated = [confirmed, ...parsedTxs];
@@ -498,6 +508,12 @@ export default function Finance() {
     addTimelineEvent({ type: 'Transaction Parsed', text: `₹${confirmed.amount} at ${confirmed.merchant} (${confirmed.category})`, sentiment: 'neutral', domain: 'finance' });
     showToast(`Added: ${confirmed.merchant} ₹${confirmed.amount}`, 'success');
     setSmsInput(''); setParseResult(null); setEditResult(null);
+    // Persist to backend
+    if (financeApi.isEnabled()) {
+      try {
+        await financeApi.create({ date: new Date().toISOString(), amount: confirmed.amount, category: confirmed.category, merchant: confirmed.merchant, transactionType: confirmed.type === 'Credit' ? 'credit' : 'debit', description: confirmed.bank });
+      } catch (err) { console.warn('Finance: backend save failed:', err.message); }
+    }
   };
 
   // Multi-line bulk parse
@@ -528,11 +544,12 @@ export default function Finance() {
   };
 
   // ── Legacy handlers ───────────────────────────────────────────────────────
-  const handleLog = (e) => {
+  const handleLog = async (e) => {
     e.preventDefault();
     const updated = { ...f };
     let hasUpdate = false;
-    if (form.income) { updated.income = parseInt(form.income); hasUpdate = true; addTimelineEvent({ type: 'Income Updated', text: `Logged income: ₹${updated.income}`, sentiment: 'positive', domain: 'finance' }); }
+    const backendRecord = { date: new Date().toISOString() };
+    if (form.income) { updated.income = parseInt(form.income); hasUpdate = true; backendRecord.amount = parseInt(form.income); backendRecord.transactionType = 'credit'; backendRecord.category = 'Income'; addTimelineEvent({ type: 'Income Updated', text: `Logged income: ₹${updated.income}`, sentiment: 'positive', domain: 'finance' }); }
     if (form.amount) {
       const amount = parseInt(form.amount);
       updated.expenses = (updated.expenses || 0) + amount;
@@ -540,9 +557,19 @@ export default function Finance() {
       updated.categoryTotals[form.category] = (updated.categoryTotals[form.category] || 0) + amount;
       hasUpdate = true;
       addRecords('finance', [{ date: new Date().toISOString(), amount, category: form.category }]);
+      backendRecord.amount = amount; backendRecord.category = form.category; backendRecord.transactionType = 'debit';
       addTimelineEvent({ type: 'Expense Logged', text: `Spent ₹${amount} on ${form.category}`, sentiment: 'neutral', domain: 'finance' });
     }
-    if (hasUpdate) { updateDomain('finance', updated); setForm({ income: '', expense: '', category: 'food', amount: '' }); showToast('Financial data updated', 'success'); }
+    if (hasUpdate) {
+      updateDomain('finance', updated);
+      setForm({ income: '', expense: '', category: 'food', amount: '' });
+      showToast('Financial data saved', 'success');
+      // Persist to backend
+      if (financeApi.isEnabled() && backendRecord.amount) {
+        try { await financeApi.create(backendRecord); }
+        catch (err) { console.warn('Finance: backend save failed:', err.message); }
+      }
+    }
   };
 
   const handleFileUpload = async (e) => {

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, useReducer } from 'r
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { careerApi } from '../services/backendApi';
 import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
@@ -1315,7 +1316,7 @@ function CareerRecommendations({ recommendations }) {
 // ── Main Component ───────────────────────────────────────────────────────────
 export default function Career() {
   useAuth();
-  const { career, health, records, updateDomain, addRecords, computed } = useData();
+  const { career, health, records, updateDomain, addRecords, setRecords, computed } = useData();
   const [tab, setTab] = useState('brain');
 
   // Static career state
@@ -1369,6 +1370,15 @@ export default function Career() {
 
   useEffect(() => { void loadData(); }, [loadData]); // eslint-disable-line react-hooks/set-state-in-effect
 
+  // Load career records from backend on mount (for real users)
+  useEffect(() => {
+    if (!careerApi.isEnabled()) return;
+    careerApi.getAll()
+      .then(recs => { if (recs.length > 0) setRecords('career', recs); })
+      .catch(err => console.warn('Career: backend load failed:', err.message));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Cognitive load calculation: study hours today + inverse sleep + mental stress
   const cognitiveLoad = useMemo(() => {
     const todaySessions = sessions.filter(s => {
@@ -1410,6 +1420,12 @@ export default function Career() {
       const todayHours = (logForm.durationMinutes / 60);
       updateDomain('career', { ...c, studyHoursDaily: Math.max(c.studyHoursDaily, parseFloat(todayHours.toFixed(1))) });
       addRecords('career', [{ date: new Date().toISOString(), studyHours: todayHours, topic: logForm.topic }]);
+      // Persist to backend
+      if (careerApi.isEnabled()) {
+        try {
+          await careerApi.create({ date: new Date().toISOString(), studyHours: todayHours, skillLearned: logForm.topic });
+        } catch (err) { console.warn('Career: session backend save failed:', err.message); }
+      }
     } catch {
       showToast('Failed to log session', 'error');
     } finally {
@@ -1417,25 +1433,30 @@ export default function Career() {
     }
   };
 
-  const handleCareerLog = (e) => {
+  const handleCareerLog = async (e) => {
     e.preventDefault();
     const updated = { ...c };
     const record = { date: new Date().toISOString() };
     let changes = 0;
     if (careerForm.studyHours)  { updated.studyHoursDaily  = parseFloat(careerForm.studyHours);  record.studyHours  = parseFloat(careerForm.studyHours);  changes++; }
     if (careerForm.codingHours) { updated.codingHoursDaily = parseFloat(careerForm.codingHours); record.codingHours = parseFloat(careerForm.codingHours); changes++; }
-    if (careerForm.dsa)         { updated.dsaPractice      = parseInt(careerForm.dsa);           record.dsa         = parseInt(careerForm.dsa);           changes++; }
+    if (careerForm.dsa)         { updated.dsaPractice      = parseInt(careerForm.dsa);           record.dsaProblems = parseInt(careerForm.dsa);           changes++; }
     if (careerForm.projects)    { updated.projectsCompleted = parseInt(careerForm.projects);     record.projects    = parseInt(careerForm.projects);      changes++; }
     if (careerForm.skill && !updated.skills.includes(careerForm.skill.trim())) {
       updated.skills = [...(updated.skills || []), careerForm.skill.trim()];
-      record.skillAdded = careerForm.skill.trim();
+      record.skillLearned = careerForm.skill.trim();
       changes++;
     }
     if (changes === 0) { showToast('Fill at least one field', 'error'); return; }
     updateDomain('career', updated);
     addRecords('career', [record]);
     setCareerForm({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
-    showToast(`Career data updated (${changes} field${changes > 1 ? 's' : ''})`, 'success');
+    showToast(`Career data saved (${changes} field${changes > 1 ? 's' : ''})`, 'success');
+    // Persist to backend
+    if (careerApi.isEnabled()) {
+      try { await careerApi.create(record); }
+      catch (err) { console.warn('Career: backend save failed:', err.message); }
+    }
   };
 
   const handleGenerateLearningPath = async (e) => {

@@ -332,6 +332,7 @@ function persistState(state) {
 }
 
 import { useAuth } from './AuthContext';
+import { fetchAllRecords } from '../services/backendApi';
 
 export function DataProvider({ children }) {
   const { registerAuthCallback } = useAuth();
@@ -341,14 +342,36 @@ export function DataProvider({ children }) {
 
   // Sync with AuthContext on login/logout
   useEffect(() => {
-    registerAuthCallback((authUser) => {
+    registerAuthCallback(async (authUser) => {
       if (!authUser) {
         dispatch({ type: ACTIONS.RESET });
       } else {
-        dispatch({ 
-          type: ACTIONS.SET_USER_DATA, 
-          payload: { userData: authUser, source: authUser.persona === 'New User' ? 'none' : 'demo' } 
+        dispatch({
+          type: ACTIONS.SET_USER_DATA,
+          payload: { userData: authUser, source: authUser.persona === 'New User' ? 'none' : 'demo' },
         });
+
+        // For real (non-demo) accounts, pull saved records from the Spring Boot backend
+        const isRealUser = !authUser.persona || authUser.persona === 'New User';
+        const isRealToken = (() => {
+          try {
+            const raw = localStorage.getItem('dt_auth');
+            if (!raw) return false;
+            const { isDemo, token } = JSON.parse(raw);
+            return !isDemo && token && !token.startsWith('DEMO_SESSION_');
+          } catch { return false; }
+        })();
+
+        if (isRealToken) {
+          try {
+            const { health, finance, career } = await fetchAllRecords();
+            if (health.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'health',  records: health  } });
+            if (finance.length) dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'finance', records: finance } });
+            if (career.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'career',  records: career  } });
+          } catch (e) {
+            console.warn('DataContext: Backend sync failed (non-critical):', e.message);
+          }
+        }
       }
     });
   }, [registerAuthCallback]);
