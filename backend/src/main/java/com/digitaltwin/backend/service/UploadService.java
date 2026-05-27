@@ -181,13 +181,18 @@ public class UploadService {
     }
 
     @Transactional
-    public Map<String, Object> deleteImport(Long id) {
+    public Map<String, Object> deleteImport(Long id, String userId) {
         ImportHistory history = importRepo.findById(id).orElse(null);
         if (history == null) {
             Map<String, Object> r = new java.util.HashMap<>();
             r.put("deleted", false);
             r.put("reason", "Import not found");
             return r;
+        }
+
+        if (!history.getUserId().equals(userId)) {
+            log.warn("[SECURITY AUDIT] User {} attempted to delete import ID {} belonging to {}", userId, id, history.getUserId());
+            throw new SecurityException("You do not have permission to delete this record.");
         }
 
         // 1. Cascade-delete all child records for this import batch
