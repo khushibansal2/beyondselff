@@ -6,6 +6,7 @@ import { generateNarrative } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
 import { GhostTimeline } from '../components/ui/GhostTimeline';
+import { LifePlant, getStage, PLANT_STAGES } from '../components/ui/LifePlant';
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';
 import { computeHealthScore } from '../engines/healthScoreEngine';
@@ -527,7 +528,7 @@ function ShareCard({ user, healthScore, financeScore, careerScore, lifeBalance, 
 // ─── MAIN DASHBOARD ──────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuth();
-  const { health, finance, career, timeline, records, computed, aiCache, updateAICache, updateDomain, anomalies = [] } = useData();
+  const { health, finance, career, timeline, records, computed, aiCache, updateAICache, updateDomain, anomalies = [], goals = [] } = useData();
   const [aiNarrative, setAiNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -623,6 +624,13 @@ export default function Dashboard() {
     }
     return tasks.slice(0, 3);
   }, [h, f, c, savingsRate, hasHealthData, hasFinanceData, hasCareerData]);
+
+  // Goal plant progress
+  const avgGoalProgress = useMemo(() => {
+    if (!goals.length) return 0;
+    const total = goals.reduce((sum, g) => sum + (g.progress || 0), 0);
+    return Math.round(total / goals.length);
+  }, [goals]);
 
   const urgentAlerts   = [...(computed?.urgentAlerts || []), ...anomalies.map(a => ({ icon: a.severity === 'critical' ? '🚨' : '⚠️', text: `${a.title}: ${a.description}` }))];
   const positiveSignals = computed?.positiveSignals || [];
@@ -1142,6 +1150,101 @@ export default function Dashboard() {
           </AnimatePresence>
         </GlassCard>
       </motion.div>
+
+      {/* ── GOAL PLANT ───────────────────────────────────────────────────── */}
+      {!doomMode && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mb-6">
+          <GlassCard>
+            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10">
+              {/* Plant visual */}
+              <div className="flex-shrink-0">
+                <LifePlant
+                  progress={avgGoalProgress}
+                  healthScore={healthScore}
+                  burnout={burnoutRisk}
+                  size={150}
+                />
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 w-full">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    🌱 Your Life Plant
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {getStage(avgGoalProgress).name}
+                    </span>
+                  </h3>
+                  <Link to="/goals" className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
+                    Manage Goals →
+                  </Link>
+                </div>
+                <p className="text-[12px] text-slate-400 mb-4">{getStage(avgGoalProgress).desc}</p>
+
+                {/* Overall progress bar */}
+                <div className="mb-4">
+                  <div className="flex justify-between text-[11px] mb-1.5">
+                    <span className="text-slate-400">Average Goal Progress</span>
+                    <span className="font-bold text-white tabular-nums">{avgGoalProgress}%</span>
+                  </div>
+                  <div className="h-3 rounded-full bg-white/[0.05] overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${avgGoalProgress}%` }}
+                      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                      className="h-full rounded-full"
+                      style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Stage milestones */}
+                <div className="flex gap-1 items-center">
+                  {PLANT_STAGES.map((s, i) => {
+                    const reached = avgGoalProgress >= s.minPct;
+                    const isNext = !reached && (i === 0 || avgGoalProgress >= PLANT_STAGES[i - 1].minPct);
+                    return (
+                      <div key={s.stage} className="flex items-center gap-1 flex-1">
+                        <div className={`flex flex-col items-center flex-1 ${i < PLANT_STAGES.length - 1 ? '' : ''}`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] border-2 transition-all ${
+                            reached
+                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                              : isNext
+                              ? 'bg-white/[0.06] border-white/20 text-slate-400 animate-pulse'
+                              : 'bg-white/[0.02] border-white/[0.08] text-slate-600'
+                          }`}>
+                            {reached ? '✓' : s.emoji}
+                          </div>
+                          <p className="text-[8px] text-slate-600 mt-0.5 text-center">{s.name}</p>
+                        </div>
+                        {i < PLANT_STAGES.length - 1 && (
+                          <div className={`h-0.5 flex-1 rounded-full mb-3 ${reached && avgGoalProgress >= PLANT_STAGES[i+1]?.minPct ? 'bg-emerald-500' : 'bg-white/[0.06]'}`} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Next stage hint */}
+                {avgGoalProgress < 80 && (() => {
+                  const next = PLANT_STAGES.find(s => s.minPct > avgGoalProgress);
+                  return next ? (
+                    <p className="text-[11px] text-slate-500 mt-3">
+                      <span className="text-emerald-400 font-semibold">{next.emoji} {next.name}</span> unlocks at {next.minPct}% — {next.minPct - avgGoalProgress}% to go
+                    </p>
+                  ) : null;
+                })()}
+
+                {goals.length === 0 && (
+                  <Link to="/goals" className="mt-3 inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all">
+                    + Add your first goal to grow the plant
+                  </Link>
+                )}
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+      )}
 
       {/* ── SIGNATURE FEATURE SHOWCASE ───────────────────────────────────── */}
       {!doomMode && (
