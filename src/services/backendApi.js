@@ -52,7 +52,7 @@ async function authFetch(path, options = {}) {
       // Auto-clear the dead session so the user gets sent to the login page
       localStorage.removeItem('dt_auth');
       // Trigger a page reload to force AuthContext to pick up the cleared session
-      window.location.href = '/';
+      window.location.href = '/login';
       throw new Error('STALE_SESSION');
     }
     throw new Error('UNAUTHORIZED');

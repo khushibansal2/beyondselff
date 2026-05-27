@@ -275,7 +275,7 @@ export default function Landing() {
               <Link to="/dashboard" className="btn-primary text-sm px-5 py-2">Open Dashboard →</Link>
             ) : (
               <>
-                <Link to="/login" className="hidden sm:block text-sm text-slate-400 hover:text-white transition-colors px-3 py-2">Login</Link>
+                <Link to="/login" className="text-sm text-slate-400 hover:text-white transition-colors px-3 py-2">Login</Link>
                 <Link to="/signup" className="btn-primary text-sm px-5 py-2">Start Free →</Link>
               </>
             )}
