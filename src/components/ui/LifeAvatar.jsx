@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ── Skin & hair palette presets ───────────────────────────────────────────────
+// ── Palettes ──────────────────────────────────────────────────────────────────
 const SKIN_TONES = [
   '#fde8c8', '#f5cfa0', '#e8b887', '#d4956a',
   '#b8724e', '#8d5524', '#6b3e26', '#4a2912',
@@ -10,10 +10,10 @@ const HAIR_COLORS = [
   '#1a1a2e', '#2d1b00', '#4a2c00', '#8b5e3c',
   '#c4a35a', '#f0c040', '#c0392b', '#7b2fbe',
 ];
-const HAIR_STYLES = ['short', 'medium', 'curly', 'long', 'buzz'];
+const HAIR_STYLES = ['boycut', 'short', 'medium', 'long', 'curly', 'bun'];
+const FACE_SHAPES = ['slim', 'oval', 'round', 'square'];
 
 const LS_KEY = 'avatar_persona';
-
 function loadPersona() {
   try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; }
 }
@@ -21,19 +21,80 @@ function savePersona(p) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(p)); } catch { /**/ }
 }
 
-// ── Color extraction from camera frame ───────────────────────────────────────
+// ── Face geometry ─────────────────────────────────────────────────────────────
+const FACE = {
+  slim:   { rx: 18, ry: 30, bw: 40 },
+  oval:   { rx: 23, ry: 26, bw: 50 },
+  round:  { rx: 27, ry: 23, bw: 56 },
+  square: { rx: 26, ry: 24, bw: 54 },
+};
+
+const CX = 80;
+const CY = 78;
+
+function getFaceGeo(shape) {
+  const { rx, ry, bw } = FACE[shape] || FACE.oval;
+  const eyeSpX = rx * 0.58;
+  const eyeRad = rx * 0.30;
+  const eyeY   = CY - ry * 0.08;
+  const torsoY = CY + ry + 10;
+  const shY    = torsoY + 8;
+  return {
+    rx, ry, bw,
+    eyeLX: CX - eyeSpX, eyeRX: CX + eyeSpX,
+    eyeY, eyeRad,
+    browY:   eyeY - eyeRad - 3,
+    noseY:   CY + ry * 0.28,
+    mouthY:  CY + ry * 0.55,
+    mouthL:  CX - rx * 0.48,
+    mouthR:  CX + rx * 0.48,
+    earLX: CX - rx, earRX: CX + rx,
+    earY:  CY - ry * 0.04,
+    earRy: Math.min(ry * 0.25, 7),
+    blushLX: CX - rx * 0.56, blushRX: CX + rx * 0.56,
+    blushY:  eyeY + eyeRad * 2.2,
+    blushRx: rx * 0.30, blushRy: rx * 0.17,
+    neckX: CX - 7, neckY: CY + ry - 2, neckW: 14, neckH: 12,
+    torsoX: CX - bw / 2, torsoY, torsoW: bw, torsoH: 34,
+    legLX: CX - bw * 0.30, legRX: CX + bw * 0.04,
+    legY: torsoY + 34, legW: 12, legH: 24,
+    shLX: CX - bw / 2, shRX: CX + bw / 2, shY,
+    armW: 18, armH: 10,
+  };
+}
+
+// ── States ────────────────────────────────────────────────────────────────────
+// armAngle: positive = arms raised up, negative = arms drooping down
+const STATES = {
+  thriving:   { label: 'THRIVING',   badge: '#10b981', shirt: '#3b82f6', slump: 0,  eye: 'happy', mouth: 'grin',  aura: true,  armAngle: 35  },
+  normal:     { label: 'BALANCED',   badge: '#6366f1', shirt: '#4f46e5', slump: 0,  eye: 'open',  mouth: 'smile', aura: false, armAngle: 0   },
+  tired:      { label: 'FATIGUED',   badge: '#8b5cf6', shirt: '#374151', slump: 7,  eye: 'half',  mouth: 'flat',  aura: false, armAngle: -20 },
+  overworked: { label: 'OVERLOADED', badge: '#f59e0b', shirt: '#1f2937', slump: 11, eye: 'half',  mouth: 'flat',  aura: false, armAngle: -15 },
+  broke:      { label: 'STRUGGLING', badge: '#f43f5e', shirt: '#4b5563', slump: 3,  eye: 'open',  mouth: 'frown', aura: false, armAngle: -10 },
+  burnout:    { label: 'BURNED OUT', badge: '#ef4444', shirt: '#111827', slump: 22, eye: 'x',     mouth: 'sad',   aura: false, armAngle: -50 },
+};
+
+function computeState(h, f, c, burn) {
+  const avg = (h + f + c) / 3;
+  if (burn > 60 || avg < 28) return 'burnout';
+  if (c > 65 && h < 44)      return 'overworked';
+  if (h < 44)                 return 'tired';
+  if (f < 33)                 return 'broke';
+  if (avg > 72)               return 'thriving';
+  return 'normal';
+}
+
+// ── Camera helpers ────────────────────────────────────────────────────────────
 function sampleRegion(ctx, x, y, w, h) {
   const d = ctx.getImageData(x, y, w, h).data;
   let r = 0, g = 0, b = 0, count = 0;
   for (let i = 0; i < d.length; i += 4) {
-    const alpha = d[i + 3];
-    if (alpha < 128) continue;
-    // skip near-black pixels (background / shadow)
+    if (d[i + 3] < 128) continue;
     if (d[i] < 30 && d[i + 1] < 30 && d[i + 2] < 30) continue;
     r += d[i]; g += d[i + 1]; b += d[i + 2]; count++;
   }
   if (!count) return '#c8a882';
-  const hex = c => Math.round(c / count).toString(16).padStart(2, '0');
+  const hex = v => Math.round(v / count).toString(16).padStart(2, '0');
   return `#${hex(r)}${hex(g)}${hex(b)}`;
 }
 
@@ -52,36 +113,233 @@ function closestPalette(hex, palette) {
   return best;
 }
 
-// ── Avatar state logic ────────────────────────────────────────────────────────
-const STATES = {
-  thriving:   { label: 'THRIVING',   badge: '#10b981', shirt: '#3b82f6',  slump: 0,  eye: 'happy', mouth: 'grin',  aura: true  },
-  normal:     { label: 'BALANCED',   badge: '#6366f1', shirt: '#4f46e5',  slump: 0,  eye: 'open',  mouth: 'smile', aura: false },
-  tired:      { label: 'FATIGUED',   badge: '#8b5cf6', shirt: '#374151',  slump: 7,  eye: 'half',  mouth: 'flat',  aura: false },
-  overworked: { label: 'OVERLOADED', badge: '#f59e0b', shirt: '#1f2937',  slump: 11, eye: 'half',  mouth: 'flat',  aura: false },
-  broke:      { label: 'STRUGGLING', badge: '#f43f5e', shirt: '#4b5563',  slump: 3,  eye: 'open',  mouth: 'frown', aura: false },
-  burnout:    { label: 'BURNED OUT', badge: '#ef4444', shirt: '#111827',  slump: 22, eye: 'x',     mouth: 'sad',   aura: false },
-};
-
-function computeState(h, f, c, burn) {
-  const avg = (h + f + c) / 3;
-  if (burn > 60 || avg < 28) return 'burnout';
-  if (c > 65 && h < 44)      return 'overworked';
-  if (h < 44)                 return 'tired';
-  if (f < 33)                 return 'broke';
-  if (avg > 72)               return 'thriving';
-  return 'normal';
+// Estimates face shape from camera frame pixel data
+function detectFaceShape(ctx, W, H) {
+  function skinWidthAt(yFrac) {
+    const y = Math.floor(H * yFrac);
+    const row = ctx.getImageData(0, y, W, 1).data;
+    let first = -1, last = -1;
+    for (let x = 0; x < W; x++) {
+      const i = x * 4;
+      const r = row[i], g = row[i + 1], b = row[i + 2], a = row[i + 3];
+      if (a < 128) continue;
+      const isSkin = r > 80 && r > g + 15 && r > b + 20 && g > 40 && b < 210;
+      if (isSkin) { if (first < 0) first = x; last = x; }
+    }
+    return first < 0 ? 0 : last - first;
+  }
+  const cheekW = skinWidthAt(0.45);
+  const foreW  = skinWidthAt(0.25);
+  if (cheekW < 10) return 'oval';
+  const ratio    = cheekW / (H * 0.6);
+  const symRatio = Math.abs(cheekW - foreW) / Math.max(cheekW, 1);
+  if (ratio < 0.52) return 'slim';
+  if (ratio > 0.72) return 'round';
+  if (symRatio < 0.12) return 'square';
+  return 'oval';
 }
 
-// ── Camera snap component ─────────────────────────────────────────────────────
+// ── Hair ──────────────────────────────────────────────────────────────────────
+function Hair({ style, color, rx, ry, isBurnout }) {
+  const c = isBurnout ? '#2a1010' : color;
+  const T = CY - ry;  // top of head y
+  const L = CX - rx;  // left x
+  const R = CX + rx;  // right x
+
+  switch (style) {
+    case 'boycut':
+      return (
+        <g>
+          <path d={`M${L - 2} ${CY} Q${L - 2} ${T - 5} ${CX} ${T - 6} Q${R + 2} ${T - 5} ${R + 2} ${CY} Q${R} ${T + 14} ${CX} ${T + 12} Q${L} ${T + 14} ${L - 2} ${CY} Z`}
+            fill={c} />
+          {/* Side fade texture */}
+          <line x1={L} y1={CY - 4} x2={L + 5} y2={T + 10} stroke={c} strokeWidth="1.5" opacity="0.4" strokeLinecap="round" />
+          <line x1={R} y1={CY - 4} x2={R - 5} y2={T + 10} stroke={c} strokeWidth="1.5" opacity="0.4" strokeLinecap="round" />
+        </g>
+      );
+    case 'short':
+      return (
+        <path d={`M${L - 2} ${CY} Q${L - 5} ${T - 5} ${CX} ${T - 6} Q${R + 5} ${T - 5} ${R + 2} ${CY} Q${R - 1} ${T + 18} ${CX} ${T + 16} Q${L + 1} ${T + 18} ${L - 2} ${CY} Z`}
+          fill={c} />
+      );
+    case 'medium':
+      return (
+        <path d={`M${L - 2} ${CY} Q${L - 5} ${T - 5} ${CX} ${T - 6} Q${R + 5} ${T - 5} ${R + 2} ${CY} Q${R + 5} ${CY + 28} ${R - 2} ${CY + 46} Q${CX + 8} ${CY + 38} ${CX} ${CY + 40} Q${CX - 8} ${CY + 38} ${L + 2} ${CY + 46} Q${L - 5} ${CY + 28} ${L - 2} ${CY} Z`}
+          fill={c} />
+      );
+    case 'long':
+      return (
+        <path d={`M${L - 2} ${CY} Q${L - 5} ${T - 5} ${CX} ${T - 6} Q${R + 5} ${T - 5} ${R + 2} ${CY} Q${R + 7} ${CY + 50} ${R + 2} ${CY + 76} Q${CX + 10} ${CY + 62} ${CX} ${CY + 66} Q${CX - 10} ${CY + 62} ${L - 2} ${CY + 76} Q${L - 7} ${CY + 50} ${L - 2} ${CY} Z`}
+          fill={c} />
+      );
+    case 'curly':
+      return (
+        <g>
+          <path d={`M${L - 2} ${CY} Q${L - 5} ${T - 5} ${CX} ${T - 6} Q${R + 5} ${T - 5} ${R + 2} ${CY} Q${R} ${T + 16} ${CX} ${T + 14} Q${L} ${T + 16} ${L - 2} ${CY} Z`}
+            fill={c} />
+          {[L - 2, L + 6, CX - 11, CX, CX + 11, R - 6, R + 2].map((x, i) => (
+            <circle key={i} cx={x} cy={i < 2 ? CY - 2 : i < 4 ? T + 8 : i < 6 ? CY - 4 : CY - 2} r={5} fill={c} />
+          ))}
+          <circle cx={L - 1} cy={CY + 8} r={4.5} fill={c} />
+          <circle cx={R + 1} cy={CY + 8} r={4.5} fill={c} />
+        </g>
+      );
+    case 'bun':
+      return (
+        <g>
+          <path d={`M${L - 2} ${CY} Q${L - 5} ${T - 5} ${CX} ${T - 6} Q${R + 5} ${T - 5} ${R + 2} ${CY} Q${R} ${T + 14} ${CX} ${T + 12} Q${L} ${T + 14} ${L - 2} ${CY} Z`}
+            fill={c} />
+          <circle cx={CX} cy={T - 10} r={11} fill={c} />
+          <circle cx={CX} cy={T - 10} r={6} fill={c} style={{ filter: 'brightness(1.2)' }} />
+        </g>
+      );
+    default:
+      return (
+        <path d={`M${L - 2} ${CY} Q${L - 5} ${T - 5} ${CX} ${T - 6} Q${R + 5} ${T - 5} ${R + 2} ${CY} Q${R - 1} ${T + 18} ${CX} ${T + 16} Q${L + 1} ${T + 18} ${L - 2} ${CY} Z`}
+          fill={c} />
+      );
+  }
+}
+
+// ── Eyes ──────────────────────────────────────────────────────────────────────
+function Eyes({ type, geo, isTired }) {
+  const { eyeLX, eyeRX, eyeY, eyeRad } = geo;
+  const pupilR = eyeRad * 0.52;
+  const glintR = eyeRad * 0.22;
+
+  if (type === 'happy') {
+    return (
+      <g>
+        <path d={`M${eyeLX - eyeRad} ${eyeY} Q${eyeLX} ${eyeY - eyeRad * 1.2} ${eyeLX + eyeRad} ${eyeY}`}
+          stroke="#1a1a2e" strokeWidth="2.5" fill="rgba(255,180,200,0.15)" strokeLinecap="round" />
+        <path d={`M${eyeRX - eyeRad} ${eyeY} Q${eyeRX} ${eyeY - eyeRad * 1.2} ${eyeRX + eyeRad} ${eyeY}`}
+          stroke="#1a1a2e" strokeWidth="2.5" fill="rgba(255,180,200,0.15)" strokeLinecap="round" />
+        <circle cx={eyeLX - eyeRad * 0.1} cy={eyeY - eyeRad * 0.5} r={eyeRad * 0.22} fill="#f59e0b" opacity="0.9" />
+        <circle cx={eyeRX - eyeRad * 0.1} cy={eyeY - eyeRad * 0.5} r={eyeRad * 0.22} fill="#f59e0b" opacity="0.9" />
+      </g>
+    );
+  }
+
+  if (type === 'x') {
+    const d = eyeRad * 0.8;
+    return (
+      <g>
+        <line x1={eyeLX - d} y1={eyeY - d} x2={eyeLX + d} y2={eyeY + d} stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+        <line x1={eyeLX + d} y1={eyeY - d} x2={eyeLX - d} y2={eyeY + d} stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+        <line x1={eyeRX - d} y1={eyeY - d} x2={eyeRX + d} y2={eyeY + d} stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+        <line x1={eyeRX + d} y1={eyeY - d} x2={eyeRX - d} y2={eyeY + d} stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+      </g>
+    );
+  }
+
+  if (type === 'half') {
+    return (
+      <g>
+        <ellipse cx={eyeLX} cy={eyeY} rx={eyeRad} ry={eyeRad * 1.1} fill="white" />
+        <ellipse cx={eyeRX} cy={eyeY} rx={eyeRad} ry={eyeRad * 1.1} fill="white" />
+        <rect x={eyeLX - eyeRad - 1} y={eyeY - eyeRad * 1.2} width={eyeRad * 2 + 2} height={eyeRad * 1.2}
+          fill="rgba(20,30,50,0.93)" rx={eyeRad} />
+        <rect x={eyeRX - eyeRad - 1} y={eyeY - eyeRad * 1.2} width={eyeRad * 2 + 2} height={eyeRad * 1.2}
+          fill="rgba(20,30,50,0.93)" rx={eyeRad} />
+        <ellipse cx={eyeLX} cy={eyeY + eyeRad * 0.2} rx={pupilR} ry={pupilR * 0.7} fill="#1a1a2e" />
+        <ellipse cx={eyeRX} cy={eyeY + eyeRad * 0.2} rx={pupilR} ry={pupilR * 0.7} fill="#1a1a2e" />
+        {isTired && (
+          <>
+            <ellipse cx={eyeLX} cy={eyeY + eyeRad * 1.6} rx={eyeRad * 0.9} ry={eyeRad * 0.32} fill="#4b3a6a" opacity="0.45" />
+            <ellipse cx={eyeRX} cy={eyeY + eyeRad * 1.6} rx={eyeRad * 0.9} ry={eyeRad * 0.32} fill="#4b3a6a" opacity="0.45" />
+          </>
+        )}
+      </g>
+    );
+  }
+
+  // open
+  return (
+    <g className="avatar-eye-blink">
+      <ellipse cx={eyeLX} cy={eyeY} rx={eyeRad} ry={eyeRad * 1.15} fill="white" />
+      <ellipse cx={eyeRX} cy={eyeY} rx={eyeRad} ry={eyeRad * 1.15} fill="white" />
+      <circle cx={eyeLX} cy={eyeY} r={pupilR} fill="#1a1a2e" />
+      <circle cx={eyeRX} cy={eyeY} r={pupilR} fill="#1a1a2e" />
+      <circle cx={eyeLX + glintR} cy={eyeY - glintR} r={glintR} fill="white" opacity="0.9" />
+      <circle cx={eyeRX + glintR} cy={eyeY - glintR} r={glintR} fill="white" opacity="0.9" />
+    </g>
+  );
+}
+
+// ── Mouth ─────────────────────────────────────────────────────────────────────
+function Mouth({ type, geo }) {
+  const { mouthY, mouthL, mouthR } = geo;
+  switch (type) {
+    case 'grin':
+      return <path d={`M${mouthL} ${mouthY} Q${CX} ${mouthY + 14} ${mouthR} ${mouthY}`}
+        stroke="#c2185b" strokeWidth="2.5" fill="rgba(255,100,130,0.15)" strokeLinecap="round" />;
+    case 'smile':
+      return <path d={`M${mouthL + 4} ${mouthY} Q${CX} ${mouthY + 9} ${mouthR - 4} ${mouthY}`}
+        stroke="#1a1a2e" strokeWidth="2.2" fill="none" strokeLinecap="round" />;
+    case 'flat':
+      return <line x1={mouthL + 4} y1={mouthY} x2={mouthR - 4} y2={mouthY}
+        stroke="#1a1a2e" strokeWidth="2.2" strokeLinecap="round" />;
+    case 'frown':
+      return <path d={`M${mouthL + 4} ${mouthY + 6} Q${CX} ${mouthY - 2} ${mouthR - 4} ${mouthY + 6}`}
+        stroke="#1a1a2e" strokeWidth="2.2" fill="none" strokeLinecap="round" />;
+    case 'sad':
+      return <path d={`M${mouthL} ${mouthY + 8} Q${CX} ${mouthY - 2} ${mouthR} ${mouthY + 8}`}
+        stroke="#ef4444" strokeWidth="2.5" fill="none" strokeLinecap="round" />;
+    default:
+      return null;
+  }
+}
+
+// ── Domain particles ──────────────────────────────────────────────────────────
+function DomainParticles({ stateKey, healthScore, financeScore, careerScore }) {
+  const particles = useMemo(() => {
+    const list = [];
+    if (healthScore > 65) list.push(
+      { emoji: '❤️', x: 16, y: 60, delay: 0,   dur: 2.8 },
+      { emoji: '💊', x: 26, y: 36, delay: 1.2, dur: 3.2 },
+    );
+    if (financeScore > 65) list.push(
+      { emoji: '💰', x: 132, y: 56, delay: 0.4, dur: 3.0 },
+      { emoji: '📈', x: 140, y: 34, delay: 1.6, dur: 2.6 },
+    );
+    if (careerScore > 65) list.push(
+      { emoji: '⭐', x: 20, y: 26, delay: 0.8, dur: 2.4 },
+      { emoji: '💻', x: 134, y: 26, delay: 1.0, dur: 3.4 },
+    );
+    if (stateKey === 'broke') list.push(
+      { emoji: '😰', x: 130, y: 46, delay: 0, dur: 2.2 },
+    );
+    if (stateKey === 'burnout') list.push(
+      { emoji: '🔥', x: 18, y: 30, delay: 0, dur: 1.6 },
+      { emoji: '😵', x: 132, y: 36, delay: 0.5, dur: 1.8 },
+    );
+    return list;
+  }, [stateKey, healthScore, financeScore, careerScore]);
+
+  return (
+    <>
+      {particles.map((p, i) => (
+        <motion.text key={i} x={p.x} y={p.y} fontSize="12" textAnchor="middle"
+          animate={{ y: [p.y, p.y - 16, p.y], opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
+          transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
+          style={{ transformBox: 'fill-box', transformOrigin: `${p.x}px ${p.y}px` }}>
+          {p.emoji}
+        </motion.text>
+      ))}
+    </>
+  );
+}
+
+// ── CameraSnap ────────────────────────────────────────────────────────────────
 function CameraSnap({ onCapture, onClose }) {
-  const videoRef = useRef(null);
+  const videoRef  = useRef(null);
   const canvasRef = useRef(null);
+  const streamRef = useRef(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
-  const streamRef = useRef(null);
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 280, height: 320 } })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 320, height: 360 } })
       .then(stream => {
         streamRef.current = stream;
         if (videoRef.current) {
@@ -89,44 +347,34 @@ function CameraSnap({ onCapture, onClose }) {
           videoRef.current.onloadedmetadata = () => setReady(true);
         }
       })
-      .catch(() => setError('Camera access denied. Choose colors below instead.'));
+      .catch(() => setError('Camera access denied. Choose options below instead.'));
     return () => streamRef.current?.getTracks().forEach(t => t.stop());
   }, []);
 
   function snap() {
-    const v = videoRef.current;
-    const canvas = canvasRef.current;
+    const v = videoRef.current, canvas = canvasRef.current;
     if (!v || !canvas) return;
-    canvas.width = v.videoWidth || 280;
-    canvas.height = v.videoHeight || 320;
+    canvas.width = v.videoWidth || 320;
+    canvas.height = v.videoHeight || 360;
     const ctx = canvas.getContext('2d');
-    ctx.scale(-1, 1); // mirror
+    ctx.scale(-1, 1);
     ctx.drawImage(v, -canvas.width, 0, canvas.width, canvas.height);
     ctx.scale(-1, 1);
-
-    const w = canvas.width, h = canvas.height;
-    // Face center = skin sample (middle strip of frame)
-    const rawSkin = sampleRegion(ctx, w * 0.3, h * 0.25, w * 0.4, h * 0.35);
-    // Top of head = hair
-    const rawHair = sampleRegion(ctx, w * 0.25, h * 0.03, w * 0.5, h * 0.18);
-
+    const W = canvas.width, H = canvas.height;
+    const rawSkin = sampleRegion(ctx, W * 0.3, H * 0.25, W * 0.4, H * 0.35);
+    const rawHair = sampleRegion(ctx, W * 0.25, H * 0.03, W * 0.5, H * 0.18);
+    const shape   = detectFaceShape(ctx, W, H);
     streamRef.current?.getTracks().forEach(t => t.stop());
-    onCapture({
-      skin: closestPalette(rawSkin, SKIN_TONES),
-      hair: closestPalette(rawHair, HAIR_COLORS),
-    });
+    onCapture({ skin: closestPalette(rawSkin, SKIN_TONES), hair: closestPalette(rawHair, HAIR_COLORS), shape });
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.85 }}
+      initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }}
       className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-2xl overflow-hidden"
       style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(12px)' }}
     >
       <canvas ref={canvasRef} className="hidden" />
-
       {error ? (
         <div className="text-center px-4">
           <p className="text-xs text-rose-400 mb-3">{error}</p>
@@ -136,22 +384,15 @@ function CameraSnap({ onCapture, onClose }) {
         </div>
       ) : (
         <>
-          {/* Viewfinder */}
           <div className="relative w-48 h-56 rounded-2xl overflow-hidden border-2 border-white/20">
             <video ref={videoRef} autoPlay playsInline muted
-              className="w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }} />
-            {/* Face oval guide */}
+              className="w-full h-full object-cover" style={{ transform: 'scaleX(-1)' }} />
             <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 192 224">
-              <ellipse cx="96" cy="100" rx="56" ry="72"
-                stroke="rgba(99,102,241,0.8)" strokeWidth="2" fill="none"
-                strokeDasharray="8 4" />
-              <text x="96" y="196" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">
-                Align face in oval
-              </text>
+              <ellipse cx="96" cy="100" rx="56" ry="76"
+                stroke="rgba(99,102,241,0.8)" strokeWidth="2" fill="none" strokeDasharray="8 4" />
+              <text x="96" y="208" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Align face in oval</text>
             </svg>
           </div>
-
           <div className="mt-4 flex gap-3">
             <button onClick={onClose}
               className="text-xs px-4 py-2 rounded-xl bg-white/[0.07] text-slate-400 hover:bg-white/10 transition-all">
@@ -169,17 +410,35 @@ function CameraSnap({ onCapture, onClose }) {
   );
 }
 
-// ── Persona customizer panel ──────────────────────────────────────────────────
+// ── PersonaEditor ─────────────────────────────────────────────────────────────
 function PersonaEditor({ persona, onChange, onClose }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
-      className="absolute inset-x-0 bottom-0 z-40 rounded-b-2xl p-4 space-y-3"
-      style={{ background: 'rgba(10,10,18,0.97)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)' }}
+      className="absolute inset-x-0 bottom-0 z-40 rounded-b-2xl p-4 space-y-3 overflow-y-auto"
+      style={{ background: 'rgba(10,10,18,0.97)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '100%' }}
     >
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-bold text-white">Personalise Avatar</p>
         <button onClick={onClose} className="text-slate-500 hover:text-white text-xs">✕</button>
+      </div>
+
+      {/* Face shape */}
+      <div>
+        <p className="text-[10px] text-slate-500 mb-1.5">Face shape</p>
+        <div className="flex gap-1.5 flex-wrap">
+          {FACE_SHAPES.map(sh => (
+            <button key={sh} onClick={() => onChange({ ...persona, shape: sh })}
+              className="text-[10px] px-2 py-1 rounded-lg capitalize transition-all"
+              style={{
+                background: persona.shape === sh ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)',
+                color: persona.shape === sh ? '#a5b4fc' : '#6b7280',
+                border: `1px solid ${persona.shape === sh ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'}`,
+              }}>
+              {sh}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Skin tone */}
@@ -189,7 +448,7 @@ function PersonaEditor({ persona, onChange, onClose }) {
           {SKIN_TONES.map(c => (
             <button key={c} onClick={() => onChange({ ...persona, skin: c })}
               className="w-6 h-6 rounded-full transition-all hover:scale-110"
-              style={{ background: c, outline: persona.skin === c ? `2px solid white` : 'none', outlineOffset: 2 }} />
+              style={{ background: c, outline: persona.skin === c ? '2px solid white' : 'none', outlineOffset: 2 }} />
           ))}
         </div>
       </div>
@@ -201,7 +460,7 @@ function PersonaEditor({ persona, onChange, onClose }) {
           {HAIR_COLORS.map(c => (
             <button key={c} onClick={() => onChange({ ...persona, hair: c })}
               className="w-6 h-6 rounded-full transition-all hover:scale-110"
-              style={{ background: c, outline: persona.hair === c ? `2px solid white` : 'none', outlineOffset: 2 }} />
+              style={{ background: c, outline: persona.hair === c ? '2px solid white' : 'none', outlineOffset: 2 }} />
           ))}
         </div>
       </div>
@@ -209,14 +468,14 @@ function PersonaEditor({ persona, onChange, onClose }) {
       {/* Hair style */}
       <div>
         <p className="text-[10px] text-slate-500 mb-1.5">Hair style</p>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 flex-wrap">
           {HAIR_STYLES.map(s => (
             <button key={s} onClick={() => onChange({ ...persona, style: s })}
               className="text-[10px] px-2.5 py-1 rounded-lg capitalize transition-all"
               style={{
                 background: persona.style === s ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)',
                 color: persona.style === s ? '#a5b4fc' : '#6b7280',
-                border: persona.style === s ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                border: `1px solid ${persona.style === s ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'}`,
               }}>
               {s}
             </button>
@@ -227,124 +486,39 @@ function PersonaEditor({ persona, onChange, onClose }) {
   );
 }
 
-// ── Hair path by style ────────────────────────────────────────────────────────
-function HairPath({ style, skin, hair, isBurnout }) {
-  const color = isBurnout ? '#2a1010' : hair;
-  switch (style) {
-    case 'buzz':
-      return <ellipse cx="70" cy="44" rx="22" ry="8" fill={color} opacity="0.9" />;
-    case 'curly':
-      return (
-        <g>
-          <path d="M48 62 Q44 44 52 38 Q58 30 70 28 Q82 30 88 38 Q96 44 92 62" fill={color} />
-          {[48,52,56,84,88,92].map((x, i) => (
-            <circle key={i} cx={x} cy={i < 3 ? 62 - i * 2 : 62 - (i - 3) * 2} r="5"
-              fill={color} opacity="0.9" />
-          ))}
-        </g>
-      );
-    case 'long':
-      return (
-        <path d="M48 62 Q44 42 52 36 Q58 28 70 26 Q82 28 88 36 Q96 42 92 62 Q90 90 88 110 Q82 98 70 100 Q58 98 52 110 Q50 90 48 62"
-          fill={color} />
-      );
-    case 'medium':
-      return (
-        <path d="M48 62 Q44 42 52 36 Q58 28 70 26 Q82 28 88 36 Q96 42 92 62 Q90 75 88 85 Q80 78 70 80 Q60 78 52 85 Q50 75 48 62"
-          fill={color} />
-      );
-    default: // short
-      return (
-        <path d="M48 62 Q44 42 52 36 Q58 28 70 26 Q82 28 88 36 Q96 42 92 62 Q85 46 70 44 Q55 46 48 62"
-          fill={color} />
-      );
-  }
-}
-
-// ── Domain floating particles ─────────────────────────────────────────────────
-function DomainParticles({ stateKey, healthScore, financeScore, careerScore }) {
-  const isHealthy = healthScore > 65;
-  const isRich    = financeScore > 65;
-  const isCareer  = careerScore > 65;
-  const isBroke   = stateKey === 'broke';
-  const isBurnout = stateKey === 'burnout';
-
-  const particles = useMemo(() => {
-    const list = [];
-    if (isHealthy) list.push(
-      { emoji: '❤️', x: 14, y: 52, delay: 0,   dur: 2.8 },
-      { emoji: '💊', x: 22, y: 30, delay: 1.2, dur: 3.2 },
-    );
-    if (isRich) list.push(
-      { emoji: '💰', x: 112, y: 48, delay: 0.4, dur: 3.0 },
-      { emoji: '📈', x: 118, y: 28, delay: 1.6, dur: 2.6 },
-    );
-    if (isCareer) list.push(
-      { emoji: '⭐', x: 18, y: 22, delay: 0.8, dur: 2.4 },
-      { emoji: '💻', x: 110, y: 22, delay: 1.0, dur: 3.4 },
-    );
-    if (isBroke) list.push(
-      { emoji: '😰', x: 108, y: 38, delay: 0, dur: 2.2 },
-    );
-    if (isBurnout) list.push(
-      { emoji: '🔥', x: 16, y: 26, delay: 0, dur: 1.6 },
-      { emoji: '😵', x: 108, y: 30, delay: 0.5, dur: 1.8 },
-    );
-    return list;
-  }, [isHealthy, isRich, isCareer, isBroke, isBurnout]);
-
-  return (
-    <>
-      {particles.map((p, i) => (
-        <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle"
-          animate={{ y: [p.y, p.y - 14, p.y], opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
-          transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
-          style={{ transformBox: 'fill-box', transformOrigin: `${p.x}px ${p.y}px` }}
-        >
-          {p.emoji}
-        </motion.text>
-      ))}
-    </>
-  );
-}
-
 // ── Main LifeAvatar ───────────────────────────────────────────────────────────
 export function LifeAvatar({
   healthScore = 50, financeScore = 50, careerScore = 50,
   burnoutRisk = 20, doomMode = false,
 }) {
   const [persona, setPersona] = useState(() => loadPersona() || {
-    skin: '#f5cfa0', hair: '#1a1a2e', style: 'short',
+    skin: '#f5cfa0', hair: '#1a1a2e', style: 'short', shape: 'oval',
   });
-  const [showCamera, setShowCamera]   = useState(false);
-  const [showEditor, setShowEditor]   = useState(false);
-  const [snapFlash, setSnapFlash]     = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const [snapFlash,  setSnapFlash]  = useState(false);
 
-  const updatePersona = useCallback(p => {
-    setPersona(p);
-    savePersona(p);
-  }, []);
+  const updatePersona = useCallback(p => { setPersona(p); savePersona(p); }, []);
 
-  const handleCapture = useCallback(({ skin, hair }) => {
+  const handleCapture = useCallback(({ skin, hair, shape }) => {
     setShowCamera(false);
     setSnapFlash(true);
     setTimeout(() => setSnapFlash(false), 600);
-    updatePersona({ ...persona, skin, hair });
+    updatePersona({ ...persona, skin, hair, shape });
   }, [persona, updatePersona]);
 
-  const stateKey  = useMemo(() => computeState(healthScore, financeScore, careerScore, burnoutRisk), [healthScore, financeScore, careerScore, burnoutRisk]);
-  const s         = STATES[stateKey];
-  const isOver    = stateKey === 'overworked' || stateKey === 'burnout';
-  const isBroke   = stateKey === 'broke';
+  const stateKey   = useMemo(() => computeState(healthScore, financeScore, careerScore, burnoutRisk), [healthScore, financeScore, careerScore, burnoutRisk]);
+  const s          = STATES[stateKey];
+  const geo        = useMemo(() => getFaceGeo(persona.shape || 'oval'), [persona.shape]);
+  const isBurnout  = stateKey === 'burnout';
+  const isOver     = stateKey === 'overworked' || stateKey === 'burnout';
+  const isBroke    = stateKey === 'broke';
   const isThriving = stateKey === 'thriving';
-  const isBurnout = stateKey === 'burnout';
-  const isTired   = ['tired', 'overworked', 'burnout'].includes(stateKey);
+  const isTired    = ['tired', 'overworked', 'burnout'].includes(stateKey);
+  const showBlush  = ['thriving', 'normal'].includes(stateKey);
 
   const roomBg1 = isBurnout ? '#1a0808' : isBroke ? '#11101a' : '#0d1628';
   const roomBg2 = isBurnout ? '#0d0208' : '#09090f';
-
-  // Blush cheeks only when thriving or normal
-  const showBlush = ['thriving', 'normal'].includes(stateKey);
 
   return (
     <div className="flex flex-col items-center select-none relative">
@@ -359,27 +533,17 @@ export function LifeAvatar({
       </motion.div>
 
       {/* Avatar canvas */}
-      <div className="w-44 h-52 relative">
-
-        {/* Camera snap overlay */}
+      <div className="w-44 h-56 relative">
         <AnimatePresence>
-          {showCamera && (
-            <CameraSnap onCapture={handleCapture} onClose={() => setShowCamera(false)} />
-          )}
+          {showCamera && <CameraSnap onCapture={handleCapture} onClose={() => setShowCamera(false)} />}
         </AnimatePresence>
-
-        {/* Personalise editor */}
         <AnimatePresence>
           {showEditor && (
-            <PersonaEditor
-              persona={persona}
+            <PersonaEditor persona={persona}
               onChange={p => { setPersona(p); savePersona(p); }}
-              onClose={() => setShowEditor(false)}
-            />
+              onClose={() => setShowEditor(false)} />
           )}
         </AnimatePresence>
-
-        {/* Snap flash */}
         <AnimatePresence>
           {snapFlash && (
             <motion.div initial={{ opacity: 0.8 }} animate={{ opacity: 0 }} transition={{ duration: 0.5 }}
@@ -387,13 +551,10 @@ export function LifeAvatar({
           )}
         </AnimatePresence>
 
-        <motion.svg
-          viewBox="0 0 140 160"
-          className="w-full h-full drop-shadow-2xl cursor-pointer"
+        <motion.svg viewBox="0 0 160 200" className="w-full h-full drop-shadow-2xl cursor-pointer"
           xmlns="http://www.w3.org/2000/svg"
           key={stateKey}
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.35 }}
           onClick={() => !showCamera && !showEditor && setShowEditor(v => !v)}
         >
@@ -402,44 +563,41 @@ export function LifeAvatar({
               <stop offset="0%" stopColor={roomBg1} />
               <stop offset="100%" stopColor={roomBg2} />
             </linearGradient>
-            <radialGradient id="auraGrad" cx="50%" cy="60%" r="50%">
+            <radialGradient id="auraGrad" cx="50%" cy="65%" r="50%">
               <stop offset="0%" stopColor={s.badge} stopOpacity="0.3" />
               <stop offset="100%" stopColor={s.badge} stopOpacity="0" />
             </radialGradient>
-            <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b" /><feComposite in="SourceGraphic" in2="b" operator="over" /></filter>
-            <clipPath id="faceClip"><ellipse cx="70" cy="56" rx="22" ry="24" /></clipPath>
           </defs>
 
           {/* Room */}
-          <rect x="0" y="0" width="140" height="160" rx="14" fill="url(#roomGrad)" />
-          <line x1="0" y1="113" x2="140" y2="113" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          <rect x="0" y="113" width="140" height="47" fill="rgba(255,255,255,0.012)" />
+          <rect x="0" y="0" width="160" height="200" rx="16" fill="url(#roomGrad)" />
+          <line x1="0" y1="150" x2="160" y2="150" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <rect x="0" y="150" width="160" height="50" fill="rgba(255,255,255,0.012)" />
 
-          {/* Domain particles */}
           <DomainParticles stateKey={stateKey} healthScore={healthScore} financeScore={financeScore} careerScore={careerScore} />
 
           {/* Aura (thriving) */}
           {s.aura && (
-            <motion.ellipse cx="70" cy="106"
-              animate={{ rx: [52, 62, 52], ry: [14, 20, 14], opacity: [0.2, 0.08, 0.2] }}
+            <motion.ellipse cx={CX} cy={geo.torsoY + geo.torsoH + 20}
+              animate={{ rx: [58, 70, 58], ry: [16, 24, 16], opacity: [0.2, 0.08, 0.2] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               fill="url(#auraGrad)" />
           )}
 
-          {/* Plant (health indicator) */}
-          <g transform="translate(114, 99)">
-            <rect x="-6" y="13" width="12" height="8" rx="3" fill={healthScore > 55 ? '#92400e' : '#5c3a1e'} />
+          {/* Plant */}
+          <g transform="translate(134, 138)">
+            <rect x="-6" y="10" width="12" height="8" rx="3" fill={healthScore > 55 ? '#92400e' : '#5c3a1e'} />
             {healthScore > 55 ? (
               <>
-                <line x1="0" y1="13" x2="0" y2="3" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" />
-                <ellipse cx="-6" cy="6" rx="6" ry="4" fill="#16a34a" transform="rotate(-25,-6,6)" />
-                <ellipse cx="6" cy="8" rx="6" ry="4" fill="#15803d" transform="rotate(25,6,8)" />
-                <ellipse cx="0" cy="3" rx="4" ry="3" fill="#22c55e" />
+                <line x1="0" y1="10" x2="0" y2="0" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" />
+                <ellipse cx="-7" cy="4" rx="6" ry="4" fill="#16a34a" transform="rotate(-25,-7,4)" />
+                <ellipse cx="7" cy="6" rx="6" ry="4" fill="#15803d" transform="rotate(25,7,6)" />
+                <ellipse cx="0" cy="0" rx="4" ry="3" fill="#22c55e" />
               </>
             ) : (
               <>
-                <line x1="0" y1="13" x2="-3" y2="6" stroke="#713f12" strokeWidth="1.5" strokeLinecap="round" />
-                <ellipse cx="-7" cy="6" rx="3.5" ry="2" fill="#78350f" opacity="0.5" />
+                <line x1="0" y1="10" x2="-3" y2="4" stroke="#713f12" strokeWidth="1.5" strokeLinecap="round" />
+                <ellipse cx="-7" cy="4" rx="3" ry="2" fill="#78350f" opacity="0.5" />
               </>
             )}
           </g>
@@ -447,177 +605,132 @@ export function LifeAvatar({
           {/* Desk */}
           {careerScore > 25 && (
             <>
-              <rect x="12" y="110" width="116" height="5" rx="2"
+              <rect x="14" y="149" width="132" height="5" rx="2"
                 fill={careerScore > 60 ? 'rgba(99,102,241,0.3)' : 'rgba(80,80,80,0.2)'} />
-              <rect x="16" y="115" width="5" height="14" rx="1.5"
+              <rect x="18" y="154" width="6" height="16" rx="2"
                 fill={careerScore > 60 ? 'rgba(99,102,241,0.2)' : 'rgba(70,70,70,0.18)'} />
-              <rect x="119" y="115" width="5" height="14" rx="1.5"
+              <rect x="136" y="154" width="6" height="16" rx="2"
                 fill={careerScore > 60 ? 'rgba(99,102,241,0.2)' : 'rgba(70,70,70,0.18)'} />
             </>
           )}
 
           {/* Laptop */}
           {careerScore > 50 && isOver && (
-            <g transform="translate(42, 96)">
-              <rect x="0" y="0" width="30" height="17" rx="3" fill="#1e293b" />
-              <rect x="1" y="1" width="28" height="15" rx="2" fill="#0d1a3a" />
-              <rect x="-2" y="17" width="34" height="3" rx="1.5" fill="#374151" />
-              <rect x="3" y="3" width="13" height="1.5" rx="0.5" fill="#3b82f6" opacity="0.8" />
-              <rect x="3" y="6.5" width="19" height="1.5" rx="0.5" fill="#8b5cf6" opacity="0.7" />
-              <rect x="3" y="10" width="10" height="1.5" rx="0.5" fill="#10b981" opacity="0.8" />
-              <rect x="3" y="13.5" width="15" height="1.5" rx="0.5" fill="#f59e0b" opacity="0.5" />
+            <g transform="translate(46, 132)">
+              <rect x="0" y="0" width="34" height="18" rx="3" fill="#1e293b" />
+              <rect x="1" y="1" width="32" height="16" rx="2" fill="#0d1a3a" />
+              <rect x="-2" y="18" width="38" height="3" rx="1.5" fill="#374151" />
+              <rect x="3" y="3" width="14" height="1.5" rx="0.5" fill="#3b82f6" opacity="0.8" />
+              <rect x="3" y="7" width="22" height="1.5" rx="0.5" fill="#8b5cf6" opacity="0.7" />
+              <rect x="3" y="11" width="11" height="1.5" rx="0.5" fill="#10b981" opacity="0.8" />
+              <rect x="3" y="15" width="17" height="1.5" rx="0.5" fill="#f59e0b" opacity="0.5" />
             </g>
           )}
 
           {/* Coin stack */}
-          {financeScore > 62 && careerScore > 30 && !isBroke && (
-            <g transform="translate(94, 104)">
-              <ellipse cx="0" cy="5" rx="8" ry="3.5" fill="#d97706" />
-              <ellipse cx="0" cy="3" rx="8" ry="3.5" fill="#f59e0b" />
-              <ellipse cx="0" cy="1" rx="8" ry="3.5" fill="#fbbf24" />
+          {financeScore > 62 && !isBroke && (
+            <g transform="translate(110, 142)">
+              <ellipse cx="0" cy="5" rx="9" ry="4" fill="#d97706" />
+              <ellipse cx="0" cy="3" rx="9" ry="4" fill="#f59e0b" />
+              <ellipse cx="0" cy="1" rx="9" ry="4" fill="#fbbf24" />
             </g>
           )}
 
-          {/* ── BODY GROUP ── */}
-          <motion.g key={stateKey + '-b'}
-            animate={{ rotate: s.slump > 6 ? s.slump : 0, y: s.slump > 10 ? 6 : 0 }}
+          {/* ── BODY (slump group) ── */}
+          <motion.g
+            key={stateKey + '-body'}
+            animate={{ rotate: s.slump > 6 ? s.slump : 0, y: s.slump > 10 ? 8 : 0 }}
             transition={{ duration: 0.9, ease: 'easeOut' }}
-            style={{ transformOrigin: '70px 128px', transformBox: 'fill-box' }}
+            style={{ transformOrigin: `${CX}px ${geo.torsoY + geo.torsoH}px`, transformBox: 'fill-box' }}
           >
             {/* Legs */}
-            <rect x="59" y="104" width="9" height="20" rx="4.5" fill={persona.skin} />
-            <rect x="72" y="104" width="9" height="20" rx="4.5" fill={persona.skin} />
+            <rect x={geo.legLX} y={geo.legY} width={geo.legW} height={geo.legH} rx={geo.legW / 2} fill={persona.skin} />
+            <rect x={geo.legRX} y={geo.legY} width={geo.legW} height={geo.legH} rx={geo.legW / 2} fill={persona.skin} />
             {/* Shoes */}
-            <ellipse cx="63" cy="124" rx="8" ry="4" fill={isBurnout ? '#1c1c1c' : '#1e293b'} />
-            <ellipse cx="77" cy="124" rx="8" ry="4" fill={isBurnout ? '#1c1c1c' : '#1e293b'} />
+            <ellipse cx={geo.legLX + geo.legW / 2} cy={geo.legY + geo.legH + 3}
+              rx={geo.legW * 0.8} ry={4} fill={isBurnout ? '#1c1c1c' : '#1e293b'} />
+            <ellipse cx={geo.legRX + geo.legW / 2} cy={geo.legY + geo.legH + 3}
+              rx={geo.legW * 0.8} ry={4} fill={isBurnout ? '#1c1c1c' : '#1e293b'} />
 
             {/* Torso */}
-            <motion.rect x="54" y="76" width="32" height="30" rx="11"
+            <motion.rect x={geo.torsoX} y={geo.torsoY} width={geo.torsoW} height={geo.torsoH} rx={geo.torsoW * 0.22}
               fill={s.shirt} className="avatar-breathe" />
-            {/* Collar */}
-            <path d="M68 76 L70 82 L72 76" fill="rgba(255,255,255,0.12)" />
-            {/* Shirt pocket */}
-            <rect x="64" y="80" width="7" height="2.5" rx="1" fill="rgba(255,255,255,0.1)" />
+            <path d={`M${CX - 4} ${geo.torsoY} L${CX} ${geo.torsoY + 7} L${CX + 4} ${geo.torsoY}`}
+              fill="rgba(255,255,255,0.12)" />
+            <rect x={CX - 3} y={geo.torsoY + 8} width={8} height={3} rx={1.5} fill="rgba(255,255,255,0.1)" />
 
-            {/* Left arm */}
-            <motion.rect x="40" y="80" width="15" height="8" rx="4" fill={persona.skin}
-              animate={{ rotate: isOver ? [0, -6, 0] : 0 }}
-              transition={{ duration: 2.4, repeat: Infinity }}
-              style={{ transformOrigin: '54px 84px', transformBox: 'fill-box' }} />
-            {/* Right arm */}
-            <motion.rect x="85" y="80" width="15" height="8" rx="4" fill={persona.skin}
-              animate={{ rotate: isOver ? [0, 6, 0] : 0 }}
-              transition={{ duration: 2.4, repeat: Infinity, delay: 0.4 }}
-              style={{ transformOrigin: '86px 84px', transformBox: 'fill-box' }} />
+            {/* Left arm — positive armAngle = tip goes UP */}
+            <motion.g
+              animate={{ rotate: s.armAngle }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
+              style={{ transformOrigin: `${geo.shLX}px ${geo.shY}px`, transformBox: 'fill-box' }}
+            >
+              <rect x={geo.shLX - geo.armW} y={geo.shY - geo.armH / 2}
+                width={geo.armW} height={geo.armH} rx={geo.armH / 2} fill={persona.skin} />
+              <circle cx={geo.shLX - geo.armW} cy={geo.shY} r={geo.armH * 0.5} fill={persona.skin} />
+            </motion.g>
+
+            {/* Right arm — mirror of left */}
+            <motion.g
+              animate={{ rotate: -s.armAngle }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
+              style={{ transformOrigin: `${geo.shRX}px ${geo.shY}px`, transformBox: 'fill-box' }}
+            >
+              <rect x={geo.shRX} y={geo.shY - geo.armH / 2}
+                width={geo.armW} height={geo.armH} rx={geo.armH / 2} fill={persona.skin} />
+              <circle cx={geo.shRX + geo.armW} cy={geo.shY} r={geo.armH * 0.5} fill={persona.skin} />
+            </motion.g>
 
             {/* Neck */}
-            <rect x="64" y="71" width="12" height="7" rx="3" fill={persona.skin} />
+            <rect x={geo.neckX} y={geo.neckY} width={geo.neckW} height={geo.neckH} rx={geo.neckW / 2} fill={persona.skin} />
 
-            {/* ── HEAD ── */}
-            {/* Head shape */}
-            <motion.ellipse cx="70" cy="55" rx="22" ry="23"
-              fill={persona.skin} className="avatar-breathe" />
-
-            {/* Hair */}
-            <HairPath style={persona.style} skin={persona.skin} hair={persona.hair} isBurnout={isBurnout} />
+            {/* Head */}
+            <motion.ellipse cx={CX} cy={CY} rx={geo.rx} ry={geo.ry} fill={persona.skin} className="avatar-breathe" />
 
             {/* Ears */}
-            <ellipse cx="48" cy="55" rx="4" ry="5" fill={persona.skin} />
-            <ellipse cx="92" cy="55" rx="4" ry="5" fill={persona.skin} />
-            <ellipse cx="48" cy="55" rx="2.5" ry="3" fill={persona.skin}
+            <ellipse cx={geo.earLX} cy={geo.earY} rx={4} ry={geo.earRy} fill={persona.skin} />
+            <ellipse cx={geo.earRX} cy={geo.earY} rx={4} ry={geo.earRy} fill={persona.skin} />
+            <ellipse cx={geo.earLX} cy={geo.earY} rx={2.5} ry={Math.max(geo.earRy - 2, 2)} fill={persona.skin}
               style={{ filter: 'brightness(0.88)' }} />
-            <ellipse cx="92" cy="55" rx="2.5" ry="3" fill={persona.skin}
+            <ellipse cx={geo.earRX} cy={geo.earY} rx={2.5} ry={Math.max(geo.earRy - 2, 2)} fill={persona.skin}
               style={{ filter: 'brightness(0.88)' }} />
+
+            {/* Hair (on top of head) */}
+            <Hair style={persona.style} color={persona.hair} rx={geo.rx} ry={geo.ry} isBurnout={isBurnout} />
 
             {/* Eyebrows */}
             {s.eye !== 'x' && (
               <>
-                <path d={s.eye === 'half' || s.eye === 'open'
-                  ? "M57 46 Q62 44 67 46"
-                  : "M57 44 Q62 43 67 45"}
-                  stroke={persona.hair} strokeWidth="2" fill="none" strokeLinecap="round"
-                  opacity={isTired ? 0.4 : 0.85} />
-                <path d={s.eye === 'half' || s.eye === 'open'
-                  ? "M73 46 Q78 44 83 46"
-                  : "M73 44 Q78 43 83 45"}
-                  stroke={persona.hair} strokeWidth="2" fill="none" strokeLinecap="round"
-                  opacity={isTired ? 0.4 : 0.85} />
+                <path d={`M${geo.eyeLX - geo.eyeRad * 0.9} ${geo.browY} Q${geo.eyeLX} ${geo.browY - 3} ${geo.eyeLX + geo.eyeRad * 0.9} ${geo.browY}`}
+                  stroke={persona.hair} strokeWidth="2" fill="none" strokeLinecap="round" opacity={isTired ? 0.4 : 0.85} />
+                <path d={`M${geo.eyeRX - geo.eyeRad * 0.9} ${geo.browY} Q${geo.eyeRX} ${geo.browY - 3} ${geo.eyeRX + geo.eyeRad * 0.9} ${geo.browY}`}
+                  stroke={persona.hair} strokeWidth="2" fill="none" strokeLinecap="round" opacity={isTired ? 0.4 : 0.85} />
               </>
             )}
 
-            {/* ── EYES ── */}
-            {s.eye === 'open' && (
-              <g className="avatar-eye-blink" style={{ transformOrigin: '70px 55px', transformBox: 'fill-box' }}>
-                <ellipse cx="62" cy="54" rx="5.5" ry="6" fill="white" />
-                <ellipse cx="78" cy="54" rx="5.5" ry="6" fill="white" />
-                <ellipse cx="63" cy="55" rx="3" ry="3.3" fill="#1a1a2e" />
-                <ellipse cx="79" cy="55" rx="3" ry="3.3" fill="#1a1a2e" />
-                {/* iris glint */}
-                <ellipse cx="63.8" cy="53.5" rx="1.1" ry="1.1" fill="white" opacity="0.9" />
-                <ellipse cx="79.8" cy="53.5" rx="1.1" ry="1.1" fill="white" opacity="0.9" />
-              </g>
-            )}
-            {s.eye === 'happy' && (
-              <g>
-                <path d="M57 54 Q62 48 67 54" stroke="#1a1a2e" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                <path d="M73 54 Q78 48 83 54" stroke="#1a1a2e" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                {/* happy eye sparkle */}
-                <circle cx="64" cy="52" r="1.2" fill="#f59e0b" opacity="0.9" />
-                <circle cx="80" cy="52" r="1.2" fill="#f59e0b" opacity="0.9" />
-              </g>
-            )}
-            {s.eye === 'half' && (
-              <>
-                <ellipse cx="62" cy="54" rx="5.5" ry="6" fill="white" />
-                <ellipse cx="78" cy="54" rx="5.5" ry="6" fill="white" />
-                <rect x="57" y="49" width="11" height="6.5" rx="1" fill={persona.skin} opacity="0.95" />
-                <rect x="73" y="49" width="11" height="6.5" rx="1" fill={persona.skin} opacity="0.95" />
-                <ellipse cx="62" cy="56" rx="3" ry="2.2" fill="#1a1a2e" />
-                <ellipse cx="78" cy="56" rx="3" ry="2.2" fill="#1a1a2e" />
-              </>
-            )}
-            {s.eye === 'x' && (
-              <g>
-                <line x1="57" y1="50" x2="67" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-                <line x1="67" y1="50" x2="57" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-                <line x1="73" y1="50" x2="83" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-                <line x1="83" y1="50" x2="73" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-              </g>
-            )}
+            {/* Eyes */}
+            <Eyes type={s.eye} geo={geo} isTired={isTired} />
 
-            {/* Dark circles */}
-            {isTired && (
-              <>
-                <ellipse cx="62" cy="62" rx="6.5" ry="2.5" fill="#4b3a6a" opacity="0.4" />
-                <ellipse cx="78" cy="62" rx="6.5" ry="2.5" fill="#4b3a6a" opacity="0.4" />
-              </>
-            )}
-
-            {/* Blush cheeks */}
+            {/* Blush */}
             {showBlush && (
               <>
-                <ellipse cx="54" cy="60" rx="7" ry="4" fill="#f87171" opacity="0.18" />
-                <ellipse cx="86" cy="60" rx="7" ry="4" fill="#f87171" opacity="0.18" />
+                <ellipse cx={geo.blushLX} cy={geo.blushY} rx={geo.blushRx} ry={geo.blushRy} fill="#f87171" opacity="0.2" />
+                <ellipse cx={geo.blushRX} cy={geo.blushY} rx={geo.blushRx} ry={geo.blushRy} fill="#f87171" opacity="0.2" />
               </>
             )}
 
             {/* Nose */}
-            <ellipse cx="70" cy="63" rx="2" ry="1.3" fill={persona.skin}
-              style={{ filter: 'brightness(0.8)' }} />
+            <ellipse cx={CX} cy={geo.noseY} rx={2} ry={1.5} fill={persona.skin} style={{ filter: 'brightness(0.82)' }} />
 
             {/* Mouth */}
-            {s.mouth === 'grin'  && <path d="M60 70 Q70 82 80 70" stroke="#c2185b" strokeWidth="2.5" fill="rgba(255,100,130,0.12)" strokeLinecap="round" />}
-            {s.mouth === 'smile' && <path d="M63 69 Q70 76 77 69" stroke="#1a1a2e" strokeWidth="2" fill="none" strokeLinecap="round" />}
-            {s.mouth === 'flat'  && <line x1="64" y1="70" x2="76" y2="70" stroke="#1a1a2e" strokeWidth="2" strokeLinecap="round" />}
-            {s.mouth === 'frown' && <path d="M63 73 Q70 67 77 73" stroke="#1a1a2e" strokeWidth="2" fill="none" strokeLinecap="round" />}
-            {s.mouth === 'sad'   && <path d="M61 75 Q70 67 79 75" stroke="#ef4444" strokeWidth="2.5" fill="none" strokeLinecap="round" />}
+            <Mouth type={s.mouth} geo={geo} />
 
-            {/* Sweat drop */}
+            {/* Sweat drop (overworked) */}
             {isOver && !isBurnout && (
-              <motion.g animate={{ y: [0, 14], opacity: [0.9, 0] }}
+              <motion.g animate={{ y: [0, 16], opacity: [0.9, 0] }}
                 transition={{ duration: 1.4, repeat: Infinity, delay: 0.7 }}>
-                <ellipse cx="88" cy="50" rx="2.5" ry="4" fill="#60a5fa" opacity="0.8" />
-                <ellipse cx="88" cy="47" rx="1.5" ry="1.5" fill="#93c5fd" opacity="0.6" />
+                <ellipse cx={CX + geo.rx + 2} cy={CY - geo.ry * 0.3} rx={2.5} ry={4} fill="#60a5fa" opacity="0.8" />
+                <ellipse cx={CX + geo.rx + 2} cy={CY - geo.ry * 0.3 - 4} rx={1.5} ry={1.5} fill="#93c5fd" opacity="0.6" />
               </motion.g>
             )}
           </motion.g>
@@ -626,64 +739,60 @@ export function LifeAvatar({
           {isOver && (
             <>
               <g className="coffee-float-1">
-                <rect x="16" y="88" width="12" height="9" rx="2.5" fill="#7c3a28" />
-                <rect x="18" y="86" width="8" height="3" rx="1" fill="#9a4535" />
-                <path d="M28 91 Q32 91 32 95 Q32 99 28 99" stroke="#7c3a28" strokeWidth="2" fill="none" />
-                <path d="M20 85 Q21 81 20 77" stroke="#94a3b8" strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
+                <rect x="18" y="120" width="14" height="10" rx="3" fill="#7c3a28" />
+                <rect x="20" y="118" width="10" height="3" rx="1" fill="#9a4535" />
+                <path d="M32 123 Q37 123 37 128 Q37 133 32 133" stroke="#7c3a28" strokeWidth="2" fill="none" />
+                <path d="M25 117 Q26 113 25 109" stroke="#94a3b8" strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
               </g>
               <g className="coffee-float-2">
-                <rect x="100" y="82" width="12" height="9" rx="2.5" fill="#7c3a28" />
-                <rect x="102" y="80" width="8" height="3" rx="1" fill="#9a4535" />
+                <rect x="118" y="114" width="14" height="10" rx="3" fill="#7c3a28" />
+                <rect x="120" y="112" width="10" height="3" rx="1" fill="#9a4535" />
               </g>
             </>
           )}
 
           {/* Coins falling (broke) */}
           {isBroke && [
-            { x: 56, y: 88, cls: 'coin-fall-1' },
-            { x: 70, y: 82, cls: 'coin-fall-2' },
-            { x: 84, y: 90, cls: 'coin-fall-3' },
+            { x: 64, y: 118, cls: 'coin-fall-1' },
+            { x: 80, y: 112, cls: 'coin-fall-2' },
+            { x: 96, y: 120, cls: 'coin-fall-3' },
           ].map((c, i) => (
             <g key={i} className={c.cls} style={{ transformBox: 'fill-box', transformOrigin: `${c.x}px ${c.y}px` }}>
-              <ellipse cx={c.x} cy={c.y} rx="6" ry="6" fill="#f59e0b" />
-              <ellipse cx={c.x} cy={c.y} rx="4" ry="4" fill="#fbbf24" />
-              <text x={c.x} y={c.y + 2} textAnchor="middle" fontSize="5" fill="#92400e" fontWeight="bold">₹</text>
+              <ellipse cx={c.x} cy={c.y} rx="7" ry="7" fill="#f59e0b" />
+              <ellipse cx={c.x} cy={c.y} rx="5" ry="5" fill="#fbbf24" />
+              <text x={c.x} y={c.y + 2} textAnchor="middle" fontSize="5.5" fill="#92400e" fontWeight="bold">₹</text>
             </g>
           ))}
 
           {/* Stars (thriving) */}
           {isThriving && [
-            { x: 18, y: 40, d: 0 }, { x: 124, y: 34, d: 0.5 },
-            { x: 10, y: 76, d: 1.1 }, { x: 132, y: 68, d: 0.8 },
-            { x: 26, y: 16, d: 0.3 }, { x: 116, y: 16, d: 1.4 },
+            { x: 20, y: 48, d: 0 },   { x: 142, y: 42, d: 0.5 },
+            { x: 12, y: 96, d: 1.1 }, { x: 150, y: 84, d: 0.8 },
+            { x: 30, y: 20, d: 0.3 }, { x: 136, y: 20, d: 1.4 },
           ].map((p, i) => (
-            <motion.text key={i} x={p.x} y={p.y} fontSize="10" textAnchor="middle" fill={s.badge}
-              animate={{ y: [p.y, p.y - 7, p.y], opacity: [0.3, 1, 0.3], scale: [0.8, 1.3, 0.8] }}
+            <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle" fill={s.badge}
+              animate={{ y: [p.y, p.y - 8, p.y], opacity: [0.3, 1, 0.3], scale: [0.8, 1.3, 0.8] }}
               transition={{ duration: 2, repeat: Infinity, delay: p.d }}
-              style={{ transformBox: 'fill-box', transformOrigin: `${p.x}px ${p.y}px` }}
-            >✦</motion.text>
+              style={{ transformBox: 'fill-box', transformOrigin: `${p.x}px ${p.y}px` }}>
+              ✦
+            </motion.text>
           ))}
 
           {/* Burnout flames */}
           {isBurnout && (
             <motion.g animate={{ opacity: [0.5, 0.9, 0.5] }} transition={{ duration: 0.7, repeat: Infinity }}>
-              <path d="M8 140 Q13 118 18 130 Q23 108 28 126 Q18 112 13 140 Z" fill="#ef4444" opacity="0.55" />
-              <path d="M8 140 Q12 122 16 132 Q19 112 22 128 Z" fill="#f97316" opacity="0.35" />
-              <path d="M112 140 Q117 118 122 130 Q127 108 132 126 Q122 112 117 140 Z" fill="#ef4444" opacity="0.55" />
-              <path d="M112 140 Q116 122 120 132 Q123 112 126 128 Z" fill="#f97316" opacity="0.35" />
-              <path d="M44 117 L55 128 L49 145" stroke="#ef4444" strokeWidth="1" opacity="0.25" fill="none" />
-              <path d="M78 119 L90 130 L84 148" stroke="#ef4444" strokeWidth="1" opacity="0.25" fill="none" />
+              <path d="M8 180 Q14 152 20 166 Q26 138 32 158 Q22 142 16 180 Z" fill="#ef4444" opacity="0.55" />
+              <path d="M8 180 Q13 156 18 168 Q22 140 26 162 Z" fill="#f97316" opacity="0.35" />
+              <path d="M128 180 Q134 152 140 166 Q146 138 152 158 Q142 142 136 180 Z" fill="#ef4444" opacity="0.55" />
+              <path d="M128 180 Q133 156 138 168 Q142 140 146 162 Z" fill="#f97316" opacity="0.35" />
             </motion.g>
           )}
 
-          {/* Doom overlay */}
           {doomMode && (
-            <rect x="0" y="0" width="140" height="160" rx="14"
-              fill="rgba(180,0,0,0.05)" style={{ mixBlendMode: 'overlay' }} />
+            <rect x="0" y="0" width="160" height="200" rx="16" fill="rgba(180,0,0,0.05)" style={{ mixBlendMode: 'overlay' }} />
           )}
 
-          {/* Tap hint */}
-          <motion.text x="70" y="153" textAnchor="middle" fontSize="7.5" fill="rgba(255,255,255,0.2)"
+          <motion.text x={CX} y="193" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.2)"
             animate={{ opacity: [0.15, 0.4, 0.15] }} transition={{ duration: 3, repeat: Infinity }}>
             tap to personalise
           </motion.text>
