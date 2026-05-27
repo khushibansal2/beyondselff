@@ -53,19 +53,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
+        // --- 1. Apply Security Headers (WOW factor) ---
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("X-Frame-Options", "DENY");
+        response.setHeader("Content-Security-Policy", "default-src 'self'");
+        response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
         String authHeader = request.getHeader("Authorization");
 
         // Reject missing or malformed header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            sendUnauthorized(response, "Missing or malformed Authorization header");
+            log.warn("[SECURITY AUDIT] Missing or malformed Authorization header from IP: {}", request.getRemoteAddr());
+            sendUnauthorized(response, "Missing or malformed Authorization header", request.getRequestURI());
             return;
         }
 
         String token = authHeader.substring(7);
 
         // Reject legacy insecure frontend tokens — they are NOT signed and must not be trusted
-        if (token.startsWith("dt_jwt_")) {
-            sendUnauthorized(response, "Demo tokens are not accepted by the backend API. Please use a real account.");
+        if (token.startsWith("dt_jwt_") || token.startsWith("DEMO_SESSION_")) {
+            log.warn("[SECURITY AUDIT] Blocked legacy/demo token attempt from IP: {} for path: {}", request.getRemoteAddr(), request.getRequestURI());
+            sendUnauthorized(response, "Demo tokens are not accepted by the backend API. Please use a real account.", request.getRequestURI());
             return;
         }
 
@@ -73,21 +81,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String userId = jwtUtil.getUserIdFromToken(token);
             if (userId == null || userId.isBlank()) {
-                sendUnauthorized(response, "Invalid token: empty subject");
+                log.warn("[SECURITY AUDIT] Empty token subject from IP: {}", request.getRemoteAddr());
+                sendUnauthorized(response, "Invalid token: empty subject", request.getRequestURI());
                 return;
             }
             // Propagate userId to controllers via request attribute
             request.setAttribute("authenticatedUserId", userId);
             chain.doFilter(request, response);
         } catch (Exception e) {
-            log.warn("JWT validation failed for path {}: {}", request.getServletPath(), e.getMessage());
-            sendUnauthorized(response, "Invalid or expired JWT token");
+            log.warn("[SECURITY AUDIT] JWT validation failed for path {}: {}", request.getRequestURI(), e.getMessage());
+            sendUnauthorized(response, "Invalid or expired JWT token", request.getRequestURI());
         }
     }
 
-    private void sendUnauthorized(HttpServletResponse response, String message) throws IOException {
+    private void sendUnauthorized(HttpServletResponse response, String message, String path) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.getWriter().write("{\"error\":\"" + message + "\",\"status\":401}");
+        String timestamp = java.time.Instant.now().toString();
+        // Standardized error JSON response
+        response.getWriter().write(String.format(
+            "{\"timestamp\":\"%s\",\"status\":401,\"error\":\"%s\",\"path\":\"%s\"}",
+            timestamp, message, path
+        ));
     }
 }

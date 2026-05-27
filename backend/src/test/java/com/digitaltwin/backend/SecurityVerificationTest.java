@@ -161,7 +161,10 @@ class SecurityVerificationTest {
 
         mvc.perform(get("/api/records/health")
                 .header("Authorization", "Bearer " + legacyToken))
-           .andExpect(status().isUnauthorized());
+           .andExpect(status().isUnauthorized())
+           .andExpect(jsonPath("$.error").exists())
+           .andExpect(jsonPath("$.timestamp").exists())
+           .andExpect(jsonPath("$.path").value("/api/records/health"));
     }
 
     @Test
@@ -213,5 +216,41 @@ class SecurityVerificationTest {
         mvc.perform(get("/api/ai/status"))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.available").value(false));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 8. WOW FACTOR — RATE LIMITING & FILE VALIDATION
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("Rate limiting blocks brute-force login attempts (429 Too Many Requests)")
+    void rateLimiting_blocksBruteForce() throws Exception {
+        String reqBody = "{\"email\":\"brute@test.com\",\"password\":\"wrong\"}";
+        // 5 failed attempts
+        for (int i = 0; i < 5; i++) {
+            mvc.perform(post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(reqBody))
+               .andExpect(status().isUnauthorized());
+        }
+        // 6th attempt should hit rate limit
+        mvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(reqBody))
+           .andExpect(status().isTooManyRequests())
+           .andExpect(jsonPath("$.error").exists());
+    }
+
+    @Test
+    @DisplayName("Dangerous file extensions are rejected on upload")
+    void upload_dangerousExtension_rejected() throws Exception {
+        org.springframework.mock.web.MockMultipartFile badFile = new org.springframework.mock.web.MockMultipartFile(
+            "file", "script.sh", "text/plain", "rm -rf /".getBytes());
+
+        mvc.perform(multipart("/api/uploads")
+                .file(badFile)
+                .header("Authorization", "Bearer " + validToken))
+           .andExpect(status().isBadRequest())
+           .andExpect(content().string("Dangerous file extensions are not allowed"));
     }
 }

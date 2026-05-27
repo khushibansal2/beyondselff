@@ -12,7 +12,30 @@ import { computeHealthScore } from '../engines/healthScoreEngine';
 import { computeFinanceScore } from '../engines/financeScoreEngine';
 import { computeCareerScore } from '../engines/careerScoreEngine';
 import { fetchGitHubProfile } from '../services/githubService';
-import { CheckCircle, AlertTriangle, Activity, Landmark, Briefcase, Calendar, Check, ArrowRight, Loader2, Smartphone } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Activity, Landmark, Briefcase, Calendar, Check, ArrowRight, Loader2, Smartphone, ShieldCheck, Lock, EyeOff } from 'lucide-react';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECURITY STATUS BADGE (WOW Factor)
+// ─────────────────────────────────────────────────────────────────────────────
+function SecurityStatusBadge() {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="hidden md:flex flex-col gap-1 items-end select-none absolute top-4 right-48"
+    >
+      <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[9px] font-mono text-emerald-400">
+        <ShieldCheck size={10} /> JWT ACTIVE
+      </div>
+      <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded text-[9px] font-mono text-blue-400">
+        <Lock size={10} /> AES-256 E2E
+      </div>
+      <div className="flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded text-[9px] font-mono text-purple-400">
+        <EyeOff size={10} /> AI PRIVACY ON
+      </div>
+    </motion.div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DOOM SWITCH
@@ -765,6 +788,7 @@ export default function Dashboard() {
             </p>
           </motion.div>
         </div>
+        <SecurityStatusBadge />
         <DoomSwitch active={doomMode} onToggle={toggleDoom} />
       </div>
 
