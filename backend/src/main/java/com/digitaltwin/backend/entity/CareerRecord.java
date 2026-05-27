@@ -37,21 +37,21 @@ public class CareerRecord {
     private Integer githubRepos;
 
     // 1NF fix: multi-valued attributes in their own tables instead of delimited strings
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "career_record_languages",
             joinColumns = @JoinColumn(name = "career_record_id"))
     @Column(name = "language")
     @Builder.Default
     private List<String> languages = new ArrayList<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "career_record_skills",
             joinColumns = @JoinColumn(name = "career_record_id"))
     @Column(name = "skill", length = 200)
     @Builder.Default
     private List<String> extractedSkills = new ArrayList<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "career_record_projects",
             joinColumns = @JoinColumn(name = "career_record_id"))
     @Column(name = "project_title", length = 500)
