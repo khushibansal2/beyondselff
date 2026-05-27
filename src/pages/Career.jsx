@@ -129,13 +129,13 @@ const RESUME_PARSE_STEPS = [
 const PRIORITY_COLOR = {
   high:   'text-red-400 bg-red-500/[0.06] border-red-500/15',
   medium: 'text-amber-400 bg-amber-500/[0.06] border-amber-500/15',
-  low:    'text-[#71717a] bg-white/[0.02] border-white/[0.06]',
+  low:    'text-slate-400 bg-white/[0.02] border-white/[0.06]',
 };
 function ResumeScoreCard({ label, value, color, unit = '/100' }) {
   return (
     <GlassCard>
       <p className="text-[10px] text-slate-500 mb-1.5 font-medium uppercase tracking-wider">{label}</p>
-      <p className="text-[28px] font-black leading-none" style={{ color }}>{value}<span className="text-[12px] font-medium text-slate-600 ml-0.5">{unit}</span></p>
+      <p className="text-[28px] font-black leading-none" style={{ color }}>{value}<span className="text-[12px] font-medium text-slate-400 ml-0.5">{unit}</span></p>
       <div className="h-1.5 rounded-full bg-white/[0.05] mt-2.5 overflow-hidden">
         <motion.div initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="h-full rounded-full" style={{ background: color }} />
@@ -199,7 +199,7 @@ function ResumeTab({ career: c, updateDomain }) {
           <div className="flex items-center gap-2.5">
             <span className="text-lg">📄</span>
             <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Resume AI Intelligence</h3>
-            <span className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border font-semibold ${phase === 'results' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-[#27272a]/50 border-white/[0.06] text-[#71717a]'}`}>
+            <span className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border font-semibold ${phase === 'results' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-[#27272a]/50 border-white/[0.06] text-slate-400'}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${phase === 'results' ? 'bg-emerald-400' : 'bg-[#71717a]'}`} />
               {phase === 'results' ? 'Analyzed' : 'Not Uploaded'}
             </span>
@@ -238,7 +238,7 @@ function ResumeTab({ career: c, updateDomain }) {
               <p className="text-[14px] font-semibold text-[#f0f0f3] mb-1">Drop your resume PDF here</p>
               <p className="text-[12px] text-slate-500">or click to browse · PDF only · text-based (not scanned)</p>
             </div>
-            <div className="flex gap-3 text-[11px] text-slate-600">
+            <div className="flex gap-3 text-[11px] text-slate-400">
               {['Skills Extraction', 'ATS Score', 'Skill Gap Analysis', 'Learning Roadmap'].map(f => (
                 <span key={f} className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-400" />{f}</span>
               ))}
@@ -578,7 +578,7 @@ function JobCard({ job, userSkills }) {
 
             {/* Meta row */}
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-              <span className="flex items-center gap-1 text-[11px] text-[#71717a]">
+              <span className="flex items-center gap-1 text-[11px] text-slate-400">
                 <MapPin size={10} />{job.location}
               </span>
               {job.remote && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold">Remote</span>}
@@ -595,12 +595,12 @@ function JobCard({ job, userSkills }) {
                     <span key={s} className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
                       isMatched
                         ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
-                        : 'bg-white/[0.03] border-white/[0.07] text-[#71717a]'
+                        : 'bg-white/[0.03] border-white/[0.07] text-slate-400'
                     }`}>{s}</span>
                   );
                 })}
                 {job.requiredSkills.length > 6 && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/[0.06] text-[#6b7280]">+{job.requiredSkills.length - 6}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/[0.06] text-slate-400">+{job.requiredSkills.length - 6}</span>
                 )}
               </div>
             )}
@@ -673,17 +673,17 @@ function JobsTab({ userSkills }) {
     <div className="space-y-5">
       {/* Search bar */}
       <GlassCard>
-        <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider mb-3">Live Job Market Search</p>
+        <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-3">Live Job Market Search</p>
         <div className="flex gap-2 flex-col sm:flex-row">
           <div className="flex-1 relative">
-            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b7280]" />
+            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={query} onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch()}
               placeholder="Role (e.g. React Developer, ML Engineer)"
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-blue-500/40 transition-colors" />
           </div>
           <div className="relative sm:w-44">
-            <MapPin size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b7280]" />
+            <MapPin size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={location} onChange={e => setLocation(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch()}
               placeholder="Location (optional)"
@@ -699,10 +699,10 @@ function JobsTab({ userSkills }) {
         {/* Suggestion chips */}
         {!searched && (
           <div className="flex gap-2 mt-3 flex-wrap">
-            <span className="text-[10px] text-[#6b7280] self-center">Try:</span>
+            <span className="text-[10px] text-slate-400 self-center">Try:</span>
             {SUGGESTIONS.map(s => (
               <button key={s} onClick={() => { setQuery(s); doSearch(s); }}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all">
+                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 hover:text-[#a1a1aa] transition-all">
                 {s}
               </button>
             ))}
@@ -714,7 +714,7 @@ function JobsTab({ userSkills }) {
           <div className="flex items-center gap-3 mt-3 flex-wrap">
             <div className="flex gap-1.5 flex-wrap">
               {sources.map(src => (
-                <span key={src} className="text-[10px] px-2 py-0.5 rounded-full border font-semibold bg-white/[0.03] border-white/[0.08] text-[#71717a]">
+                <span key={src} className="text-[10px] px-2 py-0.5 rounded-full border font-semibold bg-white/[0.03] border-white/[0.08] text-slate-400">
                   {src} · {jobs.filter(j => j.source === src).length}
                 </span>
               ))}
@@ -722,7 +722,7 @@ function JobsTab({ userSkills }) {
             <div className="flex gap-1 ml-auto flex-wrap">
               {['all', 'remote', 'salary', 'match80'].map(f => (
                 <button key={f} onClick={() => setFilter(f)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${filter === f ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'}`}>
+                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${filter === f ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-white/[0.06] text-slate-400 hover:text-[#a1a1aa]'}`}>
                   {f === 'all' ? 'All' : f === 'remote' ? '🌐 Remote' : f === 'salary' ? '💰 Salary' : '🎯 80%+ Match'}
                 </button>
               ))}
@@ -756,7 +756,7 @@ function JobsTab({ userSkills }) {
         <GlassCard className="text-center py-8 border border-rose-500/15">
           <AlertTriangle size={28} className="mx-auto mb-2 text-rose-400" />
           <p className="text-[13px] text-[#a1a1aa] font-semibold mb-1">Search Failed</p>
-          <p className="text-[11px] text-[#71717a]">{error}</p>
+          <p className="text-[11px] text-slate-400">{error}</p>
           <button onClick={() => doSearch()} className="mt-4 px-4 py-2 rounded-xl border border-white/[0.1] text-[12px] text-[#a1a1aa] hover:text-white transition-all flex items-center gap-2 mx-auto">
             <RefreshCw size={12} /> Retry
           </button>
@@ -766,10 +766,10 @@ function JobsTab({ userSkills }) {
       {/* Empty state */}
       {!searched && !loading && (
         <GlassCard className="text-center py-12">
-          <Briefcase size={32} className="mx-auto mb-3 text-[#71717a]" />
+          <Briefcase size={32} className="mx-auto mb-3 text-slate-400" />
           <p className="text-[14px] font-semibold text-[#a1a1aa] mb-1">Real-time Job Market</p>
-          <p className="text-[12px] text-[#71717a]">Powered by Arbeitnow · Remotive · Adzuna · JSearch</p>
-          <p className="text-[11px] text-[#6b7280] mt-1">Enter a role above to search live job listings and see your match score on each card</p>
+          <p className="text-[12px] text-slate-400">Powered by Arbeitnow · Remotive · Adzuna · JSearch</p>
+          <p className="text-[11px] text-slate-400 mt-1">Enter a role above to search live job listings and see your match score on each card</p>
         </GlassCard>
       )}
 
@@ -785,7 +785,7 @@ function JobsTab({ userSkills }) {
       {filtered.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <p className="text-[11px] text-[#71717a]">{filtered.length} jobs{userSkills?.length ? ' · sorted by your skill match' : ''}</p>
+            <p className="text-[11px] text-slate-400">{filtered.length} jobs{userSkills?.length ? ' · sorted by your skill match' : ''}</p>
             {userSkills?.length === 0 && (
               <p className="text-[11px] text-amber-400">Upload your resume to see match scores</p>
             )}
@@ -886,13 +886,13 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
       <GlassCard>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex-1 relative min-w-0">
-            <Target size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b7280]" />
+            <Target size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={roleInput} onChange={e => setRoleInput(e.target.value)}
               placeholder="Target role (e.g. Senior React Developer)"
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-violet-500/40 transition-colors" />
           </div>
           <button onClick={() => { setJobs([]); setCoach(null); handleLoadMarketJobs(); }}
-            className="text-[11px] px-3.5 py-2.5 rounded-xl border border-white/[0.08] text-[#71717a] hover:text-[#a1a1aa] transition-all flex items-center gap-1.5">
+            className="text-[11px] px-3.5 py-2.5 rounded-xl border border-white/[0.08] text-slate-400 hover:text-[#a1a1aa] transition-all flex items-center gap-1.5">
             <RefreshCw size={12} /> Refresh
           </button>
         </div>
@@ -907,7 +907,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
               className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
                 section === s.id
                   ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
-                  : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
+                  : 'border-white/[0.06] text-slate-400 hover:text-[#a1a1aa]'
               }`}>{s.icon} {s.label}
             </button>
           ))}
@@ -924,7 +924,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
               {!userSkills?.length && (
                 <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05]">
                   <AlertTriangle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-[12px] text-[#71717a]">Upload your resume in the <strong className="text-amber-400">Resume AI</strong> tab to unlock personalised match analysis.</p>
+                  <p className="text-[12px] text-slate-400">Upload your resume in the <strong className="text-amber-400">Resume AI</strong> tab to unlock personalised match analysis.</p>
                 </div>
               )}
 
@@ -936,7 +936,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   { label: 'Gap Skills', value: missingAgg.filter(m => m.priority === 'critical' || m.priority === 'high').length, color: '#f59e0b', icon: '📚' },
                 ].map(m => (
                   <GlassCard key={m.label}>
-                    <p className="text-[9px] text-[#71717a] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
                     <p className="text-[26px] font-black leading-none" style={{ color: m.color }}>{m.value}</p>
                   </GlassCard>
                 ))}
@@ -946,12 +946,12 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
               {jobsLoading && (
                 <GlassCard className="text-center py-6">
                   <Loader2 size={20} className="mx-auto mb-2 text-violet-400 animate-spin" />
-                  <p className="text-[12px] text-[#71717a]">Fetching live market data…</p>
+                  <p className="text-[12px] text-slate-400">Fetching live market data…</p>
                 </GlassCard>
               )}
               {!jobsLoading && !jobs.length && (
                 <GlassCard className="text-center py-6">
-                  <p className="text-[12px] text-[#71717a] mb-3">Fetch live job listings to generate skill gap analysis</p>
+                  <p className="text-[12px] text-slate-400 mb-3">Fetch live job listings to generate skill gap analysis</p>
                   <button onClick={handleLoadMarketJobs}
                     className="px-5 py-2 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[12px] font-semibold hover:bg-violet-500/25 transition-all flex items-center gap-2 mx-auto">
                     <RefreshCw size={12} /> Load Market Data
@@ -965,7 +965,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   <div className="flex items-center gap-2 mb-3">
                     <Zap size={13} className="text-amber-400" />
                     <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Skills Gap — Market Demand</h3>
-                    <span className="text-[10px] text-[#71717a] ml-auto">Based on {jobs.length} live listings</span>
+                    <span className="text-[10px] text-slate-400 ml-auto">Based on {jobs.length} live listings</span>
                   </div>
                   <div className="space-y-2">
                     {missingAgg.map((m, i) => (
@@ -978,7 +978,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                             <motion.div initial={{ width: 0 }} animate={{ width: `${m.pct}%` }} transition={{ duration: 0.8, delay: i * 0.04 }}
                               className="h-full rounded-full bg-amber-500" />
                           </div>
-                          <span className="text-[10px] text-[#71717a] w-8 text-right">{m.pct}%</span>
+                          <span className="text-[10px] text-slate-400 w-8 text-right">{m.pct}%</span>
                         </div>
                       </motion.div>
                     ))}
@@ -1004,7 +1004,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
               {/* Top matching job preview */}
               {topJob && (
                 <GlassCard>
-                  <p className="text-[10px] text-[#71717a] uppercase tracking-wider font-semibold mb-2">🏆 Top Matching Job</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-2">🏆 Top Matching Job</p>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-semibold text-[#f0f0f3] truncate">{topJob.title}</p>
@@ -1028,9 +1028,9 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   { label: 'Max Estimate',  value: `₹${salary.max}L`,  color: '#10b981' },
                 ].map(m => (
                   <GlassCard key={m.label}>
-                    <p className="text-[9px] text-[#71717a] uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium mb-1.5">{m.label}</p>
                     <p className="text-[24px] font-black leading-none" style={{ color: m.color }}>{m.value}</p>
-                    <p className="text-[9px] text-[#6b7280] mt-1">per annum</p>
+                    <p className="text-[10px] text-slate-400 mt-1">per annum</p>
                   </GlassCard>
                 ))}
               </div>
@@ -1040,7 +1040,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   <Sparkles size={13} className="text-emerald-400 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[11px] font-semibold text-emerald-300">Premium Skill Bonus Detected</p>
-                    <p className="text-[11px] text-[#71717a] mt-0.5">
+                    <p className="text-[11px] text-slate-400 mt-0.5">
                       {salary.premiumSkills.join(', ')} command above-median compensation. Your max range reflects this premium.
                     </p>
                   </div>
@@ -1066,7 +1066,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   {[['#f43f5e','Min'],['#3b82f6','Mid'],['#10b981','Max']].map(([c,l]) => (
                     <div key={l} className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 rounded-sm" style={{ background: c }} />
-                      <span className="text-[10px] text-[#71717a]">{l}</span>
+                      <span className="text-[10px] text-slate-400">{l}</span>
                     </div>
                   ))}
                 </div>
@@ -1084,7 +1084,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                         <div className="h-full rounded-full bg-gradient-to-r from-blue-500/60 to-violet-500/60"
                           style={{ width: `${(row.max / 100) * 100}%` }} />
                       </div>
-                      <span className="text-[11px] text-[#71717a] w-24 text-right flex-shrink-0">₹{row.min}–{row.max}L</span>
+                      <span className="text-[11px] text-slate-400 w-24 text-right flex-shrink-0">₹{row.min}–{row.max}L</span>
                     </motion.div>
                   ))}
                 </div>
@@ -1102,8 +1102,8 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                     <Brain size={26} className="text-violet-400" />
                   </div>
                   <h3 className="text-[14px] font-semibold text-[#f0f0f3] mb-1">AI Career Coach</h3>
-                  <p className="text-[12px] text-[#71717a] mb-1">Powered by Groq · llama-3.3-70b</p>
-                  <p className="text-[11px] text-[#6b7280] mb-5">Generates a personalised roadmap, portfolio ideas, interview tips and weekly plan based on your resume + market data.</p>
+                  <p className="text-[12px] text-slate-400 mb-1">Powered by Groq · llama-3.3-70b</p>
+                  <p className="text-[11px] text-slate-400 mb-5">Generates a personalised roadmap, portfolio ideas, interview tips and weekly plan based on your resume + market data.</p>
                   {coachError && (
                     <p className="text-[12px] text-rose-400 mb-4">{coachError}</p>
                   )}
@@ -1120,17 +1120,17 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   {/* Readiness + verdict */}
                   <div className="grid grid-cols-2 gap-3">
                     <GlassCard className="col-span-2 sm:col-span-1">
-                      <p className="text-[10px] text-[#71717a] uppercase tracking-wider mb-2">Career Readiness</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-2">Career Readiness</p>
                       <div className="flex items-end gap-3">
                         <span className="text-[40px] font-black leading-none"
                           style={{ color: coach.readinessScore >= 70 ? '#10b981' : coach.readinessScore >= 50 ? '#f59e0b' : '#f43f5e' }}>
                           {coach.readinessScore}%
                         </span>
-                        <p className="text-[11px] text-[#71717a] mb-1 leading-relaxed">{coach.verdict}</p>
+                        <p className="text-[11px] text-slate-400 mb-1 leading-relaxed">{coach.verdict}</p>
                       </div>
                     </GlassCard>
                     <GlassCard className="col-span-2 sm:col-span-1 border border-violet-500/10 bg-violet-500/[0.03]">
-                      <p className="text-[10px] text-[#71717a] uppercase tracking-wider mb-2">💡 Twin Insight</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-2">💡 Twin Insight</p>
                       <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{coach.digitalTwinInsight}</p>
                     </GlassCard>
                   </div>
@@ -1148,9 +1148,9 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                             className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-[12px] font-semibold text-[#f0f0f3]">{item.skill}</span>
-                              <span className="text-[10px] text-[#71717a]">{item.weeks}w estimate</span>
+                              <span className="text-[10px] text-slate-400">{item.weeks}w estimate</span>
                             </div>
-                            <p className="text-[11px] text-[#71717a] mb-1.5">{item.reason}</p>
+                            <p className="text-[11px] text-slate-400 mb-1.5">{item.reason}</p>
                             {item.resource && (
                               <p className="text-[10px] text-blue-400">📚 {item.resource}</p>
                             )}
@@ -1171,7 +1171,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                         {coach.portfolioProjects.map((p, i) => (
                           <div key={i} className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                             <p className="text-[12px] font-semibold text-[#f0f0f3] mb-1">🚀 {p.title}</p>
-                            <p className="text-[11px] text-[#71717a] mb-2">{p.impact}</p>
+                            <p className="text-[11px] text-slate-400 mb-2">{p.impact}</p>
                             <div className="flex flex-wrap gap-1">
                               {(p.stack || []).map(t => (
                                 <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">{t}</span>
@@ -1195,7 +1195,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                           <div key={i} className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
                             <p className="text-[10px] font-bold text-emerald-400 mb-1">{day.days}</p>
                             <p className="text-[11px] font-semibold text-[#a1a1aa] mb-1">{day.focus}</p>
-                            <p className="text-[10px] text-[#71717a] leading-relaxed">{day.task}</p>
+                            <p className="text-[10px] text-slate-400 leading-relaxed">{day.task}</p>
                           </div>
                         ))}
                       </div>
@@ -1209,7 +1209,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                         <p className="text-[11px] font-semibold text-[#a1a1aa] mb-2">🎤 Interview Tips</p>
                         <ul className="space-y-2">
                           {coach.interviewTips.map((tip, i) => (
-                            <li key={i} className="flex items-start gap-2 text-[11px] text-[#71717a]">
+                            <li key={i} className="flex items-start gap-2 text-[11px] text-slate-400">
                               <ChevronRight size={10} className="mt-0.5 text-blue-400 flex-shrink-0" />{tip}
                             </li>
                           ))}
@@ -1219,14 +1219,14 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                     {coach.salaryTip && (
                       <GlassCard className="border border-emerald-500/15 bg-emerald-500/[0.03]">
                         <p className="text-[11px] font-semibold text-emerald-300 mb-2">💰 Salary Negotiation</p>
-                        <p className="text-[11px] text-[#71717a] leading-relaxed">{coach.salaryTip}</p>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">{coach.salaryTip}</p>
                       </GlassCard>
                     )}
                   </div>
 
                   {/* Regenerate button */}
                   <button onClick={() => { setCoach(null); setCoachError(null); }}
-                    className="w-full py-2.5 rounded-xl border border-white/[0.08] text-[12px] text-[#71717a] hover:text-[#a1a1aa] transition-all flex items-center justify-center gap-2">
+                    className="w-full py-2.5 rounded-xl border border-white/[0.08] text-[12px] text-slate-400 hover:text-[#a1a1aa] transition-all flex items-center justify-center gap-2">
                     <RefreshCw size={12} /> Regenerate Career Plan
                   </button>
                 </div>
@@ -1241,7 +1241,7 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                 <Brain size={14} className="text-violet-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[12px] font-semibold text-violet-300">Cross-Domain Digital Twin Analysis</p>
-                  <p className="text-[11px] text-[#71717a] mt-0.5">Your health, finance, and career data are interconnected. These insights surface hidden relationships that affect your career performance.</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Your health, finance, and career data are interconnected. These insights surface hidden relationships that affect your career performance.</p>
                 </div>
               </div>
 
@@ -1275,8 +1275,8 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                   ].map(d => (
                     <div key={d.domain} className={`p-3 rounded-xl border ${d.status ? 'border-emerald-500/20 bg-emerald-500/[0.04]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                       <span className="text-xl">{d.icon}</span>
-                      <p className="text-[10px] text-[#71717a] mt-1">{d.domain}</p>
-                      <p className={`text-[9px] font-bold ${d.status ? 'text-emerald-400' : 'text-[#6b7280]'}`}>{d.status ? 'Logged' : 'No data'}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{d.domain}</p>
+                      <p className={`text-[10px] font-bold ${d.status ? 'text-emerald-400' : 'text-slate-500'}`}>{d.status ? 'Logged' : 'No data'}</p>
                     </div>
                   ))}
                 </div>
@@ -1306,7 +1306,7 @@ function CareerRecommendations({ recommendations }) {
   const sorted = sortByFeedback(recommendations, feedback);
   return (
     <div className="space-y-5">
-      <p className="text-[11px] text-[#71717a]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
+      <p className="text-[11px] text-slate-400">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
       {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
     </div>
   );
@@ -1527,15 +1527,15 @@ export default function Career() {
               <div className="grid grid-cols-3 gap-2 w-full mt-4 text-center">
                 <div className="p-2 rounded-lg bg-emerald-500/10">
                   <p className="text-xs text-emerald-400 font-bold">&lt;40</p>
-                  <p className="text-[9px] text-slate-500">Optimal</p>
+                  <p className="text-[10px] text-slate-400">Optimal</p>
                 </div>
                 <div className="p-2 rounded-lg bg-amber-500/10">
                   <p className="text-xs text-amber-400 font-bold">40-70</p>
-                  <p className="text-[9px] text-slate-500">Moderate</p>
+                  <p className="text-[10px] text-slate-400">Moderate</p>
                 </div>
                 <div className="p-2 rounded-lg bg-rose-500/10">
                   <p className="text-xs text-rose-400 font-bold">&gt;70</p>
-                  <p className="text-[9px] text-slate-500">Burnout Risk</p>
+                  <p className="text-[10px] text-slate-400">Burnout Risk</p>
                 </div>
               </div>
             </GlassCard>
@@ -1607,22 +1607,31 @@ export default function Career() {
       {tab === 'log' && (
         <div className="grid lg:grid-cols-2 gap-6">
           <GlassCard className="p-6">
-            <h3 className="text-sm font-semibold mb-1">Smart Study Logger</h3>
-            <p className="text-xs text-slate-500 mb-6">Log a focus session — saved to your digital twin's database</p>
+            <h3 className="text-base font-bold text-white mb-0.5">Smart Study Logger</h3>
+            <p className="text-xs text-slate-400 mb-6">Log a focus session — saved to your digital twin's database</p>
 
-            <div className="space-y-5">
+            <div className="space-y-6">
               {/* Duration */}
               <div>
-                <label className="text-xs text-slate-400 mb-2 block">Duration: <span className="text-white font-bold">{logForm.durationMinutes} min</span></label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-slate-200">Duration</label>
+                  <span className="text-sm font-bold text-white bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-lg">
+                    {logForm.durationMinutes >= 60
+                      ? `${Math.floor(logForm.durationMinutes / 60)}h${logForm.durationMinutes % 60 > 0 ? ` ${logForm.durationMinutes % 60}m` : ''}`
+                      : `${logForm.durationMinutes} min`}
+                  </span>
+                </div>
                 <input type="range" min="5" max="240" step="5" value={logForm.durationMinutes}
                   onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
                   className="w-full accent-blue-500" />
-                <div className="flex justify-between text-[10px] text-slate-600 mt-1"><span>5m</span><span>1h</span><span>2h</span><span>4h</span></div>
+                <div className="flex justify-between text-xs text-slate-400 mt-1.5">
+                  <span>5 min</span><span>1 hr</span><span>2 hr</span><span>4 hr</span>
+                </div>
               </div>
 
               {/* Topic */}
               <div>
-                <label className="text-xs text-slate-400 mb-2 block">Topic</label>
+                <label className="text-sm font-semibold text-slate-200 mb-2 block">Topic</label>
                 <select value={logForm.topic} onChange={e => setLogForm(p => ({ ...p, topic: e.target.value }))}
                   className="input-premium w-full bg-[#1a1a1a]">
                   {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -1631,13 +1640,13 @@ export default function Career() {
 
               {/* Environment */}
               <div>
-                <label className="text-xs text-slate-400 mb-2 block">Where did you study?</label>
+                <label className="text-sm font-semibold text-slate-200 mb-2.5 block">Where did you study?</label>
                 <div className="grid grid-cols-4 gap-2">
                   {ENVS.map(env => (
                     <button key={env.id} onClick={() => setLogForm(p => ({ ...p, environment: env.id }))}
-                      className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all ${logForm.environment === env.id ? 'border-blue-500/60 bg-blue-500/10 text-blue-300' : 'border-white/[0.06] bg-white/[0.02] text-slate-400 hover:border-white/20'}`}>
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all ${logForm.environment === env.id ? 'border-blue-500/60 bg-blue-500/10 text-blue-200' : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/[0.06]'}`}>
                       <span className="text-xl">{env.icon}</span>
-                      <span className="text-[10px]">{env.label}</span>
+                      <span className="text-xs font-medium">{env.label}</span>
                     </button>
                   ))}
                 </div>
@@ -1645,22 +1654,28 @@ export default function Career() {
 
               {/* Focus Quality */}
               <div>
-                <label className="text-xs text-slate-400 mb-2 block">Focus Quality: <span className="text-white font-bold">{['', '😴 Distracted', '😐 Low', '🙂 Moderate', '😊 High', '🔥 Peak'][logForm.focusQuality]}</span></label>
+                <div className="flex items-center justify-between mb-2.5">
+                  <label className="text-sm font-semibold text-slate-200">Focus Quality</label>
+                  <span className="text-sm font-medium text-white">{['', '😴 Distracted', '😐 Low', '🙂 Moderate', '😊 High', '🔥 Peak'][logForm.focusQuality]}</span>
+                </div>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map(v => (
                     <button key={v} onClick={() => setLogForm(p => ({ ...p, focusQuality: v }))}
-                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all border ${logForm.focusQuality >= v ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'bg-white/[0.03] border-white/[0.06] text-slate-600'}`}>{v}</button>
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all border ${logForm.focusQuality >= v ? 'bg-blue-500/20 border-blue-500/40 text-blue-200' : 'bg-white/[0.04] border-white/10 text-slate-300 hover:border-white/20'}`}>{v}</button>
                   ))}
                 </div>
               </div>
 
               {/* Mental Fatigue */}
               <div>
-                <label className="text-xs text-slate-400 mb-2 block">Mental Fatigue: <span className="text-white font-bold">{['', '😊 Fresh', '🙂 Light', '😐 Moderate', '😓 Tired', '🤯 Exhausted'][logForm.mentalFatigue]}</span></label>
+                <div className="flex items-center justify-between mb-2.5">
+                  <label className="text-sm font-semibold text-slate-200">Mental Fatigue</label>
+                  <span className="text-sm font-medium text-white">{['', '😊 Fresh', '🙂 Light', '😐 Moderate', '😓 Tired', '🤯 Exhausted'][logForm.mentalFatigue]}</span>
+                </div>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map(v => (
                     <button key={v} onClick={() => setLogForm(p => ({ ...p, mentalFatigue: v }))}
-                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all border ${logForm.mentalFatigue >= v ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' : 'bg-white/[0.03] border-white/[0.06] text-slate-600'}`}>{v}</button>
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all border ${logForm.mentalFatigue >= v ? 'bg-rose-500/20 border-rose-500/40 text-rose-200' : 'bg-white/[0.04] border-white/10 text-slate-300 hover:border-white/20'}`}>{v}</button>
                   ))}
                 </div>
               </div>
@@ -1675,19 +1690,19 @@ export default function Career() {
           {/* Career Metrics Quick Log */}
           <GlassCard className="p-6">
             <h3 className="text-sm font-semibold mb-1">Career Metrics Logger</h3>
-            <p className="text-xs text-slate-500 mb-5">Update your overall career profile data</p>
+            <p className="text-xs text-slate-400 mb-5">Update your overall career profile data</p>
             <form onSubmit={handleCareerLog} className="space-y-4">
-              <div><label className="text-xs text-slate-400 mb-1.5 block">Study Hours Today</label><input type="number" value={careerForm.studyHours} onChange={e => setCareerForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" min="0" max="24" /></div>
-              <div><label className="text-xs text-slate-400 mb-1.5 block">Coding Hours Today</label><input type="number" value={careerForm.codingHours} onChange={e => setCareerForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" min="0" max="24" /></div>
-              <div><label className="text-xs text-slate-400 mb-1.5 block">DSA Problems Solved</label><input type="number" value={careerForm.dsa} onChange={e => setCareerForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" min="0" /></div>
-              <div><label className="text-xs text-slate-400 mb-1.5 block">Projects Completed</label><input type="number" value={careerForm.projects} onChange={e => setCareerForm(p => ({ ...p, projects: e.target.value }))} className="input-premium w-full" placeholder={c.projectsCompleted || '2'} min="0" /></div>
-              <div><label className="text-xs text-slate-400 mb-1.5 block">Add New Skill</label><input type="text" value={careerForm.skill} onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))} className="input-premium w-full" placeholder="e.g. Docker, Kubernetes" /></div>
+              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Study Hours Today</label><input type="number" value={careerForm.studyHours} onChange={e => setCareerForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" min="0" max="24" /></div>
+              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Coding Hours Today</label><input type="number" value={careerForm.codingHours} onChange={e => setCareerForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" min="0" max="24" /></div>
+              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">DSA Problems Solved</label><input type="number" value={careerForm.dsa} onChange={e => setCareerForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" min="0" /></div>
+              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Projects Completed</label><input type="number" value={careerForm.projects} onChange={e => setCareerForm(p => ({ ...p, projects: e.target.value }))} className="input-premium w-full" placeholder={c.projectsCompleted || '2'} min="0" /></div>
+              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Add New Skill</label><input type="text" value={careerForm.skill} onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))} className="input-premium w-full" placeholder="e.g. Docker, Kubernetes" /></div>
               <button type="submit" className="btn-primary w-full">Save Career Data ✓</button>
             </form>
 
             {recentLogs.length > 0 && (
-              <div className="mt-6 border-t border-white/[0.04] pt-4 space-y-2">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Recent Career Logs</p>
+              <div className="mt-6 border-t border-white/[0.06] pt-4 space-y-2">
+                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-3">Recent Career Logs</p>
                 {recentLogs.map((entry, i) => {
                   const parts = [];
                   if (entry.studyHours != null) parts.push(`📚 ${entry.studyHours}h`);
@@ -1695,9 +1710,9 @@ export default function Career() {
                   if (entry.dsa != null) parts.push(`🧩 ${entry.dsa} DSA`);
                   if (entry.skillAdded) parts.push(`+${entry.skillAdded}`);
                   return (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.04] text-[11px]">
-                      <span className="text-slate-500 font-mono">{new Date(entry.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-                      <div className="flex flex-wrap gap-2 text-slate-400">{parts.map((p, j) => <span key={j}>{p}</span>)}</div>
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-xs">
+                      <span className="text-slate-400 font-mono">{new Date(entry.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+                      <div className="flex flex-wrap gap-2 text-slate-300">{parts.map((p, j) => <span key={j}>{p}</span>)}</div>
                     </div>
                   );
                 })}
@@ -1959,7 +1974,7 @@ export default function Career() {
                 Log Skills Manually
               </button>
             </div>
-            <p className="text-[11px] text-slate-600 mt-5">
+            <p className="text-[11px] text-slate-400 mt-5">
               Resume skills auto-populate job match scores and skill-gap analysis.
             </p>
           </GlassCard>

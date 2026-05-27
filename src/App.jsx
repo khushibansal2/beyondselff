@@ -26,6 +26,9 @@ const Settings      = lazy(() => import('./pages/Settings'));
 const NeuralCore    = lazy(() => import('./pages/NeuralCore'));
 const Integrations  = lazy(() => import('./pages/Integrations'));
 const LifeMarket    = lazy(() => import('./pages/LifeMarket'));
+const StressTest    = lazy(() => import('./pages/StressTest'));
+const FutureYou     = lazy(() => import('./pages/FutureYou'));
+const CascadeMap    = lazy(() => import('./pages/CascadeMap'));
 
 
 function ProtectedRoute() {
@@ -83,6 +86,9 @@ export default function App() {
             <Route path="/upload"        element={<Suspense fallback={<LoadingScreen />}><Upload /></Suspense>} />
             <Route path="/integrations"  element={<Suspense fallback={<LoadingScreen />}><Integrations /></Suspense>} />
             <Route path="/market"        element={<Suspense fallback={<LoadingScreen />}><LifeMarket /></Suspense>} />
+            <Route path="/stress-test"   element={<Suspense fallback={<LoadingScreen />}><StressTest /></Suspense>} />
+            <Route path="/future-you"    element={<Suspense fallback={<LoadingScreen />}><FutureYou /></Suspense>} />
+            <Route path="/cascade-map"   element={<Suspense fallback={<LoadingScreen />}><CascadeMap /></Suspense>} />
             <Route path="/settings"      element={<Suspense fallback={<LoadingScreen />}><Settings /></Suspense>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

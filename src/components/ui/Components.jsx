@@ -81,20 +81,22 @@ export function MetricCard({ icon, label, value, change, color = '#3b82f6', dela
 }
 
 export function InsightCard({ insight, index = 0 }) {
-  const bgMap = { critical: 'border-red-500/30 bg-red-500/5', alert: 'border-orange-500/30 bg-orange-500/5', warning: 'border-amber-500/30 bg-amber-500/5', positive: 'border-emerald-500/30 bg-emerald-500/5', info: 'border-blue-500/30 bg-blue-500/5' };
+  const bgMap = { critical: 'border-red-500/25 bg-red-500/5', alert: 'border-orange-500/25 bg-orange-500/5', warning: 'border-amber-500/25 bg-amber-500/5', positive: 'border-emerald-500/25 bg-emerald-500/5', info: 'border-blue-500/25 bg-blue-500/5' };
   return (
-    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className={`p-4 rounded-xl border ${bgMap[insight.type] || bgMap.info}`}>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }} className={`p-4 rounded-xl border ${bgMap[insight.type] || bgMap.info}`}>
       <div className="flex items-start gap-3">
-        <span className="text-xl flex-shrink-0">{insight.icon}</span>
+        <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1 gap-2">
-            <h4 className="font-semibold text-sm truncate">{insight.title}</h4>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 flex-shrink-0">{insight.confidence}% confidence</span>
+            <h4 className="font-semibold text-sm truncate text-white">{insight.title}</h4>
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/5 text-slate-500 flex-shrink-0">{insight.confidence}%</span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">{insight.text}</p>
-          <div className="flex gap-1 mt-2">
-            {insight.domains.map(d => <span key={d} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 capitalize">{d}</span>)}
-          </div>
+          {insight.domains?.length > 0 && (
+            <div className="flex gap-1 mt-2">
+              {insight.domains.map(d => <span key={d} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 capitalize">{d}</span>)}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -103,12 +105,12 @@ export function InsightCard({ insight, index = 0 }) {
 
 export function PageHeader({ title, subtitle, icon }) {
   return (
-    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-      <div className="flex items-center gap-3 mb-2">
-        {icon && <span className="text-3xl">{icon}</span>}
-        <h1 className="text-3xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>{title}</h1>
+    <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="mb-7">
+      <div className="flex items-center gap-2.5 mb-1.5">
+        {icon && <span className="text-xl leading-none">{icon}</span>}
+        <h1 className="text-xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>{title}</h1>
       </div>
-      {subtitle && <p className="text-slate-400 text-sm ml-12">{subtitle}</p>}
+      {subtitle && <p className="text-sm text-slate-400 leading-relaxed">{subtitle}</p>}
     </motion.div>
   );
 }

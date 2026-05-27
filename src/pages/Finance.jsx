@@ -6,7 +6,7 @@ import { extractTextFromImage, parseReceiptData } from '../services/ocrService';
 import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
-import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
+import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, CartesianGrid } from 'recharts';
 import {
   parseTransactionSMS, detectOTP, CATEGORY_META, SAMPLE_MESSAGES, MERCHANT_MAP,
 } from '../services/transactionParserService';
@@ -86,7 +86,7 @@ function RoboAdvisor({ f, savingsRate }) {
           <p className="text-xl font-bold text-emerald-400">₹{surplus.toLocaleString()}</p>
         </div>
         <div className="flex-1 h-px bg-white/[0.04]" />
-        <p className="text-[10px] text-slate-600 italic max-w-[160px] text-right">Allocate monthly to build long-term wealth</p>
+        <p className="text-[10px] text-slate-400 italic max-w-[160px] text-right">Allocate monthly to build long-term wealth</p>
       </div>
       <div className="space-y-3">
         {p.assets.map((a, i) => {
@@ -102,7 +102,7 @@ function RoboAdvisor({ f, savingsRate }) {
                 <div className="flex items-center gap-3 flex-shrink-0 text-right">
                   <span className="text-[10px] text-slate-500">{a.returns}</span>
                   <span className="text-xs font-bold" style={{ color: a.color }}>₹{amount.toLocaleString()}</span>
-                  <span className="text-[10px] text-slate-600 w-8">{a.pct}%</span>
+                  <span className="text-[10px] text-slate-400 w-8">{a.pct}%</span>
                 </div>
               </div>
               <div className="w-full h-2 rounded-full bg-white/5">
@@ -113,7 +113,7 @@ function RoboAdvisor({ f, savingsRate }) {
           );
         })}
       </div>
-      <p className="text-[9px] text-slate-600 italic mt-4 text-center">⚠️ Deterministic suggestion. Consult a SEBI-registered advisor before investing.</p>
+      <p className="text-[10px] text-slate-400 italic mt-4 text-center">⚠️ Deterministic suggestion. Consult a SEBI-registered advisor before investing.</p>
     </GlassCard>
   );
 }
@@ -314,7 +314,7 @@ function InvestmentRoboAdvisor({ f, score }) {
               </div>
               <div className="text-right shrink-0">
                 <p className="text-sm font-bold text-white">{fund.ret}</p>
-                <p className="text-[9px] text-slate-500">Expected CAGR</p>
+                <p className="text-[10px] text-slate-400">Expected CAGR</p>
               </div>
             </div>
           ))}
@@ -334,7 +334,7 @@ function InvestmentRoboAdvisor({ f, score }) {
             <div>
               <label className="text-xs text-slate-400 mb-1.5 block">Period: <span className="text-white font-semibold">{sipYrs} years</span></label>
               <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)} className="w-full accent-amber-500" />
-              <div className="flex justify-between text-[10px] text-slate-600 mt-1"><span>1yr</span><span>30yr</span></div>
+              <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>1yr</span><span>30yr</span></div>
             </div>
           </div>
           <div className="space-y-3">
@@ -360,7 +360,7 @@ function FinanceRecommendations({ recommendations }) {
   const sorted = sortByFeedback(recommendations, feedback);
   return (
     <div className="space-y-5">
-      <p className="text-[11px] text-[#71717a]">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
+      <p className="text-[11px] text-slate-400">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
       {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
     </div>
   );
@@ -630,9 +630,9 @@ export default function Finance() {
             <MetricCard icon="🔄" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} color="#f59e0b" />
             <MetricCard icon="💎" label="Net Worth" value={`₹${((f.savings || 0) + (f.investments || 0) - (f.debt || 0)).toLocaleString()}`} color={(f.savings + f.investments - f.debt) >= 0 ? '#10b981' : '#ef4444'} />
             <div className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-4 flex flex-col items-center justify-center text-center">
-              <p className="text-[9px] text-[#71717a] uppercase tracking-widest font-semibold mb-1">Savings Rate</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Savings Rate</p>
               <p className="text-[24px] font-bold" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate}%</p>
-              <p className="text-[9px] mt-1 font-medium" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate >= 20 ? 'Excellent' : savingsRate >= 10 ? 'Moderate' : 'Low'}</p>
+              <p className="text-[10px] mt-1 font-medium" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate >= 20 ? 'Excellent' : savingsRate >= 10 ? 'Moderate' : 'Low'}</p>
             </div>
           </div>
 
@@ -642,7 +642,7 @@ export default function Finance() {
               {f.expenses === 0 && categoryTotals.length === 0 ? (
                 <div className="h-52 flex flex-col items-center justify-center gap-3 text-center">
                   <span className="text-4xl opacity-30">📊</span>
-                  <p className="text-[13px] text-[#71717a]">No expenses yet — parse some SMS messages!</p>
+                  <p className="text-[13px] text-slate-400">No expenses yet — parse some SMS messages!</p>
                   <button onClick={() => setTab('parse')} className="text-[12px] px-4 py-2 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all">Open SMS Parser →</button>
                 </div>
               ) : (
@@ -681,6 +681,80 @@ export default function Finance() {
               </div>
             </GlassCard>
           </div>
+
+          {/* ── Financial Runway + Cashflow Forecast ── */}
+          {f.income > 0 && (() => {
+            const monthlyExpenses = f.expenses || 1;
+            const runwayMonths = Math.round((f.savings || 0) / monthlyExpenses);
+            const monthlySurplus = (f.income || 0) - (f.expenses || 0);
+            const months = ['Jun','Jul','Aug','Sep','Oct','Nov'];
+            const forecastData = months.map((m, i) => ({
+              month: m,
+              savings: Math.round((f.savings || 0) + monthlySurplus * (i + 1)),
+              surplus: Math.round(monthlySurplus),
+            }));
+            const runwayColor = runwayMonths >= 6 ? '#10b981' : runwayMonths >= 3 ? '#f59e0b' : '#ef4444';
+            return (
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Runway card */}
+                <GlassCard className="flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">Financial Runway</h3>
+                    <p className="text-[11px] text-slate-500 mb-4">Months your savings can cover expenses</p>
+                    <div className="flex items-end gap-3 mb-3">
+                      <span className="text-4xl font-black tabular-nums" style={{ color: runwayColor, fontFamily: 'var(--font-display)' }}>
+                        {runwayMonths}
+                      </span>
+                      <span className="text-slate-400 text-sm mb-1">months</span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full bg-white/[0.05] overflow-hidden mb-2">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (runwayMonths / 12) * 100)}%` }} transition={{ duration: 1 }}
+                        className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${runwayColor}80, ${runwayColor})` }} />
+                    </div>
+                    <p className="text-[10px]" style={{ color: runwayColor }}>
+                      {runwayMonths >= 6 ? '✅ Emergency fund healthy' : runwayMonths >= 3 ? '⚠️ Build to 6+ months' : '🚨 Critical — under 3 months'}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-white/[0.06] grid grid-cols-2 gap-3 text-center">
+                    <div>
+                      <p className="text-[10px] text-slate-500">Monthly Surplus</p>
+                      <p className="text-base font-bold" style={{ color: monthlySurplus >= 0 ? '#10b981' : '#ef4444' }}>₹{Math.abs(monthlySurplus).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500">Target</p>
+                      <p className="text-base font-bold text-slate-300">6–12 mo</p>
+                    </div>
+                  </div>
+                </GlassCard>
+                {/* 6-month cashflow forecast */}
+                <GlassCard className="lg:col-span-2">
+                  <h3 className="text-sm font-semibold mb-1">6-Month Savings Forecast</h3>
+                  <p className="text-[11px] text-slate-500 mb-4">Projected savings at current income/expense rate</p>
+                  <div className="h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={forecastData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="savingsG" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%"  stopColor="#10b981" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}   />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                        <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+                        <Tooltip formatter={v => `₹${v.toLocaleString()}`} contentStyle={{ background: 'rgba(10,10,10,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px' }} />
+                        <Area type="monotone" dataKey="savings" stroke="#10b981" strokeWidth={2} fill="url(#savingsG)" name="Projected Savings" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-3 flex gap-4 text-[11px] text-slate-400">
+                    <span>📈 +₹{(monthlySurplus * 6).toLocaleString()} in 6 months</span>
+                    <span className="ml-auto text-slate-600">at current rate</span>
+                  </div>
+                </GlassCard>
+              </div>
+            );
+          })()}
 
           {/* Live stats bar */}
           {allTxs.length > 0 && (

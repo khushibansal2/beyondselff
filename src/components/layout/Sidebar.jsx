@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Heart, Wallet, Target, Trophy, Sparkles,
   Brain, MessageSquare, Star, Leaf, Upload, Settings,
   ChevronLeft, ChevronRight, ChevronDown, LogOut, Menu, X, Zap,
-  Activity, Link2, ArrowLeftRight, Dna
+  Link2, ArrowLeftRight, Dna, AlertTriangle, TrendingUp, GitBranch
 } from 'lucide-react';
 
 const navSections = [
@@ -37,6 +37,9 @@ const navSections = [
       { path: '/coach',       label: 'AI Coach',    icon: MessageSquare,  color: '#6366f1' },
       { path: '/gamification',label: 'Rewards',     icon: Star,           color: '#f59e0b' },
       { path: '/market',      label: 'Life Market', icon: ArrowLeftRight, color: '#f43f5e' },
+      { path: '/stress-test', label: 'Stress Test',  icon: AlertTriangle, color: '#ef4444' },
+      { path: '/future-you',  label: 'Future You',   icon: TrendingUp,    color: '#6366f1' },
+      { path: '/cascade-map', label: 'Cascade Map',  icon: GitBranch,     color: '#10b981' },
     ],
   },
   {
@@ -194,20 +197,6 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="flex-shrink-0 border-t border-white/[0.07] p-4 space-y-3">
-
-        {/* Twin Status */}
-        {(!collapsed || mobile) && (
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-500/8 border border-indigo-500/15">
-            <div className="relative flex-shrink-0">
-              <Activity size={14} className="text-indigo-400" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            </div>
-            <div>
-              <p className="text-[10.5px] font-semibold text-indigo-300 uppercase tracking-wider">Digital Twin</p>
-              <p className="text-[10px] text-slate-500">Active · Synced</p>
-            </div>
-          </div>
-        )}
 
         {/* XP Bar */}
         {(!collapsed || mobile) && (

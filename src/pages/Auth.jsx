@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { Zap } from 'lucide-react';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -50,10 +51,16 @@ export function Login() {
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">DT</div>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <Zap size={22} className="text-white" />
+            </div>
+            <div className="text-left">
+              <p className="text-lg font-bold leading-none">BeyondSelf</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider">AI Life OS</p>
+            </div>
           </Link>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Welcome Back</h1>
-          <p className="text-sm text-slate-400 mt-2">Sign in to your Digital Twin</p>
+          <p className="text-sm text-slate-400 mt-2">Sign in to your BeyondSelf account</p>
         </div>
 
         <div className="glass-card p-6 rounded-2xl">
@@ -130,9 +137,15 @@ export function Signup() {
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl font-bold">DT</div>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <Zap size={22} className="text-white" />
+            </div>
+            <div className="text-left">
+              <p className="text-lg font-bold leading-none">BeyondSelf</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider">AI Life OS</p>
+            </div>
           </Link>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Create Your Digital Twin</h1>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Build Your Digital Twin</h1>
           <p className="text-sm text-slate-400 mt-2">Start your AI-powered life intelligence journey</p>
         </div>
 

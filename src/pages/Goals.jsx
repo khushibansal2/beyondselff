@@ -120,6 +120,64 @@ export default function Goals() {
         </GlassCard>
       </div>
 
+      {/* ── Goal Timeline View ── */}
+      {enrichedGoals.length > 0 && (() => {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const deadlines = enrichedGoals.map(g => new Date(g.deadline));
+        const maxDate = new Date(Math.max(...deadlines.map(d => d.getTime())));
+        const spanMs = Math.max(maxDate - today, 30 * 86400000); // at least 30 days
+        return (
+          <GlassCard className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">📅 Goal Timeline</h3>
+              <span className="text-[10px] text-slate-500">Today → {maxDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            </div>
+            <div className="space-y-2.5">
+              {enrichedGoals.map(g => {
+                const deadline = new Date(g.deadline); deadline.setHours(23,59,59);
+                const totalMs = deadline - today;
+                const daysLeft = Math.max(0, Math.ceil(totalMs / 86400000));
+                const barWidth = Math.min(100, Math.max(8, (totalMs / spanMs) * 100));
+                const pct = g._computed.progress;
+                const dc = domainColors[g.domain] || '#6366f1';
+                const urgent = daysLeft <= 7;
+                const overdue = deadline < today;
+                return (
+                  <div key={g.id}>
+                    <div className="flex items-center gap-2 mb-1 text-[11px]">
+                      <span>{domainIcons[g.domain]}</span>
+                      <span className="text-slate-300 font-medium truncate flex-1">{g.title}</span>
+                      <span className={`text-[10px] font-semibold tabular-nums flex-shrink-0 ${overdue ? 'text-red-400' : urgent ? 'text-amber-400' : 'text-slate-500'}`}>
+                        {overdue ? 'Overdue' : `${daysLeft}d left`}
+                      </span>
+                      <span className="text-[10px] text-slate-500 tabular-nums w-8 text-right">{pct}%</span>
+                    </div>
+                    <div className="relative h-5 rounded-lg bg-white/[0.03] border border-white/[0.05] overflow-hidden">
+                      {/* Background track */}
+                      <div className="absolute inset-y-0 left-0 rounded-lg transition-all duration-700"
+                        style={{ width: `${barWidth}%`, background: `${dc}18`, borderRight: `1px solid ${dc}30` }} />
+                      {/* Progress fill */}
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${(pct / 100) * barWidth}%` }} transition={{ duration: 1 }}
+                        className="absolute inset-y-0 left-0 rounded-lg"
+                        style={{ background: `linear-gradient(90deg, ${dc}60, ${dc}90)` }} />
+                      {/* Label */}
+                      <div className="absolute inset-0 flex items-center px-2">
+                        <span className="text-[9px] font-semibold text-white/70 truncate">{g.title}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex items-center gap-1 text-[9px] text-slate-600">
+              <div className="h-px flex-1 bg-white/[0.04]" />
+              <span>bar width = time remaining · fill = progress</span>
+              <div className="h-px flex-1 bg-white/[0.04]" />
+            </div>
+          </GlassCard>
+        );
+      })()}
+
       {/* Filter + Add */}
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div className="flex gap-2">
