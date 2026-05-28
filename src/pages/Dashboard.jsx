@@ -709,7 +709,20 @@ export default function Dashboard() {
   const doneCount = Object.values(checkedTasks).filter(Boolean).length;
 
   return (
-    <div className={`p-5 md:p-7 lg:p-9 pb-24 lg:pb-12 min-h-screen transition-colors duration-700 relative max-w-7xl mx-auto ${doomMode ? 'doom-active' : 'bg-mesh'} ${doomShake ? 'doom-shake' : ''}`}>
+    <div className={`pb-24 lg:pb-16 min-h-screen transition-colors duration-700 relative ${doomMode ? 'doom-active' : ''} ${doomShake ? 'doom-shake' : ''}`}
+      style={{ background: doomMode ? '#0d0208' : '#07060f' }}
+    >
+      {/* Ambient grid */}
+      {!doomMode && <div className="pointer-events-none fixed inset-0 grid-bg opacity-[0.18]" style={{ zIndex: 0 }} />}
+      {/* Radial mesh glows */}
+      {!doomMode && (
+        <div className="pointer-events-none fixed inset-0" style={{ zIndex: 0 }}>
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[140px]" style={{ background: 'rgba(99,102,241,0.07)' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[120px]" style={{ background: 'rgba(6,182,212,0.05)' }} />
+        </div>
+      )}
+      {/* Actual content — sits above the fixed bg layers */}
+      <div className="relative max-w-7xl mx-auto px-5 md:px-8 lg:px-10 pt-6 md:pt-8" style={{ zIndex: 1 }}>
       {showOnboarding && <OnboardingWizard user={user} updateDomain={updateDomain} career={career} onComplete={handleOnboardingComplete} />}
       <AnimatePresence>
         {showShare && (
@@ -737,7 +750,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between mb-8 gap-4">
+      <div className="flex items-start justify-between mb-10 gap-4">
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className={`text-2xl font-bold leading-tight transition-colors duration-500 ${doomMode ? 'text-red-300' : 'text-white'}`} style={{ fontFamily: 'var(--font-display)' }}>
             {doomMode ? '☠️ System Failure' : `${greeting}, ${firstName}`}
@@ -765,7 +778,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── AVATAR + AI NARRATIVE / DOOM PANEL ───────────────────────────── */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid md:grid-cols-3 gap-6 mb-8">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid md:grid-cols-3 gap-6 mb-12">
         {/* Avatar */}
         <div className="flex justify-center items-center">
           <LifeAvatar
@@ -829,7 +842,13 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ── SCORE RINGS ─────────────────────────────────────────────────── */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="mb-8">
+      {/* section label */}
+      <div className="mb-4 flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-300/60">
+        <span className="text-cyan-400/40">[01]</span>
+        <span className="h-px w-8 bg-gradient-to-r from-cyan-400/40 to-transparent" />
+        Life Scores
+      </div>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="mb-12">
         <div className="relative" ref={scoreRingsRef}>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {scoreRings.map((ring, idx) => {
@@ -896,7 +915,7 @@ export default function Dashboard() {
         if (c.studyHoursDaily < 4)               wins.push({ icon: '📚', label: '+1h study today',                                 impact: '+2–3 pts',  domain: 'Career',  color: '#6366f1', link: '/career' });
         if (wins.length === 0) return null;
         return (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mb-6">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mb-10">
             <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-widest mb-2 px-1">⚡ Highest-leverage actions right now</p>
             <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
               {wins.slice(0, 4).map((w, i) => (
@@ -917,7 +936,7 @@ export default function Dashboard() {
 
       {/* ── SLEEP CASCADE ALERT ──────────────────────────────────────────── */}
       {sleepCascade && !doomMode && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-10">
           <div className="rounded-xl border border-red-500/20 bg-red-500/5 overflow-hidden">
             <div className="flex items-center gap-3 px-4 py-2.5 border-b border-red-500/10 bg-red-500/5">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
@@ -938,7 +957,12 @@ export default function Dashboard() {
       )}
 
       {/* ── EXPLAINABLE AI ───────────────────────────────────────────────── */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-8">
+      <div className="mb-4 flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-300/60">
+        <span className="text-cyan-400/40">[02]</span>
+        <span className="h-px w-8 bg-gradient-to-r from-cyan-400/40 to-transparent" />
+        AI Analysis
+      </div>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-12">
         <button
           onClick={() => setShowExplain(v => !v)}
           className="flex items-center gap-2.5 mb-4 w-full text-left group"
@@ -1009,7 +1033,12 @@ export default function Dashboard() {
       </div>
 
       {/* ── ACTIVITY + CORRELATIONS ───────────────────────────────────────── */}
-      <div className="mb-6">
+      <div className="mb-4 flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-300/60">
+        <span className="text-cyan-400/40">[03]</span>
+        <span className="h-px w-8 bg-gradient-to-r from-cyan-400/40 to-transparent" />
+        Activity &amp; Patterns
+      </div>
+      <div className="mb-12">
         <GlassCard>
           <div className="flex items-center gap-1 mb-4 border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
             {[
@@ -1153,7 +1182,7 @@ export default function Dashboard() {
 
       {/* ── GOAL PLANT ───────────────────────────────────────────────────── */}
       {!doomMode && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mb-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mb-12">
           <GlassCard>
             <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10">
               {/* Plant visual */}
@@ -1274,6 +1303,7 @@ export default function Dashboard() {
           </GlassCard>
         </motion.div>
       )}
+      </div>{/* close content wrapper */}
     </div>
   );
 }
