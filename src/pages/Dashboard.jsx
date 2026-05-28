@@ -752,10 +752,20 @@ export default function Dashboard() {
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between mb-10 gap-4">
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className={`text-2xl font-bold leading-tight transition-colors duration-500 ${doomMode ? 'text-red-300' : 'text-white'}`} style={{ fontFamily: 'var(--font-display)' }}>
-            {doomMode ? '☠️ System Failure' : `${greeting}, ${firstName}`}
+          {/* Monospace HUD status line above greeting */}
+          {!doomMode && (
+            <div className="flex items-center gap-2 mb-2 text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-300/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 anim-flicker" />
+              BeyondSelf · Neural Twin Active
+            </div>
+          )}
+          <h1 style={{ fontFamily: 'var(--font-display)' }}
+            className={`text-3xl font-bold leading-tight transition-colors duration-500 ${doomMode ? 'text-red-300' : 'text-white'}`}>
+            {doomMode ? '☠️ System Failure' : (
+              <>{greeting}, <span className="holo-text">{firstName}</span></>
+            )}
           </h1>
-          <p className={`text-sm mt-1 transition-colors duration-500 ${doomMode ? 'text-red-900' : 'text-slate-400'}`}>
+          <p className={`text-sm mt-1.5 transition-colors duration-500 ${doomMode ? 'text-red-900' : 'text-slate-400'}`}>
             {doomMode
               ? `Reality check · No filter applied`
               : lifeBalance > 0
@@ -779,8 +789,17 @@ export default function Dashboard() {
 
       {/* ── AVATAR + AI NARRATIVE / DOOM PANEL ───────────────────────────── */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid md:grid-cols-3 gap-6 mb-12">
-        {/* Avatar */}
-        <div className="flex justify-center items-center">
+        {/* Avatar — holographic chamber */}
+        <div className="relative flex justify-center items-center rounded-2xl overflow-hidden py-4"
+          style={{ background: 'radial-gradient(ellipse at 50% 60%, rgba(99,102,241,0.12) 0%, rgba(7,6,15,0.9) 70%)', border: '1px solid rgba(99,102,241,0.18)' }}>
+          {/* Ambient pulse ring */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-48 h-48 rounded-full anim-pulse-glow" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }} />
+          </div>
+          {/* Scan line over avatar */}
+          <div className="absolute inset-x-0 pointer-events-none overflow-hidden" style={{ top: '10%', bottom: '10%' }}>
+            <div className="anim-scan absolute inset-x-0 h-16 bg-gradient-to-b from-transparent via-cyan-300/8 to-transparent" />
+          </div>
           <LifeAvatar
             healthScore={healthScore}
             financeScore={financeScore}
@@ -799,11 +818,19 @@ export default function Dashboard() {
               </motion.div>
             ) : (
               <motion.div key="normal" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-                <div className="glass-card p-5 h-full" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.07) 0%, rgba(139,92,246,0.04) 50%, rgba(6,182,212,0.04) 100%)' }}>
+                <div className="h-full p-5 rounded-2xl relative overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg, rgba(34,211,238,0.06) 0%, rgba(99,102,241,0.06) 50%, rgba(192,132,252,0.04) 100%)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                  {/* Top HUD bar */}
+                  <div className="flex items-center gap-2 mb-4 text-[9px] font-mono uppercase tracking-widest text-cyan-300/50">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 anim-flicker" />
+                    TWIN_ANALYSIS · LIVE
+                    <span className="ml-auto text-indigo-400/60">AI_CORE v4.2</span>
+                  </div>
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-xl flex-shrink-0">🧬</div>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg,rgba(34,211,238,0.2),rgba(99,102,241,0.2))', border: '1px solid rgba(99,102,241,0.3)' }}>🧬</div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold mb-1" style={{ fontFamily: 'var(--font-display)' }}>Digital Twin Analysis</h3>
+                      <h3 className="text-sm font-semibold mb-1 holo-text" style={{ fontFamily: 'var(--font-display)' }}>Digital Twin Analysis</h3>
                       {narrativeLoading ? (
                         <div className="flex items-center gap-2 text-xs text-slate-400 mt-2">
                           <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
@@ -916,15 +943,23 @@ export default function Dashboard() {
         if (wins.length === 0) return null;
         return (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="mb-10">
-            <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-widest mb-2 px-1">⚡ Highest-leverage actions right now</p>
+            <div className="flex items-center gap-2 mb-3 text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-300/60">
+              <span className="text-cyan-400/40">[⚡]</span>
+              <span className="h-px w-6 bg-gradient-to-r from-cyan-400/40 to-transparent" />
+              Highest-leverage actions right now
+            </div>
             <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
               {wins.slice(0, 4).map((w, i) => (
                 <Link key={i} to={w.link}
-                  className="flex-shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] hover:border-white/[0.14] transition-all group min-w-max">
+                  className="flex-shrink-0 flex items-center gap-2.5 px-4 py-3 rounded-xl transition-all group min-w-max"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${w.color}28` }}
+                  onMouseEnter={e => e.currentTarget.style.border = `1px solid ${w.color}60`}
+                  onMouseLeave={e => e.currentTarget.style.border = `1px solid ${w.color}28`}
+                >
                   <span className="text-base">{w.icon}</span>
                   <div>
                     <p className="text-[11px] text-slate-300 font-medium group-hover:text-white transition-colors">{w.label}</p>
-                    <p className="text-[10px] font-bold" style={{ color: w.color }}>{w.domain} {w.impact}</p>
+                    <p className="text-[10px] font-bold font-mono" style={{ color: w.color }}>{w.domain} · {w.impact}</p>
                   </div>
                   <ArrowRight size={12} className="text-slate-600 group-hover:text-slate-400 transition-colors ml-1" />
                 </Link>
@@ -937,11 +972,11 @@ export default function Dashboard() {
       {/* ── SLEEP CASCADE ALERT ──────────────────────────────────────────── */}
       {sleepCascade && !doomMode && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-10">
-          <div className="rounded-xl border border-red-500/20 bg-red-500/5 overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-2.5 border-b border-red-500/10 bg-red-500/5">
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.22)' }}>
+            <div className="flex items-center gap-3 px-4 py-2.5 border-b border-red-500/10">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse flex-shrink-0" />
-              <span className="text-xs text-red-300 font-semibold uppercase tracking-wide">AI Pattern Detected</span>
-              <span className="ml-auto text-xs text-slate-400">Deterministic · Cross-domain</span>
+              <span className="text-[10px] text-red-300 font-mono uppercase tracking-[0.2em]">CASCADE_DETECTED · Cross-domain</span>
+              <span className="ml-auto text-[10px] text-slate-500 font-mono">DETERMINISTIC</span>
             </div>
             <div className="p-4">
               <h3 className="text-sm font-semibold text-white mb-1.5">Sleep–Productivity Cascade Active</h3>
@@ -965,15 +1000,17 @@ export default function Dashboard() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-12">
         <button
           onClick={() => setShowExplain(v => !v)}
-          className="flex items-center gap-2.5 mb-4 w-full text-left group"
+          className="flex items-center gap-2.5 mb-4 w-full text-left group px-4 py-3 rounded-xl transition-all"
+          style={{ background: showExplain ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.02)', border: '1px solid rgba(99,102,241,0.2)' }}
         >
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${showExplain ? 'bg-blue-500/20' : 'bg-white/[0.05]'}`}>
-            <Brain size={14} className={showExplain ? 'text-blue-400' : doomMode ? 'text-red-400' : 'text-slate-400'} />
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors`}
+            style={{ background: showExplain ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)' }}>
+            <Brain size={14} className={showExplain ? 'text-cyan-400' : doomMode ? 'text-red-400' : 'text-slate-400'} />
           </div>
-          <span className={`text-sm font-semibold transition-colors ${doomMode ? 'text-red-300' : 'text-white'}`} style={{ fontFamily: 'var(--font-display)' }}>
+          <span className={`text-sm font-semibold transition-colors ${doomMode ? 'text-red-300' : showExplain ? '' : 'text-white'} ${showExplain && !doomMode ? 'holo-text' : ''}`} style={{ fontFamily: 'var(--font-display)' }}>
             {doomMode ? 'System Diagnostics' : 'Why These Scores'}
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Explainable AI</span>
+          <span className="text-[9px] px-2 py-0.5 rounded-full font-mono uppercase tracking-widest" style={{ background: 'rgba(34,211,238,0.1)', color: '#67e8f9', border: '1px solid rgba(34,211,238,0.2)' }}>Explainable AI</span>
           <motion.span animate={{ rotate: showExplain ? 180 : 0 }} transition={{ duration: 0.2 }} className="ml-auto text-slate-500 group-hover:text-slate-300 transition-colors text-sm">
             ▾
           </motion.span>
