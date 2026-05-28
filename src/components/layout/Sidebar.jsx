@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Heart, Wallet, Target, Trophy, Sparkles,
   Brain, MessageSquare, Star, Leaf, Upload, Settings,
   ChevronLeft, ChevronRight, ChevronDown, LogOut, Menu, X, Zap,
-  Link2, ArrowLeftRight, Dna, AlertTriangle, TrendingUp, GitBranch
+  Link2, ArrowLeftRight, Dna, AlertTriangle, TrendingUp, GitBranch, Cpu
 } from 'lucide-react';
 
 const navSections = [
@@ -38,8 +38,9 @@ const navSections = [
       { path: '/gamification',label: 'Rewards',     icon: Star,           color: '#f59e0b' },
       { path: '/market',      label: 'Life Market', icon: ArrowLeftRight, color: '#f43f5e' },
       { path: '/stress-test', label: 'Stress Test',  icon: AlertTriangle, color: '#ef4444' },
-      { path: '/future-you',  label: 'Future You',   icon: TrendingUp,    color: '#6366f1' },
-      { path: '/cascade-map', label: 'Cascade Map',  icon: GitBranch,     color: '#10b981' },
+      { path: '/future-you',   label: 'Future You',    icon: TrendingUp,    color: '#6366f1' },
+      { path: '/cascade-map',  label: 'Cascade Map',   icon: GitBranch,     color: '#10b981' },
+      { path: '/digital-twin', label: 'Digital Twin',  icon: Cpu,           color: '#a855f7' },
     ],
   },
   {

@@ -727,4 +727,117 @@ textarea:focus-visible {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+
+/* ===== HOLOGRAPHIC LANDING PAGE ===== */
+
+/* Glass variants for landing */
+.glass {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.glass-strong {
+  background: rgba(255,255,255,0.09);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.13);
+}
+.noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+/* Holographic gradient text */
+.holo-text {
+  background: linear-gradient(90deg, #67e8f9, #818cf8, #c084fc, #67e8f9);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: holo-shift 4s linear infinite;
+}
+@keyframes holo-shift {
+  0%   { background-position: 0%   center; }
+  100% { background-position: 200% center; }
+}
+.holo-gradient {
+  background: linear-gradient(90deg, #22d3ee, #818cf8, #c084fc);
+}
+
+/* Text glows */
+.text-glow         { text-shadow: 0 0 60px rgba(99,180,255,0.6),  0 0 20px rgba(99,180,255,0.3); }
+.text-glow-violet  { text-shadow: 0 0 60px rgba(168,85,247,0.7),  0 0 20px rgba(168,85,247,0.4); }
+
+/* Neon border */
+.neon-border {
+  border: 1px solid rgba(99,180,255,0.5);
+  box-shadow: 0 0 16px rgba(99,180,255,0.3), inset 0 0 12px rgba(168,85,247,0.12);
+}
+
+/* Grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(99,180,255,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,180,255,0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Animations */
+@keyframes anim-drift {
+  0%,100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(40px, -30px) scale(1.06); }
+  66%      { transform: translate(-30px, 20px) scale(0.97); }
+}
+.anim-drift { animation: anim-drift 18s ease-in-out infinite; }
+
+@keyframes anim-flicker {
+  0%,100% { opacity: 1; }
+  92%      { opacity: 1; }
+  93%      { opacity: 0.2; }
+  94%      { opacity: 1; }
+  96%      { opacity: 0.4; }
+  97%      { opacity: 1; }
+}
+.anim-flicker { animation: anim-flicker 5s linear infinite; }
+
+@keyframes anim-scan {
+  0%   { top: -25%; }
+  100% { top: 110%; }
+}
+.anim-scan { animation: anim-scan 3s linear infinite; position: absolute; }
+
+@keyframes anim-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.anim-spin-slow { animation: anim-spin-slow 20s linear infinite; }
+
+@keyframes anim-float {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.anim-float { animation: anim-float 5s ease-in-out infinite; }
+
+@keyframes anim-pulse-glow {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.08); }
+}
+.anim-pulse-glow { animation: anim-pulse-glow 2.4s ease-in-out infinite; }
+
+@keyframes anim-breath {
+  0%,100% { transform: scale(1);    filter: brightness(1); }
+  50%      { transform: scale(1.02); filter: brightness(1.08); }
+}
+.anim-breath { animation: anim-breath 5s ease-in-out infinite; }
+
+@keyframes scan-y {
+  from { transform: translateY(0); }
+  to   { transform: translateY(120vh); }
+}
 }

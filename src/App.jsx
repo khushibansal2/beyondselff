@@ -30,6 +30,7 @@ const LifeMarket    = lazy(() => import('./pages/LifeMarket'));
 const StressTest    = lazy(() => import('./pages/StressTest'));
 const FutureYou     = lazy(() => import('./pages/FutureYou'));
 const CascadeMap    = lazy(() => import('./pages/CascadeMap'));
+const DigitalTwin   = lazy(() => import('./pages/DigitalTwin'));
 
 
 const pageVariants = {
@@ -112,6 +113,7 @@ export default function App() {
             <Route path="/stress-test"   element={<Suspense fallback={<LoadingScreen />}><StressTest /></Suspense>} />
             <Route path="/future-you"    element={<Suspense fallback={<LoadingScreen />}><FutureYou /></Suspense>} />
             <Route path="/cascade-map"   element={<Suspense fallback={<LoadingScreen />}><CascadeMap /></Suspense>} />
+            <Route path="/digital-twin"  element={<Suspense fallback={<LoadingScreen />}><DigitalTwin /></Suspense>} />
             <Route path="/settings"      element={<Suspense fallback={<LoadingScreen />}><Settings /></Suspense>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
