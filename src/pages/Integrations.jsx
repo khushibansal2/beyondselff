@@ -1009,7 +1009,11 @@ function FitbitPanel() {
       }
       window.location.href = json.url; // redirect to Fitbit login
     } catch (e) {
-      setNotice({ type: 'error', msg: `Cannot reach backend: ${e.message}` });
+      if (e.message === 'NOT_AUTHENTICATED') {
+        setNotice({ type: 'error', msg: 'Please sign in with a real account to connect Fitbit. Demo accounts cannot use live integrations.' });
+      } else {
+        setNotice({ type: 'error', msg: `Cannot reach backend: ${e.message}` });
+      }
     }
   }
 

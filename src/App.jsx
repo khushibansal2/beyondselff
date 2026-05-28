@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -31,6 +32,30 @@ const FutureYou     = lazy(() => import('./pages/FutureYou'));
 const CascadeMap    = lazy(() => import('./pages/CascadeMap'));
 
 
+const pageVariants = {
+  initial: { opacity: 0, y: 18, filter: 'blur(3px)' },
+  enter:   { opacity: 1, y: 0,  filter: 'blur(0px)', transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } },
+  exit:    { opacity: 0, y: -10, filter: 'blur(2px)', transition: { duration: 0.18, ease: [0.36, 0, 0.66, 0] } },
+};
+
+function AnimatedPages() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        variants={pageVariants}
+        initial="initial"
+        animate="enter"
+        exit="exit"
+        className="flex-1 min-w-0 overflow-y-auto"
+      >
+        <Outlet />
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function ProtectedRoute() {
   const { user, loading } = useAuth();
   if (loading) return <LoadingScreen />;
@@ -43,9 +68,7 @@ function ProtectedRoute() {
           <div className="hidden lg:block">
             <TopNavbar />
           </div>
-          <main className="flex-1 min-w-0 overflow-y-auto">
-            <Outlet />
-          </main>
+          <AnimatedPages />
         </div>
       </div>
       <VoiceLogger />

@@ -1,6 +1,50 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { setFeedback, clearFeedback } from '../../services/recommendationFeedbackService';
+
+// Shared easing matching the skincare-style smooth entry
+const EASE_OUT = [0.22, 1, 0.36, 1];
+
+// Internal hook: count up from 0 to target when element enters viewport
+function useCountUp(target, duration = 1100) {
+  const [value, setValue] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          let startTime;
+          const step = (ts) => {
+            if (!startTime) startTime = ts;
+            const p = Math.min((ts - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - p, 3);
+            setValue(Math.round(eased * target));
+            if (p < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+  return [value, ref];
+}
+
+// Animated number that counts up when scrolled into view
+export function CountUpNumber({ value, prefix = '', suffix = '', className = '' }) {
+  const [display, countRef] = useCountUp(value);
+  return (
+    <span ref={countRef} className={className}>
+      {prefix}{display.toLocaleString()}{suffix}
+    </span>
+  );
+}
 
 export function ScoreRing({ score, size = 120, strokeWidth = 8, color = '#3b82f6', label, delay = 0 }) {
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -46,13 +90,14 @@ export function ScoreRing({ score, size = 120, strokeWidth = 8, color = '#3b82f6
   );
 }
 
-export function GlassCard({ children, className = '', glow = '', onClick, animate = true }) {
+export function GlassCard({ children, className = '', glow = '', onClick, animate = true, delay = 0 }) {
   return (
     <motion.div
-      initial={animate ? { opacity: 0, y: 20 } : false}
-      animate={animate ? { opacity: 1, y: 0 } : false}
-      transition={{ duration: 0.5 }}
-      whileHover={onClick ? { scale: 1.01 } : {}}
+      initial={animate ? { opacity: 0, y: 26 } : false}
+      whileInView={animate ? { opacity: 1, y: 0 } : false}
+      viewport={{ once: true, margin: '-48px' }}
+      transition={{ duration: 0.55, delay, ease: EASE_OUT }}
+      whileHover={{ y: -6, transition: { duration: 0.25, ease: EASE_OUT } }}
       onClick={onClick}
       className={`glass-card p-5 ${glow} ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
@@ -63,7 +108,14 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
 
 export function MetricCard({ icon, label, value, change, color = '#3b82f6', delay = 0 }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: delay / 1000, duration: 0.4 }} className="glass-card p-4 flex items-center gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ delay, duration: 0.5, ease: EASE_OUT }}
+      whileHover={{ y: -5, transition: { duration: 0.22, ease: EASE_OUT } }}
+      className="glass-card p-4 flex items-center gap-4"
+    >
       <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: `${color}15` }}>
         {icon}
       </div>
@@ -83,7 +135,7 @@ export function MetricCard({ icon, label, value, change, color = '#3b82f6', dela
 export function InsightCard({ insight, index = 0 }) {
   const bgMap = { critical: 'border-red-500/25 bg-red-500/5', alert: 'border-orange-500/25 bg-orange-500/5', warning: 'border-amber-500/25 bg-amber-500/5', positive: 'border-emerald-500/25 bg-emerald-500/5', info: 'border-blue-500/25 bg-blue-500/5' };
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }} className={`p-4 rounded-xl border ${bgMap[insight.type] || bgMap.info}`}>
+    <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-32px' }} transition={{ delay: index * 0.07, duration: 0.45, ease: EASE_OUT }} className={`p-4 rounded-xl border ${bgMap[insight.type] || bgMap.info}`}>
       <div className="flex items-start gap-3">
         <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
         <div className="flex-1 min-w-0">
@@ -105,12 +157,26 @@ export function InsightCard({ insight, index = 0 }) {
 
 export function PageHeader({ title, subtitle, icon }) {
   return (
-    <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="mb-7">
-      <div className="flex items-center gap-2.5 mb-1.5">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE_OUT }} className="mb-7">
+      <motion.div
+        initial={{ opacity: 0, x: -16 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.45, delay: 0.05, ease: EASE_OUT }}
+        className="flex items-center gap-2.5 mb-1.5"
+      >
         {icon && <span className="text-xl leading-none">{icon}</span>}
         <h1 className="text-xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>{title}</h1>
-      </div>
-      {subtitle && <p className="text-sm text-slate-400 leading-relaxed">{subtitle}</p>}
+      </motion.div>
+      {subtitle && (
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.12, ease: EASE_OUT }}
+          className="text-sm text-slate-400 leading-relaxed"
+        >
+          {subtitle}
+        </motion.p>
+      )}
     </motion.div>
   );
 }

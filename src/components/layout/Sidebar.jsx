@@ -92,13 +92,22 @@ export default function Sidebar() {
         onClick={onClick}
         style={active ? { background: item.color + '18', borderColor: item.color + '50' } : {}}
         className={`
-          flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group border
+          relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group border overflow-hidden
           ${active
             ? 'border-transparent text-white'
             : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.05]'
           }
         `}
       >
+        {/* Sliding active indicator bar */}
+        {active && (
+          <motion.div
+            layoutId="nav-active-bar"
+            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full"
+            style={{ background: `linear-gradient(180deg, ${item.color}, ${item.color}88)` }}
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+          />
+        )}
         <div
           className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0 transition-all duration-150"
           style={{
@@ -118,7 +127,12 @@ export default function Sidebar() {
           </motion.span>
         )}
         {active && !collapsed && (
-          <div className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: item.color }} />
+          <motion.div
+            layoutId="nav-active-dot"
+            className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
+            style={{ background: item.color }}
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+          />
         )}
       </Link>
     );

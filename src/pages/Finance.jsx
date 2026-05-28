@@ -19,20 +19,76 @@ const TX_LS_KEY = 'finance_parsed_transactions';
 function loadTxsLocal() { try { return JSON.parse(localStorage.getItem(TX_LS_KEY) || '[]'); } catch { return []; } }
 function saveTxsLocal(txs) { localStorage.setItem(TX_LS_KEY, JSON.stringify(txs.slice(0, 200))); }
 
-// ── Investment Robo-Advisor ──────────────────────────────────────────────────
-function RoboAdvisor({ f, savingsRate }) {
+// ── Investment Robo-Advisor (cross-domain: health + career + finance) ─────────────────
+// ---- Investment Robo-Advisor (cross-domain: health + career + finance) ----
+function RoboAdvisor({ f, h, c, savingsRate }) {
   const surplus = Math.max(0, (f.income || 0) - (f.expenses || 0));
   const hasDebt = (f.debt || 0) > 0;
   const debtRatio = f.income > 0 ? (f.debt || 0) / f.income : 0;
-  const profile = (() => {
-    if (savingsRate >= 30 && !hasDebt) return 'aggressive';
-    if (savingsRate >= 15 && debtRatio < 0.5) return 'moderate';
-    return 'conservative';
+
+  // Base finance-only profile (0=conservative, 1=moderate, 2=aggressive)
+  const baseIndex = (() => {
+    if (savingsRate >= 30 && !hasDebt) return 2;
+    if (savingsRate >= 15 && debtRatio < 0.5) return 1;
+    return 0;
   })();
+
+  // Cross-domain inputs
+  const sleepAvg = h.sleepAvg ?? 7;
+  const stressLevel = h.stressLevel ?? 5;
+  const workoutsPerWeek = h.workoutsPerWeek ?? 2;
+  const dsaPractice = c.dsaPractice || 0;
+  const projectsCompleted = c.projectsCompleted || 0;
+  const skills = Array.isArray(c.skills) ? c.skills : [];
+  const codingHoursDaily = c.codingHoursDaily || 0;
+  const studyHoursDaily = c.studyHoursDaily || 0;
+
+  // Placement readiness (mirrors careerScoreEngine logic)
+  const placementReadiness = Math.min(100,
+    (dsaPractice >= 3 ? 25 : Math.round(dsaPractice * 8)) +
+    (projectsCompleted >= 4 ? 25 : Math.round(projectsCompleted * 6)) +
+    (skills.length >= 5 ? 25 : Math.round(skills.length * 5)) +
+    (codingHoursDaily >= 4 ? 25 : Math.round(codingHoursDaily * 6))
+  );
+
+  // Each signal shifts the profile ±1 tier
+  const signals = [];
+
+  if (sleepAvg < 6) {
+    signals.push({ domain: 'Health', delta: -1, icon: '😴', label: `Sleep avg ${sleepAvg}h/night`, reason: 'Burnout risk reduces income reliability — safer allocation preferred' });
+  } else if (sleepAvg >= 7.5) {
+    signals.push({ domain: 'Health', delta: +1, icon: '😴', label: `Sleep avg ${sleepAvg}h/night`, reason: 'Optimal rest sustains performance and risk capacity' });
+  }
+
+  if (stressLevel > 7) {
+    signals.push({ domain: 'Health', delta: -1, icon: '😰', label: `Stress ${stressLevel}/10`, reason: 'High cortisol impairs judgment — keep more assets liquid' });
+  }
+
+  if (workoutsPerWeek >= 4) {
+    signals.push({ domain: 'Health', delta: +1, icon: '💪', label: `${workoutsPerWeek} workouts/week`, reason: 'Regular exercise boosts focus and career income potential' });
+  }
+
+  if (placementReadiness >= 75) {
+    signals.push({ domain: 'Career', delta: +1, icon: '🚀', label: `Career readiness ${placementReadiness}%`, reason: 'Income jump likely within 6 months — growth assets now pay off' });
+  } else if (placementReadiness < 40 && studyHoursDaily < 1 && codingHoursDaily < 1) {
+    signals.push({ domain: 'Career', delta: -1, icon: '⚠️', label: `Career readiness ${placementReadiness}%`, reason: 'Low career investment raises income stability risk' });
+  }
+
+  if (projectsCompleted >= 4 && skills.length >= 5) {
+    signals.push({ domain: 'Career', delta: +1, icon: '📈', label: `${projectsCompleted} projects · ${skills.length} skills`, reason: 'Strong portfolio supports premium compensation prospects' });
+  }
+
+  // Clamp final index to [0, 2]
+  const totalDelta = signals.reduce((sum, s) => sum + s.delta, 0);
+  const finalIndex = Math.max(0, Math.min(2, baseIndex + totalDelta));
+  const profileNames = ['conservative', 'moderate', 'aggressive'];
+  const profile = profileNames[finalIndex];
+  const baseProfileName = profileNames[baseIndex];
+  const profileShifted = finalIndex !== baseIndex;
+
   const profiles = {
     conservative: {
       label: 'Conservative', color: '#10b981', emoji: '🛡️',
-      reason: `Your savings rate is ${savingsRate}%${hasDebt ? ` and you carry debt of ₹${(f.debt || 0).toLocaleString()}` : ''}. Conservative allocation prioritizes capital protection.`,
       assets: [
         { name: 'Fixed Deposits (FD)', pct: 40, color: '#10b981', risk: 'Very Low', returns: '6–7% p.a.' },
         { name: 'Government Bonds', pct: 25, color: '#3b82f6', risk: 'Low', returns: '7–8% p.a.' },
@@ -68,20 +124,55 @@ function RoboAdvisor({ f, savingsRate }) {
 
   return (
     <GlassCard glow="glow-purple">
-      <div className="flex items-center justify-between mb-1">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-2xl">{p.emoji}</span>
           <div>
-            <h3 className="text-sm font-bold">Investment Robo-Advisor</h3>
-            <p className="text-[10px] text-slate-500">AI-computed allocation based on your financial data</p>
+            <h3 className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)' }}>Investment Robo-Advisor</h3>
+            <p className="text-[10px] text-slate-500">Cross-domain: health + career + finance</p>
           </div>
         </div>
-        <span className="text-xs px-3 py-1 rounded-full font-semibold border" style={{ color: p.color, borderColor: p.color + '40', background: p.color + '15' }}>{p.label} Profile</span>
+        <div className="flex items-center gap-2">
+          {profileShifted && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-500 line-through">
+              {profiles[baseProfileName].label}
+            </span>
+          )}
+          <span className="text-xs px-3 py-1 rounded-full font-semibold border"
+            style={{ color: p.color, borderColor: p.color + '40', background: p.color + '15' }}>
+            {p.label} Profile
+          </span>
+        </div>
       </div>
-      <div className="mt-4 mb-5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] text-xs text-slate-400 leading-relaxed">
-        <span className="text-slate-300 font-medium">Why this profile? </span>{p.reason}
-      </div>
-      <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/[0.06]">
+
+      {/* Cross-domain signals */}
+      {signals.length > 0 && (
+        <div className="mb-4 space-y-2">
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Why this profile?</p>
+          {signals.map((s, i) => (
+            <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+              <span className="text-base leading-none mt-0.5 flex-shrink-0">{s.icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${s.domain === 'Health' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>{s.domain}</span>
+                  <span className="text-[10px] text-slate-300 font-medium">{s.label}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ml-auto ${s.delta > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                    {s.delta > 0 ? '↑ raises' : '↓ lowers'} capacity
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">{s.reason}</p>
+              </div>
+            </div>
+          ))}
+          {signals.length === 0 && (
+            <p className="text-[10px] text-slate-500 italic">Based on your savings rate ({savingsRate}%) and debt status only.</p>
+          )}
+        </div>
+      )}
+
+      {/* Investable surplus */}
+      <div className="flex items-center gap-4 mb-5 py-3 border-y border-white/[0.06]">
         <div className="text-center">
           <p className="text-xs text-slate-500">Monthly Investable Surplus</p>
           <p className="text-xl font-bold text-emerald-400">₹{surplus.toLocaleString()}</p>
@@ -114,7 +205,10 @@ function RoboAdvisor({ f, savingsRate }) {
           );
         })}
       </div>
-      <p className="text-[10px] text-slate-400 italic mt-4 text-center">⚠️ Deterministic suggestion. Consult a SEBI-registered advisor before investing.</p>
+
+      <p className="text-[9px] text-slate-600 italic mt-4 text-center">
+        ⚠️ Deterministic suggestion from your health, career, and financial data. Consult a SEBI-registered advisor before investing.
+      </p>
     </GlassCard>
   );
 }
@@ -370,10 +464,12 @@ function FinanceRecommendations({ recommendations }) {
 // ── Main Finance Component ───────────────────────────────────────────────────
 export default function Finance() {
   const { user } = useAuth();
-  const { finance, records, computed, updateDomain, addRecords, setRecords, addTimelineEvent } = useData();
+  const { finance, health, career, records, computed, updateDomain, addRecords, setRecords, addTimelineEvent } = useData();
   const [tab, setTab] = useState('overview');
 
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
+  const h = { sleepAvg: 7, stressLevel: 5, workoutsPerWeek: 2, ...(health || {}) };
+  const c = { studyHoursDaily: 0, codingHoursDaily: 0, dsaPractice: 0, projectsCompleted: 0, skills: [], gpa: 0, ...(career || {}) };
   const score = computed?.financeScore?.score || 0;
   const financeRecords = records?.finance || [];
   const hasFinanceData = f.income > 0 || f.expenses > 0 || f.savings > 0;
@@ -598,12 +694,24 @@ export default function Finance() {
     ? Object.entries(f.categoryTotals).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))
     : f.expenses > 0 ? defaultBreakdown : [{ name: 'Total', value: 1 }];
 
+  const placementReadiness = computed?.careerScore?.placementReadiness?.score ?? Math.min(100,
+    (c.dsaPractice >= 3 ? 25 : Math.round(c.dsaPractice * 8)) +
+    (c.projectsCompleted >= 4 ? 25 : Math.round(c.projectsCompleted * 6)) +
+    ((c.skills?.length || 0) >= 5 ? 25 : Math.round((c.skills?.length || 0) * 5)) +
+    (c.codingHoursDaily >= 4 ? 25 : Math.round(c.codingHoursDaily * 6))
+  );
+  const stressEstimatedSpend = Math.round(f.expenses * 0.15);
+  const sipCompoundEstimate = Math.round(stressEstimatedSpend * 12 * 5 * 1.12); // 5yr @ 12% annualised
+
   const recommendations = [
-    { id: 'fin-spending', icon: '💳', title: 'Spending Optimization', text: savingsRate < 20 ? `Savings rate: ${savingsRate}%. Cut ₹${Math.round(f.expenses * 0.2)} in non-essentials. Start with subscriptions (₹${f.subscriptions}).` : `Great savings rate of ${savingsRate}%! Invest the surplus for compound growth.`, confidence: Math.max(70, 100 - Math.abs(20 - savingsRate) * 2), risk: savingsRate < 10 ? 'high' : 'low' },
-    { id: 'fin-investment', icon: '📈', title: 'Investment Allocation', text: f.investments === 0 ? 'Start investing! 60% index funds, 20% bonds, 20% emergency fund. Even ₹1000/month grows significantly.' : `₹${f.investments} invested. Diversify: ${savingsRate > 30 ? '60% equity, 20% debt, 20% gold' : '40% equity, 40% debt, 20% gold'}.`, confidence: f.investments > 0 ? 85 : 75, risk: 'medium' },
-    { id: 'fin-emergency', icon: '🛡️', title: 'Emergency Fund', text: f.savings < f.expenses * 3 ? `Emergency fund covers ${(f.savings / Math.max(1, f.expenses)).toFixed(1)} months. Build to 3–6 months.` : 'Emergency fund solid. Move surplus to investments.', confidence: f.savings < f.expenses * 3 ? 95 : 88, risk: f.savings < f.expenses ? 'high' : 'low' },
-    { id: 'fin-subscriptions', icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) = ${Math.round(f.subscriptions / Math.max(1, f.income) * 100)}% of income. Cancel one unused service → save ₹${Math.round(f.subscriptions * 0.3)}/month.` : 'Subscription spending is reasonable.', confidence: f.subscriptions > f.income * 0.1 ? 92 : 80, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
-    ...(emotionalSpending ? [{ id: 'fin-emotional', icon: '😰', title: 'Emotional Spending Alert', text: `High stress level correlates with impulse purchases. Use 24-hour wait rule before purchases > ₹500.`, confidence: 85, risk: 'high' }] : []),
+    { id: 'fin-spending', icon: '💳', title: 'Spending Optimization', text: savingsRate < 20 ? `Your savings rate is ${savingsRate}%. Target 20-30% by cutting ₹${Math.round((f.expenses * 0.2))} in non-essential spending. Start with subscriptions (₹${f.subscriptions}).` : `Great savings rate of ${savingsRate}%! Consider investing the surplus for compound growth.`, confidence: Math.max(70, 100 - Math.abs(20 - savingsRate) * 2), risk: savingsRate < 10 ? 'high' : 'low' },
+    { id: 'fin-investment', icon: '📈', title: 'Investment Allocation', text: f.investments === 0 ? 'Start investing! Recommended: 60% index funds, 20% bonds, 20% emergency fund. Even ₹1000/month grows significantly over time.' : `Current investments: ₹${f.investments}. Diversify into: ${savingsRate > 30 ? '60% equity, 20% debt, 20% gold for growth' : '40% equity, 40% debt, 20% gold for stability'}.`, confidence: f.investments > 0 ? 85 : 75, risk: 'medium' },
+    { id: 'fin-emergency', icon: '🛡️', title: 'Emergency Fund', text: f.savings < f.expenses * 3 ? `Emergency fund (₹${f.savings}) covers only ${(f.savings / Math.max(1, f.expenses)).toFixed(1)} months. Build to 3-6 months.` : 'Your emergency fund is solid. Consider moving surplus to investments.', confidence: f.savings < f.expenses * 3 ? 95 : 88, risk: f.savings < f.expenses ? 'high' : 'low' },
+    { id: 'fin-subscriptions', icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) are ${Math.round(f.subscriptions/Math.max(1, f.income)*100)}% of income. Canceling just one unused service could save up to ₹${Math.round(f.subscriptions * 0.3)}/month.` : 'Subscription spending is reasonable. Review annually.', confidence: f.subscriptions > f.income * 0.1 ? 92 : 80, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
+    ...(emotionalSpending ? [{ id: 'fin-emotional', icon: '😰', title: 'Emotional Spending Alert', text: `Your stress level (${h.stressLevel}/10) correlates with increased spending. Implement a 24-hour wait rule before purchases over ₹500.`, confidence: 85, risk: 'high' }] : []),
+    { id: 'fin-career', icon: '💼', title: 'Career-Linked Investment Timing', text: placementReadiness >= 75 ? `Your career readiness is ${placementReadiness}% — a salary hike may be near. Park surplus in a liquid fund or short-term FD now so you can immediately increase your SIP after the raise.` : `Upskilling has outsized financial ROI. Allocating ₹${Math.max(500, Math.round(Math.max(0, f.income - f.expenses) * 0.1))} of surplus/month to courses can accelerate your income trajectory faster than most investments.`, confidence: 82, risk: placementReadiness >= 75 ? 'low' : 'medium' },
+    ...(h.stressLevel > 6 ? [{ id: 'fin-stress-sip', icon: '🧘', title: 'Stress-Spend Redirect', text: `High stress (${h.stressLevel}/10) is linked to an estimated ₹${stressEstimatedSpend.toLocaleString()} in impulse spending this month. Automating that amount into a SIP instead would compound to ~₹${sipCompoundEstimate.toLocaleString()} over 5 years.`, confidence: 87, risk: 'medium' }] : []),
+    ...(h.sleepAvg < 6 ? [{ id: 'fin-sleep-risk', icon: '😴', title: 'Sleep & Income Risk', text: `Averaging ${h.sleepAvg}h of sleep increases burnout risk and can reduce cognitive output by up to ${Math.round((1 - h.sleepAvg / 8) * 40)}%. This lowers income reliability — prioritize a conservative allocation until sleep improves.`, confidence: 88, risk: 'high' }] : []),
     ...(allTxs.length >= 5 ? [{ id: 'fin-parser', icon: '🤖', title: 'Smart Parser Insights', text: `${allTxs.length} parsed transactions detected. ${categoryTotals[0] ? `Highest spend: ${categoryTotals[0].name} ₹${categoryTotals[0].value.toLocaleString()}. ` : ''}Use What-If Simulator to see savings potential.`, confidence: 88, risk: 'low' }] : []),
   ];
 
@@ -1138,7 +1246,7 @@ export default function Finance() {
       {tab === 'recommendations' && (
         <div className="space-y-6">
           {hasFinanceData ? (
-            <RoboAdvisor f={f} savingsRate={savingsRate} />
+            <RoboAdvisor f={f} h={h} c={c} savingsRate={savingsRate} />
           ) : (
             <GlassCard className="border border-amber-500/20 bg-amber-500/[0.03]">
               <div className="flex items-start gap-3">
