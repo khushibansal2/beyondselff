@@ -125,8 +125,8 @@ function Hero() {
   return (
     <section ref={ref} className="relative h-[180vh]">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
-        {/* Background */}
-        <motion.div style={{ scale: bgScale, y: bgY }} className="absolute inset-0">
+        {/* Background — lowest layer */}
+        <motion.div style={{ scale: bgScale, y: bgY, zIndex: 0 }} className="absolute inset-0">
           <div className="absolute inset-0 grid-bg opacity-50" />
           <div className="absolute inset-x-0 bottom-0 h-2/3">
             <svg viewBox="0 0 1200 400" className="absolute bottom-0 h-full w-full opacity-50" preserveAspectRatio="none">
@@ -146,20 +146,20 @@ function Hero() {
           <Particles density={110} color="#7dd3fc" speed={0.25} />
         </motion.div>
 
-        {/* Fog blobs */}
-        <div className="pointer-events-none absolute inset-0">
+        {/* Fog blobs — behind everything */}
+        <div className="pointer-events-none absolute inset-0" style={{ zIndex: 1 }}>
           <div className="anim-drift absolute -left-40 top-1/3 h-[500px] w-[700px] rounded-full bg-cyan-500/20 blur-[120px]" />
           <div className="anim-drift absolute -right-40 top-10 h-[500px] w-[700px] rounded-full bg-fuchsia-500/20 blur-[120px]" style={{ animationDelay: '-7s' }} />
           <div className="anim-drift absolute bottom-0 left-1/3 h-[400px] w-[600px] rounded-full bg-indigo-500/20 blur-[120px]" style={{ animationDelay: '-3s' }} />
         </div>
 
-        {/* Avatar */}
-        <motion.div style={{ scale: avatarScale, y: avatarY }} className="absolute inset-0 flex items-center justify-center">
+        {/* Avatar — above bg, below text */}
+        <motion.div style={{ scale: avatarScale, y: avatarY, zIndex: 2 }} className="absolute inset-0 flex items-center justify-center">
           <HoloAvatar />
         </motion.div>
 
-        {/* Text overlay */}
-        <motion.div style={{ opacity: textOpacity, y: textY }} className="relative z-10 mx-auto max-w-3xl px-6 text-center">
+        {/* Text overlay — always on top */}
+        <motion.div style={{ opacity: textOpacity, y: textY, zIndex: 10 }} className="relative mx-auto max-w-3xl px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
             className="mb-6 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-mono uppercase tracking-[0.25em] text-cyan-200/90">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 anim-flicker" />
@@ -298,12 +298,17 @@ function Orbits() {
     <section className="relative overflow-hidden py-40">
       <div className="absolute inset-0 grid-bg opacity-30" />
       <div className="mx-auto max-w-7xl px-6">
-        <div className="mb-16 max-w-2xl">
-          <SectionLabel n="03">Life orbit</SectionLabel>
+        <div className="mb-16 text-center">
+          <div className="mb-6 flex items-center justify-center gap-3 text-xs font-mono uppercase tracking-[0.3em] text-cyan-300/80">
+            <span className="text-cyan-400/60">[03]</span>
+            <span className="h-px w-10 bg-gradient-to-r from-cyan-400/60 to-transparent" />
+            Life orbit
+            <span className="h-px w-10 bg-gradient-to-l from-cyan-400/60 to-transparent" />
+          </div>
           <h2 className="text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
             <span className="text-white">Your life,</span><br /><span className="holo-text">in orbit.</span>
           </h2>
-          <p className="mt-5 max-w-lg text-cyan-100/60">
+          <p className="mx-auto mt-5 max-w-lg text-cyan-100/60">
             Every system around your twin moves at its own pace — and they all bend toward the same gravity: you.
           </p>
         </div>
@@ -518,7 +523,8 @@ function Nav() {
   const navigate = useNavigate();
   return (
     <header className="fixed inset-x-0 top-0 z-40">
-      <div className="mx-auto mt-4 flex max-w-6xl items-center justify-between rounded-full glass px-5 py-2.5">
+      <div className="mx-auto mt-4 flex max-w-6xl items-center justify-between rounded-full px-5 py-2.5"
+        style={{ background: 'rgba(7,6,15,0.75)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.12)' }}>
         <div className="flex items-center gap-2.5">
           <div className="relative h-7 w-7">
             <div className="absolute inset-0 rounded-full holo-gradient anim-pulse-glow" />
@@ -529,12 +535,20 @@ function Nav() {
             Beyond<span className="text-cyan-300">Self</span>
           </span>
         </div>
-        <nav className="hidden gap-6 text-xs font-mono uppercase tracking-widest text-cyan-100/60 md:flex">
-          <Link to="/login"  className="transition-colors hover:text-white">Sign In</Link>
-          <Link to="/signup" className="transition-colors hover:text-white">Sign Up</Link>
+        <nav className="hidden gap-2 md:flex">
+          <Link to="/login"
+            className="rounded-full px-4 py-1.5 text-xs font-semibold text-white/90 transition-all hover:text-white hover:bg-white/10"
+            style={{ border: '1px solid rgba(255,255,255,0.18)' }}>
+            Sign In
+          </Link>
+          <Link to="/signup"
+            className="rounded-full px-4 py-1.5 text-xs font-semibold text-white transition-all hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #22d3ee, #6366f1)' }}>
+            Sign Up
+          </Link>
         </nav>
         <button onClick={() => navigate('/login')}
-          className="rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold text-black transition-transform hover:scale-105">
+          className="rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold text-black transition-transform hover:scale-105 md:hidden">
           Enter
         </button>
       </div>
