@@ -1,0 +1,3 @@
+transactionDate,amount,category,transactionType
+2026-05-27,500,Food,debit
+2026-05-27,2000,Salary,credit

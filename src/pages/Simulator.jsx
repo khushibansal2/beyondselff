@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { runAISimulation, computeBaselineScores } from '../services/simulatorService';
@@ -413,16 +413,21 @@ function TimelineChart({ result }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function Simulator() {
-  const { health, finance, career } = useData();
+  const { health, finance, career, simulatorState, updateSimulatorState } = useData();
 
-  const [input,        setInput]        = useState('');
-  const [inputB,       setInputB]       = useState('');
+  const [input,        setInput]        = useState(simulatorState?.input || '');
+  const [inputB,       setInputB]       = useState(simulatorState?.inputB || '');
   const [loading,      setLoading]      = useState(false);
-  const [result,       setResult]       = useState(null);
-  const [resultB,      setResultB]      = useState(null);
+  const [result,       setResult]       = useState(simulatorState?.result || null);
+  const [resultB,      setResultB]      = useState(simulatorState?.resultB || null);
   const [error,        setError]        = useState(null);
-  const [expandedStep, setExpandedStep] = useState(null);
-  const [compareMode,  setCompareMode]  = useState(false);
+  const [expandedStep, setExpandedStep] = useState(simulatorState?.expandedStep || null);
+  const [compareMode,  setCompareMode]  = useState(simulatorState?.compareMode || false);
+
+  // Sync back to global context when state changes
+  useEffect(() => {
+    updateSimulatorState({ input, inputB, result, resultB, compareMode, expandedStep });
+  }, [input, inputB, result, resultB, compareMode, expandedStep, updateSimulatorState]);
 
   const textareaRef = useRef(null);
   const resultsRef  = useRef(null);

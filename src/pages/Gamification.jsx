@@ -873,7 +873,7 @@ export default function Gamification() {
   const h = user?.health  || {};
   const f = user?.finance || {};
   const c = user?.career  || {};
-  const xp = (gamification?.xp || 0) + (gamification?.activeChallenges?.length || 0) * 50;
+  const xp = gamification?.xp || 0;
 
   const codename = useMemo(() => generateCodename(user?.name || user?.id || 'default'), [user]);
   const tier     = useMemo(() => getTier(xp), [xp]);
@@ -885,29 +885,34 @@ export default function Gamification() {
     return Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, Math.max(10, Math.round(v * seed))]));
   }, [stats, xp]);
 
-  // Recovery Arc: all streaks are 0
+  // Recovery Arc: backend determines if streak is 0
   const streaks = [
-    { label: 'Study',    value: (c.studyHoursDaily  || 0) >= 4 ? 7  : (c.studyHoursDaily  || 0) >= 2 ? 3 : 0, icon: '📚', max: 30, color: '#3b82f6' },
-    { label: 'Workout',  value: (h.workoutsPerWeek  || 0) >= 4 ? 12 : (h.workoutsPerWeek  || 0) >= 2 ? 5 : 0, icon: '💪', max: 30, color: '#10b981' },
-    { label: 'Savings',  value: f.income > f.expenses ? 15 : 0,                                                  icon: '💰', max: 30, color: '#f59e0b' },
-    { label: 'Hydration',value: (h.waterIntake      || 0) >= 6 ? 8  : 0,                                         icon: '💧', max: 30, color: '#06b6d4' },
-    { label: 'Sleep',    value: (h.sleepAvg         || 0) >= 7 ? 10 : (h.sleepAvg || 0) >= 6 ? 4 : 0,           icon: '😴', max: 30, color: '#8b5cf6' },
-    { label: 'Low Stress',value: (h.stressLevel     || 5) <= 5 ? 6  : 0,                                         icon: '🧘', max: 30, color: '#f43f5e' },
+    { label: 'Overall Streak', value: gamification?.streak || 0, icon: '🔥', max: 30, color: '#f59e0b' },
   ];
-  const isRecovery = streaks.every(s => s.value === 0);
+  const isRecovery = (gamification?.streak || 0) === 0;
 
-  const badges = useMemo(() => allBadges.map(b => {
-    let unlocked = false;
-    if (b.id === 'b1' && (h.sleepAvg || 0) >= 7)                                            unlocked = true;
-    if (b.id === 'b2' && (h.workoutsPerWeek || 0) >= 5)                                     unlocked = true;
-    if (b.id === 'b3' && f.income && (f.income - f.expenses) / f.income > 0.2)              unlocked = true;
-    if (b.id === 'b4' && (c.dsaPractice || 0) >= 3)                                         unlocked = true;
-    if (b.id === 'b5' && (c.studyHoursDaily || 0) >= 5)                                     unlocked = true;
-    if (b.id === 'b6' && (h.stressLevel || 5) <= 4)                                         unlocked = true;
-    if (b.id === 'b7' && (h.waterIntake || 0) >= 8)                                         unlocked = true;
-    if (b.id === 'b8' && (computed?.balance || 0) >= 75)                                    unlocked = true;
-    return { ...b, unlocked };
-  }), [h, f, c, computed]);
+  // Use backend badges or fallback to demo locked badges
+  const badges = useMemo(() => {
+    const earned = gamification?.badges || [];
+    const earnedIds = new Set(earned.map(b => b.badgeId));
+    
+    // Map earned badges to the UI format
+    const earnedMapped = earned.map(b => ({
+      id: b.badgeId,
+      name: b.badgeName,
+      icon: b.icon || '🏅',
+      desc: b.description,
+      unlocked: true,
+      earnedAt: b.earnedAt
+    }));
+
+    // Show unearned demo badges as locked
+    const lockedMapped = allBadges
+      .filter(b => !earnedIds.has(b.id) && !earnedIds.has(b.name.toLowerCase().replace(/ /g, '_')))
+      .map(b => ({ ...b, unlocked: false }));
+
+    return [...earnedMapped, ...lockedMapped];
+  }, [gamification?.badges]);
 
   const activeChallenges = new Set(gamification?.activeChallenges || []);
 

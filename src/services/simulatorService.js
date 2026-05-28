@@ -1,12 +1,7 @@
-// AI Life Simulator Service — powered by Groq (llama-3.3-70b-versatile)
-// Uses the same VITE_GROQ_API_KEY / localStorage groq_api_key as visionService
+import { authFetch } from './backendApi';
 
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_TEXT_MODEL = 'llama-3.3-70b-versatile';
-
-function getApiKey() {
-  return import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';
-}
+// AI Life Simulator Service
+// Uses the backend proxy for secure requests and anonymity
 
 // ── Baseline Scoring ──────────────────────────────────────────────────────────
 
@@ -120,35 +115,16 @@ Respond with ONLY a valid JSON object. No markdown fences. No extra text. Just J
 // ── API Call ──────────────────────────────────────────────────────────────────
 
 export async function runAISimulation(scenarioText, { health, finance, career } = {}) {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error('NO_KEY');
-
   const baseline = computeBaselineScores(health, finance, career);
   const prompt   = buildPrompt(scenarioText, health, finance, career, baseline);
 
-  const res = await fetch(GROQ_URL, {
+  const data = await authFetch('/ai/simulate', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: GROQ_TEXT_MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 2500,
-      temperature: 0.35,
-    }),
+    body: JSON.stringify({ prompt }),
   });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error('[SimulatorService] HTTP error:', res.status, errText.slice(0, 300));
-    throw new Error(`${res.status}::${errText}`);
-  }
-
-  const data = await res.json();
-  const raw  = data.choices?.[0]?.message?.content;
-  if (!raw) throw new Error('Empty response from Groq');
+  const raw = data.response;
+  if (!raw) throw new Error('Empty response from backend AI proxy');
 
   // Strip any markdown fences and extract JSON object
   let text  = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();

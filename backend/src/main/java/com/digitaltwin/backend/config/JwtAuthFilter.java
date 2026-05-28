@@ -33,6 +33,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/api/ai/chat",
             "/api/ai/narrative",
             "/api/ai/explain",
+            "/api/fitbit/callback",
             "/h2-console"
     );
 

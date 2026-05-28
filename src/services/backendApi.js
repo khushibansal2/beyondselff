@@ -383,6 +383,12 @@ export const goalsApi = {
   },
 };
 
+export const gamificationApi = {
+  async getSummary() {
+    return authFetch('/gamification/summary', { method: 'GET' });
+  },
+};
+
 // ─── Sync helper — fetch all records on login ────────────────────────────
 
 /**
@@ -391,13 +397,14 @@ export const goalsApi = {
  * Silently returns empty arrays on any error (e.g. demo mode).
  */
 export async function fetchAllRecords() {
-  if (!isAuthenticated()) return { health: [], finance: [], career: [], goals: [] };
+  if (!isAuthenticated()) return { health: [], finance: [], career: [], goals: [], gamification: null };
 
-  const [health, finance, career, goals] = await Promise.allSettled([
+  const [health, finance, career, goals, gamification] = await Promise.allSettled([
     healthApi.getAll(),
     financeApi.getAll(),
     careerApi.getAll(),
     goalsApi.getAll(),
+    gamificationApi.getSummary(),
   ]);
 
   return {
@@ -405,5 +412,6 @@ export async function fetchAllRecords() {
     finance: finance.status === 'fulfilled' ? finance.value : [],
     career:  career.status  === 'fulfilled' ? career.value  : [],
     goals:   goals.status   === 'fulfilled' ? goals.value   : [],
+    gamification: gamification.status === 'fulfilled' ? gamification.value : null,
   };
 }

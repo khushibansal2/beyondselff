@@ -134,6 +134,26 @@ public class AIProxyController {
         }
     }
 
+    @PostMapping("/simulate")
+    public ResponseEntity<Map<String, Object>> simulate(@RequestBody Map<String, Object> request) {
+        try {
+            String prompt = (String) request.getOrDefault("prompt", "");
+            String response = geminiService.simulate(prompt);
+            return ResponseEntity.ok(Map.of(
+                "response", response,
+                "source", "gemini",
+                "timestamp", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            log.error("Gemini simulate failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "error", e.getMessage() != null ? e.getMessage() : "Gemini unavailable",
+                "source", "error",
+                "timestamp", System.currentTimeMillis()
+            ));
+        }
+    }
+
     /**
      * GET /api/ai/status
      * Check if Gemini API is available.

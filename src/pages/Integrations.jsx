@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { GlassCard, PageHeader } from '../components/ui/Components';
+import { authFetch } from '../services/backendApi';
 import { fetchGitHubProfile, analyzeGitHubWithAI, LANG_COLORS } from '../services/githubService';
 import {
   analyzeFood, hasNutritionixKey, saveNutritionixKeys, clearNutritionixKeys, getDemoFoodResult
@@ -965,15 +966,13 @@ function FitbitPanel() {
     }
 
     // Check if backend has keys configured
-    fetch(`${BACKEND}/api/fitbit/config`, { signal: AbortSignal.timeout(5000) })
-      .then(r => r.json())
+    authFetch('/fitbit/config', { signal: AbortSignal.timeout(5000) })
       .then(d => {
         setConfigured(d.configured);
         if (d.configured) {
           // Check if this user is already connected
           const uid = returnedUserId || getUserId();
-          return fetch(`${BACKEND}/api/fitbit/status?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(5000) })
-            .then(r => r.json())
+          return authFetch(`/fitbit/status?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(5000) })
             .then(s => {
               if (s.connected) {
                 setConnected(true);
@@ -988,8 +987,7 @@ function FitbitPanel() {
   async function triggerSync(userId) {
     setSyncing(true);
     try {
-      const res  = await fetch(`${BACKEND}/api/fitbit/sync?userId=${encodeURIComponent(userId)}`, { signal: AbortSignal.timeout(12000) });
-      const json = await res.json();
+      const json = await authFetch(`/fitbit/sync?userId=${encodeURIComponent(userId)}`, { signal: AbortSignal.timeout(12000) });
       if (json.connected && json.health) {
         setData(json);
         setNotice({ type: 'success', msg: `Synced from Fitbit${json.displayName ? ` · ${json.displayName}` : ''} · ${json.syncedAt}` });
@@ -1004,8 +1002,7 @@ function FitbitPanel() {
   async function handleConnect() {
     const uid = getUserId();
     try {
-      const res  = await fetch(`${BACKEND}/api/fitbit/connect?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(6000) });
-      const json = await res.json();
+      const json = await authFetch(`/fitbit/connect?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(6000) });
       if (!json.configured) {
         setNotice({ type: 'error', msg: 'Backend not configured. Set FITBIT_CLIENT_ID + FITBIT_CLIENT_SECRET env vars.' });
         return;
@@ -1018,7 +1015,7 @@ function FitbitPanel() {
 
   async function handleDisconnect() {
     const uid = getUserId();
-    await fetch(`${BACKEND}/api/fitbit/disconnect?userId=${encodeURIComponent(uid)}`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => {});
+    await authFetch(`/fitbit/disconnect?userId=${encodeURIComponent(uid)}`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => {});
     setConnected(false);
     setData(null);
     setNotice({ type: 'success', msg: 'Fitbit disconnected.' });

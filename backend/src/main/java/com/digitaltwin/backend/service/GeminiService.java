@@ -102,6 +102,15 @@ public class GeminiService {
         return sendGroqRequest(requestBody);
     }
 
+    public String simulate(String prompt) throws Exception {
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", GROQ_MODEL);
+        requestBody.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+        requestBody.put("temperature", 0.35);
+        requestBody.put("max_tokens", 2500);
+        return sendGroqRequest(requestBody);
+    }
+
     private String sendGroqRequest(Map<String, Object> requestBody) throws Exception {
         String body = mapper.writeValueAsString(requestBody);
 

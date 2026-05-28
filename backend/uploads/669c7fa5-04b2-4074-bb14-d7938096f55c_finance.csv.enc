@@ -1,0 +1,3 @@
+transactionDate,amount,category,transactionType,description
+2026-05-20,100,Food,debit,Lunch
+2026-05-21,500,Salary,credit,Paycheck

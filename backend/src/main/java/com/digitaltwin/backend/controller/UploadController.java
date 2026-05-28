@@ -65,15 +65,11 @@ public class UploadController {
     public ResponseEntity<?> deleteImport(@PathVariable Long id) {
         String userId = authUtil.getUserId();
         log.info("[SECURITY AUDIT] User {} deleted import ID {}", userId, id);
-<<<<<<< HEAD
-        return ResponseEntity.ok(uploadService.deleteImport(id));
-=======
         try {
             uploadService.deleteImport(id, userId);
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(e.getMessage());
         }
->>>>>>> c6f9b62 (fix(security): enforce RBAC on import deletion)
     }
 }
