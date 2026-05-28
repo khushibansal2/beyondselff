@@ -125,8 +125,9 @@ function Hero() {
   return (
     <section ref={ref} className="relative h-[180vh]">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
-        {/* Background — lowest layer */}
-        <motion.div style={{ scale: bgScale, y: bgY, zIndex: 0 }} className="absolute inset-0">
+
+        {/* ── Layer 0: bg + particles ── */}
+        <motion.div style={{ scale: bgScale, y: bgY }} className="absolute inset-0 z-0">
           <div className="absolute inset-0 grid-bg opacity-50" />
           <div className="absolute inset-x-0 bottom-0 h-2/3">
             <svg viewBox="0 0 1200 400" className="absolute bottom-0 h-full w-full opacity-50" preserveAspectRatio="none">
@@ -143,23 +144,26 @@ function Hero() {
             </svg>
             <div className="absolute inset-0 bg-gradient-to-t from-[#07060f] via-[#07060f]/60 to-transparent" />
           </div>
-          <Particles density={110} color="#7dd3fc" speed={0.25} />
+          {/* particles only in the bottom 70% so they never reach the hero text area */}
+          <div className="absolute inset-x-0 bottom-0" style={{ top: '30%' }}>
+            <Particles density={70} color="#7dd3fc" speed={0.25} interactive={false} />
+          </div>
         </motion.div>
 
-        {/* Fog blobs — behind everything */}
-        <div className="pointer-events-none absolute inset-0" style={{ zIndex: 1 }}>
+        {/* ── Layer 1: fog blobs ── */}
+        <div className="pointer-events-none absolute inset-0 z-[1]">
           <div className="anim-drift absolute -left-40 top-1/3 h-[500px] w-[700px] rounded-full bg-cyan-500/20 blur-[120px]" />
           <div className="anim-drift absolute -right-40 top-10 h-[500px] w-[700px] rounded-full bg-fuchsia-500/20 blur-[120px]" style={{ animationDelay: '-7s' }} />
           <div className="anim-drift absolute bottom-0 left-1/3 h-[400px] w-[600px] rounded-full bg-indigo-500/20 blur-[120px]" style={{ animationDelay: '-3s' }} />
         </div>
 
-        {/* Avatar — above bg, below text */}
-        <motion.div style={{ scale: avatarScale, y: avatarY, zIndex: 2 }} className="absolute inset-0 flex items-center justify-center">
+        {/* ── Layer 2: avatar ── */}
+        <motion.div style={{ scale: avatarScale, y: avatarY }} className="absolute inset-0 z-[2] flex items-center justify-center">
           <HoloAvatar />
         </motion.div>
 
-        {/* Text overlay — always on top */}
-        <motion.div style={{ opacity: textOpacity, y: textY, zIndex: 10 }} className="relative mx-auto max-w-3xl px-6 text-center">
+        {/* ── Layer 10: text — always wins ── */}
+        <motion.div style={{ opacity: textOpacity, y: textY }} className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
             className="mb-6 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-mono uppercase tracking-[0.25em] text-cyan-200/90">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 anim-flicker" />
@@ -193,7 +197,7 @@ function Hero() {
 
         {/* Scroll hint */}
         <motion.div style={{ opacity: textOpacity }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-xs font-mono uppercase tracking-[0.3em] text-cyan-300/60">
+          className="absolute bottom-10 left-1/2 z-10 -translate-x-1/2 flex flex-col items-center gap-2 text-xs font-mono uppercase tracking-[0.3em] text-cyan-300/60">
           <span>Scroll to explore</span>
           <ChevronDown className="h-4 w-4 animate-bounce" />
         </motion.div>
@@ -297,7 +301,8 @@ function Orbits() {
   return (
     <section className="relative overflow-hidden py-40">
       <div className="absolute inset-0 grid-bg opacity-30" />
-      <div className="mx-auto max-w-7xl px-6">
+      {/* flex col + items-center guarantees everything is truly centred */}
+      <div className="flex flex-col items-center px-6">
         <div className="mb-16 text-center">
           <div className="mb-6 flex items-center justify-center gap-3 text-xs font-mono uppercase tracking-[0.3em] text-cyan-300/80">
             <span className="text-cyan-400/60">[03]</span>
@@ -313,8 +318,8 @@ function Orbits() {
           </p>
         </div>
 
-        {/* Orbit arena */}
-        <div className="relative mx-auto flex items-center justify-center" style={{ width: 620, height: 620 }}>
+        {/* Orbit arena — inline-block so items-center can centre it */}
+        <div className="relative" style={{ width: 620, height: 620 }}>
           {/* Nebula glow */}
           <div className="absolute inset-0 rounded-full blur-3xl"
             style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.28), rgba(168,85,247,0.1) 55%, transparent 75%)' }} />
