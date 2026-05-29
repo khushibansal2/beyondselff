@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Eye, ShieldCheck, Heart, Briefcase, Wallet, ArrowRight, Brain, PlayCircle, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, ShieldCheck, Heart, Briefcase, Wallet, ArrowRight, Brain, PlayCircle, CheckCircle2, Activity } from 'lucide-react';
 
 const f = (d=0) => ({ initial:{opacity:0,y:20}, animate:{opacity:1,y:0}, transition:{duration:0.7,delay:d,ease:[0.16,1,0.3,1]} });
 
@@ -149,6 +149,213 @@ function DashPreview() {
   );
 }
 
+// ─── What-If Simulation section ───────────────────────────────────────────────
+const SIM_PANELS = [
+  { n:'001', q:'What if you study 2 more hours daily?', v:'Projected income +32%',    side:'left',  top:'10%', bar:42 },
+  { n:'002', q:'Switch career to AI research',          v:'Net impact +0.41 σ',        side:'right', top:'10%', bar:68 },
+  { n:'003', q:'Sleep 7.5h consistently',               v:'Stress probability ↓ 46%',  side:'left',  top:'58%', bar:55 },
+  { n:'004', q:'Invest 15% monthly',                    v:'10y wealth × 3.2',          side:'right', top:'58%', bar:74 },
+];
+
+function WhatIf() {
+  const panelBase = {
+    position:'absolute', zIndex:10,
+    background:'rgba(8,14,28,0.90)',
+    border:'1px solid rgba(255,255,255,0.09)',
+    borderRadius:14, padding:'16px 20px',
+    backdropFilter:'blur(14px)',
+    maxWidth:252, minWidth:210,
+  };
+
+  return (
+    <section style={{ padding:'80px 32px', borderTop:'1px solid rgba(255,255,255,0.05)', position:'relative', overflow:'hidden' }}>
+      {/* Radial bg glow */}
+      <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 50% 50%, rgba(0,216,182,0.04) 0%, transparent 65%)', pointerEvents:'none' }} />
+
+      <div style={{ maxWidth:1200, margin:'0 auto', position:'relative' }}>
+        {/* Label */}
+        <div style={{ textAlign:'center', marginBottom:4 }}>
+          <p style={{ color:'#475569', fontSize:11, fontWeight:700, letterSpacing:'0.25em', textTransform:'uppercase', display:'flex', alignItems:'center', justifyContent:'center', gap:14 }}>
+            <span style={{ display:'inline-block', height:1, width:32, background:'linear-gradient(90deg,rgba(0,216,182,0.5),transparent)' }} />
+            What-If Simulation
+            <span style={{ display:'inline-block', height:1, width:32, background:'linear-gradient(270deg,rgba(0,216,182,0.5),transparent)' }} />
+          </p>
+        </div>
+
+        {/* Arena */}
+        <div style={{ position:'relative', minHeight:520, display:'flex', alignItems:'center', justifyContent:'center' }}>
+
+          {/* Concentric rings */}
+          <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
+            <svg width="560" height="520" viewBox="0 0 560 520" style={{ overflow:'visible' }}>
+              {[55, 105, 155, 205, 255].map((r, i) => (
+                <motion.circle key={i} cx="280" cy="260" r={r}
+                  fill="none" stroke="rgba(0,216,182,1)" strokeWidth="0.8"
+                  animate={{ opacity:[0.06+i*0.018, 0.14+i*0.018, 0.06+i*0.018] }}
+                  transition={{ duration:3+i*0.6, repeat:Infinity, ease:'easeInOut', delay:i*0.35 }}
+                />
+              ))}
+            </svg>
+          </div>
+
+          {/* Centre text */}
+          <div style={{ position:'relative', zIndex:5, textAlign:'center', maxWidth:480, padding:'0 48px' }}>
+            <motion.h2
+              initial={{ opacity:0, y:22 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}
+              style={{ fontSize:52, fontWeight:700, lineHeight:1.06, color:'#fff', margin:'0 0 16px' }}>
+              Travel <span style={{ color:'#00d8b6' }}>your</span><br/>
+              possible timelines.
+            </motion.h2>
+            <motion.p
+              initial={{ opacity:0, y:14 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay:0.15 }}
+              style={{ color:'#64748b', fontSize:15, lineHeight:1.65, margin:0 }}>
+              Choose a habit, a job, a decision. The twin runs ten thousand futures and reports back from each.
+            </motion.p>
+          </div>
+
+          {/* Floating panels */}
+          {SIM_PANELS.map((p, i) => (
+            <motion.div key={p.n}
+              initial={{ opacity:0, x: p.side==='left' ? -28 : 28 }}
+              whileInView={{ opacity:1, x:0 }}
+              viewport={{ once:true }}
+              transition={{ delay: i * 0.12, duration:0.6, ease:[0.16,1,0.3,1] }}
+              style={{ ...panelBase, [p.side]:0, top:p.top }}
+            >
+              <div style={{ fontSize:9, color:'#475569', fontWeight:700, letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:8 }}>
+                Simulation · {p.n}
+              </div>
+              <div style={{ fontSize:13, fontWeight:600, color:'#f1f5f9', marginBottom:6, lineHeight:1.4 }}>{p.q}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#00d8b6', marginBottom:10 }}>{p.v}</div>
+              <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:2 }}>
+                <div style={{ height:'100%', width:`${p.bar}%`, background:'linear-gradient(90deg,#00d8b6,#8b5cf6)', borderRadius:2 }} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Orbit section ────────────────────────────────────────────────────────────
+const ORBITS = [
+  { Icon: Activity,  label: 'Wellness', gradient: 'linear-gradient(135deg,#10b981,#00d8b6)', r: 100, dur: 10, size: 38 },
+  { Icon: Heart,     label: 'Health',   gradient: 'linear-gradient(135deg,#ef4444,#f97316)', r: 142, dur: 16, size: 46 },
+  { Icon: Wallet,    label: 'Finance',  gradient: 'linear-gradient(135deg,#f59e0b,#00d8b6)', r: 188, dur: 24, size: 52 },
+  { Icon: Briefcase, label: 'Career',   gradient: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', r: 238, dur: 34, size: 58 },
+];
+
+function Orbits() {
+  const bdr = 'rgba(255,255,255,0.08)';
+  const statCard = {
+    position: 'absolute', bottom: 0,
+    background: 'rgba(11,16,33,0.88)',
+    border: `1px solid ${bdr}`,
+    borderRadius: 12, padding: '10px 16px',
+    backdropFilter: 'blur(10px)',
+  };
+
+  return (
+    <section style={{ padding: '80px 32px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      {/* Heading */}
+      <div style={{ textAlign: 'center', marginBottom: 52 }}>
+        <p style={{ color: '#475569', fontSize: 11, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 14 }}>
+          Everything Connected
+        </p>
+        <h2 style={{ fontSize: 42, fontWeight: 700, color: '#fff', margin: 0 }}>
+          Your life, <span style={{ color: '#00d8b6' }}>in orbit.</span>
+        </h2>
+        <p style={{ color: '#64748b', fontSize: 15, marginTop: 14, maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
+          Every system around your twin moves at its own pace — and they all bend toward the same gravity: you.
+        </p>
+      </div>
+
+      {/* Arena — flex centres it on all screen sizes */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ position: 'relative', width: 540, height: 540 }}>
+
+          {/* Nebula glow */}
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,216,182,0.09) 0%, rgba(139,92,246,0.05) 45%, transparent 70%)' }} />
+
+          {/* Static orbit ring tracks */}
+          {ORBITS.map((o, i) => (
+            <div key={i} style={{
+              position: 'absolute', borderRadius: '50%',
+              border: '1px solid rgba(0,216,182,0.13)',
+              width: o.r * 2, height: o.r * 2,
+              left: '50%', top: '50%',
+              marginLeft: -o.r, marginTop: -o.r,
+            }} />
+          ))}
+
+          {/* Spinning containers — centred with margin NOT transform so rotation doesn't break positioning */}
+          {ORBITS.map((o) => (
+            <motion.div
+              key={o.label}
+              animate={{ rotate: 360 }}
+              transition={{ duration: o.dur, repeat: Infinity, ease: 'linear' }}
+              style={{
+                position: 'absolute',
+                width: o.r * 2, height: o.r * 2,
+                left: '50%', top: '50%',
+                marginLeft: -o.r, marginTop: -o.r,
+              }}
+            >
+              {/* Planet sits at top-centre; counter-rotates to stay upright */}
+              <div style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%) translateY(-50%)' }}>
+                <motion.div
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: o.dur, repeat: Infinity, ease: 'linear' }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
+                >
+                  <div style={{
+                    width: o.size, height: o.size, borderRadius: 12,
+                    background: o.gradient,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 0 20px rgba(0,216,182,0.25)',
+                  }}>
+                    <o.Icon size={Math.round(o.size * 0.38)} style={{ color: '#fff' }} />
+                  </div>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap' }}>
+                    {o.label}
+                  </span>
+                </motion.div>
+              </div>
+            </motion.div>
+          ))}
+
+          {/* Centre node */}
+          <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{
+              width: 92, height: 92, borderRadius: '50%',
+              background: '#07090e',
+              border: '1px solid rgba(0,216,182,0.45)',
+              boxShadow: '0 0 28px rgba(0,216,182,0.18), inset 0 0 14px rgba(0,216,182,0.06)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Brain size={34} strokeWidth={1.5} style={{ color: '#00d8b6' }} />
+            </div>
+            <div style={{ marginTop: 8, fontSize: 8, fontWeight: 700, color: '#475569', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              YOUR TWIN
+            </div>
+          </div>
+
+          {/* Corner stats */}
+          <div style={{ ...statCard, left: 0 }}>
+            <div style={{ fontSize: 8, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Daily Delta</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: '#00d8b6' }}>+1.4%</div>
+          </div>
+          <div style={{ ...statCard, right: 0 }}>
+            <div style={{ fontSize: 8, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Alignment</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: '#00d8b6' }}>92%</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   return (
     <main style={{background:'#060b14',color:'#f1f5f9',minHeight:'100vh',fontFamily:"'Inter',sans-serif"}}>
@@ -247,6 +454,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      <Orbits />
+      <WhatIf />
 
       {/* DASHBOARD PREVIEW */}
       <section style={{padding:'60px 32px'}}>
