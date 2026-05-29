@@ -5,7 +5,8 @@ import { useData } from '../context/DataContext';
 import { generateNarrative } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
-// GhostTimeline and LifePlant kept for potential future use but not rendered in this layout
+import { GhostTimeline } from '../components/ui/GhostTimeline';
+// LifePlant kept for potential future use but not rendered in this layout
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';
 import { computeHealthScore } from '../engines/healthScoreEngine';
@@ -45,11 +46,10 @@ function DoomSwitch({ active, onToggle }) {
     <motion.button
       onClick={onToggle}
       whileTap={{ scale: 0.95 }}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 select-none ${
-        active
-          ? 'bg-red-950/40 border-red-700/40 doom-toggle-active'
-          : 'bg-white/[0.04] border-white/[0.08] hover:border-white/[0.14]'
-      }`}
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300 select-none ${active
+        ? 'bg-red-950/40 border-red-700/40 doom-toggle-active'
+        : 'bg-white/[0.04] border-white/[0.08] hover:border-white/[0.14]'
+        }`}
     >
       <motion.span
         className="text-sm"
@@ -260,8 +260,8 @@ function OnboardingWizard({ user, onComplete, updateDomain, career }) {
           <div className="space-y-2 text-left">
             {[
               { domain: 'Finance', status: selections.finance, color: 'text-amber-400' },
-              { domain: 'Health',  status: selections.health,  color: 'text-emerald-400' },
-              { domain: 'Career',  status: selections.career,  color: 'text-blue-400' },
+              { domain: 'Health', status: selections.health, color: 'text-emerald-400' },
+              { domain: 'Career', status: selections.career, color: 'text-blue-400' },
               { domain: 'Notifications', status: selections.calendar, color: 'text-purple-400' },
             ].map(item => (
               <div key={item.domain} className="flex justify-between items-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
@@ -427,17 +427,17 @@ function ShareCard({ user, healthScore, financeScore, careerScore, lifeBalance, 
 
 // ─── FALLBACK CASCADES ────────────────────────────────────────────────────────
 const FALLBACK_CASCADES = {
-  health:  [
-    { to: 'career',  type: 'positive', label: 'Boosts Focus',    color: '#10b981' },
-    { to: 'finance', type: 'positive', label: 'Discipline',      color: '#10b981' },
+  health: [
+    { to: 'career', type: 'positive', label: 'Boosts Focus', color: '#10b981' },
+    { to: 'finance', type: 'positive', label: 'Discipline', color: '#10b981' },
   ],
   finance: [
-    { to: 'health',  type: 'negative', label: 'Stress Risk',     color: '#ef4444' },
-    { to: 'career',  type: 'positive', label: 'Drives Ambition', color: '#10b981' },
+    { to: 'health', type: 'negative', label: 'Stress Risk', color: '#ef4444' },
+    { to: 'career', type: 'positive', label: 'Drives Ambition', color: '#10b981' },
   ],
-  career:  [
-    { to: 'health',  type: 'negative', label: 'Recovery Cost',   color: '#ef4444' },
-    { to: 'finance', type: 'positive', label: 'Income Boost',    color: '#10b981' },
+  career: [
+    { to: 'health', type: 'negative', label: 'Recovery Cost', color: '#ef4444' },
+    { to: 'finance', type: 'positive', label: 'Income Boost', color: '#10b981' },
   ],
 };
 
@@ -448,9 +448,9 @@ function buildDomainCascades(crossDomain = []) {
     const isNeg = c.type === 'negative';
     const color = c.severity === 'critical' ? '#ef4444' : isNeg ? '#f97316' : '#10b981';
     let label = c.effect?.split('.')[0] || (isNeg ? 'Negative impact' : 'Positive impact');
-    if (c.computedImpact?.productivityLoss)  label = `-${c.computedImpact.productivityLoss}% Productivity`;
-    if (c.computedImpact?.excessSpending)    label = `-₹${(c.computedImpact.excessSpending / 1000).toFixed(0)}K Spending`;
-    if (c.computedImpact?.focusBoost)        label = `+${c.computedImpact.focusBoost}% Focus`;
+    if (c.computedImpact?.productivityLoss) label = `-${c.computedImpact.productivityLoss}% Productivity`;
+    if (c.computedImpact?.excessSpending) label = `-₹${(c.computedImpact.excessSpending / 1000).toFixed(0)}K Spending`;
+    if (c.computedImpact?.focusBoost) label = `+${c.computedImpact.focusBoost}% Focus`;
     if (c.computedImpact?.alertnessReduction) label = `-${c.computedImpact.alertnessReduction}% Alertness`;
     if (result[c.from]) result[c.from].push({ to: c.to, type: c.type, label, color });
   });
@@ -463,9 +463,9 @@ function buildDomainCascades(crossDomain = []) {
 // ─── STATUS PILL ──────────────────────────────────────────────────────────────
 function StatusPill({ status }) {
   const map = {
-    good:     { bg: 'rgba(34,197,94,0.12)',  text: '#22c55e', label: 'Good' },
-    warning:  { bg: 'rgba(249,115,22,0.12)', text: '#f97316', label: 'Warning' },
-    critical: { bg: 'rgba(239,68,68,0.12)',  text: '#ef4444', label: 'Critical' },
+    good: { bg: 'rgba(34,197,94,0.12)', text: '#22c55e', label: 'Good' },
+    warning: { bg: 'rgba(249,115,22,0.12)', text: '#f97316', label: 'Warning' },
+    critical: { bg: 'rgba(239,68,68,0.12)', text: '#ef4444', label: 'Critical' },
   };
   const s = map[status] || map.warning;
   return (
@@ -668,19 +668,19 @@ export default function Dashboard() {
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
 
-  const healthScore  = computed?.healthScore?.score  || 84;
+  const healthScore = computed?.healthScore?.score || 84;
   const financeScore = computed?.financeScore?.score || 78;
-  const careerScore  = computed?.careerScore?.score  || 82;
-  const lifeBalance  = computed?.balance             || 81;
-  const burnoutRisk  = computed?.burnout?.risk       || 24;
+  const careerScore = computed?.careerScore?.score || 82;
+  const lifeBalance = computed?.balance || 81;
+  const burnoutRisk = computed?.burnout?.risk || 24;
   const weakestDomain = computed?.weakestDomain?.name || 'health';
-  const savingsRate  = f.income > 0 ? Math.max(0, Math.round(((f.income - f.expenses) / f.income) * 100)) : 0;
+  const savingsRate = f.income > 0 ? Math.max(0, Math.round(((f.income - f.expenses) / f.income) * 100)) : 0;
 
   const doomStats = useMemo(() => {
     const retirementAge = Math.min(85, Math.round(65 + Math.max(0, (0.2 - savingsRate / 100) * 50)));
-    const burnoutETA    = Math.max(1, Math.round(30 * (100 - burnoutRisk) / 100));
-    const sleepDebt     = Math.max(0, Math.round((7 - h.sleepAvg) * 30));
-    const careerGap     = Math.max(0, Math.round((4 - (c.studyHoursDaily || 0)) * 5));
+    const burnoutETA = Math.max(1, Math.round(30 * (100 - burnoutRisk) / 100));
+    const sleepDebt = Math.max(0, Math.round((7 - h.sleepAvg) * 30));
+    const careerGap = Math.max(0, Math.round((4 - (c.studyHoursDaily || 0)) * 5));
     const debtFreeYears = f.debt > 0 && (f.income - f.expenses) > 0
       ? Math.round(f.debt / ((f.income - f.expenses) * 12)) : 0;
     return { retirementAge, burnoutETA, sleepDebt, careerGap, debtFreeYears, savingsRate };
@@ -695,51 +695,51 @@ export default function Dashboard() {
   const domainCascades = useMemo(() => buildDomainCascades(computed?.crossDomain || []), [computed?.crossDomain]);
 
   const explainFactors = useMemo(() => ({
-    health:  computeHealthScore(health  || {}, []).factors,
+    health: computeHealthScore(health || {}, []).factors,
     finance: computeFinanceScore(finance || {}, []).factors,
-    career:  computeCareerScore(career  || {}, []).factors,
+    career: computeCareerScore(career || {}, []).factors,
   }), [health, finance, career]);
 
-  const hasHealthData  = h.sleepAvg > 0 || h.stressLevel > 0 || h.workoutsPerWeek > 0 || h.waterIntake > 0;
+  const hasHealthData = h.sleepAvg > 0 || h.stressLevel > 0 || h.workoutsPerWeek > 0 || h.waterIntake > 0;
   const hasFinanceData = f.income > 0 || f.expenses > 0;
-  const hasCareerData  = c.studyHoursDaily > 0 || c.dsaPractice > 0 || c.skills.length > 0;
+  const hasCareerData = c.studyHoursDaily > 0 || c.dsaPractice > 0 || c.skills.length > 0;
 
   const actionPlan = useMemo(() => {
     const tasks = [];
     if (h.sleepAvg > 0 && h.sleepAvg < 7)
-      tasks.push({ id: 'sleep',   icon: '😴', text: `Go to bed ${Math.max(0.5, 7 - h.sleepAvg).toFixed(1)}h earlier tonight`,            domain: 'Health',  pts: '+2 pts', iconColor: '#8b5cf6', link: '/health' });
+      tasks.push({ id: 'sleep', icon: '😴', text: `Go to bed ${Math.max(0.5, 7 - h.sleepAvg).toFixed(1)}h earlier tonight`, domain: 'Health', pts: '+2 pts', iconColor: '#8b5cf6', link: '/health' });
     if (h.workoutsPerWeek > 0 && h.workoutsPerWeek < 3)
       tasks.push({ id: 'workout', icon: '💪', text: `Add ${3 - h.workoutsPerWeek} more workout day${3 - h.workoutsPerWeek > 1 ? 's' : ''} this week`, domain: 'Health', pts: '+2 pts', iconColor: '#10b981', link: '/health' });
     if (h.waterIntake > 0 && h.waterIntake < 7)
-      tasks.push({ id: 'water',   icon: '💧', text: `Drink ${8 - Math.round(h.waterIntake)} more glasses of water today`,                 domain: 'Health',  pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
+      tasks.push({ id: 'water', icon: '💧', text: `Drink ${8 - Math.round(h.waterIntake)} more glasses of water today`, domain: 'Health', pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
     if (h.stressLevel > 6)
-      tasks.push({ id: 'stress',  icon: '🧘', text: 'Take a 15-min meditation or walk break',                                             domain: 'Health',  pts: '+2 pts', iconColor: '#f43f5e', link: '/health' });
+      tasks.push({ id: 'stress', icon: '🧘', text: 'Take a 15-min meditation or walk break', domain: 'Health', pts: '+2 pts', iconColor: '#f43f5e', link: '/health' });
     if (savingsRate < 20 && f.income > 0)
-      tasks.push({ id: 'savings', icon: '💰', text: `Review subscriptions — cancel one unused service`,                                    domain: 'Finance', pts: '+2 pts', iconColor: '#f59e0b', link: '/finance' });
+      tasks.push({ id: 'savings', icon: '💰', text: `Review subscriptions — cancel one unused service`, domain: 'Finance', pts: '+2 pts', iconColor: '#f59e0b', link: '/finance' });
     if (f.debt > 0)
-      tasks.push({ id: 'debt',    icon: '🏦', text: 'Make a debt repayment transfer today',                                               domain: 'Finance', pts: '+2 pts', iconColor: '#ef4444', link: '/finance' });
+      tasks.push({ id: 'debt', icon: '🏦', text: 'Make a debt repayment transfer today', domain: 'Finance', pts: '+2 pts', iconColor: '#ef4444', link: '/finance' });
     if (hasCareerData && c.dsaPractice < 3)
-      tasks.push({ id: 'dsa',     icon: '✗',  text: `+1 DSA problem today`,                                                               domain: 'Career',  pts: '+2 pts', iconColor: '#22c55e', link: '/career' });
+      tasks.push({ id: 'dsa', icon: '✗', text: `+1 DSA problem today`, domain: 'Career', pts: '+2 pts', iconColor: '#22c55e', link: '/career' });
     if (hasCareerData && c.studyHoursDaily > 0 && c.studyHoursDaily < 4)
-      tasks.push({ id: 'study',   icon: '📋', text: `+1h study today`,                                                                    domain: 'Career',  pts: '+2-3 pts', iconColor: '#22c55e', link: '/career' });
+      tasks.push({ id: 'study', icon: '📋', text: `+1h study today`, domain: 'Career', pts: '+2-3 pts', iconColor: '#22c55e', link: '/career' });
     if (hasCareerData && c.skills.length < 5)
-      tasks.push({ id: 'skill',   icon: '🎯', text: 'Add one new skill to your profile today',                                            domain: 'Career',  pts: '+2 pts', iconColor: '#06b6d4', link: '/career' });
+      tasks.push({ id: 'skill', icon: '🎯', text: 'Add one new skill to your profile today', domain: 'Career', pts: '+2 pts', iconColor: '#06b6d4', link: '/career' });
     if (tasks.length === 0) {
       const empties = [];
-      if (!hasHealthData)  empties.push({ id: 'log-health',  icon: '💧', text: 'Drink 5 more glasses of water today',    domain: 'Health',  pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
-      if (!hasFinanceData) empties.push({ id: 'log-finance', icon: '✗',  text: '+1 DSA problem today',                   domain: 'Career',  pts: '+2 pts', iconColor: '#22c55e', link: '/career' });
-      if (!hasCareerData)  empties.push({ id: 'log-career',  icon: '📋', text: '+1h study today',                        domain: 'Career',  pts: '+2-3 pts', iconColor: '#22c55e', link: '/career' });
+      if (!hasHealthData) empties.push({ id: 'log-health', icon: '💧', text: 'Drink 5 more glasses of water today', domain: 'Health', pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
+      if (!hasFinanceData) empties.push({ id: 'log-finance', icon: '✗', text: '+1 DSA problem today', domain: 'Career', pts: '+2 pts', iconColor: '#22c55e', link: '/career' });
+      if (!hasCareerData) empties.push({ id: 'log-career', icon: '📋', text: '+1h study today', domain: 'Career', pts: '+2-3 pts', iconColor: '#22c55e', link: '/career' });
       if (empties.length === 0)
         empties.push({ id: 'all-good', icon: '🏆', text: "All targets met — great work today!", domain: 'Health', pts: '—', iconColor: '#22c55e', link: '/health' });
       return empties.slice(0, 3);
     }
-    
+
     // Ensure the two requested chips are always present to match exact spec
     const firstTask = tasks.length > 0 ? tasks[0] : { id: 'sleep', icon: '😴', text: 'Go to bed 1.0h earlier tonight', domain: 'Health', pts: '+2 pts', iconColor: '#8b5cf6', link: '/health' };
     return [
       firstTask,
       { id: 'water-extra', icon: '💧', text: 'Drink 5 more glasses of water today', domain: 'Health', pts: '+2 pts', iconColor: '#60a5fa', link: '/health' },
-      { id: 'dsa-extra',   icon: '💻', text: 'Solve 1 DSA problem today',           domain: 'Career', pts: '+2 pts', iconColor: '#818cf8', link: '/career' }
+      { id: 'dsa-extra', icon: '💻', text: 'Solve 1 DSA problem today', domain: 'Career', pts: '+2 pts', iconColor: '#818cf8', link: '/career' }
     ];
   }, [h, f, c, savingsRate, hasHealthData, hasFinanceData, hasCareerData]);
 
@@ -749,8 +749,8 @@ export default function Dashboard() {
     return Math.round(total / goals.length);
   }, [goals]);
 
-  const crossDomain    = computed?.crossDomain || [];
-  const currentState   = useMemo(() => ({ ...user, health: h, finance: f, career: c, timeline }), [user, h, f, c, timeline]);
+  const crossDomain = computed?.crossDomain || [];
+  const currentState = useMemo(() => ({ ...user, health: h, finance: f, career: c, timeline }), [user, h, f, c, timeline]);
 
   const trendData = useMemo(() => {
     const healthRecs = records?.health || [];
@@ -802,20 +802,20 @@ export default function Dashboard() {
   const doneCount = Object.values(checkedTasks).filter(Boolean).length;
 
   // Metric nodes around avatar
-  const mindScore    = Math.max(0, 100 - burnoutRisk);
-  const energyScore  = Math.min(100, Math.round((h.sleepAvg || 7.5) * 10));
-  const bodyScore    = healthScore;
-  const heartScore   = Math.round(healthScore * 0.8);
-  const habitsScore  = actionPlan.length > 0
+  const mindScore = Math.max(0, 100 - burnoutRisk);
+  const energyScore = Math.min(100, Math.round((h.sleepAvg || 7.5) * 10));
+  const bodyScore = healthScore;
+  const heartScore = Math.round(healthScore * 0.8);
+  const habitsScore = actionPlan.length > 0
     ? Math.round((Object.values(checkedTasks).filter(Boolean).length / actionPlan.length) * 100)
     : 0;
   const purposeScore = Math.min(100, lifeBalance + 10);
 
-  const mindStatus    = burnoutRisk < 40 ? 'Good' : 'Average';
-  const energyStatus  = (h.sleepAvg || 7.5) >= 7 ? 'Good' : 'Low';
-  const bodyStatus    = healthScore >= 70 ? 'Good' : 'Low';
-  const heartStatus   = healthScore > 60 ? 'Attention' : 'Critical';
-  const habitsStatus  = 'Good';
+  const mindStatus = burnoutRisk < 40 ? 'Good' : 'Average';
+  const energyStatus = (h.sleepAvg || 7.5) >= 7 ? 'Good' : 'Low';
+  const bodyStatus = healthScore >= 70 ? 'Good' : 'Low';
+  const heartStatus = healthScore > 60 ? 'Attention' : 'Critical';
+  const habitsStatus = 'Good';
   const purposeStatus = lifeBalance >= 60 ? 'Great' : 'Growing';
 
   const statusColor = (st) => {
@@ -830,15 +830,15 @@ export default function Dashboard() {
   // Balance badge
   const balanceLabel = lifeBalance >= 70 ? 'BALANCED' : lifeBalance >= 45 ? 'MODERATE' : 'IMBALANCED';
   const balanceColor = lifeBalance >= 70 ? '#22c55e' : lifeBalance >= 45 ? '#eab308' : '#ef4444';
-  const balanceBg    = lifeBalance >= 70 ? 'rgba(34,197,94,0.12)' : lifeBalance >= 45 ? 'rgba(234,179,8,0.12)' : 'rgba(239,68,68,0.12)';
+  const balanceBg = lifeBalance >= 70 ? 'rgba(34,197,94,0.12)' : lifeBalance >= 45 ? 'rgba(234,179,8,0.12)' : 'rgba(239,68,68,0.12)';
 
   // Score rings
   const rings = [
-    { label: 'Health',  score: 76, display: '76',  color: '#f97316', change: '+7%',  up: true  },
+    { label: 'Health', score: 76, display: '76', color: '#f97316', change: '+7%', up: true },
     { label: 'Finance', score: 35, display: '$8k', color: '#eab308', change: '-18%', up: false },
-    { label: 'Career',  score: 82, display: '82',  color: '#6366f1', change: '+11%', up: true  },
-    { label: 'Mindset', score: 76, display: '76',  color: '#a78bfa', change: '+10%', up: true  },
-    { label: 'Balance', score: 37, display: '37',  color: '#8b5cf6', change: '-22%', up: false },
+    { label: 'Career', score: 82, display: '82', color: '#6366f1', change: '+11%', up: true },
+    { label: 'Mindset', score: 76, display: '76', color: '#a78bfa', change: '+10%', up: true },
+    { label: 'Balance', score: 37, display: '37', color: '#8b5cf6', change: '-22%', up: false },
   ];
 
   // Today's plan
@@ -849,32 +849,32 @@ export default function Dashboard() {
   }));
   const planDoneCount = todayPlan.filter(t => t.done).length;
 
-  const currentYear   = new Date().getFullYear();
-  const futureYear    = currentYear + 5;
-  const userAge       = user?.age ? user.age + 5 : 31;
-  const dynamicSkill  = c?.skills?.[0] || 'Learn New Skill';
+  const currentYear = new Date().getFullYear();
+  const futureYear = currentYear + 5;
+  const userAge = user?.age ? user.age + 5 : 31;
+  const dynamicSkill = c?.skills?.[0] || 'Learn New Skill';
 
   // Trajectory data for Future Engine
   const baseScore = (healthScore + financeScore + careerScore) / 3;
   const TY = [
-    { y: 'Now',   o: baseScore * 0.4, c: baseScore * 0.4, r: baseScore * 0.4 },
-    { y: '2025',  o: baseScore * 0.8, c: baseScore * 0.6, r: baseScore * 0.45 },
-    { y: '2028',  o: baseScore * 1.2, c: baseScore * 0.8, r: baseScore * 0.5 },
-    { y: '2030',  o: baseScore * 1.5, c: baseScore * 0.9, r: baseScore * 0.5 },
-    { y: '2035',  o: baseScore * 1.9, c: baseScore * 1.0, r: baseScore * 0.45 },
-    { y: '2040',  o: baseScore * 2.2, c: baseScore * 1.2, r: baseScore * 0.35 },
-    { y: '2045',  o: baseScore * 2.5, c: baseScore * 1.5, r: baseScore * 0.25 },
+    { y: 'Now', o: baseScore * 0.4, c: baseScore * 0.4, r: baseScore * 0.4 },
+    { y: '2025', o: baseScore * 0.8, c: baseScore * 0.6, r: baseScore * 0.45 },
+    { y: '2028', o: baseScore * 1.2, c: baseScore * 0.8, r: baseScore * 0.5 },
+    { y: '2030', o: baseScore * 1.5, c: baseScore * 0.9, r: baseScore * 0.5 },
+    { y: '2035', o: baseScore * 1.9, c: baseScore * 1.0, r: baseScore * 0.45 },
+    { y: '2040', o: baseScore * 2.2, c: baseScore * 1.2, r: baseScore * 0.35 },
+    { y: '2045', o: baseScore * 2.5, c: baseScore * 1.5, r: baseScore * 0.25 },
   ];
   const pts = (key) => TY.map((d, i) => `${i * (100 / 6)}%, ${100 - (d[key] / 250) * 100}%`).join(' L ');
 
   const C = {
-    bg:        theme === 'dark' ? '#07090e' : '#f8fafc',
-    doomBg:    theme === 'dark' ? '#0a0305' : '#fef2f2',
-    panel:     theme === 'dark' ? '#111827' : '#ffffff',
-    text:      theme === 'dark' ? '#e2e8f0' : '#0f172a',
+    bg: theme === 'dark' ? '#07090e' : '#f8fafc',
+    doomBg: theme === 'dark' ? '#0a0305' : '#fef2f2',
+    panel: theme === 'dark' ? '#111827' : '#ffffff',
+    text: theme === 'dark' ? '#e2e8f0' : '#0f172a',
     textMuted: theme === 'dark' ? '#6b7280' : '#475569',
-    border:    theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-    card:      theme === 'dark' ? '#131722' : '#ffffff',
+    border: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+    card: theme === 'dark' ? '#131722' : '#ffffff',
   };
   const S = (bg = C.panel, border = C.border) => ({ background: bg, border: `1px solid ${border}`, borderRadius: 12 });
 
@@ -964,9 +964,9 @@ export default function Dashboard() {
                   {/* LEFT METRICS */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {[
-                      { label: 'MIND',   value: mindScore,   icon: '🧠', st: mindStatus },
+                      { label: 'MIND', value: mindScore, icon: '🧠', st: mindStatus },
                       { label: 'ENERGY', value: energyScore, icon: '⚡', st: energyStatus },
-                      { label: 'BODY',   value: bodyScore,   icon: '🛡', st: bodyStatus },
+                      { label: 'BODY', value: bodyScore, icon: '🛡', st: bodyStatus },
                     ].map(n => (
                       <div key={n.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
                         <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>{n.label}</div>
@@ -995,8 +995,8 @@ export default function Dashboard() {
                   {/* RIGHT METRICS */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {[
-                      { label: 'HEART',   value: heartScore,   icon: '❤️', st: heartStatus },
-                      { label: 'HABITS',  value: habitsScore,  icon: '✓',  st: habitsStatus },
+                      { label: 'HEART', value: heartScore, icon: '❤️', st: heartStatus },
+                      { label: 'HABITS', value: habitsScore, icon: '✓', st: habitsStatus },
                       { label: 'PURPOSE', value: purposeScore, icon: '🎯', st: purposeStatus },
                     ].map(n => (
                       <div key={n.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
@@ -1212,9 +1212,9 @@ export default function Dashboard() {
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
                 {[
-                  { id: 'doom_mode',   label: 'Doom Mode',  icon: '⚠️' },
+                  { id: 'doom_mode', label: 'Doom Mode', icon: '⚠️' },
                   { id: 'time_travel', label: 'Time Travel', icon: '🚀' },
-                  { id: 'simulator',   label: 'Simulator',   icon: '⏳' },
+                  { id: 'simulator', label: 'Simulator', icon: '⏳' },
                 ].map((t) => (
                   <div
                     key={t.id}
