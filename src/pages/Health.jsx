@@ -681,18 +681,18 @@ function HealthRecommendations({ recommendations, h, score }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
       {/* ── PRIORITY RECOMMENDATIONS ── */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9' }}>Priority Recommendations</span>
-            <span title="Sorted by impact on your health score" style={{ fontSize: 12, color: '#475569', cursor: 'help' }}>ⓘ</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>Priority Recommendations</span>
+            <span title="Sorted by impact on your health score" style={{ fontSize: 11, color: '#475569', cursor: 'help' }}>ⓘ</span>
           </div>
-          <button style={{ fontSize: 12, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
+          <button style={{ fontSize: 11, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, alignItems: 'stretch' }}>
           {top3.map((rec) => {
             const m = priorityMeta(rec.risk);
             const scoreDelta = Math.round(rec.confidence / 12);
@@ -700,28 +700,28 @@ function HealthRecommendations({ recommendations, h, score }) {
             const body     = rec.text.split('.').slice(1, 3).join('.').trim();
             return (
               <motion.div key={rec.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: 16, padding: '20px 20px 16px', display: 'flex', flexDirection: 'column' }}>
+                style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: 10, padding: '10px 12px 8px', display: 'flex', flexDirection: 'column' }}>
                 {/* Priority label */}
-                <span style={{ fontSize: 10, fontWeight: 700, color: m.labelColor, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{m.label}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: m.labelColor, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5 }}>{m.label}</span>
                 {/* Icon + title row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: m.btnBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{rec.icon}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: m.btnBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{rec.icon}</div>
                   <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', marginBottom: 2 }}>{rec.title}</p>
-                    <p style={{ fontSize: 11, color: '#94a3b8' }}>{subtitle}</p>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: '#f1f5f9', marginBottom: 1 }}>{rec.title}</p>
+                    <p style={{ fontSize: 9.5, color: '#94a3b8' }}>{subtitle}</p>
                   </div>
                 </div>
                 {/* Body — fixed min-height so all cards match */}
-                <p style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6, minHeight: 52, flex: 1 }}>{body}</p>
+                <p style={{ fontSize: 9.5, color: '#64748b', lineHeight: 1.4, minHeight: 28, flex: 1 }}>{body}</p>
                 {/* Score */}
-                <p style={{ fontSize: 11, fontWeight: 700, color: m.labelColor, marginTop: 10, marginBottom: 10 }}>↑ +{scoreDelta} Health Score</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: m.labelColor, marginTop: 5, marginBottom: 5 }}>↑ +{scoreDelta} Health Score</p>
                 {/* CTA — always at bottom */}
                 <button
                   onClick={() => handleAccept(rec)}
                   disabled={accepted[rec.id]}
-                  style={{ padding: '11px 16px', borderRadius: 10, border: `1px solid ${m.border}`, background: accepted[rec.id] ? 'rgba(74,222,128,0.15)' : m.btnBg, color: accepted[rec.id] ? '#4ade80' : m.btnText, fontSize: 13, fontWeight: 700, cursor: accepted[rec.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  style={{ padding: '5px 10px', borderRadius: 6, border: `1px solid ${m.border}`, background: accepted[rec.id] ? 'rgba(74,222,128,0.15)' : m.btnBg, color: accepted[rec.id] ? '#4ade80' : m.btnText, fontSize: 10.5, fontWeight: 700, cursor: accepted[rec.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   {accepted[rec.id] ? '✓ Accepted' : m.btnLabel}
-                  {!accepted[rec.id] && <span style={{ fontSize: 16 }}>›</span>}
+                  {!accepted[rec.id] && <span style={{ fontSize: 12 }}>›</span>}
                 </button>
               </motion.div>
             );
@@ -730,28 +730,28 @@ function HealthRecommendations({ recommendations, h, score }) {
       </div>
 
       {/* ── BOTTOM ROW ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
 
         {/* Today's Biggest Opportunity */}
         {best && (
-          <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Today's Biggest Opportunity</p>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>{best.icon}</div>
+          <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>Today's Biggest Opportunity</p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{best.icon}</div>
               <div>
-                <p style={{ fontSize: 22, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 }}>{best.title}</p>
-                <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{best.text.slice(0, 140)}…</p>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9', marginBottom: 3 }}>{best.title}</p>
+                <p style={{ fontSize: 10.5, color: '#94a3b8', lineHeight: 1.4 }}>{best.text.slice(0, 120)}…</p>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
               <div>
-                <p style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Potential Gain</p>
-                <p style={{ fontSize: 22, fontWeight: 900, color: '#818cf8' }}>+{Math.round(best.confidence / 12)} <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>Health Score</span></p>
+                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>Potential Gain</p>
+                <p style={{ fontSize: 16, fontWeight: 900, color: '#818cf8' }}>+{Math.round(best.confidence / 12)} <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>Health Score</span></p>
               </div>
               <button
                 onClick={() => handleAccept(best)}
                 disabled={accepted[best.id]}
-                style={{ padding: '12px 22px', borderRadius: 12, border: 'none', background: accepted[best.id] ? 'rgba(74,222,128,0.2)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: accepted[best.id] ? '#4ade80' : '#fff', fontSize: 14, fontWeight: 700, cursor: accepted[best.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: accepted[best.id] ? 'rgba(74,222,128,0.2)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: accepted[best.id] ? '#4ade80' : '#fff', fontSize: 11, fontWeight: 700, cursor: accepted[best.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
                 {accepted[best.id] ? '✓ Accepted' : 'Accept Recommendation'} {!accepted[best.id] && '›'}
               </button>
             </div>
@@ -759,22 +759,22 @@ function HealthRecommendations({ recommendations, h, score }) {
         )}
 
         {/* Recommendation Categories */}
-        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 24px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Recommendation Categories</p>
-            <span title="Health sub-scores" style={{ fontSize: 12, color: '#475569', cursor: 'help' }}>ⓘ</span>
+        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>Recommendation Categories</p>
+            <span title="Health sub-scores" style={{ fontSize: 11, color: '#475569', cursor: 'help' }}>ⓘ</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {categories.map(cat => (
-              <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 14, width: 20, flexShrink: 0 }}>{cat.icon}</span>
-                <span style={{ fontSize: 12, color: '#94a3b8', width: 110, flexShrink: 0 }}>{cat.label}</span>
-                <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+              <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 12, width: 16, flexShrink: 0 }}>{cat.icon}</span>
+                <span style={{ fontSize: 10.5, color: '#94a3b8', width: 90, flexShrink: 0 }}>{cat.label}</span>
+                <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
                   <motion.div initial={{ width: 0 }} animate={{ width: `${cat.score}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
                     style={{ height: '100%', background: cat.color, borderRadius: 3 }} />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9', width: 28, textAlign: 'right' }}>{cat.score}</span>
-                <span style={{ fontSize: 11, color: '#475569' }}>/100</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#f1f5f9', width: 24, textAlign: 'right' }}>{cat.score}</span>
+                <span style={{ fontSize: 9.5, color: '#475569' }}>/100</span>
               </div>
             ))}
           </div>
@@ -782,61 +782,61 @@ function HealthRecommendations({ recommendations, h, score }) {
       </div>
 
       {/* ── ACTION PLAN + HISTORY ROW ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
 
         {/* Today's Action Plan */}
-        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 24px' }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 16 }}>Today's Action Plan</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 7 }}>Today's Action Plan</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {actionItems.length === 0 && (
-              <p style={{ fontSize: 12, color: '#475569' }}>Log health data to generate your action plan.</p>
+              <p style={{ fontSize: 10.5, color: '#475569' }}>Log health data to generate your action plan.</p>
             )}
             {actionItems.map(item => (
-              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
                 onClick={() => setCheckedActions(p => ({ ...p, [item.id]: !p[item.id] }))}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', border: checkedActions[item.id] ? 'none' : '2px solid rgba(255,255,255,0.15)', background: checkedActions[item.id] ? '#4ade80' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
-                  {checkedActions[item.id] && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                <div style={{ width: 16, height: 16, borderRadius: '50%', border: checkedActions[item.id] ? 'none' : '2px solid rgba(255,255,255,0.15)', background: checkedActions[item.id] ? '#4ade80' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+                  {checkedActions[item.id] && <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                 </div>
-                <span style={{ flex: 1, fontSize: 13, color: checkedActions[item.id] ? '#475569' : '#e2e8f0', textDecoration: checkedActions[item.id] ? 'line-through' : 'none', transition: 'all 0.2s' }}>{item.text}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: item.impact === 'High Impact' ? '#f87171' : '#fb923c', flexShrink: 0 }}>{item.impact}</span>
+                <span style={{ flex: 1, fontSize: 11, color: checkedActions[item.id] ? '#475569' : '#e2e8f0', textDecoration: checkedActions[item.id] ? 'line-through' : 'none', transition: 'all 0.2s' }}>{item.text}</span>
+                <span style={{ fontSize: 9.5, fontWeight: 600, color: item.impact === 'High Impact' ? '#f87171' : '#fb923c', flexShrink: 0 }}>{item.impact}</span>
               </div>
             ))}
           </div>
           {actionItems.length > 0 && (
-            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>📋</span>
-              <span style={{ fontSize: 12, color: '#475569' }}>{actionItems.filter(i => !checkedActions[i.id]).length} recommendations remaining</span>
+            <div style={{ marginTop: 7, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11 }}>📋</span>
+              <span style={{ fontSize: 10.5, color: '#475569' }}>{actionItems.filter(i => !checkedActions[i.id]).length} recommendations remaining</span>
             </div>
           )}
         </div>
 
         {/* Recent Recommendations History */}
-        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Recent Recommendations (History)</p>
-            <button style={{ fontSize: 12, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
+        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>Recent Recommendations (History)</p>
+            <button style={{ fontSize: 10.5, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {history.length === 0 && (
-              <p style={{ fontSize: 12, color: '#475569' }}>Accept recommendations above to see your history here.</p>
+              <p style={{ fontSize: 10.5, color: '#475569' }}>Accept recommendations above to see your history here.</p>
             )}
             {history.slice(0, 4).map((h, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>{h.title}</p>
-                  <p style={{ fontSize: 11, color: '#475569' }}>Accepted {daysAgo(h.acceptedAt)}</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#e2e8f0' }}>{h.title}</p>
+                  <p style={{ fontSize: 9.5, color: '#475569' }}>Accepted {daysAgo(h.acceptedAt)}</p>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#4ade80' }}>{h.scoreDelta} Score</span>
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: '#4ade80' }}>{h.scoreDelta} Score</span>
               </div>
             ))}
           </div>
           {(Object.values(accepted).some(Boolean) || history.length > 0) && (
-            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 16 }}>⭐</span>
-              <span style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Great job! You're building healthy habits.</span>
+            <div style={{ marginTop: 7, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12 }}>⭐</span>
+              <span style={{ fontSize: 10.5, color: '#94a3b8', fontStyle: 'italic' }}>Great job! You're building healthy habits.</span>
             </div>
           )}
         </div>
