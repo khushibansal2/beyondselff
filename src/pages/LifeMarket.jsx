@@ -160,65 +160,44 @@ function AnimatedNum({ value, color = 'white' }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function HLVPanel({ hlv, healthScore, financeScore, careerScore }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-      <div className="p-5 rounded-2xl" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{marginBottom:10}}>
+      <div style={{ borderRadius:14, background: C.surface, border: `1px solid ${C.border}`, overflow:'hidden' }}>
 
-        {/* Header row */}
-        <div className="flex flex-wrap items-center gap-4 mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                 style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.25)' }}>
-              <TrendingUp size={18} className="text-indigo-400" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-white">Your Hourly Life Value</p>
-              <p className="text-[11px] mt-0.5" style={{ color: C.labelMuted }}>
-                How much 1 hour of your life is worth across all domains
-              </p>
-            </div>
+        {/* Top row */}
+        <div style={{ display:'flex', alignItems:'center', gap:16, padding:'16px 20px' }}>
+          <div style={{ width:40, height:40, borderRadius:10, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            <TrendingUp size={18} style={{color:'#818cf8'}} />
           </div>
-          <div className="ml-auto text-right">
-            <p className="text-3xl font-black font-mono" style={{ color: '#a5b4fc' }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <p style={{ fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:2 }}>Your Hourly Life Value</p>
+            <p style={{ fontSize:11, color: C.labelMuted }}>How much 1 hour of your life is worth across all domains</p>
+          </div>
+          <div style={{ textAlign:'right', flexShrink:0 }}>
+            <p style={{ fontSize:26, fontWeight:900, color:'#a5b4fc', lineHeight:1, fontFamily:'monospace' }}>
               ₹<AnimatedNum value={hlv.total} color="#a5b4fc" />
+              <span style={{fontSize:13, fontWeight:600}}> /hr</span>
             </p>
-            <p className="text-[10px] uppercase tracking-widest mt-0.5" style={{ color: C.labelMuted }}>
-              per hour · combined
-            </p>
+            <p style={{ fontSize:9, color: C.labelMuted, textTransform:'uppercase', letterSpacing:'0.1em', marginTop:3 }}>COMBINED VALUE</p>
           </div>
         </div>
 
-        {/* Domain HLV cards */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        {/* 3 domain columns */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', borderTop:`1px solid ${C.border}` }}>
           {[
-            { label: 'WELLBEING CAPITAL', v: hlv.health, score: healthScore, color: '#10b981', icon: '❤️' },
-            { label: 'FINANCIAL OUTPUT',  v: hlv.finance, score: financeScore, color: '#f59e0b', icon: '💰' },
-            { label: 'PRODUCTIVITY VALUE',v: hlv.career, score: careerScore,  color: '#3b82f6', icon: '🎯' },
-          ].map(item => (
-            <div key={item.label} className="p-3.5 rounded-xl text-center"
-                 style={{ background: C.elevated, border: `1px solid ${C.border}` }}>
-              <span className="text-xl block mb-1.5">{item.icon}</span>
-              <p className="text-2xl font-black font-mono leading-none" style={{ color: item.color }}>
-                ₹<AnimatedNum value={item.v} color={item.color} />
-              </p>
-              <p className="text-[9px] uppercase tracking-widest font-semibold mt-2 mb-2" style={{ color: C.labelMuted }}>
-                {item.label}
-              </p>
-              <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: C.border }}>
-                <div className="h-full rounded-full transition-all duration-700"
-                     style={{ width: `${item.score}%`, background: item.color }} />
+            { label:'HEALTH VALUE',  v:hlv.health,  color:'#10b981', icon:'❤️'  },
+            { label:'FINANCE VALUE', v:hlv.finance, color:'#f59e0b', icon:'💼'  },
+            { label:'CAREER VALUE',  v:hlv.career,  color:'#3b82f6', icon:'🖥️' },
+          ].map((item, i) => (
+            <div key={item.label} style={{ padding:'14px 20px', display:'flex', alignItems:'center', gap:10, borderRight: i<2 ? `1px solid ${C.border}` : 'none' }}>
+              <span style={{ fontSize:20 }}>{item.icon}</span>
+              <div>
+                <p style={{ fontSize:18, fontWeight:800, color:item.color, fontFamily:'monospace', lineHeight:1 }}>
+                  ₹<AnimatedNum value={item.v} color={item.color} /><span style={{fontSize:11, fontWeight:600}}> /hr</span>
+                </p>
+                <p style={{ fontSize:9, color:C.labelMuted, textTransform:'uppercase', letterSpacing:'0.08em', marginTop:3 }}>{item.label}</p>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Guilt-free conversion — with breathing room */}
-        <div className="rounded-xl py-4 px-4 text-center" style={{ background: C.elevated, border: `1px solid ${C.border}` }}>
-          <p className="text-xs" style={{ color: C.labelMuted }}>
-            To buy ₹10,000 guilt-free:{' '}
-            <span className="text-white font-bold font-mono">{Math.round(10000 / Math.max(1, hlv.career))} career hours</span>
-            {' '}or{' '}
-            <span className="text-white font-bold font-mono">{Math.round(10000 / Math.max(1, hlv.health))} health hours</span>
-          </p>
         </div>
       </div>
     </motion.div>
@@ -230,6 +209,10 @@ function HLVPanel({ hlv, healthScore, financeScore, careerScore }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function TemplateCard({ tmpl, onAccept, alreadyActive }) {
   const [showPenalty, setShowPenalty] = useState(false);
+  const total = tmpl.commitments.reduce((s, c) => s + c.target, 0);
+  const commitment = total > 25 ? { label:'High', bars:3, color:'#f97316' }
+    : total > 10 ? { label:'Medium', bars:2, color:'#f59e0b' }
+    : { label:'Low', bars:1, color:'#10b981' };
 
   return (
     <motion.div
@@ -237,51 +220,42 @@ function TemplateCard({ tmpl, onAccept, alreadyActive }) {
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={alreadyActive ? {} : { y: -3, transition: { duration: 0.18 } }}
-      className={`rounded-2xl overflow-hidden flex flex-col h-full ${alreadyActive ? 'opacity-50' : ''}`}
-      style={{ background: C.surface, border: `1px solid ${tmpl.color}38` }}
+      style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius:14, overflow:'hidden', display:'flex', flexDirection:'column', height:'100%', opacity: alreadyActive ? 0.55 : 1 }}
     >
-      {/* Accent top bar */}
-      <div className="h-[3px] flex-shrink-0"
-           style={{ background: `linear-gradient(90deg, ${tmpl.color}, ${tmpl.color}55)` }} />
+      <div style={{ padding:'16px', display:'flex', flexDirection:'column', flex:1 }}>
 
-      <div className="p-5 flex flex-col flex-1">
-
-        {/* Card header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <span className="text-3xl flex-shrink-0 leading-none">{tmpl.emoji}</span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                <p className="text-sm font-bold text-white leading-tight">{tmpl.name}</p>
-                <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest flex-shrink-0"
-                      style={{ background: tmpl.color + '1A', color: tmpl.color, border: `1px solid ${tmpl.color}30` }}>
-                  {tmpl.category}
-                </span>
-              </div>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: C.labelMuted }}>{tmpl.hint}</p>
-            </div>
+        {/* Header row */}
+        <div style={{ display:'flex', alignItems:'flex-start', gap:12, marginBottom:12 }}>
+          <div style={{ width:50, height:50, borderRadius:12, background:`linear-gradient(135deg, ${tmpl.color}28, rgba(255,255,255,0.04))`, border:`1px solid ${tmpl.color}35`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>
+            {tmpl.emoji}
           </div>
-          <div className="text-right flex-shrink-0 ml-3">
-            <p className="text-xl font-black font-mono leading-none" style={{ color: tmpl.color }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:3, flexWrap:'wrap' }}>
+              <p style={{ fontSize:13, fontWeight:700, color:'#f1f5f9', lineHeight:1.2 }}>{tmpl.name}</p>
+              <span style={{ fontSize:9, padding:'2px 7px', borderRadius:999, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', background: tmpl.color+'1A', color: tmpl.color, border:`1px solid ${tmpl.color}30`, flexShrink:0 }}>
+                {tmpl.category}
+              </span>
+            </div>
+            <p style={{ fontSize:11, color: C.labelMuted }}>{tmpl.hint}</p>
+          </div>
+          <div style={{ textAlign:'right', flexShrink:0 }}>
+            <p style={{ fontSize:17, fontWeight:800, color: tmpl.color, lineHeight:1, fontFamily:'monospace' }}>
               {tmpl.cost > 0 ? `₹${tmpl.cost.toLocaleString()}` : 'FREE'}
             </p>
-            <p className="text-[10px] uppercase tracking-widest mt-1" style={{ color: C.labelMuted }}>
-              {tmpl.days}d deadline
+            <p style={{ fontSize:9, color: C.labelMuted, marginTop:3, textTransform:'uppercase', letterSpacing:'0.06em' }}>
+              {tmpl.days} DAY GOAL
             </p>
           </div>
         </div>
 
-        {/* Commitments — flex-1 so cards stretch uniformly */}
-        <div className="space-y-2 mb-3 flex-1">
+        {/* Commitment rows */}
+        <div style={{ display:'flex', flexDirection:'column', gap:6, flex:1, marginBottom:10 }}>
           {tmpl.commitments.map((c, i) => {
             const dm = DOMAIN_META[c.domain];
             return (
-              <div key={i} className="flex items-center gap-2.5 text-xs p-2.5 rounded-xl"
-                   style={{ background: C.elevated, border: `1px solid ${C.border}` }}>
-                <span className="text-base flex-shrink-0">{c.icon}</span>
-                <span className="text-slate-300 flex-1 leading-tight">{c.label}</span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex-shrink-0"
-                      style={{ background: dm.bg, color: dm.color }}>
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 10px', borderRadius:8, background: C.elevated, border:`1px solid ${C.border}` }}>
+                <span style={{ fontSize:11, color:'#94a3b8', flex:1, lineHeight:1.3 }}>• {c.label}</span>
+                <span style={{ fontSize:9, padding:'2px 7px', borderRadius:999, fontWeight:700, textTransform:'uppercase', background: dm.bg, color: dm.color, flexShrink:0 }}>
                   {c.domain}
                 </span>
               </div>
@@ -290,43 +264,45 @@ function TemplateCard({ tmpl, onAccept, alreadyActive }) {
         </div>
 
         {/* Penalty toggle */}
-        <button
-          onClick={() => setShowPenalty(v => !v)}
-          className="text-[10px] uppercase tracking-widest font-medium hover:text-red-400 transition-colors text-left mb-3 flex items-center gap-1.5"
-          style={{ color: C.labelMuted }}
-        >
-          <Lock size={9} />{showPenalty ? 'Hide' : 'Show'} penalty if you fail
+        <button onClick={() => setShowPenalty(v => !v)}
+          style={{ fontSize:10, color: C.labelMuted, background:'none', border:'none', cursor:'pointer', textAlign:'left', marginBottom:6, display:'flex', alignItems:'center', gap:4 }}>
+          <Lock size={9} style={{color:'rgba(248,113,113,0.5)'}}/>{showPenalty ? 'Hide' : 'Show'} penalty if you fail
         </button>
         <AnimatePresence>
           {showPenalty && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mb-3"
-            >
-              <div className="flex items-center gap-2 p-2.5 rounded-xl"
-                   style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                <Lock size={11} className="text-red-400 flex-shrink-0" />
-                <p className="text-[11px] text-red-300">{tmpl.penaltyLabel}</p>
+            <motion.div initial={{height:0,opacity:0}} animate={{height:'auto',opacity:1}} exit={{height:0,opacity:0}} style={{overflow:'hidden', marginBottom:8}}>
+              <div style={{ padding:'8px 10px', borderRadius:8, background:'rgba(239,68,68,0.07)', border:'1px solid rgba(239,68,68,0.2)', display:'flex', alignItems:'center', gap:6 }}>
+                <Lock size={10} style={{color:'#f87171', flexShrink:0}}/>
+                <p style={{ fontSize:11, color:'#fca5a5' }}>{tmpl.penaltyLabel}</p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* CTA — always pinned to the bottom of the card */}
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => !alreadyActive && onAccept(tmpl)}
-          className="mt-auto w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-          style={{
-            background: alreadyActive
-              ? C.elevated
-              : `linear-gradient(135deg, ${tmpl.color}ee, ${tmpl.color}99)`,
-            color: alreadyActive ? C.labelMuted : 'white',
-            border: alreadyActive ? `1px solid ${C.border}` : 'none',
-          }}
-        >
-          {alreadyActive ? '✓ Already Active' : '⚡ Sign Contract'}
-        </motion.button>
+        {/* Bottom: commitment level + accept */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+            <span style={{ fontSize:12 }}>📋</span>
+            <span style={{ fontSize:11, color: C.labelMuted }}>Commitment:</span>
+            <span style={{ fontSize:11, fontWeight:600, color: commitment.color }}>{commitment.label}</span>
+            <div style={{ display:'flex', gap:2, marginLeft:2 }}>
+              {[1,2,3].map(b => (
+                <div key={b} style={{ width:4, height:11, borderRadius:2, background: b <= commitment.bars ? commitment.color : 'rgba(255,255,255,0.1)' }}/>
+              ))}
+            </div>
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => !alreadyActive && onAccept(tmpl)}
+            style={{
+              display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:8, fontSize:12, fontWeight:700, cursor: alreadyActive ? 'default' : 'pointer', border:'none',
+              background: alreadyActive ? C.elevated : `linear-gradient(135deg, ${tmpl.color}ee, ${tmpl.color}99)`,
+              color: alreadyActive ? C.labelMuted : 'white',
+            }}
+          >
+            {alreadyActive ? '✓ Active' : <>Accept <ArrowRight size={12}/></>}
+          </motion.button>
+        </div>
       </div>
     </motion.div>
   );
@@ -899,68 +875,74 @@ export default function LifeMarket() {
   }, []);
 
   return (
-    <div className="min-h-screen pb-28" style={{ background: C.canvas, padding: '24px 24px 0' }}>
+    <div className="min-h-screen pb-28" style={{ background: C.canvas, padding: '20px 24px 0' }}>
 
-      {/* ── PAGE HEADER ──────────────────────────────────────────────────── */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-1">
-          <span className="text-2xl leading-none">⚖️</span>
-          <h1 className="text-xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
-            Life Economy Market
-          </h1>
+      {/* ── PAGE HEADER ── */}
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:12 }}>
+        <div>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
+            <span style={{ fontSize:22 }}>⚖️</span>
+            <h1 style={{ fontSize:20, fontWeight:800, color:'#f1f5f9', margin:0 }}>Life Economy Market</h1>
+          </div>
+          <p style={{ fontSize:12, color: C.labelMuted, marginLeft:32 }}>
+            Every reward has a price in life capital — trade habits, not guilt.
+          </p>
         </div>
-        <p className="text-sm ml-9" style={{ color: C.labelMuted }}>
-          Every reward has a price in life capital — trade habits, not guilt.
-        </p>
+        <button onClick={() => setTab('history')}
+          style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:10, border:`1px solid ${C.border}`, background: C.surface, color:'#f1f5f9', fontSize:12, fontWeight:600, cursor:'pointer', flexShrink:0 }}>
+          <Clock size={13} style={{color: C.labelMuted}}/> History
+          <span style={{ background:'#6366f1', color:'#fff', fontSize:10, fontWeight:700, padding:'1px 7px', borderRadius:999 }}>
+            {done.length + breached.length}
+          </span>
+        </button>
       </div>
 
       {/* HLV Panel */}
       <HLVPanel hlv={hlv} healthScore={healthScore} financeScore={financeScore} careerScore={careerScore} />
 
-      {/* ── TABS ─────────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 mb-6 p-1 rounded-2xl w-fit" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-        {[
-          { id: 'market',  label: '🏪 Market' },
-          { id: 'active',  label: `⚡ Active (${active.length})` },
-          { id: 'history', label: `🏆 History (${done.length + breached.length})` },
-        ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className="px-4 py-2 rounded-xl text-xs font-semibold transition-all"
-            style={tab === t.id
-              ? { background: '#6366f1', color: 'white', boxShadow: '0 4px 12px rgba(99,102,241,0.25)' }
-              : { color: C.labelMuted }}>
-            {t.label}
-          </button>
-        ))}
+      {/* ── Info bar + Custom Contract ── */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px', marginBottom:14, borderRadius:10, background: C.surface, border:`1px solid ${C.border}` }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ fontSize:13 }}>ℹ️</span>
+          <p style={{ fontSize:12, color: C.labelMuted }}>
+            To buy guilt-free:{' '}
+            <span style={{ color:'#f1f5f9', fontWeight:700, fontFamily:'monospace' }}>{Math.round(10000 / Math.max(1, hlv.career))} career hours</span>
+            {' '}or{' '}
+            <span style={{ color:'#f1f5f9', fontWeight:700, fontFamily:'monospace' }}>{Math.round(10000 / Math.max(1, hlv.health))} health hours</span>
+          </p>
+        </div>
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowWizard(true)}
+          style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:9, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', flexShrink:0 }}>
+          <Plus size={13}/> Custom Contract
+        </motion.button>
       </div>
 
-      {/* ── MARKET TAB ───────────────────────────────────────────────────── */}
+      {/* ── Available Contracts + tabs ── */}
+      <div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+          <h2 style={{ fontSize:16, fontWeight:700, color:'#f1f5f9', margin:0 }}>Available Contracts</h2>
+        </div>
+
+        {/* Underline tabs */}
+        <div style={{ display:'flex', gap:0, borderBottom:`1px solid ${C.border}`, marginBottom:16 }}>
+          {[
+            { id:'market',  label:'All' },
+            { id:'active',  label:`Active` },
+            { id:'history', label:`📋 History (${done.length + breached.length})` },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{ padding:'8px 18px', fontSize:13, fontWeight:600, background:'none', border:'none', cursor:'pointer', color: tab===t.id ? '#f1f5f9' : C.labelMuted, borderBottom: tab===t.id ? '2px solid #6366f1' : '2px solid transparent', marginBottom:'-1px', transition:'all 0.15s' }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+      {/* ── MARKET TAB ── */}
       {tab === 'market' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          {/* Section header + Custom Contract button — baseline-aligned */}
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-sm font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>
-              Available Contracts
-            </h2>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowWizard(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
-            >
-              <Plus size={13} /> Custom Contract
-            </motion.button>
-          </div>
-
-          {/* Equalized 3-column grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {TEMPLATES.map((tmpl, i) => (
-              <motion.div
-                key={tmpl.id}
-                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
-                className="flex flex-col"
-              >
+              <motion.div key={tmpl.id} initial={{ opacity:0, y:18 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.06 }} className="flex flex-col">
                 <TemplateCard tmpl={tmpl} onAccept={signTemplate} alreadyActive={activeIds.includes(tmpl.id)} />
               </motion.div>
             ))}
@@ -1037,6 +1019,8 @@ export default function LifeMarket() {
           )}
         </motion.div>
       )}
+
+      </div>{/* close Available Contracts section */}
 
       {/* Wizard */}
       <AnimatePresence>

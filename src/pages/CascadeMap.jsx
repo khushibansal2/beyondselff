@@ -18,19 +18,19 @@ const DC = {
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 const NODES = [
   // Health cluster — left
-  { id: 'sleep',    label: 'Sleep',       domain: 'health',  x: 128, y: 138, emoji: '😴', r: 28 },
+  { id: 'sleep',    label: 'Sleep',       domain: 'health',  x: 128, y: 138, emoji: '🌙', r: 28 },
   { id: 'exercise', label: 'Exercise',    domain: 'health',  x: 68,  y: 272, emoji: '🏃', r: 26 },
   { id: 'energy',   label: 'Energy',      domain: 'health',  x: 148, y: 398, emoji: '⚡', r: 26 },
   // Finance cluster — right
-  { id: 'savings',  label: 'Savings',     domain: 'finance', x: 792, y: 138, emoji: '🏦', r: 26 },
-  { id: 'spending', label: 'Spending',    domain: 'finance', x: 852, y: 272, emoji: '💸', r: 26 },
+  { id: 'savings',  label: 'Savings',     domain: 'finance', x: 792, y: 138, emoji: '🏛️', r: 26 },
+  { id: 'spending', label: 'Spending',    domain: 'finance', x: 852, y: 272, emoji: '🛒', r: 26 },
   { id: 'debt',     label: 'Debt Stress', domain: 'finance', x: 780, y: 398, emoji: '📉', r: 26 },
   // Career cluster — bottom
   { id: 'study',    label: 'Study Hrs',   domain: 'career',  x: 330, y: 458, emoji: '📚', r: 26 },
   { id: 'focus',    label: 'Focus',       domain: 'career',  x: 460, y: 488, emoji: '🎯', r: 26 },
   { id: 'skills',   label: 'Skills',      domain: 'career',  x: 590, y: 458, emoji: '🚀', r: 26 },
   // Center
-  { id: 'life',     label: 'Life Balance',domain: 'center',  x: CX,  y: CY,  emoji: '✦',  r: 40, isCenter: true },
+  { id: 'life',     label: 'Life Balance',domain: 'center',  x: CX,  y: CY,  emoji: '⚖️', r: 40, isCenter: true },
 ];
 
 // ─── Edge definitions ─────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ const EDGES = [
     id: 'en-st',  from: 'energy',  to: 'study',    kind: 'cross',
     label: 'Energy → Study Capacity',
     why: 'Physical energy directly caps the number of effective study hours. Low energy means high hours spent, low output absorbed.',
-    cascadeId: 'overwork-health',
+    cascadeId: 'exercise-focus',
   },
   {
     id: 'sa-fo',  from: 'savings', to: 'focus',    kind: 'cross',
@@ -80,7 +80,6 @@ const EDGES = [
     id: 'sk-sa',  from: 'skills',  to: 'savings',  kind: 'cross',
     label: 'Upskilling → Income → Savings',
     why: 'Skills compound. Each verifiable skill increases expected salary by 8–15%. This directly feeds monthly savings capacity.',
-    cascadeId: 'exercise-focus',
   },
 ];
 
@@ -223,65 +222,56 @@ export default function CascadeMap() {
   });
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: '#0a0a0f' }}>
+    <div className="min-h-screen pb-24" style={{ background: '#0a0a0f', padding:'20px 24px 0' }}>
+
       {/* ── Header ── */}
-      <div className="sticky top-0 z-30 px-6 py-4"
-        style={{ background: 'rgba(10,10,15,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }}>
-              <GitBranch size={17} className="text-indigo-400" />
-            </div>
-            <div>
-              <h1 className="text-base font-bold text-white tracking-tight">Cascade Network</h1>
-              <p className="text-[11px] text-slate-500">Live cross-domain cause-and-effect graph</p>
-            </div>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:14 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ width:38, height:38, borderRadius:10, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <GitBranch size={17} style={{color:'#818cf8'}} />
           </div>
-          <div className="flex items-center gap-4">
-            {[
-              { label: 'Health',  score: Math.round(healthScore),  color: '#10b981' },
-              { label: 'Finance', score: Math.round(financeScore), color: '#f59e0b' },
-              { label: 'Career',  score: Math.round(careerScore),  color: '#3b82f6' },
-            ].map(d => (
-              <div key={d.label} className="text-center">
-                <p className="text-lg font-black tabular-nums" style={{ color: d.color }}>{d.score}</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">{d.label}</p>
-              </div>
-            ))}
-            <div className="text-center pl-3 border-l border-white/10">
-              <p className="text-lg font-black tabular-nums text-indigo-400">{Math.round(balance)}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider">Life</p>
-            </div>
+          <div>
+            <h1 style={{ fontSize:20, fontWeight:800, color:'#f1f5f9', margin:0, letterSpacing:'-0.02em' }}>Cascade Map</h1>
+            <p style={{ fontSize:12, color:'#64748b', marginTop:2 }}>See how changes in one area ripple across your life.</p>
           </div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+          {[
+            { label:'HEALTH',  score: Math.round(healthScore),  color:'#10b981' },
+            { label:'FINANCE', score: Math.round(financeScore), color:'#f59e0b' },
+            { label:'CAREER',  score: Math.round(careerScore),  color:'#3b82f6' },
+            { label:'LIFE',    score: Math.round(balance),      color:'#6366f1' },
+          ].map(d => (
+            <div key={d.label} style={{ padding:'6px 14px', borderRadius:8, border:`1px solid ${d.color}30`, background:`${d.color}10`, textAlign:'center' }}>
+              <p style={{ fontSize:14, fontWeight:800, color:d.color, lineHeight:1, fontFamily:'monospace' }}>{d.score}</p>
+              <p style={{ fontSize:9, color:d.color, opacity:0.7, letterSpacing:'0.1em', marginTop:2, fontWeight:700 }}>{d.label}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 pt-4 space-y-5">
+      <div style={{ display:'flex', flexDirection:'column', gap:12, maxWidth:'100%' }}>
 
-        {/* ── Legend ── */}
-        <div className="flex flex-wrap gap-4 items-center px-2">
-          {[
-            { color: '#6366f1', dash: false, label: 'Core flow (domain → life balance)' },
-            { color: '#10b981', dash: false, label: 'Within-domain connection' },
-            { color: '#f59e0b', dash: true,  label: 'Cross-domain cascade (click to explore)' },
-          ].map(l => (
-            <div key={l.label} className="flex items-center gap-2">
-              <svg width={28} height={6}>
-                <line x1={0} y1={3} x2={28} y2={3} stroke={l.color} strokeWidth={2}
-                  strokeDasharray={l.dash ? '5 3' : undefined} />
-              </svg>
-              <span className="text-[11px] text-slate-400">{l.label}</span>
-            </div>
-          ))}
-          <div className="ml-auto text-[11px] text-slate-500 italic hidden md:block">
-            Hover nodes · Click cross-domain edges
+        {/* ── Graph container with legend inside ── */}
+        <div style={{ borderRadius:14, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)', background:'rgba(255,255,255,0.02)' }}>
+
+          {/* Legend bar */}
+          <div style={{ display:'flex', alignItems:'center', gap:20, padding:'10px 18px', borderBottom:'1px solid rgba(255,255,255,0.05)', flexWrap:'wrap' }}>
+            {[
+              { color:'#10b981', dash:false, label:'Within-domain connection' },
+              { color:'#3b82f6', dash:false, label:'Cross-domain cause-and-effect' },
+              { color:'#f59e0b', dash:true,  label:'Cross-domain cascade (click to explore)' },
+            ].map(l => (
+              <div key={l.label} style={{ display:'flex', alignItems:'center', gap:7 }}>
+                <svg width={28} height={6}><line x1={0} y1={3} x2={28} y2={3} stroke={l.color} strokeWidth={2} strokeDasharray={l.dash?'5 3':undefined}/></svg>
+                <span style={{ fontSize:11, color:'#94a3b8' }}>{l.label}</span>
+              </div>
+            ))}
+            <span style={{ marginLeft:'auto', fontSize:11, color:'#475569', fontStyle:'italic' }}>Hover nodes • Click cross-domain edges</span>
           </div>
-        </div>
 
         {/* ── SVG Graph ── */}
-        <div className="rounded-2xl overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             style={{ width: '100%', display: 'block' }}
@@ -389,152 +379,142 @@ export default function CascadeMap() {
               const isHovered  = hoveredNode === node.id;
               const isConnectedToHovered = hoveredNode && nodeEdges(hoveredNode).some(e => e.from === node.id || e.to === node.id) && !isHovered;
               const dim = hoveredNode && !isHovered && !isConnectedToHovered;
+              const hasActiveCascade = activeCascades.some(c => c.from === node.domain || c.to === node.domain);
 
               return (
                 <g key={node.id}
                   style={{ cursor: 'pointer', transition: 'opacity 0.25s' }}
-                  opacity={dim ? 0.3 : 1}
+                  opacity={dim ? 0.25 : 1}
                   onMouseEnter={() => setHoveredNode(node.id)}
                   onMouseLeave={() => setHoveredNode(null)}
-                  onClick={() => {
-                    setSelectedEdge(null);
-                    setHoveredNode(node.id);
-                  }}
+                  onClick={() => { setSelectedEdge(null); setHoveredNode(node.id); }}
                 >
                   {/* Pulsing halo for center node */}
                   {node.isCenter && (
-                    <motion.circle cx={node.x} cy={node.y} r={node.r + 12} fill="none"
+                    <motion.circle cx={node.x} cy={node.y} r={node.r + 14} fill="none"
                       stroke={colors.p} strokeWidth={1.5}
-                      animate={{ r: [node.r + 12, node.r + 22], opacity: [0.4, 0] }}
+                      animate={{ r: [node.r + 14, node.r + 26], opacity: [0.35, 0] }}
                       transition={{ duration: 2.5, repeat: Infinity, ease: 'easeOut' }} />
                   )}
-                  {/* Hover ring */}
+                  {/* Active cascade pulse ring */}
+                  {hasActiveCascade && !node.isCenter && (
+                    <motion.circle cx={node.x} cy={node.y} r={node.r + 5}
+                      fill="none" stroke={colors.p} strokeWidth={1.2}
+                      animate={{ opacity: [0.5, 0.1, 0.5] }}
+                      transition={{ duration: 1.8, repeat: Infinity }} />
+                  )}
+                  {/* Hover outer ring */}
                   {isHovered && (
-                    <circle cx={node.x} cy={node.y} r={node.r + 7}
-                      fill="none" stroke={colors.p} strokeWidth={2} opacity={0.5} />
+                    <circle cx={node.x} cy={node.y} r={node.r + 8}
+                      fill="none" stroke={colors.p} strokeWidth={1.5} opacity={0.4} />
                   )}
-                  {/* Active cascade ring */}
-                  {activeCascades.some(c => c.from === node.domain || c.to === node.domain) && !node.isCenter && (
-                    <motion.circle cx={node.x} cy={node.y} r={node.r + 4}
-                      fill="none" stroke={colors.p} strokeWidth={1}
-                      animate={{ opacity: [0.4, 0.1, 0.4] }}
-                      transition={{ duration: 2, repeat: Infinity }} />
-                  )}
-                  {/* Main circle */}
+                  {/* Main filled circle */}
                   <circle cx={node.x} cy={node.y} r={node.r}
-                    fill={colors.bg} stroke={isHovered ? colors.p : colors.b}
-                    strokeWidth={isHovered ? 2 : 1.5} />
-                  {/* Emoji */}
-                  <text x={node.x} y={node.y + 1} textAnchor="middle" dominantBaseline="middle"
-                    fontSize={node.isCenter ? 20 : 15} style={{ userSelect: 'none', pointerEvents: 'none' }}>
+                    fill={node.isCenter ? 'rgba(99,102,241,0.25)' : colors.bg}
+                    stroke={isHovered ? colors.p : colors.b}
+                    strokeWidth={isHovered ? 2.5 : 2} />
+                  {/* Emoji icon */}
+                  <text x={node.x} y={node.isCenter ? node.y - 4 : node.y + 1}
+                    textAnchor="middle" dominantBaseline="middle"
+                    fontSize={node.isCenter ? 18 : 14}
+                    style={{ userSelect: 'none', pointerEvents: 'none' }}>
                     {node.emoji}
                   </text>
-                  {/* Label */}
-                  <text x={node.x} y={node.y + node.r + 13} textAnchor="middle"
-                    fontSize={9} fill={isHovered ? colors.p : '#6b7280'}
+                  {/* Center node: show score inside */}
+                  {node.isCenter && (
+                    <text x={CX} y={CY + 14} textAnchor="middle"
+                      fontSize={11} fill="#a5b4fc" fontWeight="800"
+                      style={{ userSelect: 'none', pointerEvents: 'none' }}>
+                      {Math.round(balance)}
+                    </text>
+                  )}
+                  {/* Label below node */}
+                  <text x={node.x} y={node.y + node.r + 14} textAnchor="middle"
+                    fontSize={node.isCenter ? 10 : 9}
+                    fill={isHovered ? colors.p : '#64748b'}
                     fontWeight={isHovered ? '700' : '500'}
-                    style={{ userSelect: 'none', pointerEvents: 'none', transition: 'fill 0.2s' }}>
+                    style={{ userSelect: 'none', pointerEvents: 'none' }}>
                     {node.label}
                   </text>
                 </g>
               );
             })}
-
-            {/* Score badge on center node */}
-            <text x={CX} y={CY + 14} textAnchor="middle" fontSize={8}
-              fill="rgba(99,102,241,0.8)" fontWeight="700" style={{ pointerEvents: 'none' }}>
-              {Math.round(balance)}
-            </text>
           </svg>
-        </div>
+        </div>{/* end graph container */}
+        </div>{/* end graph+legend card */}
 
-        {/* ── Edge detail panel (shows when cross-domain edge clicked) ── */}
+        {/* ── Edge detail panel ── */}
         <AnimatePresence>
           {selectedEdgeData && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
-              className="p-5 rounded-2xl"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(99,102,241,0.25)' }}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-bold" style={{ color: DC[nodeById(selectedEdgeData.from).domain].p }}>
+            <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:4 }}
+              style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.25)', borderRadius:12, padding:'16px 20px' }}>
+              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+                    <span style={{ fontSize:12, fontWeight:700, color: DC[nodeById(selectedEdgeData.from).domain].p }}>
                       {nodeById(selectedEdgeData.from).label}
                     </span>
-                    <ArrowRight size={14} className="text-slate-500" />
-                    <span className="text-sm font-bold" style={{ color: DC[nodeById(selectedEdgeData.to).domain].p }}>
+                    <ArrowRight size={12} style={{ color:'#64748b' }} />
+                    <span style={{ fontSize:12, fontWeight:700, color: DC[nodeById(selectedEdgeData.to).domain].p }}>
                       {nodeById(selectedEdgeData.to).label}
                     </span>
                   </div>
-                  <p className="text-base font-black text-white mb-2">{selectedEdgeData.label}</p>
-                  <p className="text-sm text-slate-300 leading-relaxed">{selectedEdgeData.why}</p>
+                  <p style={{ fontSize:14, fontWeight:800, color:'#f1f5f9', marginBottom:6 }}>{selectedEdgeData.label}</p>
+                  <p style={{ fontSize:12, color:'#94a3b8', lineHeight:1.6 }}>{selectedEdgeData.why}</p>
                 </div>
                 <button onClick={() => setSelectedEdge(null)}
-                  className="text-slate-500 hover:text-white transition-colors text-xs px-2 py-1 flex-shrink-0">
-                  ✕
-                </button>
+                  style={{ color:'#475569', background:'none', border:'none', cursor:'pointer', fontSize:14, flexShrink:0, padding:'2px 6px' }}>✕</button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ── Detected Cascades (from real engine) ── */}
+        {/* ── Live Detected Cascades ── */}
         <div>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
-            <Zap size={12} className="text-indigo-400" />
-            Live detected cascades — your data right now
-            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-              style={{ background: 'rgba(99,102,241,0.2)', color: '#818cf8' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+            <Zap size={14} style={{color:'#818cf8'}}/>
+            <p style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.1em' }}>
+              Live detected cascades — your data right now
+            </p>
+            <span style={{ padding:'2px 10px', borderRadius:999, background:'rgba(99,102,241,0.2)', color:'#818cf8', fontSize:10, fontWeight:700 }}>
               {activeCascades.length} active
             </span>
-          </p>
+          </div>
 
           {activeCascades.length === 0 ? (
-            <div className="p-5 rounded-2xl text-center"
-              style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)' }}>
-              <CheckCircle size={22} className="text-emerald-400 mx-auto mb-2" />
-              <p className="text-sm font-bold text-emerald-300">No active cascades detected</p>
-              <p className="text-xs text-slate-400 mt-1">Your domains are in balance. Keep it up.</p>
+            <div style={{ padding:'20px', borderRadius:12, textAlign:'center', background:'rgba(16,185,129,0.06)', border:'1px solid rgba(16,185,129,0.15)' }}>
+              <CheckCircle size={20} style={{color:'#10b981', margin:'0 auto 8px'}}/>
+              <p style={{ fontSize:13, fontWeight:700, color:'#10b981' }}>No active cascades detected</p>
+              <p style={{ fontSize:12, color:'#64748b', marginTop:4 }}>Your domains are in balance. Keep it up.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
               {activeCascades.map((c, i) => {
                 const sev = SEV_STYLE[c.severity] || SEV_STYLE.warning;
                 const fromColor = DC[c.from]?.p || '#94a3b8';
                 const toColor   = DC[c.to]?.p   || '#94a3b8';
                 return (
                   <motion.div key={c.id}
-                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-                    className="p-4 rounded-2xl"
-                    style={{ background: sev.bg, border: `1px solid ${sev.border}` }}>
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: sev.bg, border: `1px solid ${sev.border}` }}>
-                        {c.type === 'positive'
-                          ? <CheckCircle size={15} style={{ color: sev.text }} />
-                          : <AlertTriangle size={15} style={{ color: sev.text }} />
-                        }
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                          <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"
-                            style={{ background: fromColor + '20', color: fromColor }}>
-                            {c.from}
-                          </span>
-                          <ArrowRight size={10} style={{ color: sev.text }} />
-                          <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"
-                            style={{ background: toColor + '20', color: toColor }}>
-                            {c.to}
-                          </span>
-                          <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded"
-                            style={{ background: sev.bg, color: sev.text }}>
-                            {sev.label}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-200 mb-1">{c.trigger}</p>
-                        <p className="text-xs text-slate-300 mb-1.5">{c.effect}</p>
-                        <p className="text-[11px] text-slate-500 leading-relaxed">{c.mechanism}</p>
-                      </div>
+                    initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.08 }}
+                    style={{ background:'rgba(15,20,35,0.98)', border:`1px solid rgba(255,255,255,0.07)`, borderRadius:12, padding:'16px 18px', display:'flex', alignItems:'flex-start', gap:12, cursor:'default' }}>
+                    <div style={{ width:32, height:32, borderRadius:8, background: sev.bg, border:`1px solid ${sev.border}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      {c.type === 'positive'
+                        ? <CheckCircle size={14} style={{ color: sev.text }}/>
+                        : <AlertTriangle size={14} style={{ color: sev.text }}/>
+                      }
                     </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8, flexWrap:'wrap' }}>
+                        <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', padding:'2px 8px', borderRadius:4, background: fromColor+'20', color: fromColor }}>{c.from}</span>
+                        <ArrowRight size={10} style={{ color: sev.text }}/>
+                        <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', padding:'2px 8px', borderRadius:4, background: toColor+'20', color: toColor }}>{c.to}</span>
+                        <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:4, background: sev.bg, color: sev.text }}>{sev.label}</span>
+                      </div>
+                      <p style={{ fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4 }}>{c.trigger}</p>
+                      <p style={{ fontSize:12, color:'#94a3b8', marginBottom:6 }}>{c.effect}</p>
+                      <p style={{ fontSize:11, color:'#64748b', lineHeight:1.5 }}>{c.mechanism}</p>
+                    </div>
+                    <ArrowRight size={14} style={{ color:'#475569', flexShrink:0, marginTop:2 }}/>
                   </motion.div>
                 );
               })}
@@ -543,14 +523,14 @@ export default function CascadeMap() {
         </div>
 
         {/* ── What is a cascade ── */}
-        <div className="p-4 rounded-2xl flex items-start gap-3"
-          style={{ background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.12)' }}>
-          <Info size={15} className="text-indigo-400 flex-shrink-0 mt-0.5" />
+        <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 18px', borderRadius:10, background:'rgba(99,102,241,0.05)', border:'1px solid rgba(99,102,241,0.12)' }}>
+          <Info size={14} style={{ color:'#818cf8', flexShrink:0, marginTop:2 }}/>
           <div>
-            <p className="text-xs font-semibold text-indigo-300 mb-1">What is a cross-domain cascade?</p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p style={{ fontSize:13, fontWeight:700, color:'#a5b4fc', marginBottom:5 }}>What is a cross-domain cascade?</p>
+            <p style={{ fontSize:12, color:'#64748b', lineHeight:1.6, marginBottom:3 }}>
               A cascade is when a problem in one life domain causes measurable damage in another — without you noticing the link.
-              Poor sleep doesn't just make you tired; it triggers impulse purchases and crashes your study output simultaneously.
+            </p>
+            <p style={{ fontSize:12, color:'#64748b', lineHeight:1.6 }}>
               BeyondSelf's engine detects these chains from your real data and surfaces them before they compound.
             </p>
           </div>

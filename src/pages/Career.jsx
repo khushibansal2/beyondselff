@@ -41,7 +41,7 @@ function CognitiveGauge({ value }) {
 
   return (
     <div className="flex flex-col items-center">
-      <svg width="160" height="130" viewBox="0 0 160 130">
+      <svg width="120" height="97" viewBox="0 0 160 130">
         <path d={arcPath(-45, 45, '#10b981')} stroke="#10b981" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
         <path d={arcPath(45, 90, '#f59e0b')} stroke="#f59e0b" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
         <path d={arcPath(90, 135, '#f43f5e')} stroke="#f43f5e" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
@@ -1639,13 +1639,13 @@ export default function Career() {
       </AnimatePresence>
 
       {/* ── Page Header ── */}
-      <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth <span style={{ fontSize: 18 }}>📈</span></h1>
-        <p style={{ fontSize: 12, color: '#71717a', marginTop: 4 }}>Study smarter — every session builds your digital twin.</p>
+      <div style={{ marginBottom: 10 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth <span style={{ fontSize: 16 }}>📈</span></h1>
+        <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Study smarter — every session builds your digital twin.</p>
       </div>
 
       {/* ── Custom Pill Tab Bar ── */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
         {tabs.map(t => (
           <button
             key={t.id}
@@ -1673,104 +1673,168 @@ export default function Career() {
       </div>
 
       {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
-      {tab === 'brain' && (
-        <div className="space-y-6">
-          {/* Metrics row */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <GlassCard className="flex justify-center col-span-2 md:col-span-1" glow="glow-blue">
-              <ScoreRing score={score} color="auto" label="Career Score" size={100} />
-            </GlassCard>
-            <MetricCard icon="⚡" label="Total XP" value={statsData.totalXP.toLocaleString()} color="#f59e0b" />
-            <MetricCard icon="🔥" label="Streak" value={`${statsData.streak}d`} color="#f43f5e" />
-            <MetricCard icon="⏱" label="Total Study" value={`${Math.round(statsData.totalMinutes / 60)}h`} color="#3b82f6" />
-            <MetricCard icon="📝" label="Sessions" value={statsData.totalSessions} color="#8b5cf6" />
-            <MetricCard icon="🏆" label="Best Topic" value={statsData.bestTopic || '—'} color="#10b981" />
-          </div>
+      {tab === 'brain' && (() => {
+        const bCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14};
+        const scoreColor = score>=70?'#10b981':score>=45?'#8b5cf6':'#f43f5e';
+        const radarWithIdeal = skillRadar.map(d => ({...d, full:100}));
+        const loadColor = cognitiveLoad<40?'#10b981':cognitiveLoad<70?'#f59e0b':'#f43f5e';
+        const loadLabel = cognitiveLoad<40?'Low Load':cognitiveLoad<70?'Moderate':'High Load';
+        const STAT_CARDS = [
+          {icon:'⚡', label:'TOTAL XP',    value:statsData.totalXP.toLocaleString(),              sub:'Level 1'},
+          {icon:'🔥', label:'STREAK',      value:`${statsData.streak}d`,                          sub:'Keep it going!'},
+          {icon:'🕐', label:'TOTAL STUDY', value:`${Math.round(statsData.totalMinutes/60)}h`,     sub:'This week'},
+          {icon:'📅', label:'SESSIONS',    value:String(statsData.totalSessions),                  sub:'This week'},
+          {icon:'🏆', label:'BEST TOPIC',  value:statsData.bestTopic||'—',                        sub:statsData.bestTopic?'Top performer':'Not enough data'},
+        ];
+        return (
+          <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Cognitive Load Meter */}
-            <GlassCard className="p-6 flex flex-col items-center" glow={cognitiveLoad > 70 ? 'glow-rose' : cognitiveLoad > 40 ? '' : 'glow-emerald'}>
-              <h3 className="text-sm font-semibold mb-2 self-start">Cognitive Load Meter</h3>
-              <p className="text-xs text-slate-500 mb-4 self-start">Based on today's study + sleep + stress</p>
-              <CognitiveGauge value={cognitiveLoad} />
-              <div className="grid grid-cols-3 gap-2 w-full mt-4 text-center">
-                <div className="p-2 rounded-lg bg-emerald-500/10">
-                  <p className="text-xs text-emerald-400 font-bold">&lt;40</p>
-                  <p className="text-[10px] text-slate-400">Optimal</p>
-                </div>
-                <div className="p-2 rounded-lg bg-amber-500/10">
-                  <p className="text-xs text-amber-400 font-bold">40-70</p>
-                  <p className="text-[10px] text-slate-400">Moderate</p>
-                </div>
-                <div className="p-2 rounded-lg bg-rose-500/10">
-                  <p className="text-xs text-rose-400 font-bold">&gt;70</p>
-                  <p className="text-[10px] text-slate-400">Burnout Risk</p>
-                </div>
-              </div>
-            </GlassCard>
-
-            {/* Skill Radar */}
-            <GlassCard className="p-6">
-              <h3 className="text-sm font-semibold mb-4">Skill Radar</h3>
-              <div className="h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={skillRadar}>
-                    <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                    <Radar name="Skills" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-            </GlassCard>
-
-            {/* Skills Portfolio */}
-            <GlassCard className="p-6">
-              <h3 className="text-sm font-semibold mb-4">Skills Portfolio</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {c.skills.length > 0 ? c.skills.map(s => (
-                  <span key={s} className="px-2.5 py-1 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-medium">{s}</span>
-                )) : <p className="text-xs text-slate-500">No skills logged yet</p>}
-              </div>
-              <div className="grid grid-cols-2 gap-3 mt-auto">
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                  <p className="text-2xl font-bold text-blue-400">{c.coursesActive}</p>
-                  <p className="text-[10px] text-slate-500">Active Courses</p>
-                </div>
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                  <p className="text-2xl font-bold text-purple-400">{placementReadiness}%</p>
-                  <p className="text-[10px] text-slate-500">Placement Ready</p>
-                </div>
-              </div>
-            </GlassCard>
-          </div>
-
-          {/* Forgetting Curve */}
-          {heatmapData.forgettingCurve?.length > 0 && (
-            <GlassCard className="p-6">
-              <h3 className="text-sm font-semibold mb-1">Forgetting Curve — Topic Retention</h3>
-              <p className="text-xs text-slate-500 mb-4">Topics lose ~20% retention per day without review</p>
-              <div className="space-y-3">
-                {heatmapData.forgettingCurve.map((t, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <span className="text-xs text-slate-300 w-32 truncate">{t.topic}</span>
-                    <div className="flex-1 h-2 rounded-full bg-white/5">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${t.retention}%` }}
-                        transition={{ delay: i * 0.05, duration: 0.8 }}
-                        className="h-full rounded-full"
-                        style={{ background: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }}
-                      />
-                    </div>
-                    <span className="text-xs font-mono w-10 text-right" style={{ color: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }}>{t.retention}%</span>
-                    <span className="text-[10px] text-slate-500 w-14">{t.daysSince}d ago</span>
+            {/* ── Row 1: Stats strip ── */}
+            <div style={{display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:8}}>
+              {/* Score ring */}
+              <div style={{...bCard, padding:'12px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6}}>
+                <div style={{position:'relative', width:62, height:62}}>
+                  <svg viewBox="0 0 62 62" width="62" height="62">
+                    <circle cx="31" cy="31" r="25" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5"/>
+                    <circle cx="31" cy="31" r="25" fill="none" stroke={scoreColor} strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*25} ${2*Math.PI*25}`}
+                      strokeDashoffset={2*Math.PI*25*(1-score/100)}
+                      style={{transform:'rotate(-90deg)', transformOrigin:'31px 31px', transition:'stroke-dashoffset 1s ease'}}/>
+                  </svg>
+                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                    <span style={{fontSize:15, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                    <span style={{fontSize:7, color:'#475569'}}>/ 100</span>
                   </div>
-                ))}
+                </div>
+                <div style={{textAlign:'center'}}>
+                  <p style={{fontSize:10, fontWeight:600, color:'#94a3b8', marginBottom:1}}>Career Score</p>
+                  <p style={{fontSize:9, color:'#10b981'}}>↑ {Math.max(0, Math.round(score*0.11))} this week</p>
+                </div>
               </div>
-            </GlassCard>
-          )}
-        </div>
-      )}
+              {/* Metric cards */}
+              {STAT_CARDS.map(m => (
+                <div key={m.label} style={{...bCard, padding:'12px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, textAlign:'center'}}>
+                  <span style={{fontSize:16}}>{m.icon}</span>
+                  <p style={{fontSize:8, fontWeight:700, color:'#475569', letterSpacing:'0.08em', textTransform:'uppercase'}}>{m.label}</p>
+                  <p style={{fontSize:17, fontWeight:800, color:'#f1f5f9', lineHeight:1}}>{m.value}</p>
+                  <p style={{fontSize:9, color:'#64748b'}}>{m.sub}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Row 2: Three cards ── */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8}}>
+
+              {/* Cognitive Load Meter */}
+              <div style={{...bCard, padding:'14px'}}>
+                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Cognitive Load Meter</p>
+                <p style={{fontSize:11, color:'#64748b', marginBottom:6}}>Based on today's study, sleep & stress</p>
+                <div style={{display:'flex', justifyContent:'center'}}>
+                  <CognitiveGauge value={cognitiveLoad} />
+                </div>
+                <div style={{textAlign:'center', marginBottom:10}}>
+                  <p style={{fontSize:22, fontWeight:800, color:'#f1f5f9', lineHeight:1}}>{Math.round(cognitiveLoad)}</p>
+                  <p style={{fontSize:10, color:'#475569'}}>/ 100</p>
+                  <p style={{fontSize:11, fontWeight:600, color:loadColor, marginTop:3}}>{loadLabel}</p>
+                </div>
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:5, marginBottom:10}}>
+                  {[['< 40','#10b981','Optimal'],['40 – 70','#f59e0b','Moderate'],['> 70','#f43f5e','Burnout Risk']].map(([v,c,l]) => (
+                    <div key={l} style={{padding:'5px 4px', borderRadius:7, background:c+'12', textAlign:'center'}}>
+                      <p style={{fontSize:10, fontWeight:700, color:c}}>{v}</p>
+                      <p style={{fontSize:9, color:'#64748b'}}>{l}</p>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:'flex', alignItems:'center', gap:7, padding:'8px 10px', borderRadius:7, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)'}}>
+                  <span style={{fontSize:12, flexShrink:0}}>✨</span>
+                  <p style={{fontSize:11, color:'#94a3b8', lineHeight:1.4}}>
+                    {cognitiveLoad<40?"Great! You're in a good zone to learn deeply.":cognitiveLoad<70?"Manageable load. Take breaks every 45 min.":"High load! Rest before your next session."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Skill Radar */}
+              <div style={{...bCard, padding:'14px', display:'flex', flexDirection:'column'}}>
+                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Skill Radar</p>
+                <p style={{fontSize:11, color:'#64748b', marginBottom:8}}>Your overall skill distribution</p>
+                <div style={{flex:1, minHeight:180}}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarWithIdeal}>
+                      <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                      <PolarAngleAxis dataKey="subject" tick={{fill:'#94a3b8', fontSize:10}} />
+                      <Radar name="You" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
+                      <Radar name="Ideal" dataKey="full" stroke="rgba(255,255,255,0.2)" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{display:'flex', alignItems:'center', gap:14, marginBottom:8}}>
+                  <div style={{display:'flex', alignItems:'center', gap:5}}>
+                    <span style={{width:12, height:2, background:'#8b5cf6', display:'inline-block', borderRadius:1}}/>
+                    <span style={{fontSize:10, color:'#94a3b8'}}>You</span>
+                  </div>
+                  <div style={{display:'flex', alignItems:'center', gap:5}}>
+                    <span style={{width:12, height:1, background:'rgba(255,255,255,0.3)', display:'inline-block', borderTop:'1px dashed rgba(255,255,255,0.3)'}}/>
+                    <span style={{fontSize:10, color:'#94a3b8'}}>Ideal</span>
+                  </div>
+                </div>
+                <button onClick={()=>setTab('recommendations')} style={{padding:'8px 0', borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:12, fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                  View all skills →
+                </button>
+              </div>
+
+              {/* Skills Portfolio */}
+              <div style={{...bCard, padding:'14px', display:'flex', flexDirection:'column'}}>
+                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Skills Portfolio</p>
+                <p style={{fontSize:11, color:'#64748b', marginBottom:10}}>Showcase your skills and progress</p>
+                {c.skills.length > 0 ? (
+                  <div style={{flex:1, display:'flex', flexWrap:'wrap', gap:6, alignContent:'flex-start'}}>
+                    {c.skills.map(s => (
+                      <span key={s} style={{padding:'3px 10px', borderRadius:999, background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)', fontSize:11, color:'#93c5fd', fontWeight:500}}>{s}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8}}>
+                    <div style={{width:54, height:54, borderRadius:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22}}>📄</div>
+                    <p style={{fontSize:13, fontWeight:600, color:'#f1f5f9'}}>{c.skills.length} Skills Logged</p>
+                    <p style={{fontSize:11, color:'#64748b', textAlign:'center'}}>Add your first skill to get started.</p>
+                  </div>
+                )}
+                <button onClick={()=>setTab('log')} style={{marginTop:10, padding:'8px 0', borderRadius:7, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                  + Add Skill
+                </button>
+              </div>
+            </div>
+
+            {/* ── Tip bar ── */}
+            <div style={{...bCard, padding:'10px 16px', display:'flex', alignItems:'center', gap:8}}>
+              <span style={{fontSize:13, flexShrink:0}}>💡</span>
+              <p style={{fontSize:11, color:'#94a3b8'}}>Tip: Consistent small steps lead to massive growth. Log sessions regularly to track your progress.</p>
+            </div>
+
+            {/* Forgetting Curve (conditional) */}
+            {heatmapData.forgettingCurve?.length > 0 && (
+              <div style={{...bCard, padding:'20px'}}>
+                <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:3}}>Forgetting Curve — Topic Retention</p>
+                <p style={{fontSize:12, color:'#64748b', marginBottom:14}}>Topics lose ~20% retention per day without review</p>
+                <div style={{display:'flex', flexDirection:'column', gap:10}}>
+                  {heatmapData.forgettingCurve.map((t, i) => (
+                    <div key={i} style={{display:'flex', alignItems:'center', gap:10}}>
+                      <span style={{fontSize:12, color:'#cbd5e1', width:120, flexShrink:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{t.topic}</span>
+                      <div style={{flex:1, height:6, borderRadius:3, background:'rgba(255,255,255,0.05)', overflow:'hidden'}}>
+                        <motion.div initial={{width:0}} animate={{width:`${t.retention}%`}} transition={{delay:i*0.05, duration:0.8}}
+                          style={{height:'100%', borderRadius:3, background:t.retention>60?'#10b981':t.retention>30?'#f59e0b':'#f43f5e'}}/>
+                      </div>
+                      <span style={{fontSize:11, fontFamily:'monospace', width:36, textAlign:'right', color:t.retention>60?'#10b981':t.retention>30?'#f59e0b':'#f43f5e'}}>{t.retention}%</span>
+                      <span style={{fontSize:10, color:'#475569', width:40}}>{t.daysSince}d ago</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── LOG SESSION TAB ─────────────────────────────────────────────────── */}
       {tab === 'log' && (

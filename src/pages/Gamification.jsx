@@ -495,38 +495,61 @@ function GrindRoomPanel({ onXP }) {
   const pct = selectedRoom ? Math.round(((selectedRoom.minutes * 60 - timeLeft) / (selectedRoom.minutes * 60)) * 100) : 0;
 
   if (!selectedRoom) {
+    const gCard = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
     return (
-      <div className="space-y-5">
-        <GlassCard>
-          <div className="flex items-center gap-2 mb-1">
-            <Clock size={14} className="text-indigo-400" />
-            <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Silent Grind Rooms</h3>
+      <div style={{display:'flex', flexDirection:'column', gap:10}}>
+        <div style={gCard}>
+          {/* Header */}
+          <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'20px 20px 14px'}}>
+            <div>
+              <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Silent Grind Rooms</p>
+              <p style={{fontSize:12, color:'#64748b'}}>Join anonymously. Work in silence. Earn XP on completion. Others are grinding right now.</p>
+            </div>
+            <div style={{display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
+              <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>All Rooms</span>
+              <span style={{fontSize:10, color:'#64748b'}}>▾</span>
+            </div>
           </div>
-          <p className="text-[12px] text-[#71717a] mb-5">Join anonymously. Work in silence. Earn XP on completion. Others are grinding right now.</p>
-          <div className="space-y-2.5">
-            {GRIND_ROOMS.map(room => (
+
+          {/* Room rows */}
+          <div>
+            {GRIND_ROOMS.map((room, i) => (
               <button key={room.id} onClick={() => enterRoom(room)}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.10] transition-all text-left group">
-                <span className="text-2xl flex-shrink-0">{room.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-[#f0f0f3]">{room.name}</p>
-                  <p className="text-[11px] text-[#71717a]">{room.type} · {room.sound}</p>
+                style={{width:'100%', display:'flex', alignItems:'center', gap:16, padding:'16px 20px', background:'transparent', border:'none', borderTop: i===0 ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(255,255,255,0.06)', cursor:'pointer', textAlign:'left', transition:'background 0.15s'}}
+                onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}
+                onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                <div style={{width:46, height:46, borderRadius:12, background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0}}>
+                  {room.icon}
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-[12px] font-bold text-[#a1a1aa]">{room.minutes} min</p>
-                  <p className="text-[10px] text-emerald-400">{room.users} grinding</p>
+                <div style={{flex:1, minWidth:0}}>
+                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:3}}>{room.name}</p>
+                  <p style={{fontSize:12, color:'#64748b'}}>{room.type} • {room.sound}</p>
                 </div>
-                <ChevronRight size={14} className="text-[#6b7280] group-hover:text-[#71717a] flex-shrink-0" />
+                <div style={{display:'flex', alignItems:'center', gap:6, flexShrink:0}}>
+                  <Clock size={13} style={{color:'#475569'}}/>
+                  <span style={{fontSize:13, color:'#94a3b8', fontWeight:500, marginRight:16}}>{room.minutes} min</span>
+                </div>
+                <span style={{fontSize:13, fontWeight:700, color:'#10b981', minWidth:90, flexShrink:0}}>{room.users} grinding</span>
+                <ChevronRight size={16} style={{color:'#475569', flexShrink:0}}/>
               </button>
             ))}
           </div>
-        </GlassCard>
+
+          {/* Tip bar */}
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+            <div style={{display:'flex', alignItems:'center', gap:10}}>
+              <span style={{fontSize:16}}>🎧</span>
+              <span style={{fontSize:12, color:'#64748b'}}>Tip: Use headphones for the best experience.</span>
+            </div>
+            <span style={{fontSize:12, color:'#6366f1', fontWeight:600, cursor:'pointer'}}>Learn more ↗</span>
+          </div>
+        </div>
 
         {sessions > 0 && (
-          <GlassCard className="border border-emerald-500/15">
-            <p className="text-[11px] text-[#71717a] mb-1 font-semibold uppercase tracking-wider">Today's Grind</p>
-            <p className="text-[24px] font-black text-emerald-400">{sessions} session{sessions !== 1 ? 's' : ''} completed</p>
-          </GlassCard>
+          <div style={{...gCard, padding:'16px 20px'}}>
+            <p style={{fontSize:11, color:'#64748b', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.08em', fontWeight:600}}>Today's Grind</p>
+            <p style={{fontSize:22, fontWeight:800, color:'#10b981'}}>{sessions} session{sessions !== 1 ? 's' : ''} completed</p>
+          </div>
         )}
       </div>
     );
@@ -661,74 +684,140 @@ function PeersPanel({ userScores, codename }) {
     showToast(next.has(id) ? 'Challenge joined! 🔥' : 'Challenge left', next.has(id) ? 'success' : 'info');
   }
 
+  const PEER_AVATARS = ['🔥','⛈️','∞','🌿','⚡'];
+  const PEER_COLORS  = ['#f97316','#64748b','#6366f1','#10b981','#f59e0b'];
   const rankIcon = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `#${r}`;
+  const getLevel = total => Math.max(1, Math.floor(total / 7));
+
+  const pCard = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
+
+  // Sparkline: normalise 7 fake points ending at myTotal
+  const rawPts = [myTotal-8, myTotal-6, myTotal-7, myTotal-4, myTotal-5, myTotal-2, myTotal];
+  const minP = Math.min(...rawPts), maxP = Math.max(...rawPts);
+  const norm = v => maxP === minP ? 40 : 70 - ((v - minP) / (maxP - minP)) * 60;
+  const sparkCoords = rawPts.map((v, i) => `${(i / 6) * 200},${norm(v)}`).join(' ');
 
   return (
-    <div className="space-y-6">
-      {/* Leaderboard */}
-      <GlassCard>
-        <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
-          <Trophy size={14} className="text-amber-400" /> Anonymous Leaderboard
-        </h3>
-        <p className="text-[11px] text-[#71717a] mb-4">You + 4 anonymised peers · Real scores, hidden identities</p>
-        <div className="space-y-2">
-          {leaderboard.map(p => (
-            <div key={p.name} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${p.isMe ? 'bg-indigo-500/[0.08] border border-indigo-500/30' : 'bg-white/[0.02] border border-white/[0.05]'}`}>
-              <span className="w-7 text-center text-sm font-black shrink-0">{rankIcon(p.rank)}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-[12px] font-semibold text-white truncate">{p.name}</p>
-                  {p.isMe && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-300 font-bold shrink-0">YOU</span>}
-                </div>
-                <div className="flex gap-3 mt-0.5">
-                  {[['❤️', p.health || userScores.health], ['💰', p.finance || userScores.finance], ['🧠', p.career || userScores.career]].map(([icon, score]) => (
-                    <span key={icon} className="text-[10px] text-slate-500">{icon} {score || 60}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="text-base font-black text-white">{p.total}</p>
-                <p className="text-[9px] text-slate-500">Life Score</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </GlassCard>
+    <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
-      {/* Social Challenges */}
+      {/* ── Row 1: Leaderboard + Score card ── */}
+      <div style={{display:'grid', gridTemplateColumns:'1.8fr 1fr', gap:8}}>
+
+        {/* Leaderboard */}
+        <div style={pCard}>
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px 8px'}}>
+            <div>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:2}}>
+                <span style={{fontSize:13}}>🏆</span>
+                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Anonymous Leaderboard</p>
+              </div>
+              <p style={{fontSize:11, color:'#64748b'}}>Real scores. Hidden identities.</p>
+            </div>
+            <div style={{display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
+              <span style={{fontSize:11, color:'#94a3b8'}}>All Time</span>
+              <span style={{fontSize:9, color:'#64748b'}}>▾</span>
+            </div>
+          </div>
+          <div style={{padding:'4px 14px', borderTop:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'flex-end'}}>
+            <span style={{fontSize:10, color:'#475569', fontWeight:600}}>Life Score</span>
+          </div>
+          {leaderboard.map((p, idx) => {
+            const avatarColor = PEER_COLORS[idx] || '#6366f1';
+            return (
+              <div key={p.name} style={{
+                display:'flex', alignItems:'center', gap:8, padding:'7px 14px',
+                borderTop:'1px solid rgba(255,255,255,0.05)',
+                background: p.isMe ? 'rgba(99,102,241,0.08)' : 'transparent',
+              }}>
+                <span style={{fontSize: p.rank<=3?13:11, fontWeight:700, color:'#64748b', width:22, textAlign:'center', flexShrink:0}}>{rankIcon(p.rank)}</span>
+                <div style={{width:26, height:26, borderRadius:6, background:avatarColor+'18', border:`1px solid ${avatarColor}35`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>
+                  {PEER_AVATARS[idx]}
+                </div>
+                <div style={{flex:1, minWidth:0, display:'flex', alignItems:'center', gap:6}}>
+                  <p style={{fontSize:12, fontWeight:600, color:'#f1f5f9'}}>{p.name}</p>
+                  {p.isMe && <span style={{fontSize:8, padding:'1px 5px', borderRadius:4, background:'rgba(99,102,241,0.3)', color:'#a5b4fc', fontWeight:700}}>YOU</span>}
+                  <span style={{fontSize:10, color:'#64748b', background:'rgba(255,255,255,0.05)', padding:'1px 7px', borderRadius:999}}>Lv. {getLevel(p.total)}</span>
+                </div>
+                <p style={{fontSize:14, fontWeight:800, color: p.isMe ? '#818cf8' : '#f1f5f9', flexShrink:0}}>{p.total}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Your Life Score */}
+        <div style={{...pCard, padding:'12px', display:'flex', flexDirection:'column', gap:8}}>
+          <div style={{display:'flex', alignItems:'baseline', gap:8}}>
+            <p style={{fontSize:30, fontWeight:900, color:'#f1f5f9', lineHeight:1}}>{myTotal}</p>
+            <p style={{fontSize:12, color:'#94a3b8', fontWeight:600}}>Your Life Score</p>
+          </div>
+          <div style={{display:'flex', gap:10, flexWrap:'wrap'}}>
+            {[['🔥', userScores.health||55],['❤️', userScores.finance||54],['💜', userScores.career||39],['🛡️', Math.round(myTotal*0.78)]].map(([icon,val]) => (
+              <div key={icon} style={{display:'flex', alignItems:'center', gap:3}}>
+                <span style={{fontSize:12}}>{icon}</span>
+                <span style={{fontSize:12, fontWeight:700, color:'#e2e8f0'}}>{val}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{flex:1, minHeight:50}}>
+            <svg width="100%" height="60" viewBox="0 0 200 60" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="spkG" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+              <polygon points={`${sparkCoords} 200,60 0,60`} fill="url(#spkG)"/>
+              <polyline points={sparkCoords} fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              {rawPts.map((v,i) => <circle key={i} cx={(i/6)*200} cy={norm(v)} r="3" fill="#6366f1"/>)}
+            </svg>
+          </div>
+          <p style={{fontSize:11, fontWeight:700, color:'#10b981'}}>+4 this week</p>
+        </div>
+      </div>
+
+      {/* ── Row 2: Global Challenges ── */}
       <div>
-        <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
-          <Swords size={14} className="text-rose-400" /> Global Challenges
-        </h3>
-        <p className="text-[11px] text-[#71717a] mb-4">Join a community challenge · Earn XP · Beat your peers</p>
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+          <div>
+            <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:2}}>
+              <span style={{fontSize:13}}>🌍</span>
+              <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Global Challenges</p>
+            </div>
+            <p style={{fontSize:11, color:'#64748b'}}>Join challenges. Earn XP. Beat your peers.</p>
+          </div>
+          <button style={{padding:'6px 12px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', flexShrink:0}}>
+            View All Challenges
+          </button>
+        </div>
+
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
           {SOCIAL_CHALLENGES.map(ch => {
             const isJoined = joined.has(ch.id);
+            const dColor = DOMAIN_COLOR[ch.domain] || '#6366f1';
+            const dLabel = ch.domain.charAt(0).toUpperCase() + ch.domain.slice(1);
             return (
-              <motion.div key={ch.id} whileHover={{ scale: 1.01 }}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all ${isJoined ? 'bg-indigo-500/[0.08] border-indigo-500/30' : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'}`}
-                onClick={() => toggleChallenge(ch.id)}>
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{ch.icon}</span>
-                    <div>
-                      <p className="text-[12px] font-bold text-white leading-tight">{ch.title}</p>
-                      <p className="text-[10px] text-slate-500">{ch.duration} days · +{ch.xp} XP</p>
+              <div key={ch.id} style={{...pCard, padding:'10px 12px', display:'flex', alignItems:'center', gap:10}}>
+                <div style={{width:36, height:36, borderRadius:9, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0}}>
+                  {ch.icon}
+                </div>
+                <div style={{flex:1, minWidth:0}}>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:6, marginBottom:2}}>
+                    <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', lineHeight:1.2}}>{ch.title}</p>
+                    <span style={{fontSize:9, padding:'2px 6px', borderRadius:999, background:dColor+'20', color:dColor, fontWeight:700, flexShrink:0}}>{dLabel}</span>
+                  </div>
+                  <p style={{fontSize:10, color:'#64748b', marginBottom:6}}>{ch.desc}</p>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+                    <p style={{fontSize:10, color:'#475569'}}>👥 {ch.participants.toLocaleString()} joined</p>
+                    <div style={{display:'flex', alignItems:'center', gap:6}}>
+                      <span style={{fontSize:11, fontWeight:700, color:dColor}}>+{ch.xp} XP</span>
+                      <button onClick={() => toggleChallenge(ch.id)}
+                        style={{padding:'3px 10px', borderRadius:6, border: isJoined ? '1px solid rgba(99,102,241,0.3)' : 'none', background: isJoined ? 'rgba(99,102,241,0.15)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: isJoined ? '#a5b4fc' : '#fff', fontSize:10, fontWeight:700, cursor:'pointer'}}>
+                        {isJoined ? '✓' : 'Join'}
+                      </button>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ml-1"
-                    style={{ background: `${DOMAIN_COLOR[ch.domain]}20`, color: DOMAIN_COLOR[ch.domain] }}>
-                    {ch.domain}
-                  </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mb-3">{ch.desc}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-slate-600">👥 {ch.participants.toLocaleString()} joined</span>
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all ${isJoined ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/[0.05] text-slate-400'}`}>
-                    {isJoined ? '✓ Joined' : 'Join'}
-                  </span>
-                </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -740,62 +829,73 @@ function PeersPanel({ userScores, codename }) {
 // ── GUILDS PANEL ───────────────────────────────────────────────────────────────
 
 function GuildsPanel({ myGuildId, onJoin }) {
+  const RANK_STYLE = {
+    Gold:   { color:'#f59e0b', bg:'rgba(245,158,11,0.12)',  border:'rgba(245,158,11,0.35)'  },
+    Mythic: { color:'#8b5cf6', bg:'rgba(139,92,246,0.12)', border:'rgba(139,92,246,0.35)' },
+    Silver: { color:'#94a3b8', bg:'rgba(148,163,184,0.1)', border:'rgba(148,163,184,0.3)' },
+    Bronze: { color:'#f97316', bg:'rgba(249,115,22,0.12)', border:'rgba(249,115,22,0.35)' },
+  };
+  const fmtMembers = n => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n;
+
   return (
-    <div className="space-y-5">
-      <GlassCard>
-        <div className="flex items-center gap-2 mb-1">
-          <Users size={14} className="text-purple-400" />
-          <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Anonymous Guilds</h3>
+    <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14}}>
+      {/* Header */}
+      <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'18px 20px 14px'}}>
+        <div>
+          <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Anonymous Guilds</p>
+          <p style={{fontSize:12, color:'#64748b'}}>Join a guild to earn XP, complete collective quests, and build accountability — all anonymously.</p>
         </div>
-        <p className="text-[12px] text-[#71717a] mb-5">Join a guild to share XP, complete collective quests, and build accountability — all anonymously. You will never need to reveal your identity.</p>
+        <div style={{display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:9, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
+          <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>All Guilds</span>
+          <span style={{fontSize:10, color:'#64748b'}}>▾</span>
+        </div>
+      </div>
 
-        {myGuildId && (
-          <div className="mb-4 p-3 rounded-xl bg-indigo-500/[0.06] border border-indigo-500/15 flex items-center gap-2">
-            <CheckCircle size={13} className="text-indigo-400" />
-            <p className="text-[12px] text-indigo-300">You are a member of <strong>{GUILDS.find(g => g.id === myGuildId)?.name}</strong></p>
-          </div>
-        )}
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          {GUILDS.map(guild => {
-            const isMine = myGuildId === guild.id;
-            return (
-              <div key={guild.id}
-                className={`p-4 rounded-2xl border transition-all ${isMine ? 'border-opacity-50' : 'border-white/[0.06] bg-white/[0.02]'}`}
-                style={isMine ? { borderColor: guild.color + '40', background: guild.color + '08' } : {}}>
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{guild.icon}</span>
-                    <div>
-                      <p className="text-[13px] font-bold text-[#f0f0f3]">{guild.name}</p>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full font-bold border"
-                        style={{ color: guild.color, borderColor: guild.color + '40', background: guild.color + '14' }}>
-                        {guild.rank}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-[11px] text-[#71717a] leading-relaxed mb-3">{guild.desc}</p>
-                <div className="flex items-center justify-between text-[10px] mb-3">
-                  <span className="text-[#71717a]">{guild.members.toLocaleString()} members</span>
-                  <span style={{ color: guild.color }} className="font-semibold">{guild.xp} collective XP</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[#71717a]">Focus: {guild.stat}</span>
-                  <button
-                    onClick={() => { onJoin(isMine ? null : guild.id); showToast(isMine ? 'Left guild' : `Joined ${guild.name}!`, isMine ? 'info' : 'success'); }}
-                    className="text-[10px] px-3 py-1.5 rounded-xl border font-semibold transition-all"
-                    style={isMine
-                      ? { borderColor: 'rgba(239,68,68,0.3)', color: '#fca5a5', background: 'rgba(239,68,68,0.06)' }
-                      : { borderColor: guild.color + '40', color: guild.color, background: guild.color + '10' }}>
-                    {isMine ? 'Leave' : 'Join Guild'}
-                  </button>
-                </div>
+      {/* Guild rows */}
+      {GUILDS.map((guild, i) => {
+        const isMine = myGuildId === guild.id;
+        const rs = RANK_STYLE[guild.rank] || RANK_STYLE.Silver;
+        return (
+          <div key={guild.id} style={{
+            display:'flex', alignItems:'center', gap:16, padding:'16px 20px',
+            borderTop:'1px solid rgba(255,255,255,0.06)',
+            background: isMine ? guild.color+'08' : 'transparent',
+          }}>
+            {/* Icon */}
+            <div style={{width:58, height:58, borderRadius:14, background:`linear-gradient(135deg, ${guild.color}22, rgba(255,255,255,0.04))`, border:`1px solid ${guild.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, flexShrink:0}}>
+              {guild.icon}
+            </div>
+            {/* Info */}
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:4}}>
+                <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>{guild.name}</p>
+                <span style={{fontSize:10, padding:'2px 8px', borderRadius:999, fontWeight:700, color:rs.color, background:rs.bg, border:`1px solid ${rs.border}`}}>
+                  {guild.rank.toUpperCase()}
+                </span>
               </div>
-            );
-          })}
-        </div>
-      </GlassCard>
+              <p style={{fontSize:12, color:'#64748b', marginBottom:3}}>{guild.desc}</p>
+              <p style={{fontSize:12, color:'#475569'}}>Focus: <span style={{color:guild.color, fontWeight:600}}>{guild.stat}</span></p>
+            </div>
+            {/* Members + Join */}
+            <div style={{display:'flex', alignItems:'center', gap:16, flexShrink:0}}>
+              <div style={{display:'flex', alignItems:'center', gap:6}}>
+                <span style={{fontSize:13, color:'#475569'}}>👥</span>
+                <span style={{fontSize:12, color:'#94a3b8'}}>{fmtMembers(guild.members)} members</span>
+              </div>
+              <button
+                onClick={() => { onJoin(isMine ? null : guild.id); showToast(isMine ? 'Left guild' : `Joined ${guild.name}!`, isMine ? 'info' : 'success'); }}
+                style={{
+                  display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:600, transition:'all 0.15s',
+                  border: isMine ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(255,255,255,0.18)',
+                  background: isMine ? 'rgba(239,68,68,0.08)' : 'rgba(255,255,255,0.04)',
+                  color: isMine ? '#fca5a5' : '#f1f5f9',
+                }}>
+                {isMine ? 'Leave' : 'Join'} <span style={{fontSize:13}}>→</span>
+              </button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

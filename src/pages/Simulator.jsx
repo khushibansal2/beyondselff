@@ -480,127 +480,77 @@ export default function Simulator() {
     setExpandedStep(null);
   }
 
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  const QUICK_TAGS = [
+    { label: 'Popular Ideas', scenario: '' },
+    { label: 'UPSC',          scenario: 'What if I quit my job for UPSC preparation?' },
+    { label: 'Career Switch', scenario: 'What if I switch careers to AI engineering?' },
+    { label: 'Move Abroad',   scenario: 'What if I move abroad for better opportunities?' },
+    { label: 'Start Startup', scenario: 'What if I start my own startup?' },
+    { label: 'Masters Degree',scenario: 'What if I pursue a Masters degree abroad?' },
+    { label: 'Remote Job',    scenario: 'What if I take a fully remote job?' },
+  ];
+
+  const SIM_DOMAINS = [
+    { key: 'health',    icon: '❤️',  label: 'Health',    color: '#10b981' },
+    { key: 'finance',   icon: '💰',  label: 'Finance',   color: '#f59e0b' },
+    { key: 'career',    icon: '💼',  label: 'Career',    color: '#6366f1' },
+    { key: 'wellbeing', icon: '🌿',  label: 'Wellbeing', color: '#8b5cf6' },
+  ];
+
+  const getTrend = delta => {
+    if (delta >= 12) return { arrows: '↑↑', label: 'Improves',  color: '#10b981' };
+    if (delta >  0)  return { arrows: '↑',  label: 'Improves',  color: '#10b981' };
+    if (delta === 0) return { arrows: '↔',  label: 'Stable',    color: '#64748b' };
+    if (delta > -12) return { arrows: '↓',  label: 'Declines',  color: '#f43f5e' };
+    return               { arrows: '↓↓', label: 'Declines',  color: '#f43f5e' };
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
+  const sCard = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
+
   return (
-    <div className="page-container min-h-screen pb-20">
-      <PageHeader
-        title="AI Life Simulator"
-        subtitle="Describe any life decision in plain language. The AI simulates its effects across health, finance, and career."
-        icon="🔮"
-      />
+    <div style={{padding:'18px 24px 32px', minHeight:'100vh'}}>
+      {/* Header */}
+      <div style={{marginBottom:14}}>
+        <h1 style={{fontSize:22, fontWeight:800, color:'#f0f0f3', margin:0}}>🔮 AI Life Simulator</h1>
+        <p style={{fontSize:12, color:'#71717a', marginTop:3}}>Test a life decision before making it. See how it affects your future across Health, Finance, Career and Wellbeing.</p>
+      </div>
 
-      {/* ── Scenario Input ── */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <GlassCard className="mb-6">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <Brain size={15} className="text-indigo-400" />
-            </div>
-            <div>
-              <p className="text-[13px] font-semibold text-[#f0f0f3]">What decision do you want to simulate?</p>
-              <p className="text-[11px] text-[#71717a]">Type any life scenario in natural language</p>
-            </div>
-          </div>
+      {/* ── Search bar ── */}
+      <div style={{display:'flex', alignItems:'center', gap:12, marginBottom:12, background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'12px 14px 12px 18px'}}>
+        <input
+          ref={textareaRef}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleSimulate(); }}
+          placeholder="What if I quit my job for UPSC preparation?"
+          style={{flex:1, background:'transparent', border:'none', outline:'none', fontSize:14, color:'#f1f5f9', fontFamily:'inherit'}}
+        />
+        {result && (
+          <button onClick={handleReset} style={{padding:'6px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:'#64748b', fontSize:12, cursor:'pointer', flexShrink:0}}>
+            Reset
+          </button>
+        )}
+        <button
+          onClick={handleSimulate}
+          disabled={!input.trim() || loading}
+          style={{padding:'9px 20px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', flexShrink:0, display:'flex', alignItems:'center', gap:7, opacity:(!input.trim()||loading)?0.5:1}}>
+          {loading ? <><div style={{width:12,height:12,border:'2px solid rgba(255,255,255,0.4)',borderTopColor:'#fff',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/> Simulating…</> : <><Sparkles size={13}/>Simulate Future</>}
+        </button>
+      </div>
 
-          {/* Compare mode toggle */}
-          <div className="flex items-center gap-2 mb-3">
-            <button
-              onClick={() => { setCompareMode(p => !p); setResultB(null); }}
-              className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${
-                compareMode
-                  ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
-                  : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
-              }`}
-            >
-              <GitCompare size={12} /> {compareMode ? 'Compare Mode ON' : 'Compare Two Scenarios'}
-            </button>
-            {compareMode && <span className="text-[11px] text-[#71717a]">Enter both scenarios and simulate together</span>}
-          </div>
-
-          {compareMode ? (
-            <div className="grid sm:grid-cols-2 gap-3 mb-4">
-              <div>
-                <p className="text-[11px] text-blue-400 font-semibold mb-1.5">Scenario A</p>
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  placeholder="e.g. What if I work overtime for 6 months?"
-                  rows={3}
-                  className="input-premium w-full resize-none text-[13px] leading-relaxed"
-                  style={{ minHeight: '80px', borderColor: 'rgba(59,130,246,0.2)' }}
-                />
-              </div>
-              <div>
-                <p className="text-[11px] text-purple-400 font-semibold mb-1.5">Scenario B</p>
-                <textarea
-                  value={inputB}
-                  onChange={e => setInputB(e.target.value)}
-                  placeholder="e.g. What if I take a 3-month sabbatical?"
-                  rows={3}
-                  className="input-premium w-full resize-none text-[13px] leading-relaxed"
-                  style={{ minHeight: '80px', borderColor: 'rgba(139,92,246,0.2)' }}
-                />
-              </div>
-            </div>
-          ) : (
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSimulate(); }}
-              placeholder="e.g. What if I quit my job to prepare for UPSC for 1 year?"
-              rows={3}
-              className="input-premium w-full resize-none text-[14px] leading-relaxed mb-4"
-              style={{ minHeight: '88px' }}
-            />
-          )}
-
-          {/* Example chips */}
-          <div className="mb-5">
-            <p className="text-[11px] text-[#6b7280] font-medium mb-2">Examples:</p>
-            <div className="flex flex-wrap gap-2">
-              {EXAMPLES.map((ex, i) => (
-                <button
-                  key={i}
-                  onClick={() => { setInput(ex); textareaRef.current?.focus(); }}
-                  className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] hover:border-white/[0.10] hover:bg-white/[0.04] transition-all"
-                >
-                  {ex.length > 45 ? ex.slice(0, 45) + '…' : ex}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] text-[#6b7280]">Ctrl + Enter to simulate</p>
-            <div className="flex gap-2.5">
-              {(result || input) && (
-                <button
-                  onClick={handleReset}
-                  className="flex items-center gap-1.5 text-[12px] px-3.5 py-2 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] hover:border-white/[0.10] transition-all"
-                >
-                  <RotateCcw size={12} /> Reset
-                </button>
-              )}
-              <button
-                onClick={handleSimulate}
-                disabled={!input.trim() || loading}
-                className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: input.trim() && !loading ? '0 0 24px rgba(99,102,241,0.35)' : 'none',
-                }}
-              >
-                {loading
-                  ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Simulating…</>
-                  : <><Sparkles size={14} />Simulate</>}
-              </button>
-            </div>
-          </div>
-        </GlassCard>
-      </motion.div>
+      {/* ── Quick tags ── */}
+      <div style={{display:'flex', flexWrap:'wrap', gap:8, marginBottom:16}}>
+        {QUICK_TAGS.map(t => (
+          <button key={t.label} onClick={() => t.scenario && setInput(t.scenario)}
+            style={{padding:'5px 14px', borderRadius:999, border:'1px solid rgba(255,255,255,0.09)', background:'rgba(255,255,255,0.03)', color:'#94a3b8', fontSize:12, cursor:t.scenario?'pointer':'default', fontWeight:500}}>
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {/* ── Loading ── */}
       <AnimatePresence>
@@ -650,288 +600,174 @@ export default function Simulator() {
         )}
       </AnimatePresence>
 
-      {/* ── Side-by-side comparison results ── */}
-      <AnimatePresence>
-        {result && resultB && (
-          <motion.div ref={resultsRef} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-            <SideBySidePanel
-              resultA={result}
-              resultB={resultB}
-              inputA={input}
-              inputB={inputB}
-              baseline={baseline}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Single / detailed results ── */}
+      {/* ── Results ── */}
       <AnimatePresence>
         {result && (
-          <motion.div ref={!resultB ? resultsRef : undefined} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-            {resultB && (
-              <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider">Scenario A — Full Details</p>
-            )}
+          <motion.div ref={resultsRef} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{display:'flex', flexDirection:'column', gap:10}}>
 
-            {/* 1. Summary + Confidence */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}>
-              <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="text-[10px] px-2.5 py-1 rounded-full border border-indigo-500/25 bg-indigo-500/10 text-indigo-300 font-semibold uppercase tracking-wider">
-                    {result.scenarioType}
-                  </span>
+            {/* Row 1: Impact table + AI Verdict */}
+            <div style={{display:'grid', gridTemplateColumns:'1.8fr 1fr', gap:10}}>
+
+              {/* Impact table */}
+              <div style={{...sCard, padding:'20px'}}>
+                <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:16}}>
+                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Current vs Future Impact</p>
+                  <span style={{fontSize:13, color:'#475569', cursor:'help'}} title="Scores projected 12 months out">ⓘ</span>
                 </div>
-                <h2 className="text-[17px] font-bold text-[#f0f0f3] mb-2 leading-snug">{result.scenarioTitle}</h2>
-                <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-4">{result.summary}</p>
-
-                <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] mb-5">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Info size={11} className="text-[#71717a]" />
-                    <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wider">AI Interpretation</p>
-                  </div>
-                  <p className="text-[12px] text-[#71717a] leading-relaxed">{result.interpretation}</p>
+                {/* Header row */}
+                <div style={{display:'grid', gridTemplateColumns:'120px 1fr 24px 1fr 60px', alignItems:'center', gap:8, marginBottom:10, paddingBottom:8, borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                  {['Area','Current','','Future','Change'].map(h => (
+                    <span key={h} style={{fontSize:11, color:'#475569', fontWeight:600}}>{h}</span>
+                  ))}
                 </div>
-
-                <ConfidenceMeter value={result.confidence} />
-              </GlassCard>
-            </motion.div>
-
-            {/* 2. Score Comparison */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }}>
-              <div className="grid grid-cols-2 gap-4">
-                {/* Baseline */}
-                <GlassCard>
-                  <p className="text-[11px] font-semibold text-[#71717a] uppercase tracking-wider text-center mb-5">Baseline (Now)</p>
-                  <div className="flex justify-around flex-wrap gap-y-3">
-                    {Object.entries(result.scores.baseline).map(([d, s]) => (
-                      <ScoreRing key={d} score={s} color={DOMAIN_STYLE[d]?.color ?? '#6366f1'}
-                        label={d.charAt(0).toUpperCase() + d.slice(1)} size={70} />
-                    ))}
-                  </div>
-                </GlassCard>
-
-                {/* Projected */}
-                <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
-                  <p className="text-[11px] font-semibold text-[#71717a] uppercase tracking-wider text-center mb-5">Projected (1 year)</p>
-                  <div className="flex justify-around flex-wrap gap-y-3">
-                    {Object.entries(result.scores.projected).map(([d, s]) => {
-                      const delta = s - result.scores.baseline[d];
-                      return (
-                        <div key={d} className="flex flex-col items-center gap-1">
-                          <ScoreRing score={s} color={DOMAIN_STYLE[d]?.color ?? '#6366f1'}
-                            label={d.charAt(0).toUpperCase() + d.slice(1)} size={70} />
-                          <DeltaBadge delta={delta} />
+                {/* Domain rows */}
+                {SIM_DOMAINS.map(d => {
+                  const cur = result.scores?.baseline?.[d.key] ?? 0;
+                  const fut = result.scores?.projected?.[d.key] ?? 0;
+                  const delta = fut - cur;
+                  return (
+                    <div key={d.key} style={{display:'grid', gridTemplateColumns:'120px 1fr 24px 1fr 60px', alignItems:'center', gap:8, padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:8}}>
+                        <span style={{fontSize:14}}>{d.icon}</span>
+                        <span style={{fontSize:13, fontWeight:600, color:'#e2e8f0'}}>{d.label}</span>
+                      </div>
+                      <div>
+                        <div style={{display:'flex', alignItems:'baseline', gap:4, marginBottom:4}}>
+                          <span style={{fontSize:18, fontWeight:800, color:'#f1f5f9'}}>{cur}</span>
+                          <span style={{fontSize:10, color:'#475569'}}>/ 100</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                </GlassCard>
-              </div>
-            </motion.div>
-
-            {/* 3. Impact Matrix */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
-              <GlassCard>
-                <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Cross-Domain Impact Analysis</h3>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {(result.impacts ?? []).map((impact, i) => (
-                    <ImpactCard key={i} impact={impact} delay={0.13 + i * 0.05} />
-                  ))}
-                </div>
-              </GlassCard>
-            </motion.div>
-
-            {/* 4. Timeline Chart */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
-              <TimelineChart result={result} />
-            </motion.div>
-
-            {/* 5. Trade-offs */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.23 }}>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <GlassCard className="border border-emerald-500/15 bg-emerald-500/[0.02]">
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle size={14} className="text-emerald-400" />
-                    <h3 className="text-[13px] font-semibold text-emerald-300">Advantages</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {(result.tradeoffs?.pros ?? []).map((pro, i) => (
-                      <li key={i} className="flex items-start gap-2 text-[12px] text-[#a1a1aa] leading-relaxed">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500/60 flex-shrink-0" />
-                        {pro}
-                      </li>
-                    ))}
-                  </ul>
-                </GlassCard>
-
-                <GlassCard className="border border-red-500/15 bg-red-500/[0.02]">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle size={14} className="text-red-400" />
-                    <h3 className="text-[13px] font-semibold text-red-300">Risks & Trade-offs</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {(result.tradeoffs?.cons ?? []).map((con, i) => (
-                      <li key={i} className="flex items-start gap-2 text-[12px] text-[#a1a1aa] leading-relaxed">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500/60 flex-shrink-0" />
-                        {con}
-                      </li>
-                    ))}
-                  </ul>
-                </GlassCard>
-              </div>
-            </motion.div>
-
-            {/* 6. Reasoning Chain */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
-              <GlassCard>
-                <div className="flex items-center gap-2 mb-4">
-                  <Brain size={14} className="text-purple-400" />
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Reasoning Chain</h3>
-                  <span className="text-[11px] text-[#71717a]">— click any step to expand</span>
-                </div>
-                <div className="space-y-2">
-                  {(result.reasoning ?? []).map((step, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.28 + i * 0.07 }}>
-                      <button
-                        onClick={() => setExpandedStep(expandedStep === i ? null : i)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04] transition-all text-left"
-                      >
-                        <span className="w-6 h-6 rounded-full bg-purple-500/15 border border-purple-500/20 text-purple-300 text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                          {step.step}
-                        </span>
-                        <span className="flex-1 text-[12px] font-medium text-[#a1a1aa]">{step.title}</span>
-                        <ChevronRight size={12} className={`text-[#71717a] transition-transform duration-200 ${expandedStep === i ? 'rotate-90' : ''}`} />
-                      </button>
-                      <AnimatePresence>
-                        {expandedStep === i && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="px-4 pt-2.5 pb-3 text-[12px] text-[#71717a] leading-relaxed border-l-2 border-purple-500/20 ml-3 mt-1">
-                              {step.detail}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  ))}
-                </div>
-              </GlassCard>
-            </motion.div>
-
-            {/* 7. Warnings */}
-            {result.warnings?.length > 0 && result.warnings[0] && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33 }}>
-                <GlassCard className="border border-amber-500/20 bg-amber-500/[0.03]">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle size={14} className="text-amber-400" />
-                    <h3 className="text-[13px] font-semibold text-amber-300">Important Warnings</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {result.warnings.map((w, i) => (
-                      <li key={i} className="flex items-start gap-2 text-[12px] text-[#a1a1aa] leading-relaxed">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500/60 flex-shrink-0" />
-                        {w}
-                      </li>
-                    ))}
-                  </ul>
-                </GlassCard>
-              </motion.div>
-            )}
-
-            {/* 8. Recommendations */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
-              <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
-                <div className="flex items-center gap-2 mb-4">
-                  <Zap size={14} className="text-indigo-400" />
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Recommendations</h3>
-                </div>
-                <div className="space-y-2.5">
-                  {(result.recommendations ?? []).map((rec, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.38 + i * 0.07 }}
-                      className="flex items-start gap-3 p-3.5 rounded-xl bg-indigo-500/[0.04] border border-indigo-500/[0.08]"
-                    >
-                      <span className="text-[11px] font-bold text-indigo-400/70 mt-0.5 flex-shrink-0 font-mono">
-                        {String(i + 1).padStart(2, '0')}
+                        <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden'}}>
+                          <div style={{width:`${cur}%`, height:'100%', background:d.color, borderRadius:2}}/>
+                        </div>
+                      </div>
+                      <span style={{fontSize:14, color:'#475569', textAlign:'center'}}>→</span>
+                      <div>
+                        <div style={{display:'flex', alignItems:'baseline', gap:4, marginBottom:4}}>
+                          <span style={{fontSize:18, fontWeight:800, color:'#f1f5f9'}}>{fut}</span>
+                          <span style={{fontSize:10, color:'#475569'}}>/ 100</span>
+                        </div>
+                        <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden'}}>
+                          <div style={{width:`${fut}%`, height:'100%', background:d.color, borderRadius:2}}/>
+                        </div>
+                      </div>
+                      <span style={{fontSize:13, fontWeight:700, color:delta>0?'#10b981':delta<0?'#f43f5e':'#64748b'}}>
+                        {delta>0?'+':''}{delta}
                       </span>
-                      <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{rec}</p>
-                    </motion.div>
-                  ))}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* AI Verdict */}
+              <div style={{...sCard, padding:'20px'}}>
+                <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:16}}>
+                  <span style={{fontSize:14, color:'#8b5cf6'}}>✦</span>
+                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>AI Verdict</p>
                 </div>
-              </GlassCard>
-            </motion.div>
-
-            {/* Disclaimer */}
-            <p className="text-center text-[10px] text-[#6b7280] pb-4">
-              AI predictions are probabilistic estimates, not guarantees. Results depend on many real-world factors.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Scenario B detailed results (compare mode) ── */}
-      <AnimatePresence>
-        {resultB && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5 mt-4">
-            <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider">Scenario B — Full Details</p>
-
-            <GlassCard className="border border-purple-500/15 bg-purple-500/[0.02]">
-              <h2 className="text-[15px] font-bold text-[#f0f0f3] mb-2">{resultB.scenarioTitle}</h2>
-              <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-4">{resultB.summary}</p>
-              <ConfidenceMeter value={resultB.confidence} />
-            </GlassCard>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <GlassCard className="border border-emerald-500/15 bg-emerald-500/[0.02]">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle size={14} className="text-emerald-400" />
-                  <h3 className="text-[13px] font-semibold text-emerald-300">Advantages</h3>
+                {[
+                  {icon:'📈', iconBg:'rgba(16,185,129,0.15)', label:'Best Outcome',   color:'#10b981', text: result.tradeoffs?.pros?.[0] || result.summary},
+                  {icon:'⚠️', iconBg:'rgba(249,115,22,0.15)',  label:'Biggest Risk',   color:'#f97316', text: result.tradeoffs?.cons?.[0]},
+                  {icon:'💡', iconBg:'rgba(234,179,8,0.15)',   label:'Recommendation', color:'#eab308', text: result.recommendations?.[0] || result.interpretation},
+                ].map(item => item.text && (
+                  <div key={item.label} style={{display:'flex', alignItems:'flex-start', gap:12, marginBottom:14}}>
+                    <div style={{width:36, height:36, borderRadius:10, background:item.iconBg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:16}}>{item.icon}</div>
+                    <div>
+                      <p style={{fontSize:11, fontWeight:700, color:item.color, marginBottom:3}}>{item.label}</p>
+                      <p style={{fontSize:12, color:'#94a3b8', lineHeight:1.5}}>{item.text}</p>
+                    </div>
+                  </div>
+                ))}
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:12, marginTop:4}}>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6}}>
+                    <span style={{fontSize:12, color:'#64748b'}}>Confidence Score</span>
+                    <span style={{fontSize:16, fontWeight:800, color:'#8b5cf6'}}>{result.confidence}%</span>
+                  </div>
+                  <div style={{height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                    <motion.div initial={{width:0}} animate={{width:`${result.confidence}%`}} transition={{duration:1, ease:'easeOut'}}
+                      style={{height:'100%', borderRadius:3, background:'linear-gradient(90deg,#6366f1,#8b5cf6)'}}/>
+                  </div>
                 </div>
-                <ul className="space-y-2">
-                  {(resultB.tradeoffs?.pros ?? []).map((pro, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[12px] text-[#a1a1aa]">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500/60 flex-shrink-0" />{pro}
-                    </li>
-                  ))}
-                </ul>
-              </GlassCard>
-              <GlassCard className="border border-red-500/15 bg-red-500/[0.02]">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle size={14} className="text-red-400" />
-                  <h3 className="text-[13px] font-semibold text-red-300">Risks & Trade-offs</h3>
-                </div>
-                <ul className="space-y-2">
-                  {(resultB.tradeoffs?.cons ?? []).map((con, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[12px] text-[#a1a1aa]">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500/60 flex-shrink-0" />{con}
-                    </li>
-                  ))}
-                </ul>
-              </GlassCard>
+              </div>
             </div>
 
-            <GlassCard className="border border-purple-500/15 bg-purple-500/[0.02]">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap size={14} className="text-purple-400" />
-                <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Recommendations for Scenario B</h3>
+            {/* Row 2: Why + Timeline + Tradeoffs */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10}}>
+
+              {/* Why */}
+              <div style={{...sCard, padding:'20px'}}>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:12}}>
+                  <span style={{fontSize:18}}>🧠</span>
+                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Why?</p>
+                </div>
+                <p style={{fontSize:12, fontWeight:600, color:'#94a3b8', marginBottom:8}}>AI Reasoning</p>
+                <p style={{fontSize:12, color:'#64748b', lineHeight:1.7}}>{result.summary}</p>
               </div>
-              <div className="space-y-2">
-                {(resultB.recommendations ?? []).map((rec, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-purple-500/[0.04] border border-purple-500/[0.08]">
-                    <span className="text-[11px] font-bold text-purple-400/70 mt-0.5 flex-shrink-0 font-mono">{String(i+1).padStart(2,'0')}</span>
-                    <p className="text-[12px] text-[#a1a1aa]">{rec}</p>
+
+              {/* Timeline */}
+              <div style={{...sCard, padding:'20px'}}>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:16}}>
+                  <span style={{fontSize:18}}>📅</span>
+                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Timeline</p>
+                </div>
+                {[
+                  {months:'Months 1–3',  phase:'Adjustment Phase'},
+                  {months:'Months 4–8',  phase:'Peak Preparation'},
+                  {months:'Months 9–12', phase:'Long-term Outcome'},
+                ].map((t,i) => (
+                  <div key={i} style={{display:'flex', alignItems:'flex-start', gap:12, marginBottom:i<2?16:0}}>
+                    <span style={{width:10, height:10, borderRadius:'50%', background:'#6366f1', flexShrink:0, marginTop:3}}/>
+                    <div>
+                      <p style={{fontSize:13, fontWeight:600, color:'#f1f5f9', marginBottom:2}}>{t.months}</p>
+                      <p style={{fontSize:11, color:'#64748b'}}>{t.phase}</p>
+                    </div>
                   </div>
                 ))}
               </div>
-            </GlassCard>
+
+              {/* Tradeoffs */}
+              <div style={{...sCard, padding:'20px'}}>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:14}}>
+                  <span style={{fontSize:18}}>⚖️</span>
+                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Tradeoffs</p>
+                </div>
+                <p style={{fontSize:12, fontWeight:700, color:'#10b981', marginBottom:8}}>Pros</p>
+                {(result.tradeoffs?.pros ?? []).slice(0,3).map((p,i) => (
+                  <div key={i} style={{display:'flex', alignItems:'flex-start', gap:8, marginBottom:6}}>
+                    <span style={{fontSize:12, color:'#10b981', flexShrink:0}}>✓</span>
+                    <p style={{fontSize:12, color:'#94a3b8', lineHeight:1.4}}>{p}</p>
+                  </div>
+                ))}
+                <p style={{fontSize:12, fontWeight:700, color:'#f43f5e', marginBottom:8, marginTop:12}}>Cons</p>
+                {(result.tradeoffs?.cons ?? []).slice(0,3).map((c,i) => (
+                  <div key={i} style={{display:'flex', alignItems:'flex-start', gap:8, marginBottom:6}}>
+                    <span style={{width:6, height:6, borderRadius:'50%', background:'#f43f5e', flexShrink:0, marginTop:4}}/>
+                    <p style={{fontSize:12, color:'#94a3b8', lineHeight:1.4}}>{c}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Digital Twin predictions bar */}
+            <div style={{...sCard, padding:'14px 20px', display:'flex', alignItems:'center', gap:24, flexWrap:'wrap'}}>
+              <div style={{display:'flex', alignItems:'center', gap:10, flexShrink:0}}>
+                <span style={{fontSize:16}}>🤖</span>
+                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Your Digital Twin predicts</p>
+              </div>
+              <div style={{display:'flex', gap:28, flexWrap:'wrap'}}>
+                {SIM_DOMAINS.map(d => {
+                  const delta = (result.scores?.projected?.[d.key]??0) - (result.scores?.baseline?.[d.key]??0);
+                  const trend = getTrend(delta);
+                  return (
+                    <div key={d.key} style={{textAlign:'center'}}>
+                      <p style={{fontSize:13, fontWeight:600, color:'#f1f5f9', marginBottom:1}}>{d.label}</p>
+                      <p style={{fontSize:14, fontWeight:800, color:trend.color}}>{trend.arrows}</p>
+                      <p style={{fontSize:10, color:'#64748b'}}>{trend.label}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
           </motion.div>
         )}
       </AnimatePresence>
@@ -939,39 +775,31 @@ export default function Simulator() {
       {/* ── Empty State ── */}
       {!result && !loading && !error && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <GlassCard className="text-center py-14">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/15 flex items-center justify-center mx-auto mb-5">
-              <span className="text-3xl">🔮</span>
-            </div>
-            <h3 className="text-[15px] font-semibold text-[#f0f0f3] mb-2">Your AI Digital Twin</h3>
-            <p className="text-[13px] text-[#71717a] max-w-sm mx-auto leading-relaxed mb-8">
-              Type any life decision above. The AI reads your real profile data and simulates how that choice would unfold across health, finances, and career.
+          <div style={{...sCard, padding:'40px 24px', textAlign:'center'}}>
+            <div style={{width:56, height:56, borderRadius:14, background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', fontSize:24}}>🔮</div>
+            <p style={{fontSize:15, fontWeight:700, color:'#f1f5f9', marginBottom:6}}>Your AI Digital Twin</p>
+            <p style={{fontSize:13, color:'#64748b', maxWidth:380, margin:'0 auto 24px', lineHeight:1.6}}>
+              Type any life decision above. The AI reads your real profile and simulates how it unfolds across health, finances, and career.
             </p>
-            <div className="grid sm:grid-cols-3 gap-3 max-w-lg mx-auto text-left">
-              {[
-                { icon: '🧠', title: 'AI Reasoning',    desc: 'Step-by-step causal chain' },
-                { icon: '📅', title: 'Timeline View',   desc: '1 month → 5 year projection' },
-                { icon: '⚖️', title: 'Trade-off Matrix', desc: 'Pros, cons & warnings' },
-              ].map(f => (
-                <div key={f.title} className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                  <span className="text-xl block mb-1.5">{f.icon}</span>
-                  <p className="text-[12px] font-semibold text-[#a1a1aa]">{f.title}</p>
-                  <p className="text-[11px] text-[#71717a] mt-0.5">{f.desc}</p>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, maxWidth:500, margin:'0 auto 24px', textAlign:'left'}}>
+              {[{icon:'🧠',title:'AI Reasoning',desc:'Step-by-step causal chain'},{icon:'📅',title:'Timeline View',desc:'12-month projection'},{icon:'⚖️',title:'Tradeoffs',desc:'Pros, cons & confidence'}].map(f => (
+                <div key={f.title} style={{padding:'14px', borderRadius:10, border:'1px solid rgba(255,255,255,0.07)', background:'rgba(255,255,255,0.02)'}}>
+                  <span style={{fontSize:18, display:'block', marginBottom:6}}>{f.icon}</span>
+                  <p style={{fontSize:12, fontWeight:600, color:'#e2e8f0', marginBottom:3}}>{f.title}</p>
+                  <p style={{fontSize:11, color:'#64748b'}}>{f.desc}</p>
                 </div>
               ))}
             </div>
-
-            {/* Current baseline display */}
-            <div className="mt-8 p-4 rounded-2xl border border-white/[0.05] bg-white/[0.02] max-w-sm mx-auto">
-              <p className="text-[11px] text-[#71717a] font-medium uppercase tracking-wider mb-4">Your Current Baseline</p>
-              <div className="flex justify-around">
-                {Object.entries(baseline).map(([d, s]) => (
-                  <ScoreRing key={d} score={s} color={DOMAIN_STYLE[d]?.color ?? '#6366f1'}
-                    label={d.charAt(0).toUpperCase() + d.slice(1)} size={60} />
-                ))}
-              </div>
+            <div style={{display:'flex', justifyContent:'center', gap:28}}>
+              {SIM_DOMAINS.map(d => (
+                <div key={d.key} style={{textAlign:'center'}}>
+                  <span style={{fontSize:18}}>{d.icon}</span>
+                  <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginTop:4}}>{baseline[d.key] ?? 0}</p>
+                  <p style={{fontSize:10, color:'#64748b'}}>{d.label}</p>
+                </div>
+              ))}
             </div>
-          </GlassCard>
+          </div>
         </motion.div>
       )}
     </div>

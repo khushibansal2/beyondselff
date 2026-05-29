@@ -798,7 +798,7 @@ export default function Finance() {
     { id: 'live',             label: 'Live Feed',    sym: '●' },
     { id: 'transactions',     label: 'Transactions', sym: '≡' },
     { id: 'log',              label: 'Log',          sym: '\\' },
-    { id: 'recommendations',  label: 'Robo Advisor', sym: '◉' },
+    { id: 'recommendations',  label: 'AI Advisor',   sym: '◉' },
     { id: 'invest',           label: 'Invest',       sym: '↑' },
   ];
 
@@ -811,530 +811,467 @@ export default function Finance() {
 
       <PageHeader title="Financial Intelligence" subtitle="AI-powered transaction parsing, live feed, and spending analytics." icon="💰" />
 
-      {/* Tab bar — matches screenshot style */}
-      <div className="flex flex-wrap gap-1.5 p-1 rounded-2xl" style={{background:'rgba(8,14,26,0.80)', border:'1px solid rgba(255,255,255,0.06)', width:'fit-content', marginBottom:28, marginTop:20}}>
-        {tabs.map(t => {
-          const isActive = tab === t.id;
-          return (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              style={{
-                padding:'8px 18px', borderRadius:12, fontSize:13, fontWeight:600,
-                display:'flex', alignItems:'center', gap:7, transition:'all 0.2s',
-                background: isActive ? '#00d8b6' : 'transparent',
-                color: isActive ? '#060b14' : '#64748b',
-                border: 'none', cursor:'pointer',
-              }}>
-              <span style={{fontSize:11, fontWeight:700, opacity: isActive ? 1 : 0.7}}>{t.sym}</span>
-              {t.label}
-              {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
-              {t.id === 'transactions' && allTxs.length > 0 && (
-                <span style={{fontSize:9,padding:'1px 6px',borderRadius:999,background:isActive?'rgba(6,11,20,0.25)':'rgba(0,216,182,0.15)',color:isActive?'#060b14':'#00d8b6',fontWeight:700}}>{allTxs.length}</span>
-              )}
-            </button>
-          );
-        })}
+      {/* Tab bar */}
+      <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, marginTop:16, flexWrap:'wrap', gap:10}}>
+        <div style={{display:'flex', flexWrap:'wrap', gap:4, padding:'4px', background:'rgba(13,17,28,0.95)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14}}>
+          {tabs.map(t => {
+            const isActive = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                style={{padding:'7px 16px', borderRadius:10, fontSize:13, fontWeight:600, display:'flex', alignItems:'center', gap:6, transition:'all 0.2s',
+                  background: isActive ? '#6366f1' : 'transparent',
+                  color: isActive ? '#fff' : '#64748b', border:'none', cursor:'pointer',
+                  boxShadow: isActive ? '0 2px 10px rgba(99,102,241,0.3)' : 'none'}}>
+                {t.label}
+                {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
+                {t.id === 'transactions' && allTxs.length > 0 && (
+                  <span style={{fontSize:9,padding:'1px 6px',borderRadius:999,background:isActive?'rgba(255,255,255,0.2)':'rgba(99,102,241,0.15)',color:isActive?'#fff':'#818cf8',fontWeight:700}}>{allTxs.length}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <button style={{padding:'8px 18px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, flexShrink:0}}>
+          + New Goal
+        </button>
       </div>
 
       {/* ── OVERVIEW TAB ──────────────────────────────────────────────────── */}
-      {tab === 'overview' && (
-        <div className="space-y-6">
-          {/* Hero row: single horizontal strip */}
-          <div style={{display:'flex', gap:12, alignItems:'stretch', overflowX:'auto'}}>
+      {tab === 'overview' && (() => {
+        const netWorth   = (f.savings||0)+(f.investments||0)-(f.debt||0);
+        const netSavings = Math.max(0,(f.income||0)-(f.expenses||0));
+        const scoreColor = score>=70?'#00d8b6':score>=45?'#f59e0b':'#f43f5e';
+        const col = 'gridTemplateColumns';
+        const card = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16};
+        const METRICS = [
+          {label:'Income',        icon:'💼', color:'#10b981', value:`₹${(f.income||0).toLocaleString()}`,       sub:'This month'},
+          {label:'Expenses',      icon:'🛍️', color:'#f43f5e', value:`₹${(f.expenses||0).toLocaleString()}`,     sub:'This month'},
+          {label:'Net Savings',   icon:'💰', color:'#3b82f6', value:`₹${netSavings.toLocaleString()}`,           sub:'This month'},
+          {label:'Investments',   icon:'📊', color:'#8b5cf6', value:`₹${(f.investments||0).toLocaleString()}`,  sub:'Total value'},
+          {label:'Subscriptions', icon:'🔁', color:'#f59e0b', value:`₹${(f.subscriptions||0).toLocaleString()}`,sub:'Active'},
+          {label:'Net Worth',     icon:'💎', color:'#6366f1', value:`₹${netWorth.toLocaleString()}`,             sub:'Total value'},
+        ];
+        const flags = [];
+        if (savingsRate < 10)  flags.push({label:`Low Savings Rate: ${savingsRate}%`, color:'#f43f5e'});
+        if (f.debt > f.income) flags.push({label:'Debt exceeds monthly income',        color:'#f97316'});
+        if (burnoutRisk > 60)  flags.push({label:`High burnout risk: ${burnoutRisk}%`, color:'#f59e0b'});
+        const flag = flags[0] || {label:`Savings Rate: ${savingsRate}%`, color:'#00d8b6'};
+        const action = flags.length===0 ? 'Keep building your emergency fund.'
+          : f.debt>0 ? 'Prioritise clearing high-interest debt before investing.'
+          : savingsRate<15 ? 'Automate savings — set up a recurring transfer on payday.'
+          : 'Review subscriptions and reduce impulse spending.';
 
-            {/* Score ring card */}
-            <div style={{background:'rgba(8,14,26,0.90)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'20px 24px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, flexShrink:0, minWidth:160}}>
-              <div style={{position:'relative', width:100, height:100}}>
-                <svg viewBox="0 0 100 100" width="100" height="100">
-                  {/* Dark track */}
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(239,68,68,0.15)" strokeWidth="8"/>
-                  {/* Score arc */}
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#00d8b6" strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2*Math.PI*40} ${2*Math.PI*40}`}
-                    strokeDashoffset={2*Math.PI*40*(1-score/100)}
-                    style={{transform:'rotate(-90deg)', transformOrigin:'50px 50px', transition:'stroke-dashoffset 1s ease'}}/>
-                </svg>
-                <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                  <span style={{fontSize:28, fontWeight:900, color:'#fff', lineHeight:1, fontFamily:'Space Grotesk, sans-serif'}}>{score}</span>
-                  <span style={{fontSize:10, color:'#475569'}}>/100</span>
-                </div>
-              </div>
-              <div style={{textAlign:'center'}}>
-                <p style={{fontSize:12, color:'#94a3b8', fontWeight:500, marginBottom:4}}>Finance Score</p>
-                <p style={{fontSize:13, fontWeight:700, color: score>=70?'#00d8b6':score>=45?'#f59e0b':'#f43f5e'}}>
-                  {score>=70?'Good':score>=45?'Moderate':'Low'}
-                </p>
-              </div>
-            </div>
+        return (
+        <div style={{display:'flex', flexDirection:'column', gap:12}}>
 
-            {/* Metric cards — single row */}
-            {(() => {
-              const netWorth = (f.savings||0)+(f.investments||0)-(f.debt||0);
-              const netSavings = Math.max(0,(f.income||0)-(f.expenses||0));
-              const cards = [
-                { label:'INCOME',       icon:'💼', iconBg:'#10b981', value:`₹${(f.income||0).toLocaleString()}`,      sub:'This Month',   trend:'+12% vs last month', trendUp:true  },
-                { label:'EXPENSES',     icon:'🛒', iconBg:'#f43f5e', value:`₹${(f.expenses||0).toLocaleString()}`,    sub:'This Month',   trend:'+8% vs last month',  trendUp:false },
-                { label:'SAVINGS',      icon:'🏦', iconBg:'#3b82f6', value:`₹${netSavings.toLocaleString()}`,          sub:'This Month',   trend:'+18% vs last month', trendUp:true  },
-                { label:'INVESTMENTS',  icon:'📈', iconBg:'#8b5cf6', value:`₹${(f.investments||0).toLocaleString()}`, sub:'Total Value',  trend:'+15% vs last month', trendUp:true  },
-                { label:'NET WORTH',    icon:'💎', iconBg:'#6366f1', value:`₹${netWorth.toLocaleString()}`,            sub:'Total',        trend:'+11% vs last month', trendUp:true  },
-              ];
-              return cards.map(c => (
-                <div key={c.label} style={{background:'rgba(8,14,26,0.90)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'18px 20px', flex:1, minWidth:160, display:'flex', flexDirection:'column', gap:6}}>
-                  {/* Icon + label */}
-                  <div style={{display:'flex', alignItems:'center', gap:8}}>
-                    <span style={{width:28, height:28, borderRadius:8, background:`${c.iconBg}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, flexShrink:0}}>{c.icon}</span>
-                    <span style={{fontSize:9, color:'#64748b', fontWeight:700, letterSpacing:'0.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono, monospace'}}>{c.label}</span>
+          {/* ROW 1 */}
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:12}}>
+
+            {/* Score card */}
+            <div style={{...card, padding:'28px 24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+              <div style={{display:'flex', alignItems:'center', gap:20}}>
+                {/* Ring */}
+                <div style={{position:'relative', width:160, height:160, flexShrink:0}}>
+                  <svg viewBox="0 0 160 160" width="160" height="160">
+                    <circle cx="80" cy="80" r="66" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="12"/>
+                    <circle cx="80" cy="80" r="66" fill="none" stroke={scoreColor} strokeWidth="12"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*66} ${2*Math.PI*66}`}
+                      strokeDashoffset={2*Math.PI*66*(1-score/100)}
+                      style={{transform:'rotate(-90deg)', transformOrigin:'80px 80px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                  </svg>
+                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                    <span style={{fontSize:44, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                    <span style={{fontSize:11, color:'#475569', marginTop:2}}>/ 100</span>
                   </div>
-                  {/* Value */}
-                  <p style={{fontSize:24, fontWeight:800, color:'#f1f5f9', fontFamily:'Space Grotesk, sans-serif', lineHeight:1.1, marginTop:4}}>{c.value}</p>
-                  {/* Sub-label */}
-                  <p style={{fontSize:11, color:'#475569'}}>{c.sub}</p>
-                  {/* Trend */}
-                  <p style={{fontSize:11, color: c.trendUp?'#10b981':'#f43f5e', fontWeight:600, display:'flex', alignItems:'center', gap:3}}>
-                    <span>{c.trendUp?'↑':'↑'}</span> {c.trend}
+                </div>
+                {/* Text beside ring */}
+                <div>
+                  <p style={{fontSize:18, fontWeight:700, color:'#f1f5f9', marginBottom:10}}>Finance Score</p>
+                  <span style={{display:'inline-block', fontSize:12, fontWeight:700, padding:'4px 14px', borderRadius:999, marginBottom:12,
+                    background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
+                    {score>=70?'Good':score>=45?'Moderate':'Low'}
+                  </span>
+                  <p style={{fontSize:13, color:'#64748b', lineHeight:1.7}}>
+                    {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
                   </p>
                 </div>
-              ));
-            })()}
+              </div>
+              <button onClick={()=>setTab('recommendations')}
+                style={{marginTop:20, padding:'11px 0', borderRadius:10, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                View Insights →
+              </button>
+            </div>
 
-            {/* Savings Rate — accent card */}
-            <div style={{background:'rgba(8,14,26,0.90)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'18px 20px', flexShrink:0, minWidth:130, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, textAlign:'center'}}>
-              <p style={{fontSize:9, color:'#64748b', fontWeight:700, letterSpacing:'0.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono, monospace'}}>SAVINGS RATE</p>
-              <p style={{fontSize:36, fontWeight:900, color: savingsRate>=20?'#8b5cf6':savingsRate>=10?'#f59e0b':'#f43f5e', fontFamily:'Space Grotesk, sans-serif', lineHeight:1}}>{savingsRate}%</p>
-              <p style={{fontSize:13, fontWeight:700, color: savingsRate>=20?'#10b981':savingsRate>=10?'#f59e0b':'#f43f5e'}}>
-                {savingsRate>=20?'Good':savingsRate>=10?'Moderate':'Low'}
-              </p>
+            {/* Metrics card */}
+            <div style={{...card, padding:'16px', display:'flex', flexDirection:'column', gap:10}}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10}}>
+                {METRICS.map(m => (
+                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12, padding:'14px 16px'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:10}}>
+                      <div style={{width:32, height:32, borderRadius:8, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, flexShrink:0}}>{m.icon}</div>
+                      <span style={{fontSize:12, color:'#64748b'}}>{m.label}</span>
+                    </div>
+                    <p style={{fontSize:22, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:4}}>{m.value}</p>
+                    <p style={{fontSize:11, color:'#475569'}}>{m.sub}</p>
+                  </div>
+                ))}
+              </div>
+              {/* Savings Rate */}
+              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12, padding:'14px 16px', display:'flex', alignItems:'center', gap:16}}>
+                <div style={{width:38, height:38, borderRadius:10, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
+                <div style={{flexShrink:0, minWidth:100}}>
+                  <p style={{fontSize:12, color:'#64748b'}}>Savings Rate</p>
+                  <p style={{fontSize:24, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
+                  <p style={{fontSize:11, color:'#475569'}}>of income</p>
+                </div>
+                <div style={{flex:1}}>
+                  <p style={{fontSize:12, color:'#475569', marginBottom:8}}>Aim for 20% to build strong financial health.</p>
+                  <div style={{height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                    <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
+                      style={{height:'100%', borderRadius:3, background:scoreColor}}/>
+                  </div>
+                </div>
+                <span style={{fontSize:13, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
+              </div>
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-5">
-            {/* ── Expense Breakdown ── */}
-            <div style={{background:'rgba(8,14,26,0.90)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'22px 24px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:20}}>
+          {/* ROW 2 */}
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:12}}>
+            {/* Expense Breakdown */}
+            <div style={{...card, padding:'22px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:16}}>
                 <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
-                <span style={{fontSize:11, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
+                <span style={{fontSize:12, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
               </div>
-              {(() => {
-                const data = categoryTotals.length > 0 ? categoryTotals : expenseBreakdown;
-                const total = data.reduce((s, d) => s + d.value, 0) || f.expenses || 1;
+              {f.expenses>0||categoryTotals.length>0 ? (() => {
+                const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
+                const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
                 return (
-                  <div style={{display:'flex', alignItems:'center', gap:24}}>
-                    {/* Donut */}
-                    <div style={{position:'relative', flexShrink:0, width:160, height:160}}>
-                      <ResponsiveContainer width={160} height={160}>
+                  <div style={{display:'flex', alignItems:'center', gap:20}}>
+                    <div style={{position:'relative', flexShrink:0, width:130, height:130}}>
+                      <ResponsiveContainer width={130} height={130}>
                         <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={72} innerRadius={48} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
-                            {data.map((entry, i) => (
-                              <Cell key={i} fill={CATEGORY_META[entry.name]?.color || COLORS[i % COLORS.length]} />
-                            ))}
+                          <Pie data={data} cx="50%" cy="50%" outerRadius={58} innerRadius={38} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
+                            {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
                           </Pie>
-                          <Tooltip formatter={v => `₹${v.toLocaleString()}`} contentStyle={{background:'rgba(8,14,26,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:11}}/>
+                          <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:11}}/>
                         </PieChart>
                       </ResponsiveContainer>
-                      <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', pointerEvents:'none'}}>
-                        <span style={{fontSize:16, fontWeight:800, color:'#f1f5f9', fontFamily:'Space Grotesk, sans-serif'}}>₹{total.toLocaleString()}</span>
-                        <span style={{fontSize:9, color:'#475569', marginTop:2}}>Total Expenses</span>
+                      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                        <span style={{fontSize:12,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
                       </div>
                     </div>
-                    {/* Category list */}
-                    <div style={{flex:1, display:'flex', flexDirection:'column', gap:10}}>
-                      {data.slice(0,6).map((entry, i) => {
-                        const color = CATEGORY_META[entry.name]?.color || COLORS[i % COLORS.length];
-                        const pct = ((entry.value / total) * 100).toFixed(1);
-                        return (
-                          <div key={entry.name} style={{display:'flex', alignItems:'center', gap:8}}>
-                            <span style={{width:8, height:8, borderRadius:'50%', background:color, flexShrink:0}}/>
-                            <span style={{fontSize:12, color:'#94a3b8', flex:1}}>{entry.name}</span>
-                            <span style={{fontSize:12, fontWeight:600, color:'#f1f5f9', minWidth:72, textAlign:'right'}}>₹{entry.value.toLocaleString()}</span>
-                            <span style={{fontSize:11, color:'#475569', minWidth:38, textAlign:'right'}}>{pct}%</span>
+                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:9}}>
+                      {data.slice(0,5).map((e,i)=>{
+                        const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
+                        return(
+                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{width:7,height:7,borderRadius:'50%',background:color,flexShrink:0}}/>
+                            <span style={{fontSize:12,color:'#94a3b8',flex:1}}>{e.name}</span>
+                            <span style={{fontSize:11,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                           </div>
                         );
                       })}
                     </div>
                   </div>
                 );
-              })()}
-              <button onClick={() => setTab('transactions')}
-                style={{marginTop:18, fontSize:12, color:'#8b5cf6', fontWeight:600, background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4}}>
-                View full breakdown →
-              </button>
+              })() : (
+                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'36px 0', gap:12}}>
+                  <div style={{width:72, height:72, borderRadius:50, border:'2px dashed rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28}}>📊</div>
+                  <p style={{fontSize:14, fontWeight:600, color:'#64748b'}}>No expenses yet</p>
+                  <p style={{fontSize:12, color:'#334155', textAlign:'center', lineHeight:1.6}}>Parse some SMS messages<br/>to see breakdown.</p>
+                  <button onClick={()=>setTab('parse')}
+                    style={{padding:'9px 20px', borderRadius:8, border:'1px solid rgba(0,216,182,0.3)', background:'rgba(0,216,182,0.06)', color:'#00d8b6', fontSize:13, fontWeight:600, cursor:'pointer'}}>
+                    Open SMS Parser
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* ── Spending Trend ── */}
+            {/* Spending Trend */}
+            <div style={{...card, padding:'22px'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
+                <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9'}}>
+                  Spending Trend{!hasFinanceData&&<span style={{fontSize:12, color:'#475569', marginLeft:6}}>(demo)</span>}
+                </h3>
+                <span style={{fontSize:11, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 12px', cursor:'pointer'}}>This Month ▾</span>
+              </div>
+              <div style={{height:220}}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData} margin={{top:4, right:4, left:-28, bottom:0}}>
+                    <defs>
+                      <linearGradient id="spendG3" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4}/>
+                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" tick={{fill:'#334155',fontSize:9}} tickFormatter={v=>v?.slice(8)||''} axisLine={false} tickLine={false} interval={2}/>
+                    <YAxis tick={{fill:'#334155',fontSize:9}} tickFormatter={v=>v>=1000?`₹${(v/1000).toFixed(0)}K`:`₹${v}`} axisLine={false} tickLine={false}/>
+                    <Tooltip formatter={v=>`₹${Number(v).toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:11}} labelStyle={{color:'#94a3b8'}}/>
+                    <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2} fill="url(#spendG3)" dot={false} activeDot={{r:4,fill:'#f43f5e'}}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginTop:10}}>
+                <span style={{width:8,height:8,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
+                <span style={{fontSize:11,color:'#64748b'}}>Expenses</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Anxiety Detection */}
+          <div style={{...card, padding:'18px 22px', display:'flex', alignItems:'center', gap:20}}>
+            <div style={{width:46, height:46, borderRadius:12, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:22}}>🛡️</div>
+            <div style={{flex:1, minWidth:0}}>
+              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Financial Anxiety Detection</p>
+              <p style={{fontSize:13, fontWeight:600, color:flag.color, marginBottom:3}}>{flag.label}</p>
+              <p style={{fontSize:12, color:'#64748b'}}>{action}</p>
+            </div>
+            <button onClick={()=>setTab('recommendations')}
+              style={{padding:'10px 18px', borderRadius:10, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:6}}>
+              View Recommendations →
+            </button>
+          </div>
+
+        </div>
+        );
+      })()}
+
+      {/* ── SMS PARSER TAB ────────────────────────────────────────────────── */}
+      {tab === 'parse' && (() => {
+        const pCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px', display:'flex', flexDirection:'column'};
+        const BRAND_COLORS = { Uber:'#1a1a1a', Ola:'#2b9348', Swiggy:'#fc8019', Zomato:'#cb202d', Netflix:'#e50914', Amazon:'#ff9900', Flipkart:'#2874f0', Dunzo:'#00d25b', BigBasket:'#84c225', Blinkit:'#f8cc1b', Rapido:'#333', PhonePe:'#5f259f', Paytm:'#00b9f5' };
+        const hashColor = s => { const c=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#10b981','#06b6d4','#3b82f6']; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffffff; return c[Math.abs(h)%c.length]; };
+        const merchantBg = m => BRAND_COLORS[m] || hashColor(m||'X');
+        const inputStyle = {width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'7px 10px', color:'#f1f5f9', fontSize:12, outline:'none', boxSizing:'border-box'};
+        return (
+          <div style={{display:'flex', flexDirection:'column', gap:16}}>
+
+            {/* ── Two parser cards ── */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+
+              {/* LEFT: Paste SMS */}
+              <div style={pCard}>
+                <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Paste SMS</h3>
+                <p style={{fontSize:12, color:'#64748b', marginBottom:14}}>Paste a single SMS to parse the transaction.</p>
+
+                <div style={{display:'flex', flexWrap:'wrap', gap:6, marginBottom:12}}>
+                  {SAMPLE_MESSAGES.map(s => (
+                    <button key={s.label} onClick={() => { setSmsInput(s.msg); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
+                      style={{fontSize:11, padding:'3px 10px', borderRadius:999, background:'rgba(139,92,246,0.1)', border:'1px solid rgba(139,92,246,0.25)', color:'#a78bfa', cursor:'pointer'}}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
+                  <textarea
+                    value={smsInput}
+                    onChange={e => { setSmsInput(e.target.value.slice(0,500)); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
+                    maxLength={500}
+                    placeholder='e.g. "Rs. 450 spent on Swiggy using HDFC Credit Card."'
+                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'12px 14px', paddingBottom:28, color:'#e2e8f0', fontSize:13, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.6}}
+                  />
+                  <span style={{position:'absolute', bottom:8, right:12, fontSize:11, color:'#475569', pointerEvents:'none'}}>{smsInput.length} / 500</span>
+                </div>
+
+                {otpDetected && (
+                  <div style={{marginBottom:10, padding:'8px 12px', borderRadius:8, background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)', display:'flex', alignItems:'center', gap:8}}>
+                    <span>🔐</span>
+                    <div>
+                      <p style={{fontSize:12, fontWeight:600, color:'#f43f5e'}}>OTP detected — will not be parsed</p>
+                    </div>
+                  </div>
+                )}
+
+                <button onClick={handleParse}
+                  style={{width:'100%', padding:'11px 0', borderRadius:9, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7}}>
+                  <span>⚡</span> Parse Transaction
+                </button>
+
+                <AnimatePresence>
+                  {parseResult && editResult && (
+                    <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} style={{marginTop:16}}>
+                      <div style={{padding:'16px', borderRadius:12, border:'1px solid rgba(16,185,129,0.3)', background:'rgba(16,185,129,0.05)', marginBottom:12}}>
+                        <p style={{fontSize:10, fontWeight:700, color:'#10b981', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:12}}>Parsed Result — Edit if needed</p>
+                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
+                          {[{label:'Amount (₹)',key:'amount',type:'number'},{label:'Merchant',key:'merchant',type:'text'},{label:'Bank',key:'bank',type:'text'},{label:'Payment Mode',key:'paymentMode',type:'text'}].map(field => (
+                            <div key={field.key}>
+                              <label style={{fontSize:10,color:'#64748b',display:'block',marginBottom:4}}>{field.label}</label>
+                              <input type={field.type} value={editResult[field.key]||''} onChange={e=>setEditResult(p=>({...p,[field.key]:field.type==='number'?parseFloat(e.target.value)||0:e.target.value}))} style={inputStyle}/>
+                            </div>
+                          ))}
+                          <div>
+                            <label style={{fontSize:10,color:'#64748b',display:'block',marginBottom:4}}>Category</label>
+                            <select value={editResult.category} onChange={e=>setEditResult(p=>({...p,category:e.target.value}))} style={{...inputStyle, background:'rgba(20,25,40,0.95)'}}>
+                              {Object.keys(CATEGORY_META).map(c=><option key={c} value={c}>{c}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{fontSize:10,color:'#64748b',display:'block',marginBottom:4}}>Type</label>
+                            <select value={editResult.type} onChange={e=>setEditResult(p=>({...p,type:e.target.value}))} style={{...inputStyle, background:'rgba(20,25,40,0.95)'}}>
+                              <option value="Debit">Debit</option>
+                              <option value="Credit">Credit</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginTop:12}}>
+                          <span style={{fontSize:18}}>{CATEGORY_META[editResult.category]?.icon}</span>
+                          <span style={{fontSize:13,fontWeight:600,color:'#e2e8f0'}}>{editResult.merchant}</span>
+                          <span style={{fontSize:14,fontWeight:700,color:'#f43f5e',marginLeft:'auto'}}>₹{editResult.amount?.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <button onClick={handleConfirmTx} style={{width:'100%',padding:'12px 0',borderRadius:10,border:'none',background:'#10b981',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+                        Add Transaction ✓
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* RIGHT: Bulk Import */}
+              <div style={pCard}>
+                <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Bulk Import</h3>
+                <p style={{fontSize:12, color:'#64748b', marginBottom:14}}>Paste multiple SMS messages (one per line).</p>
+
+                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
+                  <textarea
+                    value={multiInput}
+                    onChange={e => setMultiInput(e.target.value.slice(0,500))}
+                    maxLength={500}
+                    placeholder={'Rs. 450 spent on Swiggy using HDFC\nINR 320 debited from SBI for Uber ride\nRs. 649 charged to Axis for Netflix'}
+                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'12px 14px', paddingBottom:28, color:'#e2e8f0', fontSize:13, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.6, minHeight:120}}
+                  />
+                  <span style={{position:'absolute', bottom:8, right:12, fontSize:11, color:'#475569', pointerEvents:'none'}}>{multiInput.length} / 500</span>
+                </div>
+
+                <button onClick={handleBulkParse}
+                  style={{width:'100%', padding:'11px 0', borderRadius:9, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7}}>
+                  <span>⊞</span> Parse All Lines
+                </button>
+
+                {multiResults.length > 0 && (
+                  <div style={{marginTop:16, display:'flex', flexDirection:'column', gap:8, maxHeight:280, overflowY:'auto'}}>
+                    {multiResults.map((r,i) => (
+                      <div key={i} style={{padding:'10px 12px', borderRadius:10, border:r.result?'1px solid rgba(16,185,129,0.2)':'1px solid rgba(244,63,94,0.2)', background:r.result?'rgba(16,185,129,0.05)':'rgba(244,63,94,0.05)'}}>
+                        {r.result ? (
+                          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                            <span style={{fontSize:12,color:'#94a3b8'}}>{CATEGORY_META[r.result.category]?.icon} {r.result.merchant}</span>
+                            <span style={{fontSize:13,fontWeight:700,color:'#10b981'}}>₹{r.result.amount}</span>
+                          </div>
+                        ) : (
+                          <span style={{fontSize:12,color:'#f43f5e'}}>⚠ {r.error}</span>
+                        )}
+                      </div>
+                    ))}
+                    <button onClick={handleBulkConfirm} style={{width:'100%',padding:'12px 0',borderRadius:10,border:'none',background:'#10b981',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',marginTop:4}}>
+                      Add {multiResults.filter(r=>r.result).length} Valid Transactions ✓
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── Recent Activity ── always visible; falls back to demo rows ── */}
             {(() => {
-              const spendVals = trendData.map(d => d.spending || 0).filter(v => v > 0);
-              const maxSpend = Math.max(...spendVals, 1);
-              const minSpend = Math.min(...spendVals, 0);
-              const avgSpend = spendVals.length ? Math.round(spendVals.reduce((a,b)=>a+b,0)/spendVals.length) : 0;
-              const maxIdx = trendData.findIndex(d => (d.spending||0) === maxSpend);
-              const minIdx = trendData.findIndex(d => (d.spending||0) === minSpend && minSpend > 0);
-              const maxDate = maxIdx >= 0 ? trendData[maxIdx].date?.slice(5)?.replace('-','/') : '—';
-              const minDate = minIdx >= 0 ? trendData[minIdx].date?.slice(5)?.replace('-','/') : '—';
+              const DEMO_TXS = [
+                { id:'d1', merchant:'Uber',              category:'Transport',     type:'Debit',  amount:320,  bank:'SBI Debit Card',    parsedAt:'2025-05-30T13:32:00Z' },
+                { id:'d2', merchant:'Swiggy',            category:'Food',          type:'Debit',  amount:450,  bank:'HDFC Credit Card',  parsedAt:'2025-05-30T15:15:00Z' },
+                { id:'d3', merchant:'Netflix',           category:'Subscriptions', type:'Debit',  amount:649,  bank:'Axis Bank',         parsedAt:'2025-05-29T17:42:00Z' },
+              ];
+              const rows = allTxs.length > 0 ? allTxs.slice(0,5) : DEMO_TXS;
+              const isDemo = allTxs.length === 0;
               return (
-                <div style={{background:'rgba(8,14,26,0.90)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'22px 24px'}}>
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16}}>
-                    <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9'}}>Spending Trend (30 Days)</h3>
-                    <span style={{fontSize:11, color:'#94a3b8', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:8, padding:'4px 10px', cursor:'pointer'}}>30 Days ▾</span>
+                <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'24px'}}>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20}}>
+                    <div style={{display:'flex', alignItems:'center', gap:10}}>
+                      <h3 style={{fontSize:16, fontWeight:700, color:'#f1f5f9'}}>Recent Activity</h3>
+                      {isDemo && <span style={{fontSize:11, padding:'2px 10px', borderRadius:999, background:'rgba(99,102,241,0.1)', color:'#818cf8', fontWeight:600}}>demo</span>}
+                    </div>
+                    <button onClick={()=>setTab('transactions')} style={{fontSize:13,color:'#6366f1',background:'none',border:'none',cursor:'pointer',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
+                      View all →
+                    </button>
                   </div>
-                  <div style={{height:180}}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={trendData} margin={{top:4, right:4, left:-20, bottom:0}}>
-                        <defs>
-                          <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%"   stopColor="#f43f5e" stopOpacity={0.45}/>
-                            <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis dataKey="date" tick={{fill:'#334155',fontSize:9}} tickFormatter={v=>v?.slice(8)||''} axisLine={false} tickLine={false} interval={2}/>
-                        <YAxis tick={{fill:'#334155',fontSize:9}} tickFormatter={v=>v>=1000?`₹${(v/1000).toFixed(0)}K`:`₹${v}`} axisLine={false} tickLine={false}/>
-                        <Tooltip formatter={v=>`₹${Number(v).toLocaleString()}`} contentStyle={{background:'rgba(8,14,26,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:11}} labelStyle={{color:'#94a3b8'}}/>
-                        <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2.5} fill="url(#spendGrad)" dot={false} activeDot={{r:4, fill:'#f43f5e'}}/>
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* Bottom stats */}
-                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginTop:16, paddingTop:16, borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-                    <div style={{textAlign:'center'}}>
-                      <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:5, marginBottom:6}}>
-                        <span style={{width:8,height:8,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
-                        <span style={{fontSize:10,color:'#64748b'}}>Highest Day</span>
+                  {rows.map((tx,i) => (
+                    <div key={tx.id} style={{display:'flex', alignItems:'center', gap:16, padding:'14px 0', borderBottom:i<rows.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
+                      <div style={{width:44, height:44, borderRadius:12, background:merchantBg(tx.merchant), display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:'#fff', flexShrink:0, letterSpacing:'-0.5px'}}>
+                        {tx.merchant?.slice(0,2).toUpperCase()||'?'}
                       </div>
-                      <p style={{fontSize:18,fontWeight:800,color:'#f1f5f9',fontFamily:'Space Grotesk, sans-serif'}}>₹{maxSpend.toLocaleString()}</p>
-                      <p style={{fontSize:10,color:'#475569',marginTop:2}}>{maxDate}</p>
-                    </div>
-                    <div style={{textAlign:'center', borderLeft:'1px solid rgba(255,255,255,0.06)', borderRight:'1px solid rgba(255,255,255,0.06)'}}>
-                      <div style={{marginBottom:6}}><span style={{fontSize:10,color:'#64748b'}}>Average Daily Spend</span></div>
-                      <p style={{fontSize:18,fontWeight:800,color:'#f1f5f9',fontFamily:'Space Grotesk, sans-serif'}}>₹{avgSpend.toLocaleString()}</p>
-                      <p style={{fontSize:10,color:'#475569',marginTop:2}}>/day</p>
-                    </div>
-                    <div style={{textAlign:'center'}}>
-                      <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:5, marginBottom:6}}>
-                        <span style={{width:8,height:8,borderRadius:'50%',background:'#10b981',display:'inline-block'}}/>
-                        <span style={{fontSize:10,color:'#64748b'}}>Lowest Day</span>
+                      <div style={{flex:1, minWidth:0}}>
+                        <p style={{fontSize:14,fontWeight:600,color:'#f1f5f9',marginBottom:2}}>{tx.merchant} {tx.category==='Transport'?'Ride':tx.category==='Food'?'Order':tx.category==='Subscriptions'?'Subscription':''}</p>
+                        <p style={{fontSize:12,color:'#475569'}}>{tx.category}</p>
                       </div>
-                      <p style={{fontSize:18,fontWeight:800,color:'#f1f5f9',fontFamily:'Space Grotesk, sans-serif'}}>₹{minSpend.toLocaleString()}</p>
-                      <p style={{fontSize:10,color:'#475569',marginTop:2}}>{minDate}</p>
+                      <p style={{fontSize:15,fontWeight:700,color:tx.type==='Credit'?'#10b981':'#f1f5f9',flexShrink:0}}>
+                        ₹{tx.amount.toLocaleString()}
+                      </p>
+                      <p style={{fontSize:12,color:'#475569',flexShrink:0,minWidth:170,textAlign:'right'}}>
+                        {new Date(tx.parsedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})} • {new Date(tx.parsedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}
+                      </p>
+                      <span style={{fontSize:12,padding:'4px 12px',borderRadius:6,background:'rgba(99,102,241,0.1)',color:'#818cf8',fontWeight:600,flexShrink:0,whiteSpace:'nowrap'}}>
+                        {tx.bank}
+                      </span>
                     </div>
-                  </div>
+                  ))}
                 </div>
               );
             })()}
           </div>
-
-          {/* ── Financial Runway + Cashflow Forecast ── */}
-          {f.income > 0 && (() => {
-            const monthlyExpenses = f.expenses || 1;
-            const runwayMonths = Math.round((f.savings || 0) / monthlyExpenses);
-            const monthlySurplus = (f.income || 0) - (f.expenses || 0);
-            const months = ['Jun','Jul','Aug','Sep','Oct','Nov'];
-            const forecastData = months.map((m, i) => ({
-              month: m,
-              savings: Math.round((f.savings || 0) + monthlySurplus * (i + 1)),
-              surplus: Math.round(monthlySurplus),
-            }));
-            const runwayColor = runwayMonths >= 6 ? '#10b981' : runwayMonths >= 3 ? '#f59e0b' : '#ef4444';
-            return (
-              <div className="grid lg:grid-cols-3 gap-6">
-                {/* Runway card */}
-                <GlassCard className="flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold mb-1">Financial Runway</h3>
-                    <p className="text-[11px] text-slate-500 mb-4">Months your savings can cover expenses</p>
-                    <div className="flex items-end gap-3 mb-3">
-                      <span className="text-4xl font-black tabular-nums" style={{ color: runwayColor, fontFamily: 'var(--font-display)' }}>
-                        {runwayMonths}
-                      </span>
-                      <span className="text-slate-400 text-sm mb-1">months</span>
-                    </div>
-                    <div className="w-full h-2.5 rounded-full bg-white/[0.05] overflow-hidden mb-2">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (runwayMonths / 12) * 100)}%` }} transition={{ duration: 1 }}
-                        className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${runwayColor}80, ${runwayColor})` }} />
-                    </div>
-                    <p className="text-[10px]" style={{ color: runwayColor }}>
-                      {runwayMonths >= 6 ? '✅ Emergency fund healthy' : runwayMonths >= 3 ? '⚠️ Build to 6+ months' : '🚨 Critical — under 3 months'}
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-white/[0.06] grid grid-cols-2 gap-3 text-center">
-                    <div>
-                      <p className="text-[10px] text-slate-500">Monthly Surplus</p>
-                      <p className="text-base font-bold" style={{ color: monthlySurplus >= 0 ? '#10b981' : '#ef4444' }}>₹{Math.abs(monthlySurplus).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-slate-500">Target</p>
-                      <p className="text-base font-bold text-slate-300">6–12 mo</p>
-                    </div>
-                  </div>
-                </GlassCard>
-                {/* 6-month cashflow forecast */}
-                <GlassCard className="lg:col-span-2">
-                  <h3 className="text-sm font-semibold mb-1">6-Month Savings Forecast</h3>
-                  <p className="text-[11px] text-slate-500 mb-4">Projected savings at current income/expense rate</p>
-                  <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={forecastData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="savingsG" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%"  stopColor="#10b981" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}   />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                        <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
-                        <Tooltip formatter={v => `₹${v.toLocaleString()}`} contentStyle={{ background: 'rgba(10,10,10,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '12px' }} />
-                        <Area type="monotone" dataKey="savings" stroke="#10b981" strokeWidth={2} fill="url(#savingsG)" name="Projected Savings" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="mt-3 flex gap-4 text-[11px] text-slate-400">
-                    <span>📈 +₹{(monthlySurplus * 6).toLocaleString()} in 6 months</span>
-                    <span className="ml-auto text-slate-600">at current rate</span>
-                  </div>
-                </GlassCard>
-              </div>
-            );
-          })()}
-
-          {/* Live stats bar */}
-          {allTxs.length > 0 && (
-            <GlassCard glow="glow-amber" className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold">Smart Parser Summary</h3>
-                <button onClick={() => setTab('transactions')} className="text-xs text-amber-400 hover:text-amber-300">View all →</button>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <p className="text-xl font-bold text-amber-400">{allTxs.length}</p>
-                  <p className="text-[10px] text-slate-500">Total Parsed</p>
-                </div>
-                <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <p className="text-xl font-bold text-rose-400">₹{Math.round(allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0)).toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-500">Total Debited</p>
-                </div>
-                <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <p className="text-xl font-bold text-blue-400">{categoryTotals.length}</p>
-                  <p className="text-[10px] text-slate-500">Categories</p>
-                </div>
-                <div className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                  <p className="text-xl font-bold text-emerald-400">{categoryTotals[0]?.name || '—'}</p>
-                  <p className="text-[10px] text-slate-500">Top Category</p>
-                </div>
-              </div>
-            </GlassCard>
-          )}
-
-
-          {/* ── Financial Anxiety Detection banner ── */}
-          {(() => {
-            const flags = [];
-            if (savingsRate < 10)  flags.push({ label: `Low Savings Rate: ${savingsRate}%`,   color: '#f43f5e' });
-            if (f.debt > f.income) flags.push({ label: 'Debt exceeds monthly income',          color: '#f97316' });
-            if (burnoutRisk > 60)  flags.push({ label: `High burnout risk: ${burnoutRisk}%`,   color: '#f59e0b' });
-            const flag   = flags[0] || { label: `Savings Rate: ${savingsRate}%`, color: '#00d8b6' };
-            const isGood = flags.length === 0;
-            const action = isGood
-              ? 'Keep building your emergency fund.'
-              : f.debt > 0
-                ? 'Prioritise clearing high-interest debt before investing.'
-                : savingsRate < 15
-                  ? 'Automate savings — set up a recurring transfer on payday.'
-                  : 'Review subscriptions and reduce impulse spending.';
-            return (
-              <div style={{
-                background:'rgba(8,14,26,0.88)', border:`1px solid ${isGood?'rgba(0,216,182,0.15)':'rgba(139,92,246,0.20)'}`,
-                borderRadius:16, padding:'16px 22px',
-                display:'flex', alignItems:'center', gap:24,
-              }}>
-                <div style={{width:44, height:44, borderRadius:12, background:'rgba(139,92,246,0.15)', border:'1px solid rgba(139,92,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:20}}>🛡️</div>
-                <div style={{flex:1, minWidth:0}}>
-                  <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Financial Anxiety Detection</p>
-                  <p style={{fontSize:12, fontWeight:600, color:flag.color, marginBottom:2}}>{flag.label}</p>
-                  <p style={{fontSize:11, color:'#64748b'}}>{isGood ? 'Good job! Your savings rate is healthy.' : 'Detected from your current financial pattern.'}</p>
-                </div>
-                <div style={{width:1, alignSelf:'stretch', background:'rgba(255,255,255,0.06)', flexShrink:0}}/>
-                <div style={{flex:1, minWidth:0, paddingLeft:8}}>
-                  <p style={{fontSize:11, color:'#64748b', fontWeight:600, marginBottom:4, textTransform:'uppercase', letterSpacing:'0.1em'}}>Recommended Action</p>
-                  <p style={{fontSize:12, color:'#94a3b8'}}>{action}</p>
-                </div>
-                <button onClick={() => setTab('recommendations')}
-                  style={{padding:'9px 16px', borderRadius:10, border:'1px solid rgba(139,92,246,0.35)', background:'rgba(139,92,246,0.12)', color:'#a78bfa', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0}}>
-                  View Recommendations →
-                </button>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* ── SMS PARSER TAB ────────────────────────────────────────────────── */}
-      {tab === 'parse' && (
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Single SMS parser */}
-          <GlassCard className="p-6">
-            <h3 className="text-sm font-semibold mb-1">🔍 Smart SMS Parser</h3>
-            <p className="text-[11px] text-slate-500 mb-4">Privacy-first: all extraction runs in your browser. No data sent externally.</p>
-
-            {/* Example paste buttons */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {SAMPLE_MESSAGES.map(s => (
-                <button key={s.label} onClick={() => setSmsInput(s.msg)}
-                  className="text-[11px] px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-all">
-                  {s.label}
-                </button>
-              ))}
-            </div>
-
-            <textarea
-              value={smsInput}
-              onChange={e => { setSmsInput(e.target.value); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
-              rows={4}
-              placeholder={'Paste bank SMS here…\nE.g. "Rs. 450 spent on Swiggy using HDFC Credit Card."'}
-              className="w-full bg-[#1a1a1a] border border-white/[0.08] rounded-xl p-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500/40 resize-none font-mono"
-            />
-
-            {otpDetected && (
-              <div className="mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
-                <span className="text-lg">🔐</span>
-                <div>
-                  <p className="text-xs font-semibold text-rose-400">OTP / Sensitive message detected</p>
-                  <p className="text-[10px] text-slate-400">This message contains authentication codes and will not be parsed.</p>
-                </div>
-              </div>
-            )}
-
-            <button onClick={handleParse}
-              className="btn-primary w-full mt-4 py-3 text-base">
-              Parse Transaction ⚡
-            </button>
-
-            {/* Parsed result */}
-            <AnimatePresence>
-              {parseResult && editResult && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-5 space-y-4">
-                  <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
-                    <p className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-3">Parsed Result — Edit if needed</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: 'Amount (₹)', key: 'amount', type: 'number' },
-                        { label: 'Merchant', key: 'merchant', type: 'text' },
-                        { label: 'Bank', key: 'bank', type: 'text' },
-                        { label: 'Payment Mode', key: 'paymentMode', type: 'text' },
-                      ].map(field => (
-                        <div key={field.key}>
-                          <label className="text-[10px] text-slate-400 mb-1 block">{field.label}</label>
-                          <input type={field.type} value={editResult[field.key] || ''} onChange={e => setEditResult(p => ({ ...p, [field.key]: field.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value }))}
-                            className="input-premium w-full text-sm" />
-                        </div>
-                      ))}
-                      <div>
-                        <label className="text-[10px] text-slate-400 mb-1 block">Category</label>
-                        <select value={editResult.category} onChange={e => setEditResult(p => ({ ...p, category: e.target.value }))} className="input-premium w-full bg-[#1a1a1a] text-sm">
-                          {Object.keys(CATEGORY_META).map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400 mb-1 block">Type</label>
-                        <select value={editResult.type} onChange={e => setEditResult(p => ({ ...p, type: e.target.value }))} className="input-premium w-full bg-[#1a1a1a] text-sm">
-                          <option value="Debit">Debit</option>
-                          <option value="Credit">Credit</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-3">
-                      <span className="text-lg">{CATEGORY_META[editResult.category]?.icon}</span>
-                      <span className="text-sm font-semibold text-slate-200">{editResult.merchant}</span>
-                      <span className="text-sm font-bold text-rose-400 ml-auto">₹{editResult.amount?.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <button onClick={handleConfirmTx} className="btn-primary w-full">Add Transaction ✓</button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </GlassCard>
-
-          {/* Bulk paste parser */}
-          <GlassCard className="p-6">
-            <h3 className="text-sm font-semibold mb-1">📋 Bulk SMS Import</h3>
-            <p className="text-[11px] text-slate-500 mb-4">Paste multiple SMS messages (one per line) for batch parsing.</p>
-
-            <textarea
-              value={multiInput}
-              onChange={e => setMultiInput(e.target.value)}
-              rows={6}
-              placeholder={'Paste multiple SMS messages, one per line:\n\nRs. 450 spent on Swiggy using HDFC\nINR 320 debited from SBI for Uber ride\nRs. 649 charged to Axis for Netflix'}
-              className="w-full bg-[#1a1a1a] border border-white/[0.08] rounded-xl p-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500/40 resize-none font-mono"
-            />
-            <button onClick={handleBulkParse} className="btn-primary w-full mt-3">Parse All Lines</button>
-
-            {multiResults.length > 0 && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto pr-1">
-                {multiResults.map((r, i) => (
-                  <div key={i} className={`p-2 rounded-xl text-xs border ${r.result ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/20 bg-rose-500/5'}`}>
-                    {r.result ? (
-                      <div className="flex justify-between">
-                        <span className="text-slate-300">{CATEGORY_META[r.result.category]?.icon} {r.result.merchant}</span>
-                        <span className="text-emerald-400 font-bold">₹{r.result.amount}</span>
-                      </div>
-                    ) : (
-                      <span className="text-rose-400">⚠ {r.error}</span>
-                    )}
-                  </div>
-                ))}
-                <button onClick={handleBulkConfirm} className="btn-primary w-full mt-2">
-                  Add {multiResults.filter(r => r.result).length} Valid Transactions ✓
-                </button>
-              </div>
-            )}
-          </GlassCard>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── LIVE FEED TAB ─────────────────────────────────────────────────── */}
       {tab === 'live' && (
-        <div className="space-y-6">
-          {/* Controls */}
-          <GlassCard className="p-5">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-sm font-semibold">🔴 Live Transaction Simulator</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">Simulates real-time payment notifications — impressive for demos!</p>
-              </div>
-              <div className="flex items-center gap-3">
-                {/* Speed selector */}
-                <div className="flex gap-1">
-                  {Object.keys(SPEED_OPTIONS).map(s => (
-                    <button key={s} onClick={() => setLiveSpeed(s)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${liveSpeed === s ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-white/[0.03] border-white/[0.06] text-slate-400'}`}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-                {/* Toggle */}
-                <button onClick={() => { setLiveActive(v => !v); if (liveActive) liveCountRef.current = 0; }}
-                  className={`px-5 py-2 rounded-xl font-semibold text-sm transition-all ${liveActive ? 'bg-rose-500/20 border border-rose-500/40 text-rose-300' : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'}`}>
-                  {liveActive ? '⏸ Stop' : '▶ Start'}
-                </button>
-              </div>
-            </div>
-            {liveActive && (
-              <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <p className="text-xs text-emerald-400">Live — {liveTxs.length} transactions captured · Total debited: ₹{Math.round(liveTotal).toLocaleString()}</p>
-              </div>
-            )}
-          </GlassCard>
+        <div style={{display:'flex', flexDirection:'column', gap:14}}>
 
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Transaction feed */}
-            <div className="lg:col-span-2 space-y-3">
-              <h3 className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Incoming Transactions</h3>
+          {/* Header row */}
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10}}>
+            <div>
+              <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:3}}>Live Transaction Simulator</p>
+              <p style={{fontSize:12, color:'#64748b'}}>Simulates real-time payment notifications — impressive for demos!</p>
+            </div>
+            <div style={{display:'flex', alignItems:'center', gap:10}}>
+              <span style={{fontSize:12, color:'#64748b'}}>Speed</span>
+              <div style={{display:'flex', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:8, padding:3, gap:2}}>
+                {Object.keys(SPEED_OPTIONS).map(s => (
+                  <button key={s} onClick={() => setLiveSpeed(s)}
+                    style={{padding:'5px 14px', borderRadius:6, fontSize:12, fontWeight:600, border:'none', cursor:'pointer', transition:'all 0.15s',
+                      background: liveSpeed===s ? '#6366f1' : 'transparent',
+                      color: liveSpeed===s ? '#fff' : '#64748b'}}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => { setLiveActive(v => !v); if (liveActive) liveCountRef.current = 0; }}
+                style={{padding:'7px 18px', borderRadius:8, border:'none', background: liveActive ? 'rgba(244,63,94,0.15)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: liveActive ? '#f87171' : '#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6}}>
+                {liveActive ? '⏸ Stop' : '▶ Start'}
+              </button>
+            </div>
+          </div>
+
+          {liveActive && (
+            <div style={{display:'flex', alignItems:'center', gap:8, padding:'8px 14px', borderRadius:8, background:'rgba(16,185,129,0.05)', border:'1px solid rgba(16,185,129,0.2)'}}>
+              <span style={{width:7, height:7, borderRadius:'50%', background:'#10b981', display:'inline-block', animation:'pulse 1.5s infinite'}}/>
+              <p style={{fontSize:12, color:'#10b981'}}>Live — {liveTxs.length} transactions · Total: ₹{Math.round(liveTotal).toLocaleString()}</p>
+            </div>
+          )}
+
+          {/* Two-column grid */}
+          <div style={{display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:14}}>
+
+            {/* Left: Incoming Transactions */}
+            <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px'}}>
+              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:14}}>Incoming Transactions</p>
               {liveTxs.length === 0 ? (
-                <div className="h-32 flex flex-col items-center justify-center gap-2 border border-dashed border-white/10 rounded-2xl text-xs text-slate-500">
-                  <span className="text-3xl opacity-40">📡</span>
-                  Press Start to begin the live simulation
+                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12, padding:'60px 0', border:'1.5px dashed rgba(255,255,255,0.08)', borderRadius:12}}>
+                  <div style={{width:52, height:52, borderRadius:'50%', border:'2px solid rgba(99,102,241,0.4)', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                    <span style={{fontSize:20, color:'#6366f1'}}>▶</span>
+                  </div>
+                  <p style={{fontSize:13, color:'#475569'}}>Press Start to begin the live simulation</p>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                <div style={{display:'flex', flexDirection:'column', gap:8, maxHeight:460, overflowY:'auto'}}>
                   <AnimatePresence initial={false}>
                     {liveTxs.map(tx => <TxCard key={tx.id} tx={tx} />)}
                   </AnimatePresence>
@@ -1342,49 +1279,35 @@ export default function Finance() {
               )}
             </div>
 
-            {/* Live category stats */}
-            <div className="space-y-4">
-              <h3 className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Live Category Breakdown</h3>
+            {/* Right: Live Category Breakdown */}
+            <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
+                <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Live Category Breakdown</p>
+                <span style={{fontSize:14, color:'#475569', cursor:'help'}} title="Updates as transactions stream in">ⓘ</span>
+              </div>
               {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).length === 0 ? (
-                <div className="h-32 flex items-center justify-center text-xs text-slate-500 border border-dashed border-white/10 rounded-2xl">Stats appear here</div>
+                <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'80px 0', color:'#475569', fontSize:13}}>
+                  Stats will appear here
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div style={{display:'flex', flexDirection:'column', gap:8}}>
                   {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).map((cat, i) => {
                     const meta = CATEGORY_META[cat.name] || CATEGORY_META.Others;
                     const max = categoryTotals[0]?.value || 1;
                     return (
-                      <motion.div key={cat.name} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                        className={`p-3 rounded-xl border ${meta.border} ${meta.bg}`}>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-xs text-slate-300 font-medium">{meta.icon} {cat.name}</span>
-                          <span className={`text-xs font-bold ${meta.text}`}>₹{cat.value.toLocaleString()}</span>
+                      <motion.div key={cat.name} initial={{opacity:0,x:10}} animate={{opacity:1,x:0}} transition={{delay:i*0.05}}
+                        style={{padding:'10px 12px', borderRadius:10, border:'1px solid rgba(255,255,255,0.06)', background:'rgba(255,255,255,0.02)'}}>
+                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:6}}>
+                          <span style={{fontSize:12, color:'#cbd5e1', fontWeight:500}}>{meta.icon} {cat.name}</span>
+                          <span style={{fontSize:12, fontWeight:700, color:meta.color}}>₹{cat.value.toLocaleString()}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-white/5">
-                          <motion.div animate={{ width: `${(cat.value / max) * 100}%` }} className="h-full rounded-full" style={{ background: meta.color }} />
+                        <div style={{height:4, background:'rgba(255,255,255,0.05)', borderRadius:2, overflow:'hidden'}}>
+                          <motion.div animate={{width:`${(cat.value/max)*100}%`}} style={{height:'100%', borderRadius:2, background:meta.color}}/>
                         </div>
                       </motion.div>
                     );
                   })}
                 </div>
-              )}
-
-              {/* Live bar chart */}
-              {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).length > 1 && (
-                <GlassCard className="p-4">
-                  <h4 className="text-xs text-slate-400 mb-3">Spending by Category</h4>
-                  <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={categoryTotals.filter(c => liveTxs.some(t => t.category === c.name))} barSize={20}>
-                        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 9 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#475569', fontSize: 9 }} axisLine={false} tickLine={false} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="value" name="Amount" radius={[4, 4, 0, 0]}>
-                          {categoryTotals.map((c, i) => <Cell key={i} fill={CATEGORY_META[c.name]?.color || COLORS[i % COLORS.length]} />)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </GlassCard>
               )}
             </div>
           </div>
