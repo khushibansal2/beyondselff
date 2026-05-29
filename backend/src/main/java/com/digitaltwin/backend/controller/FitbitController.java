@@ -17,17 +17,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Google Health API (Google Fit) OAuth 2.0 Controller
- * Replaces the legacy deprecated Fitbit Web API.
- * Maintains the /api/fitbit/* endpoint paths so the frontend works without changes.
+ * Google Fit OAuth 2.0 Controller — syncs steps, calories, heart rate, sleep, distance.
+ * Endpoint prefix kept as /api/fitbit so the frontend needs no changes.
  */
 @RestController
 @RequestMapping("/api/fitbit")
@@ -37,8 +36,13 @@ public class FitbitController {
     private static final Logger log = LoggerFactory.getLogger(FitbitController.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final HttpClient HTTP = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
+            .connectTimeout(Duration.ofSeconds(12))
             .build();
+
+    // RFC-3339 formatter required by the Sessions API
+    private static final DateTimeFormatter RFC3339 =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                    .withZone(ZoneId.of("UTC"));
 
     // In-memory token store: appUserId -> { accessToken, refreshToken, googleUserId }
     private static final Map<String, Map<String, String>> TOKEN_STORE = new ConcurrentHashMap<>();
@@ -55,7 +59,7 @@ public class FitbitController {
     @Value("${fitbit.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
-    // ── Step 1: Generate Google Health OAuth URL ─────────────────────────────────
+    // ── Step 1: Build Google OAuth URL ───────────────────────────────────────────
 
     @GetMapping("/connect")
     public ResponseEntity<Map<String, Object>> connect(
@@ -64,35 +68,28 @@ public class FitbitController {
         if (clientId.isBlank() || clientSecret.isBlank()) {
             return ResponseEntity.ok(Map.of(
                     "configured", false,
-                    "reason", "Set FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET env vars with Google OAuth credentials."
-            ));
+                    "reason", "Set FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET env vars with Google OAuth credentials."));
         }
 
-        String encodedRedirect = URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
-        String encodedState    = URLEncoder.encode(userId, StandardCharsets.UTF_8);
-        
-        // Use Google Fit API Scopes
         String scopes = "openid profile email " +
-                        "https://www.googleapis.com/auth/fitness.activity.read " +
-                        "https://www.googleapis.com/auth/fitness.sleep.read " +
-                        "https://www.googleapis.com/auth/fitness.heart_rate.read";
-                        
-        String encodedScopes = URLEncoder.encode(scopes, StandardCharsets.UTF_8);
+                "https://www.googleapis.com/auth/fitness.activity.read " +
+                "https://www.googleapis.com/auth/fitness.sleep.read " +
+                "https://www.googleapis.com/auth/fitness.heart_rate.read " +
+                "https://www.googleapis.com/auth/fitness.body.read";
 
-        String authUrl =
-                "https://accounts.google.com/o/oauth2/v2/auth" +
+        String authUrl = "https://accounts.google.com/o/oauth2/v2/auth" +
                 "?response_type=code" +
                 "&client_id="    + clientId +
-                "&redirect_uri=" + encodedRedirect +
-                "&scope="        + encodedScopes +
+                "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) +
+                "&scope="        + URLEncoder.encode(scopes, StandardCharsets.UTF_8) +
                 "&access_type=offline" +
                 "&prompt=consent" +
-                "&state="        + encodedState;
+                "&state="        + URLEncoder.encode(userId, StandardCharsets.UTF_8);
 
         return ResponseEntity.ok(Map.of("configured", true, "url", authUrl));
     }
 
-    // ── Step 2: OAuth callback — Google redirects here ───────────────────────────
+    // ── Step 2: OAuth callback ────────────────────────────────────────────────────
 
     @GetMapping("/callback")
     public void callback(
@@ -102,18 +99,18 @@ public class FitbitController {
             HttpServletResponse response) throws IOException {
 
         if (error != null || code == null) {
-            log.warn("Google Health OAuth denied or missing code: {}", error);
+            log.warn("Google Fit OAuth denied: {}", error);
             response.sendRedirect(frontendUrl + "/integrations?fitbit=error&tab=fitbit&msg=" +
                     URLEncoder.encode(error != null ? error : "authorization_denied", StandardCharsets.UTF_8));
             return;
         }
 
         try {
-            // Exchange authorization code for access token via Google API
-            String body = "code="         + URLEncoder.encode(code, StandardCharsets.UTF_8) +
-                          "&client_id="     + URLEncoder.encode(clientId, StandardCharsets.UTF_8) +
+            // Exchange auth code for tokens
+            String body = "code="           + URLEncoder.encode(code,         StandardCharsets.UTF_8) +
+                          "&client_id="     + URLEncoder.encode(clientId,     StandardCharsets.UTF_8) +
                           "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8) +
-                          "&redirect_uri="  + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) +
+                          "&redirect_uri="  + URLEncoder.encode(redirectUri,  StandardCharsets.UTF_8) +
                           "&grant_type=authorization_code";
 
             HttpRequest tokenReq = HttpRequest.newBuilder()
@@ -124,9 +121,8 @@ public class FitbitController {
                     .build();
 
             HttpResponse<String> tokenResp = HTTP.send(tokenReq, HttpResponse.BodyHandlers.ofString());
-
             if (tokenResp.statusCode() >= 400) {
-                log.error("Google token exchange failed {} — {}", tokenResp.statusCode(), tokenResp.body());
+                log.error("Token exchange failed {}: {}", tokenResp.statusCode(), tokenResp.body());
                 response.sendRedirect(frontendUrl + "/integrations?fitbit=error&tab=fitbit&msg=token_exchange_failed");
                 return;
             }
@@ -134,43 +130,36 @@ public class FitbitController {
             JsonNode tokenData  = MAPPER.readTree(tokenResp.body());
             String accessToken  = tokenData.path("access_token").asText();
             String refreshToken = tokenData.path("refresh_token").asText("");
-            
-            // Fetch User Profile to get Google User ID (sub)
-            HttpRequest profileReq = HttpRequest.newBuilder()
-                    .uri(URI.create("https://www.googleapis.com/oauth2/v3/userinfo"))
-                    .header("Authorization", "Bearer " + accessToken)
-                    .GET().build();
-            HttpResponse<String> profileResp = HTTP.send(profileReq, HttpResponse.BodyHandlers.ofString());
-            JsonNode profileData = MAPPER.readTree(profileResp.body());
-            
-            String googleUserId = profileData.path("sub").asText();
 
-            String appUserId = (state != null && !state.isBlank()) ? state : googleUserId;
+            // Get Google user ID from userinfo endpoint
+            JsonNode profileData = getJson("https://www.googleapis.com/oauth2/v3/userinfo", accessToken);
+            String googleUserId  = profileData.path("sub").asText();
+            String appUserId     = (state != null && !state.isBlank()) ? state : googleUserId;
+
             TOKEN_STORE.put(appUserId, Map.of(
                     "accessToken",  accessToken,
                     "refreshToken", refreshToken,
-                    "googleUserId", googleUserId
-            ));
-            log.info("Google Health connected for appUser={}, googleUser={}", appUserId, googleUserId);
+                    "googleUserId", googleUserId));
 
+            log.info("Google Fit connected: appUser={}, googleUser={}", appUserId, googleUserId);
             response.sendRedirect(frontendUrl + "/integrations?fitbit=success&tab=fitbit&userId=" +
                     URLEncoder.encode(appUserId, StandardCharsets.UTF_8));
 
         } catch (Exception e) {
-            log.error("Google Health callback error: {}", e.getMessage(), e);
+            log.error("Callback error: {}", e.getMessage(), e);
             response.sendRedirect(frontendUrl + "/integrations?fitbit=error&tab=fitbit&msg=" +
                     URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
         }
     }
 
-    // ── Step 3: Sync health data from Google Fit API ─────────────────────────────
+    // ── Step 3: Full sync — steps, calories, heart rate, sleep, distance ─────────
 
     @GetMapping("/sync")
     public ResponseEntity<Map<String, Object>> sync(
             @RequestParam(defaultValue = "default") String userId) {
 
         Map<String, String> tokens = TOKEN_STORE.get(userId);
-        if (tokens == null || tokens.get("accessToken") == null) {
+        if (tokens == null) {
             return ResponseEntity.ok(Map.of("connected", false, "reason", "Not connected — OAuth required"));
         }
 
@@ -178,85 +167,134 @@ public class FitbitController {
         String today = LocalDate.now().toString();
 
         try {
-            // Fetch Profile Data for display name
-            HttpRequest profileReq = HttpRequest.newBuilder()
-                    .uri(URI.create("https://www.googleapis.com/oauth2/v3/userinfo"))
-                    .header("Authorization", "Bearer " + token)
-                    .GET().build();
-            HttpResponse<String> profileResp = HTTP.send(profileReq, HttpResponse.BodyHandlers.ofString());
-            JsonNode profileData = MAPPER.readTree(profileResp.body());
-            String displayName = profileData.path("name").asText("Google User");
+            // Display name
+            JsonNode profile    = getJson("https://www.googleapis.com/oauth2/v3/userinfo", token);
+            String displayName  = profile.path("name").asText("Google User");
 
-            // Define Time Range for Today (Midnight to Now)
-            ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
+            // Time window: start of today → now (for steps/calories/HR)
+            ZonedDateTime now        = ZonedDateTime.now(ZoneId.systemDefault());
             ZonedDateTime startOfDay = now.toLocalDate().atStartOfDay(ZoneId.systemDefault());
-            long startTimeMillis = startOfDay.toInstant().toEpochMilli();
-            long endTimeMillis = now.toInstant().toEpochMilli();
+            long startMs = startOfDay.toInstant().toEpochMilli();
+            long endMs   = now.toInstant().toEpochMilli();
 
-            // Request Step Count from Google Fit Aggregate API
-            String aggregateBody = String.format(
-                "{\n" +
-                "  \"aggregateBy\": [{\"dataTypeName\": \"com.google.step_count.delta\"}],\n" +
-                "  \"bucketByTime\": { \"durationMillis\": 86400000 },\n" +
-                "  \"startTimeMillis\": %d,\n" +
-                "  \"endTimeMillis\": %d\n" +
-                "}", startTimeMillis, endTimeMillis);
-
-            HttpRequest stepsReq = HttpRequest.newBuilder()
-                    .uri(URI.create("https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate"))
-                    .header("Authorization", "Bearer " + token)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(aggregateBody))
-                    .build();
-            
-            HttpResponse<String> stepsResp = HTTP.send(stepsReq, HttpResponse.BodyHandlers.ofString());
-            
+            // ── Steps ────────────────────────────────────────────────────────────
             int steps = 0;
             try {
-                JsonNode stepsData = MAPPER.readTree(stepsResp.body());
-                JsonNode buckets = stepsData.path("bucket");
-                if (buckets.isArray() && buckets.size() > 0) {
-                    JsonNode dataset = buckets.get(0).path("dataset");
-                    if (dataset.isArray() && dataset.size() > 0) {
-                        JsonNode points = dataset.get(0).path("point");
-                        if (points.isArray() && points.size() > 0) {
-                            JsonNode values = points.get(0).path("value");
-                            if (values.isArray() && values.size() > 0) {
-                                steps = values.get(0).path("intVal").asInt(0);
+                JsonNode stepsData = aggregateFit("com.google.step_count.delta", startMs, endMs, token);
+                steps = extractIntVal(stepsData);
+            } catch (Exception e) {
+                log.warn("Steps fetch failed: {}", e.getMessage());
+            }
+
+            // ── Calories ─────────────────────────────────────────────────────────
+            int calories = 0;
+            try {
+                JsonNode calData = aggregateFit("com.google.calories.expended", startMs, endMs, token);
+                calories = (int) Math.round(extractFpVal(calData));
+            } catch (Exception e) {
+                log.warn("Calories fetch failed: {}", e.getMessage());
+            }
+
+            // ── Resting heart rate ────────────────────────────────────────────────
+            // Google Fit reports resting HR via com.google.heart_rate.bpm aggregate (daily min ≈ resting)
+            int restingHeartRate = 0;
+            try {
+                JsonNode hrData = aggregateFit("com.google.heart_rate.bpm", startMs, endMs, token);
+                // The aggregate returns min/max/avg fpVal — we use the minimum as resting approximation
+                restingHeartRate = (int) Math.round(extractFpValMin(hrData));
+            } catch (Exception e) {
+                log.warn("Heart rate fetch failed: {}", e.getMessage());
+            }
+
+            // ── Distance (metres) ────────────────────────────────────────────────
+            int distanceMetres = 0;
+            try {
+                JsonNode distData = aggregateFit("com.google.distance.delta", startMs, endMs, token);
+                distanceMetres = (int) Math.round(extractFpVal(distData));
+            } catch (Exception e) {
+                log.warn("Distance fetch failed: {}", e.getMessage());
+            }
+
+            // ── Sleep (last night: yesterday noon → now) ──────────────────────────
+            // Sleep sessions typically cross midnight so we look back 20 hours from now.
+            double sleepHours = 0.0;
+            try {
+                // Look back 20 hours to capture last night's sleep
+                ZonedDateTime sleepWindowStart = now.minusHours(20);
+                String sleepStart = RFC3339.format(sleepWindowStart.withZoneSameInstant(ZoneId.of("UTC")));
+                String sleepEnd   = RFC3339.format(now.withZoneSameInstant(ZoneId.of("UTC")));
+
+                String sessionsUrl = "https://www.googleapis.com/fitness/v1/users/me/sessions" +
+                        "?startTime=" + URLEncoder.encode(sleepStart, StandardCharsets.UTF_8) +
+                        "&endTime="   + URLEncoder.encode(sleepEnd,   StandardCharsets.UTF_8) +
+                        "&activityType=72";   // 72 = in_bed (covers all sleep sub-types)
+
+                JsonNode sessionsData = getJson(sessionsUrl, token);
+                JsonNode sessions     = sessionsData.path("session");
+
+                long totalSleepMs = 0;
+                if (sessions.isArray()) {
+                    for (JsonNode session : sessions) {
+                        long sessionStart = session.path("startTimeMillis").asLong(0);
+                        long sessionEnd   = session.path("endTimeMillis").asLong(0);
+                        // Sanity check: only count sessions between 1 min and 12 hours
+                        long durationMs = sessionEnd - sessionStart;
+                        if (durationMs > 60_000 && durationMs < 43_200_000L) {
+                            totalSleepMs += durationMs;
+                        }
+                    }
+                }
+
+                // If no in_bed session found, try activityType=109/110/111 (light/deep/REM)
+                if (totalSleepMs == 0) {
+                    for (int sleepType : new int[]{109, 110, 111}) {
+                        String url2 = "https://www.googleapis.com/fitness/v1/users/me/sessions" +
+                                "?startTime=" + URLEncoder.encode(sleepStart, StandardCharsets.UTF_8) +
+                                "&endTime="   + URLEncoder.encode(sleepEnd,   StandardCharsets.UTF_8) +
+                                "&activityType=" + sleepType;
+                        JsonNode d2 = getJson(url2, token);
+                        JsonNode s2 = d2.path("session");
+                        if (s2.isArray()) {
+                            for (JsonNode s : s2) {
+                                long dur = s.path("endTimeMillis").asLong(0) - s.path("startTimeMillis").asLong(0);
+                                if (dur > 60_000 && dur < 43_200_000L) totalSleepMs += dur;
                             }
                         }
                     }
                 }
+
+                // Convert ms to hours, round to 1 decimal
+                sleepHours = Math.round((totalSleepMs / 3_600_000.0) * 10.0) / 10.0;
+                log.info("Sleep synced: {}h from {} sessions", sleepHours, sessions.isArray() ? sessions.size() : 0);
+
             } catch (Exception e) {
-                log.warn("Failed to parse steps from Google Fit: {}", e.getMessage());
+                log.warn("Sleep fetch failed: {}", e.getMessage());
             }
 
-            // Google Fit requires granular tracking for Sleep, Calories, Distance.
-            // For hackathon/verification purposes, we'll map what we have or default to 0 if empty.
-            // In a production app, we would make separate aggregate requests for:
-            // "com.google.calories.expended", "com.google.distance.delta", "com.google.heart_rate.bpm"
-            
+            log.info("Sync complete for {}: steps={} cal={} hr={} dist={}m sleep={}h",
+                    userId, steps, calories, restingHeartRate, distanceMetres, sleepHours);
+
             return ResponseEntity.ok(Map.of(
                     "connected",    true,
                     "syncedAt",     today,
                     "displayName",  displayName,
                     "fitbitUserId", tokens.getOrDefault("googleUserId", ""),
                     "health", Map.of(
-                            "sleepHours",       0.0, // Default unless implemented
+                            "sleepHours",       sleepHours,
                             "steps",            steps,
-                            "calories",         0,
-                            "distanceMetres",   0,
-                            "restingHeartRate", 0
+                            "calories",         calories,
+                            "distanceMetres",   distanceMetres,
+                            "restingHeartRate", restingHeartRate
                     )
             ));
 
         } catch (Exception e) {
-            log.error("Google Health sync error for user {}: {}", userId, e.getMessage(), e);
+            log.error("Sync error for user {}: {}", userId, e.getMessage(), e);
             return ResponseEntity.ok(Map.of("connected", true, "syncError", e.getMessage()));
         }
     }
 
-    // ── Status, Disconnect, Config ───────────────────────────────────────────────
+    // ── Status / Disconnect / Config ─────────────────────────────────────────────
 
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> status(
@@ -268,14 +306,124 @@ public class FitbitController {
     public ResponseEntity<Map<String, Object>> disconnect(
             @RequestParam(defaultValue = "default") String userId) {
         TOKEN_STORE.remove(userId);
-        log.info("Google Health disconnected for user: {}", userId);
+        log.info("Google Fit disconnected: {}", userId);
         return ResponseEntity.ok(Map.of("disconnected", true));
     }
 
     @GetMapping("/config")
     public ResponseEntity<Map<String, Object>> config() {
-        return ResponseEntity.ok(Map.of(
-                "configured", !clientId.isBlank() && !clientSecret.isBlank()
-        ));
+        return ResponseEntity.ok(Map.of("configured", !clientId.isBlank() && !clientSecret.isBlank()));
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────────
+
+    /** GET a JSON endpoint with a Bearer token. */
+    private JsonNode getJson(String url, String token) throws Exception {
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(10))
+                .header("Authorization", "Bearer " + token)
+                .GET().build();
+        HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+        if (resp.statusCode() >= 400) {
+            throw new RuntimeException("Google API " + resp.statusCode() + ": " + resp.body());
+        }
+        return MAPPER.readTree(resp.body());
+    }
+
+    /** POST to the Google Fit Aggregate API for a single data type over a time window. */
+    private JsonNode aggregateFit(String dataTypeName, long startMs, long endMs, String token) throws Exception {
+        String body = String.format(
+                "{\"aggregateBy\":[{\"dataTypeName\":\"%s\"}]," +
+                "\"bucketByTime\":{\"durationMillis\":86400000}," +
+                "\"startTimeMillis\":%d,\"endTimeMillis\":%d}",
+                dataTypeName, startMs, endMs);
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate"))
+                .timeout(Duration.ofSeconds(10))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+        if (resp.statusCode() >= 400) {
+            throw new RuntimeException("Aggregate API " + resp.statusCode() + " for " + dataTypeName);
+        }
+        return MAPPER.readTree(resp.body());
+    }
+
+    /**
+     * Extract the first intVal from a Google Fit aggregate response.
+     * Used for step count.
+     */
+    private int extractIntVal(JsonNode data) {
+        try {
+            for (JsonNode bucket : data.path("bucket")) {
+                for (JsonNode dataset : bucket.path("dataset")) {
+                    for (JsonNode point : dataset.path("point")) {
+                        JsonNode values = point.path("value");
+                        if (values.isArray() && !values.isEmpty()) {
+                            int v = values.get(0).path("intVal").asInt(0);
+                            if (v > 0) return v;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("extractIntVal failed: {}", e.getMessage());
+        }
+        return 0;
+    }
+
+    /**
+     * Extract the sum of all fpVal points from a Google Fit aggregate response.
+     * Used for calories and distance (summed across activity buckets).
+     */
+    private double extractFpVal(JsonNode data) {
+        double total = 0;
+        try {
+            for (JsonNode bucket : data.path("bucket")) {
+                for (JsonNode dataset : bucket.path("dataset")) {
+                    for (JsonNode point : dataset.path("point")) {
+                        JsonNode values = point.path("value");
+                        if (values.isArray() && !values.isEmpty()) {
+                            total += values.get(0).path("fpVal").asDouble(0);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("extractFpVal failed: {}", e.getMessage());
+        }
+        return total;
+    }
+
+    /**
+     * Extract the MINIMUM fpVal from a Google Fit aggregate response.
+     * Heart rate aggregate returns min/max/avg — minimum approximates resting HR.
+     * The aggregate for heart_rate.bpm returns values[0]=min, values[1]=max, values[2]=avg.
+     */
+    private double extractFpValMin(JsonNode data) {
+        double min = Double.MAX_VALUE;
+        boolean found = false;
+        try {
+            for (JsonNode bucket : data.path("bucket")) {
+                for (JsonNode dataset : bucket.path("dataset")) {
+                    for (JsonNode point : dataset.path("point")) {
+                        JsonNode values = point.path("value");
+                        if (values.isArray() && !values.isEmpty()) {
+                            // values[0] = min, values[1] = max, values[2] = avg
+                            double v = values.get(0).path("fpVal").asDouble(0);
+                            if (v > 0) { min = Math.min(min, v); found = true; }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("extractFpValMin failed: {}", e.getMessage());
+        }
+        return found ? min : 0;
     }
 }
