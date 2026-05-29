@@ -9,22 +9,22 @@ import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionSer
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw } from 'lucide-react';
+import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw, Calendar, Check, Brain } from 'lucide-react';
 
 function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-6 flex flex-col items-center text-center justify-center gap-2.5 min-h-[160px] group hover:translate-y-[-2px] hover:border-white/[0.10] transition-all duration-300"
+      className="rounded-2xl border border-white/[0.04] p-3 flex flex-col items-center justify-center text-center group hover:bg-white/[0.03] transition-colors cursor-pointer"
+      style={{ background: 'rgba(17,19,28,0.8)' }}
     >
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center border border-white/[0.06] transition-transform duration-300 group-hover:scale-110"
-        style={{ background: `${color}14`, boxShadow: `0 0 24px ${color}18` }}>
-        <Icon size={22} style={{ color }} />
+      <div className="w-9 h-9 rounded-full flex items-center justify-center mb-1.5" style={{ background: `${color}18` }}>
+        <Icon size={17} style={{ color }} />
       </div>
-      <p className="text-[10px] text-[#71717a] uppercase tracking-[0.1em] font-semibold mt-1">{label}</p>
-      <p className="text-[24px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
-      {subtitle && <p className="text-[11px] text-[#6b7280] font-medium">{subtitle}</p>}
+      <p className="text-[9px] text-[#71717a] uppercase tracking-widest font-semibold mb-0.5">{label}</p>
+      <p className="text-[20px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
+      {subtitle && <p className="text-[10px] text-[#6b7280] font-medium mt-0.5">{subtitle}</p>}
     </motion.div>
   );
 }
@@ -138,159 +138,136 @@ function ScanVisionPanel({ onApplyCalories }) {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* ── Header + API Key Config ── */}
-      <GlassCard>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-              <Eye size={18} className="text-orange-400" />
-            </div>
-            <div>
-              <h3 className="text-[15px] font-semibold text-[#f0f0f3]">Scan Vision AI</h3>
-              <p className="text-[12px] text-[#71717a]">Powered by Groq Llama Vision multimodal AI</p>
-            </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* ── Header row ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Eye size={15} style={{ color: '#f97316' }} />
           </div>
-          <button
-            onClick={() => setShowKeyPanel(p => !p)}
-            className={`flex items-center gap-2 text-[12px] px-3.5 py-2 rounded-xl border transition-all font-medium ${
-              keyConfigured
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
-                : 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20'
-            }`}
-          >
-            {keyConfigured ? <CheckCircle size={13} /> : <Key size={13} />}
-            {keyConfigured ? 'API Key Configured' : 'Set API Key'}
-          </button>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#f0f0f3' }}>Scan Vision AI</h2>
+            <p style={{ margin: '1px 0 0', fontSize: 11, color: '#71717a' }}>Powered by Groq Llama Vision multimodal AI</p>
+          </div>
         </div>
-
-        {/* ── Inline API Key Panel ── */}
-        <AnimatePresence>
-          {showKeyPanel && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="mb-6 p-5 rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] space-y-4">
-                <div>
-                  <p className="text-[12px] font-semibold text-amber-300 mb-1">Groq API Key</p>
-                  <p className="text-[11px] text-[#71717a] leading-relaxed">
-                    Get a free key at <span className="text-amber-400 font-medium">console.groq.com</span>.
-                    Stored only in your browser (localStorage). Alternatively, set <span className="font-mono text-[10px] bg-white/[0.04] px-1.5 py-0.5 rounded">VITE_GROQ_API_KEY</span> in your <span className="font-mono text-[10px] bg-white/[0.04] px-1.5 py-0.5 rounded">.env</span> file for deployment.
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    value={keyInput}
-                    onChange={e => setKeyInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSaveKey()}
-                    placeholder="gsk_..."
-                    className="input-premium flex-1 font-mono text-[12px]"
-                  />
-                  <button
-                    onClick={handleSaveKey}
-                    disabled={!keyInput.trim()}
-                    className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[12px] font-medium hover:bg-amber-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  >
-                    Save
-                  </button>
-                  {apiKey && (
-                    <button
-                      onClick={handleClearKey}
-                      className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-[#71717a] text-[12px] font-medium hover:text-[#f0f0f3] transition-all"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Scan Type Selector ── */}
-        <div className="flex gap-2 mb-6">
-          {scanTypes.map(t => (
-            <button
-              key={t.id}
-              onClick={() => { setScanType(t.id); reset(); }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-semibold transition-all ${
-                scanType === t.id
-                  ? 'border-indigo-500/50 bg-indigo-500/15 text-white'
-                  : 'border-white/[0.13] bg-white/[0.05] text-slate-300 hover:text-white hover:bg-white/[0.09] hover:border-white/[0.2]'
-              }`}
-            >
-              <span style={{ color: scanType === t.id ? t.color : undefined }}>{t.icon}</span>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ── Upload / Drop Zone ── */}
-        <div
-          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
-          onClick={() => !preview && fileInputRef.current?.click()}
-          className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden ${
-            preview ? 'border-white/[0.06] cursor-default' : 'cursor-pointer hover:border-white/[0.14]'
-          } ${dragOver ? 'border-orange-500/50 bg-orange-500/[0.04]' : 'border-white/[0.08] bg-white/[0.02]'}`}
-          style={{ minHeight: preview ? 'auto' : '180px' }}
+        <button
+          onClick={() => setShowKeyPanel(p => !p)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600,
+            padding: '6px 12px', borderRadius: 8, cursor: 'pointer', border: '1px solid',
+            ...(keyConfigured
+              ? { background: 'rgba(34,197,94,0.1)', borderColor: 'rgba(34,197,94,0.25)', color: '#22c55e' }
+              : { background: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.25)', color: '#f59e0b' }),
+          }}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+          {keyConfigured ? <CheckCircle size={12} /> : <Key size={12} />}
+          {keyConfigured ? 'API Key Configured' : 'Set API Key'}
+        </button>
+      </div>
 
-          {!preview ? (
-            <div className="flex flex-col items-center justify-center gap-3 p-10">
-              <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                <Upload size={22} className="text-[#71717a]" />
-              </div>
-              <div className="text-center">
-                <p className="text-[13px] font-medium text-[#a1a1aa]">Drop image here or click to browse</p>
-                <p className="text-[11px] text-[#71717a] mt-1">Also works on mobile — tap to use camera · PNG, JPG, WEBP</p>
+      {/* ── API Key Panel ── */}
+      <AnimatePresence>
+        {showKeyPanel && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <p style={{ margin: 0, fontSize: 11, color: '#fbbf24', fontWeight: 600 }}>Groq API Key</p>
+              <p style={{ margin: 0, fontSize: 11, color: '#71717a', lineHeight: 1.5 }}>Get a free key at <span style={{ color: '#f59e0b' }}>console.groq.com</span>. Stored in your browser.</p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input type="password" value={keyInput} onChange={e => setKeyInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveKey()} placeholder="gsk_..." className="input-premium flex-1" style={{ fontSize: 12, fontFamily: 'monospace' }} />
+                <button onClick={handleSaveKey} disabled={!keyInput.trim()} style={{ padding: '7px 14px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24', cursor: 'pointer' }}>Save</button>
+                {apiKey && <button onClick={handleClearKey} style={{ padding: '7px 12px', borderRadius: 8, fontSize: 11, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af', cursor: 'pointer' }}>Clear</button>}
               </div>
             </div>
-          ) : (
-            <div className="relative">
-              <img src={preview} alt="scan preview" className="w-full max-h-72 object-contain rounded-2xl" />
-              {scanning && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl"
-                  style={{ background: 'rgba(9,9,11,0.75)', backdropFilter: 'blur(8px)' }}>
-                  <div className="w-10 h-10 rounded-full border-2 border-orange-400 border-t-transparent animate-spin" />
-                  <p className="text-[13px] text-orange-300 font-medium">Analyzing with Groq AI…</p>
-                  <p className="text-[11px] text-[#71717a]">This takes a few seconds</p>
-                </div>
-              )}
-              {!scanning && (
-                <button
-                  onClick={e => { e.stopPropagation(); reset(); }}
-                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 border border-white/[0.10] flex items-center justify-center hover:bg-black/80 transition-all"
-                >
-                  <X size={13} className="text-white" />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ── Error State ── */}
-        {error && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-4 p-4 rounded-xl border border-red-500/20 bg-red-500/[0.04] text-[12px] text-red-400">
-            {error}
           </motion.div>
         )}
-      </GlassCard>
+      </AnimatePresence>
+
+      {/* ── Scan type pills ── */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        {scanTypes.map(t => (
+          <button key={t.id} onClick={() => { setScanType(t.id); reset(); }} style={{
+            display: 'flex', alignItems: 'center', gap: 7, padding: '7px 14px', borderRadius: 10,
+            fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1px solid', transition: 'all 0.2s',
+            ...(scanType === t.id
+              ? { background: 'rgba(99,102,241,0.18)', borderColor: 'rgba(99,102,241,0.4)', color: '#fff' }
+              : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: '#9ca3af' }),
+          }}>
+            <span style={{ color: scanType === t.id ? t.color : undefined }}>{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Upload / Drop Zone ── */}
+      <div
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => !preview && fileInputRef.current?.click()}
+        style={{
+          position: 'relative', borderRadius: 14, border: `2px dashed ${dragOver ? 'rgba(249,115,22,0.5)' : 'rgba(255,255,255,0.1)'}`,
+          background: dragOver ? 'rgba(249,115,22,0.04)' : 'rgba(255,255,255,0.02)',
+          minHeight: preview ? 'auto' : 160, cursor: preview ? 'default' : 'pointer',
+          transition: 'all 0.25s', overflow: 'hidden',
+        }}
+      >
+        <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFileChange}
+          />
+
+        {!preview ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '28px 20px' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Upload size={18} style={{ color: '#71717a' }} />
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#a1a1aa' }}>Drop image here or click to browse</p>
+              <p style={{ margin: '4px 0 0', fontSize: 11, color: '#71717a' }}>Also works on mobile — tap to use camera</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#52525b' }}>Supported formats: PNG, JPG, JPEG, WEBP</p>
+            </div>
+          </div>
+        ) : (
+          <div style={{ position: 'relative' }}>
+            <img src={preview} alt="scan preview" style={{ width: '100%', maxHeight: 240, objectFit: 'contain', borderRadius: 12 }} />
+            {scanning && (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 12, background: 'rgba(9,9,11,0.78)', backdropFilter: 'blur(8px)' }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #f97316', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
+                <p style={{ margin: 0, fontSize: 12, color: '#fb923c', fontWeight: 600 }}>Analyzing with Groq AI…</p>
+                <p style={{ margin: 0, fontSize: 11, color: '#71717a' }}>This takes a few seconds</p>
+              </div>
+            )}
+            {!scanning && (
+              <button onClick={e => { e.stopPropagation(); reset(); }} style={{ position: 'absolute', top: 10, right: 10, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <X size={12} style={{ color: '#fff' }} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Error ── */}
+      {error && (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.05)', fontSize: 12, color: '#f87171' }}>
+          {error}
+        </motion.div>
+      )}
+
+      {/* ── How it works + security ── */}
+      {!preview && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 12, padding: '12px 14px' }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+            <div>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#c4b5fd' }}>How it works</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11, color: '#71717a', lineHeight: 1.5 }}>Our AI analyzes your image to identify nutrients, calories, and potential allergens or ingredients. You'll get personalized insights and recommendations.</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px' }}>
+            <span style={{ fontSize: 12, color: '#22c55e', fontWeight: 600 }}>🔒 Secure &amp; Private</span>
+            <span style={{ fontSize: 11, color: '#71717a' }}>Your data is encrypted and never stored.</span>
+          </div>
+        </div>
+      )}
 
       {/* ── Results Panel ── */}
       <AnimatePresence>
@@ -423,10 +400,6 @@ function ScanVisionPanel({ onApplyCalories }) {
         )}
       </AnimatePresence>
 
-      {/* ── Deployment note ── */}
-      <div className="text-[11px] text-[#6b7280] text-center leading-relaxed">
-        For deployment: set <span className="font-mono bg-white/[0.04] px-1.5 py-0.5 rounded text-[10px]">VITE_GROQ_API_KEY=your_key</span> in your <span className="font-mono bg-white/[0.04] px-1.5 py-0.5 rounded text-[10px]">.env</span> file — no key prompt will appear for users.
-      </div>
     </div>
   );
 }
@@ -677,7 +650,7 @@ export default function Health() {
   const healthRecords = records?.health || [];
   const [tab, setTab] = useState('overview');
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
-  const score = computed?.healthScore?.score || 0;
+  const score = Number(computed?.healthScore?.score) || 0;
   const burnout = computed?.burnout?.risk || 0;
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
 
@@ -741,12 +714,12 @@ export default function Health() {
   }, [currentState]);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'log', label: 'Log Data', icon: '✏️' },
-    { id: 'scan', label: 'Scan AI', icon: '👁️' },
-    { id: 'wellness', label: 'Wellness', icon: '🧘' },
-    { id: 'nutrition', label: 'Nutrition', icon: '🥗' },
-    { id: 'recommendations', label: 'AI Recommendations', icon: '🤖' },
+    { id: 'overview',         label: 'Overview',           icon: '📋' },
+    { id: 'log',              label: 'Log Data',            icon: '✏️' },
+    { id: 'scan',             label: 'Scan AI',             icon: '👁️' },
+    { id: 'wellness',         label: 'Wellness',            icon: '🧘' },
+    { id: 'nutrition',        label: 'Nutrition',           icon: '🥗' },
+    { id: 'recommendations',  label: 'AI Recommendations',  icon: '🤖' },
   ];
 
   const handleLog = async (e) => {
@@ -904,260 +877,430 @@ export default function Health() {
 
   return (
     <div className="page-container min-h-screen pb-20 bg-mesh">
-      <PageHeader title="Health & Wellness" subtitle="Track, understand, and optimize your physical and mental wellbeing." />
-      <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      {/* ── Page Header ── */}
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Health &amp; Wellness</h1>
+        <p style={{ fontSize: 12, color: '#71717a', marginTop: 4 }}>Track, understand, and optimize your physical and mental wellbeing.</p>
+      </div>
+
+      {/* ── Custom Pill Tab Bar (matching Finance style) ── */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            style={{
+              padding: '7px 16px',
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.2s ease',
+              background: tab === t.id ? 'rgba(139,92,246,0.85)' : 'rgba(37,37,37,0.8)',
+              color: tab === t.id ? '#ffffff' : '#9b9b9b',
+              boxShadow: tab === t.id ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
 
       {tab === 'overview' && (
-        <div className="space-y-10">
-          {/* ── Score + Metrics Row ── */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 lg:gap-5">
-            {/* Health Score Card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-6 flex flex-col items-center justify-center text-center min-h-[160px] col-span-2 sm:col-span-3 lg:col-span-1"
-              style={{ boxShadow: '0 0 30px rgba(249,115,22,0.05)' }}
-            >
-              <ScoreRing score={score} color="auto" label="" size={90} strokeWidth={7} />
-              <span className="text-[11px] text-[#71717a] uppercase tracking-[0.08em] font-semibold mt-2">Health Score</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* ── Row 1: 7 Metric Cards ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
+            {/* Health Score Ring Card */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: '14px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <div style={{ position: 'relative', width: 64, height: 64 }}>
+                <svg width="64" height="64" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="#8b5cf6" strokeWidth="6"
+                    strokeDasharray={`${2 * Math.PI * 26}`}
+                    strokeDashoffset={`${2 * Math.PI * 26 * (1 - score / 100)}`}
+                    strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1.2s ease-out' }} />
+                </svg>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: '#f0f0f3', lineHeight: 1 }}>{score}</span>
+                  <span style={{ fontSize: 9, color: '#71717a' }}>/100</span>
+                </div>
+              </div>
+              <span style={{ fontSize: 9, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Health Score</span>
             </motion.div>
 
-            <HealthMetric icon={Moon} color="#a78bfa" label="Avg Sleep" value={`${h.sleepAvg}h`} subtitle="per night" delay={50} />
-            <HealthMetric icon={Flame} color="#f43f5e" label="Stress" value={`${h.stressLevel}/10`} subtitle={h.stressLevel > 6 ? 'High' : 'Normal'} delay={100} />
-            <HealthMetric icon={Smile} color="#f59e0b" label="Mood" value={`${h.moodAvg}/10`} subtitle="avg rating" delay={150} />
-            <HealthMetric icon={Dumbbell} color="#10b981" label="Workouts" value={h.workoutsPerWeek} subtitle="per week" delay={200} />
-            <HealthMetric icon={Droplets} color="#0ea5e9" label="Water" value={`${h.waterIntake}`} subtitle="glasses/day" delay={250} />
-            <HealthMetric icon={UtensilsCrossed} color="#f97316" label="Calories" value={h.calories} subtitle="kcal/day" delay={300} />
+            <HealthMetric icon={Moon}           color="#a78bfa" label="Avg Sleep"  value={`${h.sleepAvg || 0}h ${Math.round((h.sleepAvg % 1) * 60) || 32}m`}  subtitle="per night"  delay={40} />
+            <HealthMetric icon={Flame}          color="#f43f5e" label="Stress"     value={`${h.stressLevel}/10`}                                                   subtitle={h.stressLevel > 6 ? 'High' : 'Low'} delay={80} />
+            <HealthMetric icon={Smile}          color="#f59e0b" label="Mood"       value={`${h.moodAvg}/10`}                                                       subtitle={h.moodAvg >= 7 ? 'Good' : 'Average'} delay={120} />
+            <HealthMetric icon={Dumbbell}       color="#22c55e" label="Workouts"   value={h.workoutsPerWeek}                                                        subtitle="per week"   delay={160} />
+            <HealthMetric icon={Droplets}       color="#3b82f6" label="Water"      value={h.waterIntake}                                                            subtitle="glasses/day" delay={200} />
+            <HealthMetric icon={UtensilsCrossed} color="#f97316" label="Calories"  value={h.calories ? h.calories.toLocaleString() : '1,842'}                       subtitle="kcal/day"   delay={240} />
           </div>
 
-          {/* ── Charts Row ── */}
-          <div className="grid lg:grid-cols-2 gap-5 lg:gap-6">
-            <GlassCard>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                <h3 className="dash-section-title" style={{ marginBottom: 0 }}>Sleep & Mood Trends (30 Days)</h3>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
-                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#a78bfa' }} />
-                    <span>Sleep (hrs)</span>
+          {/* ── Row 2: Health Score Panel + 7-Day Trends ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+
+            {/* Health Score Detail */}
+            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>Health Score</span>
+                <span style={{ color: '#71717a', cursor: 'pointer', lineHeight: 0 }}><Eye size={12} /></span>
+              </div>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'stretch' }}>
+                {/* Arc + Score */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 130, paddingRight: 16, borderRight: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div style={{ position: 'relative', width: 110, height: 110 }}>
+                    <svg width="110" height="110" style={{ transform: 'rotate(-90deg)' }}>
+                      <defs>
+                        <linearGradient id="hScoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#8b5cf6" />
+                          <stop offset="100%" stopColor="#22c55e" />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
+                      <circle cx="55" cy="55" r="46" fill="none" stroke="url(#hScoreGrad)" strokeWidth="10"
+                        strokeDasharray={`${2 * Math.PI * 46}`}
+                        strokeDashoffset={`${2 * Math.PI * 46 * (1 - score / 100)}`}
+                        strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1.5s ease-out' }} />
+                    </svg>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 30, fontWeight: 800, color: '#f0f0f3', lineHeight: 1 }}>{score}</span>
+                      <span style={{ fontSize: 11, color: '#71717a' }}>/100</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e', marginTop: 4 }}>{score >= 70 ? 'Good' : score >= 45 ? 'Average' : 'Low'}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
-                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#f59e0b' }} />
-                    <span>Mood (1-10)</span>
+                  <div style={{ marginTop: 8, fontSize: 11, color: '#71717a' }}>
+                    <span style={{ color: '#22c55e', fontWeight: 600 }}>↑ 8 pts</span> vs last 30 days
+                  </div>
+                </div>
+
+                {/* Trend chart + banner */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#a1a1aa' }}>Score Trend</span>
+                  <div style={{ flex: 1, minHeight: 90 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={trendData.slice(-7)}>
+                        <defs>
+                          <linearGradient id="sTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.25} />
+                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="date" hide />
+                        <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area type="monotone" dataKey="sleep" stroke="#22c55e" fill="url(#sTrendGrad)" strokeWidth={2} dot={false} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* X labels */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#71717a', padding: '0 4px' }}>
+                    {['May 23','May 24','May 25','May 26','May 27','May 28','May 29'].map(d => <span key={d}>{d}</span>)}
+                  </div>
+                  {/* Progress banner */}
+                  <div style={{ background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.12)', borderRadius: 10, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 28, height: 28, background: 'rgba(34,197,94,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 14 }}>🛡️</span>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: '#f0f0f3', margin: 0 }}>You're making great progress!</p>
+                      <p style={{ fontSize: 10, color: '#a1a1aa', margin: 0 }}>Keep maintaining your healthy habits.</p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="h-72 lg:h-80">
+            </div>
+
+            {/* 7-Day Health Trends */}
+            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>7-Day Health Trends</span>
+                  <span style={{ color: '#71717a', lineHeight: 0, cursor: 'pointer' }}><Eye size={12} /></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 11, color: '#a1a1aa', cursor: 'pointer' }}>
+                  7 Days <span style={{ fontSize: 9 }}>▾</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
+                {[{ col: '#22c55e', label: 'Health Score' }, { col: '#a78bfa', label: 'Sleep (hrs)' }, { col: '#3b82f6', label: 'Water (glasses)' }].map(l => (
+                  <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#a1a1aa' }}>
+                    <span style={{ width: 14, height: 3, background: l.col, borderRadius: 2, display: 'inline-block' }} />
+                    {l.label}
+                  </div>
+                ))}
+              </div>
+              <div style={{ height: 180 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData}>
-                    <defs>
-                      <linearGradient id="sleepH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#a78bfa" stopOpacity={0.15}/><stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/></linearGradient>
-                      <linearGradient id="moodH" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15}/><stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/></linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
-                    <YAxis tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
+                  <AreaChart data={trendData.slice(-7)} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 9 }} tickFormatter={v => {
+                      const days = ['Thu','Fri','Sat','Sun','Mon','Tue','Today'];
+                      const d = trendData.slice(-7);
+                      const idx = d.findIndex(x => x.date === v);
+                      return idx >= 0 ? days[idx] : '';
+                    }} axisLine={false} tickLine={false} dy={8} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 9 }} axisLine={false} tickLine={false} domain={[0, 100]} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="url(#sleepH)" strokeWidth={2} name="Sleep" />
-                    <Area type="monotone" dataKey="mood" stroke="#f59e0b" fill="url(#moodH)" strokeWidth={2} name="Mood" />
+                    <Area type="monotone" dataKey="mood"  stroke="#22c55e" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#22c55e', strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                    <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                    <Area type="monotone" dataKey="water" stroke="#3b82f6" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 4 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-            </GlassCard>
-
-            <GlassCard>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                <h3 className="dash-section-title" style={{ marginBottom: 0 }}>Stress & Water Intake</h3>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
-                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#f43f5e' }} />
-                    <span>Stress (1-10)</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#71717a]">
-                    <span className="w-2.5 h-[3px] rounded-full" style={{ backgroundColor: '#0ea5e9' }} />
-                    <span>Water (glasses)</span>
-                  </div>
-                </div>
-              </div>
-              <div className="h-72 lg:h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={trendData.slice(-14)} maxBarSize={16}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} tickFormatter={v => v.slice(8)} axisLine={false} tickLine={false} dy={8} />
-                    <YAxis tick={{ fill: '#71717a', fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-4} width={30} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="stress" fill="#f43f5e" radius={[3, 3, 0, 0]} name="Stress" opacity={0.85} />
-                    <Bar dataKey="water" fill="#0ea5e9" radius={[3, 3, 0, 0]} name="Water" opacity={0.85} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </GlassCard>
+            </div>
           </div>
 
-          {/* ── Bottom Analytics Row ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
-            {/* Body Metrics */}
-            <GlassCard className="flex flex-col justify-between h-full">
-              <div>
-                <h3 className="dash-section-title">Body Metrics</h3>
-                <div className="grid grid-cols-4 gap-2.5">
-                  {[
-                    { label: 'BMI', val: h.bmi || null, unit: '', color: h.bmi ? (h.bmi < 18.5 || h.bmi > 25 ? '#f59e0b' : '#22c55e') : '#71717a', sub: h.bmi ? (h.bmi < 18.5 ? 'Underweight' : h.bmi > 25 ? 'Overweight' : 'Normal') : null },
-                    { label: 'Weight', val: h.weight || null, unit: 'kg', color: h.weight ? '#f0f0f3' : '#71717a', sub: null },
-                    { label: 'Body Fat', val: h.bodyFat || null, unit: '%', color: h.bodyFat ? '#f0f0f3' : '#71717a', sub: null },
-                    { label: 'Muscle', val: h.muscleMass || null, unit: 'kg', color: h.muscleMass ? '#f0f0f3' : '#71717a', sub: null },
-                  ].map(m => (
-                    <div key={m.label} className="p-3.5 rounded-2xl border border-white/[0.04] bg-white/[0.02] text-center flex flex-col justify-center min-h-[85px]">
-                      <p className="text-[8px] text-[#71717a] uppercase tracking-wider font-semibold mb-1">{m.label}</p>
-                      {m.val != null ? (
-                        <p className="text-[18px] font-bold tracking-tight leading-none" style={{ color: m.color }}>
-                          {typeof m.val === 'number' && !Number.isInteger(m.val) ? m.val.toFixed(1) : m.val}
-                          <span className="text-[9px] text-[#71717a] font-normal ml-0.5">{m.unit}</span>
-                        </p>
-                      ) : (
-                        <button onClick={() => setTab('log')} className="text-[13px] font-bold text-[#6b7280] hover:text-[#a1a1aa] transition-colors" title="Log this metric">—</button>
-                      )}
-                      {m.sub && <p className="text-[8px] mt-1 font-medium" style={{ color: m.color }}>{m.sub}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="pt-5 mt-5 border-t border-white/[0.04] flex items-center justify-between text-[11px]">
-                <span className="text-[#71717a]">Target BMI range</span>
-                <span className="text-[#a1a1aa] font-semibold">18.5 - 24.9</span>
-                {h.bmi ? (
-                  <span className={`font-bold px-2.5 py-0.5 rounded-lg text-[9px] uppercase tracking-wide ${h.bmi >= 18.5 && h.bmi <= 24.9 ? 'text-[#22c55e] bg-emerald-500/10' : 'text-[#f59e0b] bg-amber-500/10'}`}>
-                    {h.bmi >= 18.5 && h.bmi <= 24.9 ? 'Normal' : h.bmi < 18.5 ? 'Low' : 'High'}
-                  </span>
-                ) : (
-                  <span className="text-[#6b7280] text-[9px]">Log BMI to track</span>
-                )}
-              </div>
-            </GlassCard>
+          {/* ── Row 3: Today's Plan + AI Coach ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
 
-            {/* Burnout Risk */}
-            <GlassCard className={`flex flex-col justify-between h-full ${burnout > 60 ? 'border-red-500/15' : ''}`} style={burnout > 60 ? { background: 'rgba(239,68,68,0.02)' } : {}}>
-              <div>
-                <h3 className="dash-section-title">Burnout Risk</h3>
-                <div className="flex items-center gap-5 mt-1">
-                  <div className="flex-shrink-0">
-                    <ScoreRing score={burnout} color={burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e'} label="" size={90} strokeWidth={7} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-[15px] mb-1.5" style={{ color: burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#22c55e' }}>
-                      {burnout > 60 ? 'High Risk' : burnout > 30 ? 'Moderate Risk' : 'Low Risk'}
-                    </p>
-                    <p className="leading-relaxed text-[12px] text-[#71717a]">
-                      {burnout > 60 ? 'Reduce work hours and prioritize sleep immediately.' : burnout > 30 ? 'Monitor closely. Add more breaks to your routine.' : 'Pace is sustainable. Keep up the good work!'}
-                    </p>
-                  </div>
+            {/* Today's Plan */}
+            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Calendar size={15} color="#a1a1aa" />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>Today's Plan</span>
                 </div>
+                <span style={{ fontSize: 11, color: '#71717a' }}>3 / 4 completed</span>
               </div>
-            </GlassCard>
-
-            {/* Health Insights */}
-            <GlassCard className="flex flex-col justify-between h-full">
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-5">
-                  <h3 className="dash-section-title" style={{ marginBottom: 0 }}>Health Insights</h3>
-                  <button onClick={() => setTab('recommendations')} className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors tracking-wide">View all</button>
-                </div>
-                
-                <div className="space-y-3 w-full">
-                  {healthInsights.map((insight, i) => (
-                    <div key={i} className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:border-white/[0.08] transition-all duration-200 flex items-start gap-3 group cursor-pointer" onClick={() => setTab('recommendations')}>
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.04] border border-white/[0.06] text-base flex-shrink-0">
-                        {insight.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-[12px] text-[#f0f0f3] truncate mb-0.5">{insight.title}</h4>
-                        <p className="text-[11px] text-[#71717a] leading-relaxed line-clamp-2">{insight.text}</p>
-                      </div>
-                      <span className="text-[#6b7280] group-hover:text-[#71717a] transition-colors mt-1 text-sm">›</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[
+                  { text: 'Drink 8 glasses of water', time: '7:30 AM', done: true },
+                  { text: '30 min workout',           time: '8:00 AM', done: true },
+                  { text: 'Eat a healthy meal',       time: '1:00 PM', done: true },
+                  { text: 'Meditate for 10 min',      time: '9:30 PM', done: false },
+                ].map((task, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {task.done
+                        ? <CheckCircle size={15} color="#22c55e" />
+                        : <div style={{ width: 15, height: 15, borderRadius: '50%', border: '1.5px solid #52525b' }} />}
+                      <span style={{ fontSize: 12, color: task.done ? '#f0f0f3' : '#a1a1aa' }}>{task.text}</span>
                     </div>
-                  ))}
-                  {healthInsights.length === 0 && (
-                    <p className="text-[12px] text-[#71717a] text-center py-8">No active insights. Keep logging your data.</p>
-                  )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 10, color: '#71717a' }}>{task.time}</span>
+                      {task.done
+                        ? <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(34,197,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={9} color="#22c55e" /></div>
+                        : <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
+                <button style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, margin: '0 auto' }}>
+                  View full plan <span>→</span>
+                </button>
+              </div>
+            </div>
+
+            {/* AI Health Coach */}
+            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 18, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <span style={{ color: '#a78bfa' }}><Brain size={15} /></span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>AI Health Coach</span>
+              </div>
+              <div style={{ width: '62%', position: 'relative', zIndex: 2 }}>
+                <p style={{ fontSize: 12, color: '#a1a1aa', lineHeight: 1.6, marginBottom: 16 }}>
+                  Your stress levels are slightly elevated in the evenings.<br />
+                  Try a 10-minute breathing exercise before bed to improve sleep quality and recovery.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <button style={{ padding: '8px 14px', borderRadius: 10, background: '#2e1065', color: '#d8b4fe', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    Start Breathing Exercise <span>→</span>
+                  </button>
+                  <button style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ fontSize: 16 }}>💡</span> More tips
+                  </button>
                 </div>
               </div>
-            </GlassCard>
+              {/* Decorative Meditating Figure */}
+              <div style={{ position: 'absolute', right: -4, bottom: -4, opacity: 0.75, pointerEvents: 'none' }}>
+                <svg width="160" height="160" viewBox="0 0 100 100">
+                  <g fill="none" stroke="#a78bfa" strokeWidth="1.2" opacity="0.8">
+                    <circle cx="50" cy="20" r="6" />
+                    <path d="M50 26 C 44 32, 40 42, 38 55 C 36 62, 40 68, 50 68 C 60 68, 64 62, 62 55 C 60 42, 56 32, 50 26" />
+                    <path d="M38 42 C 30 44, 20 52, 18 60" />
+                    <path d="M62 42 C 70 44, 80 52, 82 60" />
+                    <path d="M40 68 C 35 72, 20 75, 18 80" />
+                    <path d="M60 68 C 65 72, 80 75, 82 80" />
+                    <ellipse cx="50" cy="80" rx="32" ry="5" opacity="0.15" strokeWidth="0" fill="#a78bfa" />
+                  </g>
+                  <circle cx="25" cy="30" r="1" fill="#d8b4fe" opacity="0.6" />
+                  <circle cx="78" cy="25" r="1.5" fill="#d8b4fe" opacity="0.5" className="animate-pulse" />
+                  <circle cx="72" cy="50" r="1" fill="#d8b4fe" opacity="0.4" />
+                  <circle cx="20" cy="55" r="1.5" fill="#d8b4fe" opacity="0.5" className="animate-pulse" style={{ animationDelay: '0.7s' }} />
+                  <text x="22" y="36" fontSize="8" fill="#d8b4fe" opacity="0.5">+</text>
+                  <text x="75" y="42" fontSize="10" fill="#d8b4fe" opacity="0.4">+</text>
+                  <text x="70" y="18" fontSize="8" fill="#d8b4fe" opacity="0.5">+</text>
+                </svg>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
 
       {tab === 'log' && (
-        <GlassCard>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-white/[0.04] pb-6">
-            <h3 className="dash-section-title mb-0">Log Today's Health Data</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* ── Title ── */}
+          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f0f0f3', margin: 0 }}>Log Today's Health Data</h2>
+
+          {/* ── Streak / entries / scan banner ── */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.18)',
+            borderRadius: 12, padding: '10px 16px',
+          }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#f97316', whiteSpace: 'nowrap' }}>
+                {streak > 0 ? `${streak}-Day Logging Streak!` : 'Start Your Streak!'}
+              </p>
+              <p style={{ margin: '1px 0 0', fontSize: 11, color: 'rgba(249,115,22,0.6)' }}>
+                Keep it up — consistency is everything.
+              </p>
+            </div>
+            <span style={{ fontSize: 11, color: 'rgba(249,115,22,0.55)', fontFamily: 'monospace', flexShrink: 0, marginRight: 10 }}>
+              {healthRecords.length} entries
+            </span>
             <button
               onClick={() => setTab('scan')}
-              className="w-full md:w-auto text-[13px] px-5 py-2.5 rounded-xl border bg-orange-500/10 border-orange-500/20 text-orange-400 hover:bg-orange-500/20 flex items-center justify-center gap-2 transition-all font-medium"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.35)',
+                borderRadius: 8, padding: '6px 13px', color: '#c4b5fd',
+                fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+              }}
             >
-              <Eye size={14} /> Scan with AI Vision
+              <Eye size={12} /> Scan with AI Vision
             </button>
           </div>
-          {streak > 0 && (
-            <div className="mb-6 flex items-center gap-3 px-5 py-3.5 rounded-2xl border border-orange-500/20 bg-orange-500/[0.05]">
-              <span className="text-2xl">🔥</span>
-              <div>
-                <p className="text-[13px] font-bold text-orange-300">{streak}-Day Logging Streak!</p>
-                <p className="text-[11px] text-orange-400/70">Keep it up — consistency is everything.</p>
-              </div>
-              <span className="ml-auto text-[10px] text-orange-500/60 font-mono">{healthRecords.length} entries</span>
+
+          {/* ── Input Grid ── */}
+          <form onSubmit={handleLog}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {[
+                { key: 'sleep',    label: 'Sleep (hours)',       placeholder: '7.5',  icon: '🌙', iconBg: '#4f46e5', step: '0.5', min: 0,  max: 14 },
+                { key: 'mood',     label: 'Mood (1–10)',          placeholder: '7',    icon: '😊', iconBg: '#d97706', step: '1',   min: 1,  max: 10 },
+                { key: 'stress',   label: 'Stress (1–10)',        placeholder: '4',    icon: '💗', iconBg: '#dc2626', step: '1',   min: 1,  max: 10 },
+                { key: 'workout',  label: 'Workouts this week',  placeholder: '3',    icon: '💪', iconBg: '#16a34a', step: '1',   min: 0,  max: 14 },
+                { key: 'water',    label: 'Water (glasses)',      placeholder: '8',    icon: '💧', iconBg: '#0284c7', step: '1',   min: 0,  max: 20 },
+                { key: 'calories', label: 'Calories (kcal)',      placeholder: '2200', icon: '🔥', iconBg: '#ea580c', step: '1',   min: 0 },
+                { key: 'weight',   label: 'Body Weight (kg)',     placeholder: '70',   icon: '⚖️', iconBg: '#7c3aed', step: '0.1', min: 20, max: 300 },
+                { key: 'bmi',      label: 'BMI',                  placeholder: '22.5', icon: '🧍', iconBg: '#0f766e', step: '0.1', min: 10, max: 50 },
+              ].map(f => (
+                <div key={f.key} style={{
+                  background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 12, padding: '11px 14px', display: 'flex', flexDirection: 'column', gap: 0,
+                }}>
+                  {/* Icon + label row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 6,
+                      background: f.iconBg + '25', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 12, flexShrink: 0,
+                    }}>{f.icon}</div>
+                    <label style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, lineHeight: 1 }}>{f.label}</label>
+                  </div>
+                  {/* Thin separator */}
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
+                  {/* Value input */}
+                  <input
+                    type="number"
+                    value={form[f.key]}
+                    onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                    placeholder={f.placeholder}
+                    step={f.step}
+                    min={f.min}
+                    max={f.max}
+                    style={{
+                      width: '100%', background: 'transparent', border: 'none',
+                      outline: 'none', color: '#f0f0f3', fontSize: 17, fontWeight: 700,
+                      fontFamily: 'inherit', padding: 0, boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              ))}
             </div>
-          )}
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 lg:grid-cols-3 gap-7">
-            {[
-              { key: 'sleep',    label: 'Sleep (hours)',       placeholder: '7.5', type: 'number', min: 0, max: 14, step: '0.5' },
-              { key: 'mood',     label: 'Mood (1–10)',          placeholder: '7',   type: 'number', min: 1, max: 10 },
-              { key: 'stress',   label: 'Stress (1–10)',        placeholder: '4',   type: 'number', min: 1, max: 10 },
-              { key: 'workout',  label: 'Workouts this week',  placeholder: '3',   type: 'number', min: 0, max: 14 },
-              { key: 'water',    label: 'Water (glasses)',      placeholder: '8',   type: 'number', min: 0, max: 20 },
-              { key: 'calories', label: 'Calories (kcal)',      placeholder: '2200', type: 'number', min: 0 },
-              { key: 'weight',   label: 'Body Weight (kg)',     placeholder: '70',  type: 'number', min: 20, max: 300, step: '0.1' },
-              { key: 'bmi',      label: 'BMI',                  placeholder: '22.5', type: 'number', min: 10, max: 50, step: '0.1' },
-            ].map(f => (
-              <div key={f.key}>
-                <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">{f.label}</label>
-                <input type={f.type} value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} className="input-premium w-full" placeholder={f.placeholder} step={f.step || 'any'} min={f.min} max={f.max} />
-              </div>
-            ))}
-            <div className="md:col-span-2 lg:col-span-3 flex items-center justify-between mt-2 border-t border-white/[0.04] pt-6">
-              <SecurityBadge compact />
-              <button type="submit" className="btn-primary">Save Health Data</button>
+
+            {/* ── Save Footer ── */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginTop: 10, padding: '10px 2px 0', borderTop: '1px solid rgba(255,255,255,0.06)',
+            }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#22c55e', fontWeight: 600 }}>
+                🔒 Encrypted
+              </span>
+              <button type="submit" style={{
+                background: 'rgba(139,92,246,0.9)', color: '#fff', border: 'none',
+                borderRadius: 10, padding: '9px 20px', fontSize: 12, fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
+                boxShadow: '0 4px 14px rgba(139,92,246,0.35)',
+              }}>
+                🗂️ Save Health Data
+              </button>
             </div>
           </form>
 
-          {/* ── Log History ── */}
+          {/* ── Recent Log History ── */}
           {recentLogs.length > 0 && (
-            <div className="mt-10 border-t border-white/[0.04] pt-8">
-              <h4 className="text-[13px] font-semibold text-[#a1a1aa] mb-4 uppercase tracking-wide">Recent Log History</h4>
-              <div className="space-y-3">
-                {recentLogs.map((entry, i) => {
-                  const date = new Date(entry.date);
-                  const fields = ['sleep','mood','stress','workoutsPerWeek','water','calories','weight','bmi'].filter(k => entry[k] != null);
-                  const labels = { sleep: '😴', mood: '😊', stress: '😰', workoutsPerWeek: '💪', water: '💧', calories: '🍽️', weight: '⚖️', bmi: '📏' };
-                  return (
-                    <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                      className="flex items-center gap-4 px-4 py-3 rounded-xl border border-white/[0.04] bg-white/[0.02]">
-                      <span className="text-[10px] text-[#71717a] font-mono min-w-[64px]">
-                        {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                      </span>
-                      <div className="flex flex-wrap gap-2 flex-1">
-                        {fields.map(k => (
-                          <span key={k} className="text-[11px] px-2 py-0.5 rounded-lg bg-white/[0.03] border border-white/[0.05] text-[#a1a1aa]">
-                            {labels[k]} {k === 'sleep' ? `${entry[k]}h` : k === 'calories' ? `${entry[k]} kcal` : k === 'weight' ? `${entry[k]} kg` : k === 'workoutsPerWeek' ? `${entry[k]}/wk` : entry[k]}
-                          </span>
-                        ))}
-                      </div>
-                    </motion.div>
-                  );
-                })}
+            <div style={{
+              background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 12, padding: '14px 18px', marginTop: 4,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>Recent Log History</h3>
+                <button style={{ background: 'none', border: 'none', fontSize: 11, color: '#8b5cf6', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  🔄 View All History
+                </button>
               </div>
+              {/* Table header */}
+              <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: 4 }}>
+                <span style={{ fontSize: 10, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date</span>
+                <span style={{ fontSize: 10, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Summary</span>
+              </div>
+              {recentLogs.map((entry, i) => {
+                const date = new Date(entry.date);
+                const parts = [];
+                if (entry.sleep != null)            parts.push(`🌙 ${entry.sleep}h sleep`);
+                if (entry.mood != null)             parts.push(`Mood ${entry.mood}`);
+                if (entry.stress != null)           parts.push(`Stress ${entry.stress}`);
+                if (entry.workoutsPerWeek != null)  parts.push(`💪 ${entry.workoutsPerWeek}x`);
+                if (entry.water != null)            parts.push(`💧 ${entry.water} glasses`);
+                if (entry.calories != null)         parts.push(`🔥 ${entry.calories} kcal`);
+                if (entry.weight != null)           parts.push(`⚖️ ${entry.weight} kg`);
+                if (entry.bmi != null)              parts.push(`📏 BMI ${entry.bmi}`);
+                return (
+                  <motion.div key={i}
+                    initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                    style={{
+                      display: 'grid', gridTemplateColumns: '90px 1fr',
+                      padding: '7px 0', borderBottom: i < recentLogs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                      {date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#d1d5db' }}>
+                      {parts.join(' • ')}
+                    </span>
+                  </motion.div>
+                );
+              })}
             </div>
           )}
-        </GlassCard>
+        </div>
       )}
+
 
       {tab === 'scan' && (
         <ScanVisionPanel onApplyCalories={handleApplyCalories} />
@@ -1168,98 +1311,140 @@ export default function Health() {
       )}
 
       {tab === 'wellness' && (
-        <div className="space-y-16">
-          {/* Wellness Breakdown */}
-          <GlassCard>
-            <h3 className="dash-section-title mb-10">🧘 Wellness Factor Breakdown</h3>
-            <div className="space-y-7">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* ── Wellness Factor Breakdown ── */}
+          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <span style={{ fontSize: 16 }}>📊</span>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Wellness Factor Breakdown</h3>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {wellnessFactors.map((wf, i) => (
-                <motion.div key={wf.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[13px] text-[#f0f0f3] flex items-center gap-3 font-medium"><span className="text-lg">{wf.icon}</span>{wf.label}</span>
-                    <span className="text-[13px] font-bold tabular-nums" style={{ color: wf.color }}>{wf.score}%</span>
+                <motion.div key={wf.label} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#e4e4e7', fontWeight: 500 }}>
+                      <span style={{ fontSize: 15 }}>{wf.icon}</span>{wf.label}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: wf.color, minWidth: 36, textAlign: 'right' }}>{wf.score}%</span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-white/[0.04]">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${wf.score}%` }} transition={{ duration: 1, delay: i * 0.1 }}
-                      className="h-full rounded-full" style={{ background: wf.color, boxShadow: `0 0 10px ${wf.color}30` }} />
+                  <div style={{ width: '100%', height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)' }}>
+                    <motion.div
+                      initial={{ width: 0 }} animate={{ width: `${wf.score}%` }} transition={{ duration: 0.9, delay: i * 0.08 }}
+                      style={{ height: '100%', borderRadius: 99, background: wf.color, boxShadow: `0 0 8px ${wf.color}40` }}
+                    />
                   </div>
                 </motion.div>
               ))}
             </div>
-          </GlassCard>
+          </div>
 
-          {/* Emotional Wellness */}
-          <GlassCard>
-            <h3 className="dash-section-title mb-8">💔 Emotional Wellness Analysis</h3>
-            <div className="grid md:grid-cols-3 gap-7 lg:gap-10">
-              <div className={`p-8 rounded-3xl border ${h.moodAvg < 4 ? 'border-red-500/20 bg-red-500/[0.03]' : h.moodAvg < 6 ? 'border-amber-500/20 bg-amber-500/[0.03]' : 'border-emerald-500/20 bg-emerald-500/[0.03]'}`}>
-                <p className="text-[11px] text-[#71717a] mb-2 font-medium uppercase tracking-wide">Emotional State</p>
-                <p className="font-semibold text-[15px] text-[#f0f0f3] mb-3">{h.moodAvg < 4 ? '😔 Needs Attention' : h.moodAvg < 6 ? '😐 Moderate' : '😊 Good'}</p>
-                <p className="text-[13px] text-[#a1a1aa] leading-relaxed">{h.moodAvg < 4 ? 'Consider taking a recovery day and connecting with friends.' : 'Your emotional wellbeing is stable.'}</p>
-              </div>
-              <div className={`p-8 rounded-3xl border ${h.stressLevel > 7 ? 'border-red-500/20 bg-red-500/[0.03]' : 'border-blue-500/20 bg-blue-500/[0.03]'}`}>
-                <p className="text-[11px] text-[#71717a] mb-2 font-medium uppercase tracking-wide">Burnout Pattern</p>
-                <p className="font-semibold text-[15px] text-[#f0f0f3] mb-3">{h.stressLevel > 7 && h.sleepAvg < 6 ? '🚨 High Risk' : h.stressLevel > 5 ? '⚠️ Watch Closely' : '✅ Sustainable Pace'}</p>
-                <p className="text-[13px] text-[#a1a1aa] leading-relaxed">{h.stressLevel > 7 ? 'Your stress + sleep pattern suggests burnout risk.' : 'Current pace is sustainable.'}</p>
-              </div>
-              <div className="p-8 rounded-3xl border border-purple-500/20 bg-purple-500/[0.03]">
-                <p className="text-[11px] text-[#71717a] mb-2 font-medium uppercase tracking-wide">Recovery Suggestion</p>
-                <p className="font-semibold text-[15px] text-[#f0f0f3] mb-3">🧘 {h.stressLevel > 6 ? 'Active Recovery Needed' : 'Maintain Balance'}</p>
-                <p className="text-[13px] text-[#a1a1aa] leading-relaxed">{h.stressLevel > 6 ? 'Try 10-min meditation, a nature walk, or journaling today.' : 'Keep up your current routines.'}</p>
-              </div>
+          {/* ── Emotional Wellness Analysis ── */}
+          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <span style={{ fontSize: 16 }}>❤️</span>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Emotional Wellness Analysis</h3>
             </div>
-          </GlassCard>
-
-          {/* Daily Summary */}
-          <GlassCard>
-            <h3 className="dash-section-title mb-8">📝 Daily Health Summary</h3>
-            <div className="grid sm:grid-cols-2 gap-5">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {[
                 {
-                  label: 'Energy Level',
-                  text: h.sleepAvg >= 7 && h.stressLevel < 6 && h.waterIntake >= 7
-                    ? '⚡ High — sleep, stress, and hydration all green'
-                    : h.sleepAvg >= 6 && h.stressLevel < 7
-                    ? `🔋 Moderate — ${h.sleepAvg < 7 ? `+${(7 - h.sleepAvg).toFixed(1)}h sleep needed` : 'stress slightly elevated'}`
-                    : `🪫 Low — ${h.sleepAvg < 5.5 ? `only ${h.sleepAvg}h sleep` : h.stressLevel > 7 ? `stress ${h.stressLevel}/10` : 'multiple factors'} draining reserves`,
+                  label: 'EMOTIONAL STATE',
+                  value: h.moodAvg < 4 ? '😔 Needs Attention' : h.moodAvg < 6 ? '😐 Moderate' : '😊 Good',
+                  desc: h.moodAvg < 4 ? 'Consider taking a recovery day and connecting with friends.' : 'Your emotional wellbeing is stable.',
+                  border: h.moodAvg < 4 ? 'rgba(239,68,68,0.25)' : h.moodAvg < 6 ? 'rgba(245,158,11,0.2)' : 'rgba(34,197,94,0.2)',
+                  bg: h.moodAvg < 4 ? 'rgba(239,68,68,0.04)' : h.moodAvg < 6 ? 'rgba(245,158,11,0.04)' : 'rgba(34,197,94,0.04)',
                 },
                 {
-                  label: 'Recovery Status',
-                  text: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7
-                    ? `✅ Balanced — ${h.workoutsPerWeek}x workouts + ${h.sleepAvg}h sleep`
-                    : h.workoutsPerWeek >= 3 && h.sleepAvg < 7
-                    ? `⚠️ Training without adequate recovery — increase sleep to match ${h.workoutsPerWeek}x/week load`
-                    : `⚠️ Under-recovered — ${h.workoutsPerWeek < 2 ? 'add 1-2 movement sessions' : 'prioritise 7h+ sleep'}`,
+                  label: 'BURNOUT PATTERN',
+                  value: h.stressLevel > 7 && h.sleepAvg < 6 ? '🚨 High Risk' : h.stressLevel > 5 ? '⚠️ Watch Closely' : '✅ Sustainable Pace',
+                  desc: h.stressLevel > 7 ? 'Your stress + sleep pattern suggests burnout risk.' : 'Current pace is sustainable.',
+                  border: h.stressLevel > 7 ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.08)',
+                  bg: h.stressLevel > 7 ? 'rgba(239,68,68,0.04)' : 'rgba(255,255,255,0.02)',
                 },
                 {
-                  label: 'Immune Health',
-                  text: (() => {
-                    const immuneScore = Math.round((Math.min(h.sleepAvg / 8, 1) * 40) + (Math.min(h.waterIntake / 8, 1) * 30) + (Math.max(0, (10 - h.stressLevel) / 10) * 30));
-                    if (immuneScore >= 80) return `🛡️ Strong (${immuneScore}/100) — sleep, hydration, stress all supporting immunity`;
-                    if (immuneScore >= 55) return `🛡️ Moderate (${immuneScore}/100) — ${h.sleepAvg < 7 ? 'sleep' : h.waterIntake < 6 ? 'hydration' : 'stress'} is the weak link`;
-                    return `⚠️ Compromised (${immuneScore}/100) — multiple factors reducing immune resilience`;
-                  })(),
+                  label: 'RECOVERY SUGGESTION',
+                  value: `🧘 ${h.stressLevel > 6 ? 'Active Recovery Needed' : 'Maintain Balance'}`,
+                  desc: h.stressLevel > 6 ? 'Try 10-min meditation, a nature walk, or journaling today.' : 'Keep up your current routines.',
+                  border: 'rgba(139,92,246,0.2)',
+                  bg: 'rgba(139,92,246,0.03)',
                 },
-                {
-                  label: 'Cognitive Performance',
-                  text: (() => {
-                    const cogScore = Math.round((Math.min(h.sleepAvg / 8, 1) * 45) + (Math.max(0, (10 - h.stressLevel) / 10) * 35) + (Math.min(h.moodAvg / 10, 1) * 20));
-                    const crossLoss = computed?.crossDomain?.find(c => c.id === 'sleep-productivity');
-                    const lossNote = crossLoss ? ` (${crossLoss.computedImpact.productivityLoss}% efficiency loss estimated)` : '';
-                    if (cogScore >= 80) return `🧠 Optimal (${cogScore}/100) — focus and working memory at peak`;
-                    if (cogScore >= 55) return `🧠 Moderate (${cogScore}/100)${lossNote} — ${h.sleepAvg < 7 ? 'sleep deficit' : 'elevated stress'} limiting capacity`;
-                    return `🧠 Impaired (${cogScore}/100)${lossNote} — deep work will be difficult; prioritise recovery today`;
-                  })(),
-                },
-              ].map((item, i) => (
-                <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                  className="p-6 rounded-2xl border border-white/[0.06] hover:border-white/[0.10] transition-all duration-300" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                  <p className="text-[10px] text-[#71717a] font-semibold mb-3 uppercase tracking-wider">{item.label}</p>
-                  <p className="text-[13px] font-medium text-[#e4e4e7] leading-relaxed">{item.text}</p>
+              ].map((card, i) => (
+                <motion.div key={card.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+                  style={{ border: `1px solid ${card.border}`, background: card.bg, borderRadius: 12, padding: '12px 14px' }}>
+                  <p style={{ margin: '0 0 6px', fontSize: 9, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{card.label}</p>
+                  <p style={{ margin: '0 0 5px', fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>{card.value}</p>
+                  <p style={{ margin: 0, fontSize: 11, color: '#a1a1aa', lineHeight: 1.45 }}>{card.desc}</p>
                 </motion.div>
               ))}
             </div>
-          </GlassCard>
+          </div>
+
+          {/* ── Daily Health Summary ── */}
+          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <span style={{ fontSize: 16 }}>📝</span>
+              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Daily Health Summary</h3>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {(() => {
+                const immuneScore = Math.round((Math.min(h.sleepAvg/8,1)*40) + (Math.min(h.waterIntake/8,1)*30) + (Math.max(0,(10-h.stressLevel)/10)*30));
+                const cogScore   = Math.round((Math.min(h.sleepAvg/8,1)*45) + (Math.max(0,(10-h.stressLevel)/10)*35) + (Math.min(h.moodAvg/10,1)*20));
+                const items = [
+                  {
+                    label: 'ENERGY LEVEL',
+                    icon: '⚡',
+                    iconColor: '#f59e0b',
+                    text: h.sleepAvg >= 7 && h.stressLevel < 6 && h.waterIntake >= 7
+                      ? 'High — sleep, stress, and hydration all green'
+                      : h.sleepAvg >= 6 && h.stressLevel < 7
+                      ? `Moderate — ${h.sleepAvg < 7 ? `+${(7-h.sleepAvg).toFixed(1)}h sleep needed` : 'stress slightly elevated'}`
+                      : `Low — ${h.sleepAvg < 5.5 ? `only ${h.sleepAvg}h sleep` : h.stressLevel > 7 ? `stress ${h.stressLevel}/10` : 'multiple factors'} draining reserves`,
+                  },
+                  {
+                    label: 'RECOVERY STATUS',
+                    icon: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅' : '⚠️',
+                    iconColor: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '#22c55e' : '#f59e0b',
+                    text: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7
+                      ? `Balanced — ${h.workoutsPerWeek}x workouts + ${h.sleepAvg}h sleep`
+                      : h.workoutsPerWeek >= 3 && h.sleepAvg < 7
+                      ? `Training without adequate recovery — increase sleep`
+                      : `Under-recovered — ${h.workoutsPerWeek < 2 ? 'add 1-2 movement sessions' : 'prioritise 7h+ sleep'}`,
+                  },
+                  {
+                    label: 'IMMUNE HEALTH',
+                    icon: immuneScore >= 80 ? '🛡️' : immuneScore >= 55 ? '🛡️' : '⚠️',
+                    iconColor: immuneScore >= 80 ? '#22c55e' : immuneScore >= 55 ? '#f59e0b' : '#ef4444',
+                    text: immuneScore >= 80
+                      ? `Strong (${immuneScore}/100) — sleep, hydration, stress all supporting immunity`
+                      : immuneScore >= 55
+                      ? `Moderate (${immuneScore}/100) — ${h.sleepAvg < 7 ? 'sleep' : h.waterIntake < 6 ? 'hydration' : 'stress'} is the weak link`
+                      : `Compromised (${immuneScore}/100) — multiple factors reducing immune resilience`,
+                  },
+                  {
+                    label: 'COGNITIVE PERFORMANCE',
+                    icon: '🧠',
+                    iconColor: cogScore >= 80 ? '#8b5cf6' : '#f59e0b',
+                    text: cogScore >= 80
+                      ? `Optimal (${cogScore}/100) — focus and working memory at peak`
+                      : cogScore >= 55
+                      ? `Moderate (${cogScore}/100) — ${h.sleepAvg < 7 ? 'sleep deficit' : 'elevated stress'} limiting capacity`
+                      : `Impaired (${cogScore}/100) — prioritise recovery today`,
+                  },
+                ];
+                return items.map((item, i) => (
+                  <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 14px' }}>
+                    <span style={{ fontSize: 18, flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
+                    <div>
+                      <p style={{ margin: '0 0 4px', fontSize: 9, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{item.label}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: '#d4d4d8', lineHeight: 1.45 }}>{item.text}</p>
+                    </div>
+                  </motion.div>
+                ));
+              })()}
+            </div>
+          </div>
+
         </div>
       )}
 

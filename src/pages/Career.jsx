@@ -1512,14 +1512,36 @@ export default function Career() {
         {impactSession && <TwinImpactFeed session={impactSession} onDone={() => { setImpactSession(null); setTab('history'); }} />}
       </AnimatePresence>
 
-      <PageHeader title="Career & Brain Twin" subtitle="Study smarter — every session builds your digital twin." icon="🧠" />
+      {/* ── Page Header ── */}
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth <span style={{ fontSize: 18 }}>📈</span></h1>
+        <p style={{ fontSize: 12, color: '#71717a', marginTop: 4 }}>Study smarter — every session builds your digital twin.</p>
+      </div>
 
-      {/* Tab Bar */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* ── Custom Pill Tab Bar ── */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === t.id ? 'bg-gradient-to-r from-blue-600/80 to-violet-600/80 text-white shadow-lg' : 'bg-[#252525]/80 text-[#9B9B9B] hover:bg-white/5'}`}>
-            <span className="mr-1.5">{t.icon}</span>{t.label}
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            style={{
+              padding: '7px 16px',
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.2s ease',
+              background: tab === t.id ? 'rgba(139,92,246,0.85)' : 'rgba(37,37,37,0.8)',
+              color: tab === t.id ? '#ffffff' : '#9b9b9b',
+              boxShadow: tab === t.id ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>{t.icon}</span>
+            {t.label}
           </button>
         ))}
       </div>
