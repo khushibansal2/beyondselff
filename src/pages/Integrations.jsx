@@ -8,11 +8,12 @@ import {
   analyzeFood, hasNutritionixKey, saveNutritionixKeys, clearNutritionixKeys, getDemoFoodResult
 } from '../services/nutritionixService';
 import { extractPdfText } from '../services/resumeService';
+import { searchCoursera, clearCourseraCache, hasCourseraCache } from '../services/courseraService';
 import {
-  GitBranch, Briefcase, Activity, Landmark, Utensils,
+  GitBranch, Briefcase, Activity, Landmark, Utensils, BookOpen,
   Search, Sparkles, CheckCircle, AlertTriangle, ExternalLink,
   Star, GitFork, Code2, Users, Key, Plus,
-  Zap, Brain, ChevronRight, Loader2, Heart, Moon, Footprints,
+  Zap, Brain, ChevronRight, Loader2, Heart, Moon, Footprints, X,
 } from 'lucide-react';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -1622,14 +1623,209 @@ function IndiaBankingPanel() {
   );
 }
 
+// ── COURSERA PANEL (real API) ─────────────────────────────────────────────────
+
+const SKILL_CHIPS = ['Python', 'Machine Learning', 'React', 'SQL', 'Data Science', 'Cloud', 'Deep Learning', 'JavaScript', 'DevOps', 'Java', 'Rust', 'NLP'];
+
+function CourseraPanel() {
+  const { career, updateDomain } = useData();
+  const [query, setQuery]       = useState('');
+  const [courses, setCourses]   = useState([]);
+  const [loading, setLoading]   = useState(false);
+  const [progress, setProgress] = useState('');
+  const [error, setError]       = useState('');
+  const [saved, setSaved]       = useState({});
+  const [hasCache, setHasCache] = useState(hasCourseraCache());
+  const inputRef = useRef(null);
+
+  const doSearch = async (term) => {
+    if (!term.trim()) return;
+    setLoading(true); setError(''); setCourses([]); setProgress('');
+    try {
+      const results = await searchCoursera(term.trim(), { onProgress: setProgress });
+      setCourses(results);
+      if (results.length === 0) setError(`No Coursera courses found for "${term}". Try a broader term.`);
+      setHasCache(hasCourseraCache());
+    } catch (e) {
+      setError(`Coursera API error: ${e.message}. Check network or try clearing cache.`);
+    } finally { setLoading(false); setProgress(''); }
+  };
+
+  // Auto-search top skill on mount
+  useEffect(() => {
+    const topSkill = career?.skills?.[0];
+    if (topSkill) { setQuery(topSkill); doSearch(topSkill); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSave = (course) => {
+    setSaved(s => ({ ...s, [course.id]: true }));
+    const existing = career?.courseraLearning || [];
+    if (!existing.find(c => c.id === course.id)) {
+      updateDomain('career', { courseraLearning: [...existing, { id: course.id, name: course.name, partner: course.partner, url: course.url, addedAt: new Date().toISOString() }] });
+    }
+  };
+
+  const savedCourses = career?.courseraLearning || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header card */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#0056d2]/20 border border-[#0056d2]/30 flex items-center justify-center">
+              <BookOpen size={18} className="text-[#0056d2]" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-white">Coursera</h3>
+              <p className="text-[11px] text-slate-500">AI-powered · Groq + Coursera · Real course links</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatusBadge status="live" />
+            {hasCache && (
+              <button onClick={() => { clearCourseraCache(); setHasCache(false); }} className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors">
+                Clear cache
+              </button>
+            )}
+          </div>
+        </div>
+
+        <p className="text-[12px] text-slate-400 mb-4">
+          Uses <span className="text-emerald-400 font-semibold">Groq AI</span> to recommend real Coursera courses — links go directly to <span className="text-[#0056d2]">coursera.org</span>. Uses your existing <code className="text-[11px] bg-white/5 px-1 rounded">VITE_GROQ_API_KEY</code>.
+        </p>
+
+        {/* Search */}
+        <div className="flex gap-2 mb-3">
+          <div className="relative flex-1">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && doSearch(query)}
+              placeholder="Search Coursera… e.g. Python, Machine Learning, React"
+              className="w-full pl-8 pr-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-[13px] text-white placeholder-slate-600 outline-none focus:border-[#0056d2]/40 transition-colors"
+            />
+          </div>
+          <button
+            onClick={() => doSearch(query)}
+            disabled={loading || !query.trim()}
+            className="px-4 py-2.5 rounded-xl bg-[#0056d2] hover:bg-[#0047b3] disabled:opacity-40 text-white text-[13px] font-semibold transition-all flex items-center gap-2"
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+            Search
+          </button>
+        </div>
+
+        {/* Skill chips */}
+        <div className="flex flex-wrap gap-1.5">
+          {SKILL_CHIPS.map(s => (
+            <button key={s} onClick={() => { setQuery(s); doSearch(s); }}
+              className={`text-[11px] px-3 py-1 rounded-full border transition-all ${query === s ? 'bg-[#0056d2]/20 border-[#0056d2]/40 text-[#60a5fa]' : 'bg-white/[0.03] border-white/[0.07] text-slate-400 hover:border-white/[0.15] hover:text-white'}`}>
+              {s}
+            </button>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Progress / loading */}
+      {loading && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0056d2]/10 border border-[#0056d2]/20">
+          <Loader2 size={14} className="animate-spin text-[#60a5fa]" />
+          <p className="text-[12px] text-[#60a5fa]">{progress || 'Searching Coursera catalog…'}</p>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && !loading && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+          <AlertTriangle size={14} className="text-amber-400" />
+          <p className="text-[12px] text-amber-300">{error}</p>
+        </div>
+      )}
+
+      {/* Results */}
+      {courses.length > 0 && (
+        <div>
+          <p className="text-[11px] text-slate-500 mb-3 px-1">{courses.length} courses found on Coursera for "<span className="text-slate-300">{query}</span>"</p>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {courses.map((course, i) => (
+              <motion.div key={course.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/[0.14] transition-all group">
+                {/* Course thumbnail */}
+                {course.photo ? (
+                  <img src={course.photo} alt={course.name}
+                    className="w-full h-28 object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    onError={e => { e.target.style.display = 'none'; }} />
+                ) : (
+                  <div className="w-full h-28 bg-gradient-to-br from-[#0056d2]/20 to-purple-900/20 flex items-center justify-center">
+                    <BookOpen size={28} className="text-[#0056d2]/50" />
+                  </div>
+                )}
+                <div className="p-4">
+                  <p className="text-[13px] font-semibold text-white leading-snug mb-1 line-clamp-2">{course.name}</p>
+                  <p className="text-[11px] text-slate-500 mb-1">{course.partner}</p>
+                  <div className="flex gap-2 mb-3">
+                    {course.level && <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{course.level}</span>}
+                    {course.duration && <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">⏱ {course.duration}</span>}
+                  </div>
+                  <div className="flex gap-2">
+                    <a href={course.url} target="_blank" rel="noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#0056d2]/15 border border-[#0056d2]/25 text-[#60a5fa] text-[12px] font-semibold hover:bg-[#0056d2]/25 transition-all">
+                      <ExternalLink size={12} /> View Course
+                    </a>
+                    <button
+                      onClick={() => handleSave(course)}
+                      disabled={saved[course.id] || !!savedCourses.find(c => c.id === course.id)}
+                      className="px-3 py-2 rounded-lg border text-[12px] font-semibold transition-all disabled:opacity-40"
+                      style={saved[course.id] || savedCourses.find(c => c.id === course.id)
+                        ? { background: 'rgba(16,185,129,0.12)', borderColor: 'rgba(16,185,129,0.3)', color: '#34d399' }
+                        : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}
+                    >
+                      {saved[course.id] || savedCourses.find(c => c.id === course.id) ? <CheckCircle size={13} /> : <Plus size={13} />}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Saved courses */}
+      {savedCourses.length > 0 && (
+        <GlassCard>
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle size={14} className="text-emerald-400" /> Saved to Learning Path ({savedCourses.length})</h3>
+          <div className="space-y-2">
+            {savedCourses.map(c => (
+              <div key={c.id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium text-slate-200 truncate">{c.name}</p>
+                  <p className="text-[10px] text-slate-500">{c.partner}</p>
+                </div>
+                <a href={c.url} target="_blank" rel="noreferrer" className="text-[11px] text-[#60a5fa] hover:underline flex items-center gap-1 shrink-0">
+                  Open <ExternalLink size={10} />
+                </a>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+    </div>
+  );
+}
+
 // ── MAIN PAGE ─────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'github',      label: 'GitHub',       icon: GitBranch,      color: 'text-[#a1a1aa]' },
-  { id: 'linkedin',    label: 'LinkedIn',     icon: Briefcase,    color: 'text-[#0077b5]' },
-  { id: 'nutritionix', label: 'Nutrition',    icon: Utensils,       color: 'text-emerald-400' },
-  { id: 'fitbit',      label: 'Fitbit',        icon: Activity,    color: 'text-[#00b0b9]'  },
-  { id: 'banking',      label: 'Banking',      icon: Landmark,    color: 'text-emerald-400' },
+  { id: 'github',      label: 'GitHub',       icon: GitBranch,  color: 'text-[#a1a1aa]'    },
+  { id: 'coursera',    label: 'Coursera',     icon: BookOpen,   color: 'text-[#0056d2]'    },
+  { id: 'linkedin',    label: 'LinkedIn',     icon: Briefcase,  color: 'text-[#0077b5]'    },
+  { id: 'nutritionix', label: 'Nutrition',    icon: Utensils,   color: 'text-emerald-400'  },
+  { id: 'fitbit',      label: 'Fitbit',       icon: Activity,   color: 'text-[#00b0b9]'    },
+  { id: 'banking',     label: 'Banking',      icon: Landmark,   color: 'text-emerald-400'  },
 ];
 
 export default function Integrations() {
@@ -1654,6 +1850,7 @@ export default function Integrations() {
           transition={{ duration: 0.18 }}
         >
           {tab === 'github'      && <GitHubPanel />}
+          {tab === 'coursera'    && <CourseraPanel />}
           {tab === 'linkedin'    && <LinkedInPanel />}
           {tab === 'nutritionix' && <NutritionixPanel />}
           {tab === 'fitbit'      && <FitbitPanel />}

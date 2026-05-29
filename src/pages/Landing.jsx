@@ -4,184 +4,56 @@ import { Lock, Eye, ShieldCheck, Heart, Briefcase, Wallet, ArrowRight, Brain, Pl
 
 const f = (d=0) => ({ initial:{opacity:0,y:20}, animate:{opacity:1,y:0}, transition:{duration:0.7,delay:d,ease:[0.16,1,0.3,1]} });
 
-function DigitalCharacter() {
-  const S  = '#00d8b6';                           // primary stroke
-  const BF = 'rgba(0,216,182,0.07)';              // body fill
-  const BFS= 'rgba(0,216,182,0.12)';              // body fill strong
-
-  // Joint positions [x,y]
-  const joints = [
-    [230,134],[156,168],[304,168],                 // neck, shoulders
-    [112,295],[348,295],                           // elbows
-    [108,376],[352,376],                           // wrists
-    [196,452],[264,452],                           // hips
-    [182,548],[278,548],                           // knees
-  ];
-
+function HumanSVG() {
   return (
-    <svg viewBox="0 0 460 700" width="100%" height="100%" style={{maxHeight:640,overflow:'visible'}}>
+    <svg viewBox="0 0 420 700" width="100%" height="100%" style={{maxHeight:'640px'}}>
       <defs>
-        <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#00d8b6" stopOpacity="0.14"/>
-          <stop offset="60%"  stopColor="#00d8b6" stopOpacity="0.07"/>
-          <stop offset="100%" stopColor="#00d8b6" stopOpacity="0.03"/>
-        </linearGradient>
-        <radialGradient id="headGrad" cx="38%" cy="32%" r="65%">
-          <stop offset="0%"   stopColor="#00d8b6" stopOpacity="0.22"/>
-          <stop offset="100%" stopColor="#00d8b6" stopOpacity="0.05"/>
-        </radialGradient>
-        <radialGradient id="eyeGrad" cx="30%" cy="30%" r="70%">
-          <stop offset="0%"   stopColor="#ffffff" stopOpacity="0.9"/>
-          <stop offset="100%" stopColor="#00d8b6" stopOpacity="1"/>
-        </radialGradient>
-        <radialGradient id="platformG" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="#00d8b6" stopOpacity="0.25"/>
+        <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <radialGradient id="platformGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#00d8b6" stopOpacity="0.4"/>
           <stop offset="100%" stopColor="#00d8b6" stopOpacity="0"/>
         </radialGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2.5" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="scanBlur">
-          <feGaussianBlur stdDeviation="0" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        {/* Clip body for scan line */}
-        <clipPath id="bodyClip">
-          <path d="M100,60 L360,60 L360,660 L100,660 Z"/>
-        </clipPath>
       </defs>
-
-      {/* ── PLATFORM ── */}
-      <ellipse cx="230" cy="662" rx="125" ry="22" fill="url(#platformG)"/>
-      <ellipse cx="230" cy="665" rx="112" ry="17" fill="none" stroke={S} strokeWidth="1"   opacity="0.22"/>
-      <ellipse cx="230" cy="668" rx="82"  ry="12" fill="none" stroke={S} strokeWidth="1"   opacity="0.38"/>
-      <ellipse cx="230" cy="670" rx="52"  ry="7.5" fill="none" stroke={S} strokeWidth="1"  opacity="0.58"/>
-      <ellipse cx="230" cy="671" rx="28"  ry="4"   fill="none" stroke={S} strokeWidth="1.2" opacity="0.80"/>
-
-      {/* ── LEGS ── */}
-      {/* Left leg */}
-      <path d="M196 452 C193 470 186 510 183 548 C180 575 181 600 184 625 L205 630 L208 625 C210 600 210 575 208 548 C206 510 208 470 210 452 Z"
-        fill={BF} stroke={S} strokeWidth="1.3" opacity="0.82"/>
-      {/* Left foot */}
-      <ellipse cx="196" cy="645" rx="20" ry="8" fill={BF} stroke={S} strokeWidth="1" opacity="0.75"/>
-      {/* Right leg */}
-      <path d="M250 452 C252 470 254 510 252 548 C250 575 250 600 252 625 L275 630 L276 625 C278 600 279 575 277 548 C274 510 267 470 264 452 Z"
-        fill={BF} stroke={S} strokeWidth="1.3" opacity="0.82"/>
-      {/* Right foot */}
-      <ellipse cx="264" cy="645" rx="20" ry="8" fill={BF} stroke={S} strokeWidth="1" opacity="0.75"/>
-
-      {/* ── TORSO ── */}
-      <path d="
-        M 174 162
-        C 162 170 150 182 144 200
-        L 132 310
-        C 128 336 130 362 136 378
-        L 150 420 C 160 440 178 452 196 452
-        L 264 452 C 282 452 300 440 310 420
-        L 324 378 C 330 362 332 336 328 310
-        L 316 200
-        C 310 182 298 170 286 162 Z
-      " fill="url(#bodyGrad)" stroke={S} strokeWidth="1.4" opacity="0.88"/>
-
-      {/* Collar seam */}
-      <path d="M 174 162 Q 230 175 286 162" fill="none" stroke={S} strokeWidth="0.8" opacity="0.45"/>
-      {/* Chest V */}
-      <path d="M 202 168 L 230 196 L 258 168" fill="none" stroke={S} strokeWidth="0.9" opacity="0.45"/>
-      {/* Waist seam */}
-      <path d="M 136 390 Q 230 382 324 390" fill="none" stroke={S} strokeWidth="0.8" opacity="0.32"/>
-
-      {/* HEALTH — heartbeat line across chest */}
-      <path d="M 158 278 L 172 278 L 184 256 L 198 300 L 210 266 L 220 282 L 240 282 L 252 262 L 262 290 L 272 278 L 286 278 L 302 278"
-        fill="none" stroke="#10b981" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" opacity="0.65">
-        <animate attributeName="opacity" values="0.35;0.85;0.35" dur="1.6s" repeatCount="indefinite"/>
-      </path>
-
-      {/* FINANCE — mini bar chart lower torso */}
-      {[0,1,2,3,4].map(i => {
-        const hs = [20,32,24,40,28][i];
-        return <rect key={i} x={190+i*16} y={348-hs} width="11" height={hs} rx="2.5"
-          fill="#f59e0b" fillOpacity="0.22" stroke="#f59e0b" strokeWidth="0.7" strokeOpacity="0.55"/>;
-      })}
-
-      {/* CAREER — circuit traces on shoulders */}
-      <path d="M 172 178 L 152 185 L 144 202 L 144 218 L 138 224" fill="none" stroke="#3b82f6" strokeWidth="0.9" strokeLinecap="round" opacity="0.42"/>
-      <circle cx="144" cy="218" r="2.5" fill="#3b82f6" opacity="0.6"/>
-      <path d="M 288 178 L 308 185 L 316 202 L 316 218 L 322 224" fill="none" stroke="#3b82f6" strokeWidth="0.9" strokeLinecap="round" opacity="0.42"/>
-      <circle cx="316" cy="218" r="2.5" fill="#3b82f6" opacity="0.6"/>
-
-      {/* ── ARMS ── */}
-      {/* Left arm */}
-      <path d="
-        M 148 170 C 134 182 120 200 114 222
-        L 100 310 C 96 328 100 350 108 368
-        L 116 382 C 112 368 110 352 114 334
-        L 128 250 C 135 226 148 204 160 185 Z
-      " fill={BF} stroke={S} strokeWidth="1.3" opacity="0.80"/>
-      {/* Left hand */}
-      <ellipse cx="112" cy="376" rx="11" ry="15" fill={BFS} stroke={S} strokeWidth="1.1" opacity="0.78"/>
-
-      {/* Right arm */}
-      <path d="
-        M 312 170 C 326 182 340 200 346 222
-        L 360 310 C 364 328 360 350 352 368
-        L 344 382 C 348 368 350 352 346 334
-        L 332 250 C 325 226 312 204 300 185 Z
-      " fill={BF} stroke={S} strokeWidth="1.3" opacity="0.80"/>
-      {/* Right hand */}
-      <ellipse cx="348" cy="376" rx="11" ry="15" fill={BFS} stroke={S} strokeWidth="1.1" opacity="0.78"/>
-
-      {/* ── NECK ── */}
-      <rect x="218" y="132" width="24" height="30" rx="8"
-        fill={BFS} stroke={S} strokeWidth="1.2" opacity="0.82"/>
-
-      {/* ── HEAD ── */}
-      {/* Ears */}
-      <ellipse cx="187" cy="91" rx="5" ry="9" fill={BF} stroke={S} strokeWidth="1" opacity="0.72"/>
-      <ellipse cx="273" cy="91" rx="5" ry="9" fill={BF} stroke={S} strokeWidth="1" opacity="0.72"/>
-      {/* Head */}
-      <circle cx="230" cy="91" r="43" fill="url(#headGrad)" stroke={S} strokeWidth="1.5" opacity="0.90" filter="url(#glow)"/>
-      {/* Face highlight */}
-      <ellipse cx="216" cy="78" rx="16" ry="10" fill="white" opacity="0.04"/>
-      {/* Eyes */}
-      <circle cx="214" cy="86" r="5"   fill="#00d8b6" opacity="0.25" filter="url(#glow)"/>
-      <circle cx="214" cy="86" r="3.5" fill="url(#eyeGrad)">
-        <animate attributeName="opacity" values="0.8;1;0.8" dur="3.2s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="213" cy="85" r="1.2" fill="white" opacity="0.7"/>
-      <circle cx="246" cy="86" r="5"   fill="#00d8b6" opacity="0.25" filter="url(#glow)"/>
-      <circle cx="246" cy="86" r="3.5" fill="url(#eyeGrad)">
-        <animate attributeName="opacity" values="0.8;1;0.8" dur="3.2s" repeatCount="indefinite" begin="0.2s"/>
-      </circle>
-      <circle cx="245" cy="85" r="1.2" fill="white" opacity="0.7"/>
-
-      {/* ── SCAN LINE ── */}
-      <g clipPath="url(#bodyClip)">
-        <line x1="108" y1="60" x2="352" y2="60" stroke={S} strokeWidth="1" opacity="0.20">
-          <animate attributeName="y1" values="60;660;60" dur="5s" repeatCount="indefinite" calcMode="linear"/>
-          <animate attributeName="y2" values="60;660;60" dur="5s" repeatCount="indefinite" calcMode="linear"/>
-        </line>
-        <rect x="108" y="55" width="244" height="22" fill={S} opacity="0.04">
-          <animate attributeName="y" values="55;645;55" dur="5s" repeatCount="indefinite" calcMode="linear"/>
-        </rect>
+      <ellipse cx="210" cy="640" rx="130" ry="25" fill="url(#platformGlow)"/>
+      <ellipse cx="210" cy="640" rx="120" ry="22" fill="none" stroke="#00d8b6" strokeWidth="1" opacity="0.6"/>
+      <ellipse cx="210" cy="640" rx="90" ry="16" fill="none" stroke="#00d8b6" strokeWidth="0.8" opacity="0.4"/>
+      <ellipse cx="210" cy="640" rx="55" ry="10" fill="none" stroke="#00d8b6" strokeWidth="1" opacity="0.7"/>
+      <ellipse cx="210" cy="640" rx="28" ry="5" fill="none" stroke="#00d8b6" strokeWidth="1.2" opacity="0.9"/>
+      <circle cx="210" cy="320" r="260" fill="none" stroke="#00d8b6" strokeWidth="0.4" opacity="0.15" strokeDasharray="4 6"/>
+      <g stroke="#00d8b6" strokeWidth="1" fill="none" filter="url(#glow)" opacity="0.85">
+        <circle cx="210" cy="95" r="32"/>
+        <path d="M178 95 L242 95 M210 63 L210 127" strokeWidth="0.5" opacity="0.5"/>
+        <path d="M181 79 L239 79 M181 111 L239 111" strokeWidth="0.4" opacity="0.4"/>
+        <path d="M190 68 L230 68 M190 122 L230 122" strokeWidth="0.4" opacity="0.3"/>
+        <circle cx="197" cy="90" r="3" fill="#00d8b6" opacity="0.9"/>
+        <circle cx="223" cy="90" r="3" fill="#00d8b6" opacity="0.9"/>
+        <path d="M200 127 L200 155 M220 127 L220 155"/>
+        <path d="M200 155 L155 175 M220 155 L265 175"/>
+        <path d="M155 175 L145 340 L175 480 L200 490 L220 490 L245 480 L275 340 L265 175"/>
+        <path d="M152 210 L268 210 M150 250 L270 250 M148 295 L272 295 M146 340 L274 340 M150 385 L270 385 M155 430 L265 430"/>
+        <path d="M183 175 L178 490 M210 155 L210 490 M237 175 L242 490"/>
+        <path d="M155 175 L210 210 L265 175 M145 250 L210 295 L275 250 M146 340 L210 385 L274 340" strokeWidth="0.5"/>
+        <path d="M155 175 L120 200 L105 310 L108 420 L118 430 L122 310 L138 200"/>
+        <path d="M120 200 L110 260 L105 310 M113 255 L107 310" strokeWidth="0.5"/>
+        <path d="M265 175 L300 200 L315 310 L312 420 L302 430 L298 310 L282 200"/>
+        <path d="M300 200 L310 260 L315 310" strokeWidth="0.5"/>
+        <path d="M175 490 L168 575 L172 635 L185 638 L190 575 L195 490"/>
+        <path d="M168 535 L172 575 M172 575 L180 610 L185 638" strokeWidth="0.5"/>
+        <path d="M245 490 L252 575 L248 635 L235 638 L230 575 L225 490"/>
+        <path d="M252 535 L248 575 M248 575 L240 610 L235 638" strokeWidth="0.5"/>
+        <path d="M210 155 L210 490" strokeWidth="1.2"/>
+        <path d="M183 195 L210 220 L237 195 M183 195 L183 250 M237 195 L237 250" strokeWidth="0.7"/>
       </g>
-
-      {/* ── JOINT DOTS ── */}
-      {joints.map(([x,y],i) => (
-        <circle key={i} cx={x} cy={y} r="3.8" fill={S} filter="url(#glow)" opacity="0.80">
-          <animate attributeName="opacity" values="0.45;1;0.45" dur={`${2.1+i*0.18}s`} repeatCount="indefinite"/>
+      <g fill="#00d8b6" filter="url(#glow)">
+        {[[210,155],[155,175],[265,175],[210,210],[145,250],[275,250],[210,295],[146,340],[274,340],[210,385],[175,480],[245,480],[210,490],[108,420],[312,420],[172,635],[248,635]].map(([x,y],i)=>(
+          <circle key={i} cx={x} cy={y} r="2.5" opacity="0.9"/>
+        ))}
+      </g>
+      {[[50,180],[370,220],[40,380],[390,420],[80,520],[340,150]].map(([x,y],i)=>(
+        <circle key={i} cx={x} cy={y} r="2" fill="#00d8b6" opacity="0.6">
+          <animate attributeName="opacity" values="0.3;0.9;0.3" dur={`${2+i*0.7}s`} repeatCount="indefinite"/>
         </circle>
       ))}
-
-      {/* ── AMBIENT PARTICLES ── */}
-      {[[52,130],[408,160],[36,310],[418,285],[78,490],[382,460],[54,210],[412,395]].map(([x,y],i)=>(
-        <circle key={i} cx={x} cy={y} r="1.8" fill={S} opacity="0.5">
-          <animate attributeName="opacity" values="0.12;0.65;0.12" dur={`${2.6+i*0.55}s`} repeatCount="indefinite"/>
-        </circle>
-      ))}
-
-      {/* Outer dashed orbit ring */}
-      <circle cx="230" cy="340" r="260" fill="none" stroke={S} strokeWidth="0.5" opacity="0.08" strokeDasharray="5 9"/>
     </svg>
   );
 }
@@ -517,12 +389,12 @@ export default function Landing() {
             </motion.div>
           </div>
 
-          {/* Right — Digital Character */}
+          {/* Right - Human visual */}
           <motion.div {...f(0.2)} style={{position:'relative',height:660,display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <DigitalCharacter/>
-            <Card icon={Heart}    title="Health"  desc={"84/100 · Vitals optimal"} style={{top:'10%',left:'-2%'}}  delay={0.5}/>
-            <Card icon={Briefcase} title="Career" desc={"89/100 · On track"}       style={{top:'46%',left:'-10%'}} delay={0.7}/>
-            <Card icon={Wallet}   title="Finance" desc={"76/100 · Growing"}        style={{top:'34%',right:'-6%'}} delay={0.9}/>
+            <HumanSVG/>
+            <Card icon={Heart} title="Health" desc={"Optimize your\nbody & mind"} style={{top:'12%',left:'2%'}} delay={0.5}/>
+            <Card icon={Briefcase} title="Career" desc={"Build skills.\nUnlock potential."} style={{top:'48%',left:'-8%'}} delay={0.7}/>
+            <Card icon={Wallet} title="Finance" desc={"Grow wealth\nwith clarity"} style={{top:'38%',right:'-5%'}} delay={0.9}/>
           </motion.div>
         </div>
       </section>
