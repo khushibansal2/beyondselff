@@ -1350,44 +1350,44 @@ export default function Health() {
       )}
 
       {tab === 'log' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {/* ── Title ── */}
-          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#f0f0f3', margin: 0 }}>Log Today's Health Data</h2>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3', margin: '0 0 2px 0' }}>Log Today's Health Data</h2>
 
           {/* ── Streak / entries / scan banner ── */}
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 12,
+            display: 'flex', alignItems: 'center', gap: 8,
             background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.18)',
-            borderRadius: 12, padding: '10px 16px',
+            borderRadius: 8, padding: '5px 10px',
           }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>🔥</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#f97316', whiteSpace: 'nowrap' }}>
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#f97316', whiteSpace: 'nowrap' }}>
                 {streak > 0 ? `${streak}-Day Logging Streak!` : 'Start Your Streak!'}
               </p>
-              <p style={{ margin: '1px 0 0', fontSize: 11, color: 'rgba(249,115,22,0.6)' }}>
+              <p style={{ margin: 0, fontSize: 9.5, color: 'rgba(249,115,22,0.6)' }}>
                 Keep it up — consistency is everything.
               </p>
             </div>
-            <span style={{ fontSize: 11, color: 'rgba(249,115,22,0.55)', fontFamily: 'monospace', flexShrink: 0, marginRight: 10 }}>
+            <span style={{ fontSize: 9.5, color: 'rgba(249,115,22,0.55)', fontFamily: 'monospace', flexShrink: 0, marginRight: 6 }}>
               {healthRecords.length} entries
             </span>
             <button
               onClick={() => setTab('scan')}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
+                display: 'flex', alignItems: 'center', gap: 4,
                 background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.35)',
-                borderRadius: 8, padding: '6px 13px', color: '#c4b5fd',
-                fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                borderRadius: 6, padding: '4px 8px', color: '#c4b5fd',
+                fontSize: 9.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
               }}
             >
-              <Eye size={12} /> Scan with AI Vision
+              <Eye size={10} /> Scan with AI Vision
             </button>
           </div>
 
           {/* ── Input Grid ── */}
           <form onSubmit={handleLog}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
               {[
                 { key: 'sleep',    label: 'Sleep (hours)',       placeholder: '7.5',  icon: '🌙', iconBg: '#4f46e5', step: '0.5', min: 0,  max: 14 },
                 { key: 'mood',     label: 'Mood (1–10)',          placeholder: '7',    icon: '😊', iconBg: '#d97706', step: '1',   min: 1,  max: 10 },
@@ -1400,19 +1400,19 @@ export default function Health() {
               ].map(f => (
                 <div key={f.key} style={{
                   background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: 12, padding: '11px 14px', display: 'flex', flexDirection: 'column', gap: 0,
+                  borderRadius: 8, padding: '5px 8px', display: 'flex', flexDirection: 'column', gap: 0,
                 }}>
                   {/* Icon + label row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
                     <div style={{
-                      width: 22, height: 22, borderRadius: 6,
+                      width: 16, height: 16, borderRadius: 4,
                       background: f.iconBg + '25', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, flexShrink: 0,
+                      fontSize: 10, flexShrink: 0,
                     }}>{f.icon}</div>
-                    <label style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, lineHeight: 1 }}>{f.label}</label>
+                    <label style={{ fontSize: 9.5, color: '#9ca3af', fontWeight: 500, lineHeight: 1 }}>{f.label}</label>
                   </div>
                   {/* Thin separator */}
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.04)', marginBottom: 3 }} />
                   {/* Value input */}
                   <input
                     type="number"
@@ -1424,7 +1424,7 @@ export default function Health() {
                     max={f.max}
                     style={{
                       width: '100%', background: 'transparent', border: 'none',
-                      outline: 'none', color: '#f0f0f3', fontSize: 17, fontWeight: 700,
+                      outline: 'none', color: '#f0f0f3', fontSize: 13, fontWeight: 700,
                       fontFamily: 'inherit', padding: 0, boxSizing: 'border-box',
                     }}
                   />
@@ -1435,16 +1435,16 @@ export default function Health() {
             {/* ── Save Footer ── */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginTop: 10, padding: '10px 2px 0', borderTop: '1px solid rgba(255,255,255,0.06)',
+              marginTop: 6, padding: '5px 2px 0', borderTop: '1px solid rgba(255,255,255,0.06)',
             }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#22c55e', fontWeight: 600 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#22c55e', fontWeight: 600 }}>
                 🔒 Encrypted
               </span>
               <button type="submit" style={{
                 background: 'rgba(139,92,246,0.9)', color: '#fff', border: 'none',
-                borderRadius: 10, padding: '9px 20px', fontSize: 12, fontWeight: 700,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
-                boxShadow: '0 4px 14px rgba(139,92,246,0.35)',
+                borderRadius: 6, padding: '5px 12px', fontSize: 10.5, fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                boxShadow: '0 3px 10px rgba(139,92,246,0.3)',
               }}>
                 🗂️ Save Health Data
               </button>
@@ -1455,48 +1455,50 @@ export default function Health() {
           {recentLogs.length > 0 && (
             <div style={{
               background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: 12, padding: '14px 18px', marginTop: 4,
+              borderRadius: 8, padding: '5px 10px', marginTop: 0,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>Recent Log History</h3>
-                <button style={{ background: 'none', border: 'none', fontSize: 11, color: '#8b5cf6', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <h3 style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: '#f0f0f3' }}>Recent Log History</h3>
+                <button style={{ background: 'none', border: 'none', fontSize: 10, color: '#8b5cf6', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                   🔄 View All History
                 </button>
               </div>
               {/* Table header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: 4 }}>
-                <span style={{ fontSize: 10, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date</span>
-                <span style={{ fontSize: 10, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Summary</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '75px 1fr', paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: 2 }}>
+                <span style={{ fontSize: 9, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date</span>
+                <span style={{ fontSize: 9, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Summary</span>
               </div>
-              {recentLogs.map((entry, i) => {
-                const date = new Date(entry.date);
-                const parts = [];
-                if (entry.sleep != null)            parts.push(`🌙 ${entry.sleep}h sleep`);
-                if (entry.mood != null)             parts.push(`Mood ${entry.mood}`);
-                if (entry.stress != null)           parts.push(`Stress ${entry.stress}`);
-                if (entry.workoutsPerWeek != null)  parts.push(`💪 ${entry.workoutsPerWeek}x`);
-                if (entry.water != null)            parts.push(`💧 ${entry.water} glasses`);
-                if (entry.calories != null)         parts.push(`🔥 ${entry.calories} kcal`);
-                if (entry.weight != null)           parts.push(`⚖️ ${entry.weight} kg`);
-                if (entry.bmi != null)              parts.push(`📏 BMI ${entry.bmi}`);
-                return (
-                  <motion.div key={i}
-                    initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                    style={{
-                      display: 'grid', gridTemplateColumns: '90px 1fr',
-                      padding: '7px 0', borderBottom: i < recentLogs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <span style={{ fontSize: 11, color: '#9ca3af' }}>
-                      {date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                    </span>
-                    <span style={{ fontSize: 11, color: '#d1d5db' }}>
-                      {parts.join(' • ')}
-                    </span>
-                  </motion.div>
-                );
-              })}
+              <div style={{ maxHeight: 72, overflowY: 'auto', paddingRight: 4 }}>
+                {recentLogs.map((entry, i) => {
+                  const date = new Date(entry.date);
+                  const parts = [];
+                  if (entry.sleep != null)            parts.push(`🌙 ${entry.sleep}h sleep`);
+                  if (entry.mood != null)             parts.push(`Mood ${entry.mood}`);
+                  if (entry.stress != null)           parts.push(`Stress ${entry.stress}`);
+                  if (entry.workoutsPerWeek != null)  parts.push(`💪 ${entry.workoutsPerWeek}x`);
+                  if (entry.water != null)            parts.push(`💧 ${entry.water} glasses`);
+                  if (entry.calories != null)         parts.push(`🔥 ${entry.calories} kcal`);
+                  if (entry.weight != null)           parts.push(`⚖️ ${entry.weight} kg`);
+                  if (entry.bmi != null)              parts.push(`📏 BMI ${entry.bmi}`);
+                  return (
+                    <motion.div key={i}
+                      initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                      style={{
+                        display: 'grid', gridTemplateColumns: '75px 1fr',
+                        padding: '4px 0', borderBottom: i < recentLogs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span style={{ fontSize: 10, color: '#9ca3af' }}>
+                        {date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      </span>
+                      <span style={{ fontSize: 10, color: '#d1d5db' }}>
+                        {parts.join(' • ')}
+                      </span>
+                    </motion.div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -1512,24 +1514,24 @@ export default function Health() {
       )}
 
       {tab === 'wellness' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 
           {/* ── Wellness Factor Breakdown ── */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <span style={{ fontSize: 16 }}>📊</span>
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Wellness Factor Breakdown</h3>
+          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <span style={{ fontSize: 14 }}>📊</span>
+              <h3 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#f0f0f3' }}>Wellness Factor Breakdown</h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {wellnessFactors.map((wf, i) => (
                 <motion.div key={wf.label} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#e4e4e7', fontWeight: 500 }}>
-                      <span style={{ fontSize: 15 }}>{wf.icon}</span>{wf.label}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, color: '#e4e4e7', fontWeight: 500 }}>
+                      <span style={{ fontSize: 12 }}>{wf.icon}</span>{wf.label}
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: wf.color, minWidth: 36, textAlign: 'right' }}>{wf.score}%</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: wf.color, minWidth: 36, textAlign: 'right' }}>{wf.score}%</span>
                   </div>
-                  <div style={{ width: '100%', height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)' }}>
+                  <div style={{ width: '100%', height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)' }}>
                     <motion.div
                       initial={{ width: 0 }} animate={{ width: `${wf.score}%` }} transition={{ duration: 0.9, delay: i * 0.08 }}
                       style={{ height: '100%', borderRadius: 99, background: wf.color, boxShadow: `0 0 8px ${wf.color}40` }}
@@ -1541,12 +1543,12 @@ export default function Health() {
           </div>
 
           {/* ── Emotional Wellness Analysis ── */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <span style={{ fontSize: 16 }}>❤️</span>
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Emotional Wellness Analysis</h3>
+          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <span style={{ fontSize: 14 }}>❤️</span>
+              <h3 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#f0f0f3' }}>Emotional Wellness Analysis</h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
               {[
                 {
                   label: 'EMOTIONAL STATE',
@@ -1570,23 +1572,23 @@ export default function Health() {
                   bg: 'rgba(139,92,246,0.03)',
                 },
               ].map((card, i) => (
-                <motion.div key={card.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                  style={{ border: `1px solid ${card.border}`, background: card.bg, borderRadius: 12, padding: '12px 14px' }}>
-                  <p style={{ margin: '0 0 6px', fontSize: 9, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{card.label}</p>
-                  <p style={{ margin: '0 0 5px', fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>{card.value}</p>
-                  <p style={{ margin: 0, fontSize: 11, color: '#a1a1aa', lineHeight: 1.45 }}>{card.desc}</p>
+                <motion.div key={card.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
+                  style={{ border: `1px solid ${card.border}`, background: card.bg, borderRadius: 8, padding: '6px 10px' }}>
+                  <p style={{ margin: '0 0 3px', fontSize: 8, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{card.label}</p>
+                  <p style={{ margin: '0 0 2px', fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>{card.value}</p>
+                  <p style={{ margin: 0, fontSize: 9.5, color: '#a1a1aa', lineHeight: 1.3 }}>{card.desc}</p>
                 </motion.div>
               ))}
             </div>
           </div>
 
           {/* ── Daily Health Summary ── */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <span style={{ fontSize: 16 }}>📝</span>
-              <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Daily Health Summary</h3>
+          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <span style={{ fontSize: 14 }}>📝</span>
+              <h3 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#f0f0f3' }}>Daily Health Summary</h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               {(() => {
                 const immuneScore = Math.round((Math.min(h.sleepAvg/8,1)*40) + (Math.min(h.waterIntake/8,1)*30) + (Math.max(0,(10-h.stressLevel)/10)*30));
                 const cogScore   = Math.round((Math.min(h.sleepAvg/8,1)*45) + (Math.max(0,(10-h.stressLevel)/10)*35) + (Math.min(h.moodAvg/10,1)*20));
@@ -1634,11 +1636,11 @@ export default function Health() {
                 ];
                 return items.map((item, i) => (
                   <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                    style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 14px' }}>
-                    <span style={{ fontSize: 18, flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '6px 10px' }}>
+                    <span style={{ fontSize: 14, flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
                     <div>
-                      <p style={{ margin: '0 0 4px', fontSize: 9, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{item.label}</p>
-                      <p style={{ margin: 0, fontSize: 12, color: '#d4d4d8', lineHeight: 1.45 }}>{item.text}</p>
+                      <p style={{ margin: '0 0 2px', fontSize: 8, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{item.label}</p>
+                      <p style={{ margin: 0, fontSize: 10, color: '#d4d4d8', lineHeight: 1.3 }}>{item.text}</p>
                     </div>
                   </motion.div>
                 ));
