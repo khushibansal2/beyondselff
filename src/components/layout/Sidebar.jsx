@@ -69,9 +69,8 @@ export default function Sidebar() {
   const { anomalies = [], gamification } = useData();
   const { theme } = useTheme();
   const isLight = theme === 'light';
-  const sidebarBg = isLight
-    ? 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
-    : 'linear-gradient(180deg, #0f1224 0%, #111827 100%)';
+  const sidebarBg = isLight ? '#ffffff' : '#11131c';
+  const borderColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({});
@@ -91,38 +90,32 @@ export default function Sidebar() {
       <Link
         to={item.path}
         onClick={onClick}
-        style={active ? { background: item.color + '18', borderColor: item.color + '50' } : {}}
+        style={{
+          background: active ? `${item.color}15` : 'transparent',
+          border: `1px solid ${active ? `${item.color}30` : 'transparent'}`,
+        }}
         className={`
-          relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group border overflow-hidden
+          relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group
           ${active
-            ? 'border-transparent text-white'
-            : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.05]'
+            ? 'text-white shadow-sm'
+            : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
           }
         `}
       >
-        {/* Sliding active indicator bar */}
-        {active && (
-          <motion.div
-            layoutId="nav-active-bar"
-            className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full"
-            style={{ background: `linear-gradient(180deg, ${item.color}, ${item.color}88)` }}
-            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-          />
-        )}
         <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0 transition-all duration-150"
+          className="flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
           style={{
-            background: active ? item.color + '25' : 'transparent',
-            color: active ? item.color : 'inherit',
+            background: active ? item.color : 'transparent',
+            color: active ? '#fff' : 'inherit',
           }}
         >
-          <Icon size={17} strokeWidth={active ? 2.2 : 1.7} />
+          <Icon size={15} strokeWidth={active ? 2.5 : 1.8} />
         </div>
         {!collapsed && (
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-[13.5px] font-medium truncate"
+            className={`text-[12px] truncate tracking-wide ${active ? 'font-bold' : 'font-medium'}`}
           >
             {item.label}
           </motion.span>
@@ -131,8 +124,7 @@ export default function Sidebar() {
           <motion.div
             layoutId="nav-active-dot"
             className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
-            style={{ background: item.color }}
-            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            style={{ background: item.color, boxShadow: `0 0 8px ${item.color}` }}
           />
         )}
       </Link>
@@ -143,7 +135,7 @@ export default function Sidebar() {
     <div className="flex flex-col h-full">
 
       {/* Logo */}
-      <div className={`${collapsed && !mobile ? 'px-4 py-5' : 'px-5 py-5'} flex-shrink-0 border-b border-white/[0.07]`}>
+      <div className={`${collapsed && !mobile ? 'px-4 py-5' : 'px-5 py-5'} flex-shrink-0`} style={{ borderBottom: `1px solid ${borderColor}` }}>
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-500/30">
@@ -165,17 +157,17 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-3 px-3 overflow-y-auto space-y-1">
+      <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
         {navSections.map((section) => {
           const isSectionCollapsed = collapsedSections[section.label];
           return (
-            <div key={section.label} className="mb-2">
+            <div key={section.label} className="mb-4">
               {(!collapsed || mobile) && (
                 <button
                   onClick={() => toggleSection(section.label)}
-                  className="flex items-center justify-between w-full px-3 py-1.5 mb-1 group"
+                  className="flex items-center justify-between w-full px-3 py-1 mb-1 group"
                 >
-                  <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500 group-hover:text-slate-400 transition-colors">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 group-hover:text-slate-300 transition-colors">
                     {section.label}
                   </span>
                   <ChevronDown
@@ -205,59 +197,107 @@ export default function Sidebar() {
           );
         })}
 
-        <div className="pt-2 mt-2 border-t border-white/[0.06]">
+        <div className="pt-2 mt-2" style={{ borderTop: `1px solid ${borderColor}` }}>
           <AnomalyBell anomalies={anomalies} collapsed={collapsed && !mobile} />
         </div>
       </nav>
 
       {/* Footer */}
-      <div className="flex-shrink-0 border-t border-white/[0.07] p-4 space-y-3">
-
-        {/* XP Bar */}
-        {(!collapsed || mobile) && (
-          <div className="px-1">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-semibold text-slate-400">Level {level}</span>
-              <span className="text-[11px] text-slate-500 tabular-nums">{xp} / {xpForNext} XP</span>
+      <div className="flex-shrink-0 p-4 space-y-4">
+        
+        {(!collapsed || mobile) ? (
+          <div className="flex flex-col gap-3">
+            {/* User Profile Card */}
+            <div className="bg-[#1e2136] rounded-[20px] p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                 <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-indigo-500/30">
+                   {user?.avatar ? (
+                     <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
+                   ) : (
+                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
+                       {user?.name?.[0] || 'U'}
+                     </div>
+                   )}
+                 </div>
+                 <div className="flex flex-col">
+                   <span className="text-[13px] font-bold text-white tracking-wide">{user?.name || 'User'}</span>
+                   <span className="text-[11px] font-medium text-slate-400">Level {level}</span>
+                 </div>
+              </div>
+              
+              <div className="w-full h-1.5 rounded-full bg-black/20 overflow-hidden relative mt-1">
+                 <motion.div 
+                   initial={{width: 0}} animate={{width: `${xpProgress}%`}} 
+                   transition={{duration: 1}}
+                   className="absolute left-0 top-0 bottom-0 bg-indigo-500 rounded-full" 
+                 />
+              </div>
+              <div className="text-[10px] text-center text-slate-400 font-medium">
+                 {xpForNext - xp} XP to Level {level + 1}
+              </div>
             </div>
-            <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${xpProgress}%` }}
-                transition={{ duration: 1, ease: 'easeOut' }}
-                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
-              />
+
+            {/* Life Streak Card */}
+            <div className="bg-[#1e2136] rounded-[20px] p-4 flex flex-col gap-2">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[14px]">🔥</span>
+                <span className="text-[12px] font-bold text-white tracking-wide">Life Streak</span>
+              </div>
+              
+              <div className="flex items-baseline gap-1.5 ml-1">
+                <span className="text-[24px] font-extrabold text-indigo-400 leading-none tracking-tight">{gamification?.streak || 0}</span>
+                <span className="text-[12px] font-semibold text-slate-500">days</span>
+              </div>
+
+              <div className="flex justify-between items-center mt-2 px-1">
+                {['M','T','W','T','F','S','S'].map((day, i) => {
+                   // Calculate active days based on streak (e.g. if streak is 3, last 3 days are active)
+                   const totalDays = 7;
+                   const streak = Math.min(gamification?.streak || 0, 7);
+                   const isActive = i >= (totalDays - streak);
+                   return (
+                    <div key={i} className="flex flex-col items-center gap-1.5">
+                      <span className="text-[9px] font-bold text-slate-500">{day}</span>
+                      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-indigo-500' : 'bg-black/20'}`}/>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Collapsed View */
+          <div className="flex flex-col gap-4 items-center">
+             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-indigo-500/30">
+               {user?.avatar ? (
+                 <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
+               ) : (
+                 <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
+                   {user?.name?.[0] || 'U'}
+                 </div>
+               )}
+             </div>
+            <div className="w-10 h-10 rounded-2xl bg-[#1e2136] flex flex-col items-center justify-center">
+              <span className="text-[12px]">🔥</span>
+              <span className="text-[9px] font-bold text-indigo-400 mt-0.5">{gamification?.streak || 0}</span>
             </div>
           </div>
         )}
 
-        {/* User card */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 border border-white/[0.1] flex items-center justify-center text-base flex-shrink-0 shadow-sm">
-            {user?.avatar || '👤'}
-          </div>
-          {(!collapsed || mobile) && (
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold truncate text-slate-100">{user?.name}</p>
-              <p className="text-[11px] text-slate-500 truncate">{user?.persona || 'User'}</p>
-            </div>
-          )}
-        </div>
-
         {/* Action buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 pt-2">
           {(!collapsed || mobile) && (
             <>
               <button
                 onClick={() => !mobile && setCollapsed(!collapsed)}
-                className="flex-1 text-[12px] font-medium text-slate-400 hover:text-white py-2.5 px-3 rounded-xl hover:bg-white/[0.07] border border-white/[0.06] hover:border-white/[0.12] transition-all flex items-center justify-center gap-2"
+                className="flex-1 text-[11px] font-medium text-slate-400 hover:text-white py-2 px-3 rounded-xl hover:bg-white/[0.05] transition-all flex items-center justify-center gap-2"
               >
                 <ChevronLeft size={14} />
                 <span>Collapse</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="text-[12px] font-medium text-slate-400 hover:text-red-400 py-2.5 px-3 rounded-xl hover:bg-red-500/[0.07] border border-white/[0.06] hover:border-red-500/20 transition-all flex items-center gap-2"
+                className="text-[11px] font-medium text-slate-400 hover:text-red-400 py-2 px-3 rounded-xl hover:bg-red-500/[0.05] transition-all flex items-center justify-center gap-2"
               >
                 <LogOut size={13} />
                 <span>Logout</span>
@@ -267,7 +307,7 @@ export default function Sidebar() {
           {collapsed && !mobile && (
             <button
               onClick={() => setCollapsed(false)}
-              className="flex-1 text-slate-500 hover:text-slate-300 py-2.5 rounded-xl hover:bg-white/[0.05] transition-all flex items-center justify-center"
+              className="flex-1 text-slate-500 hover:text-slate-300 py-2 rounded-xl hover:bg-white/[0.05] transition-all flex items-center justify-center"
             >
               <ChevronRight size={15} />
             </button>
