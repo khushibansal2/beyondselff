@@ -5,27 +5,35 @@
 
 /* ===== CSS VARIABLES ===== */
 :root {
-  --color-bg-primary: #0e1120;
-  --color-bg-secondary: #131929;
-  --color-bg-card: rgba(255, 255, 255, 0.04);
-  --color-bg-glass: rgba(255, 255, 255, 0.06);
-  --color-accent-blue: #3b82f6;
+  /* ── Landing-page teal theme ── */
+  --color-bg-primary:    #060b14;
+  --color-bg-secondary:  #0b1021;
+  --color-bg-card:       rgba(11, 16, 33, 0.85);
+  --color-bg-glass:      rgba(11, 16, 33, 0.70);
+
+  /* Primary accent — teal #00d8b6 (from landing page) */
+  --color-accent-teal:   #00d8b6;
+  --color-accent-cyan:   #00d8b6;   /* replaces old #06b6d4 */
+  --color-accent-blue:   #3b82f6;
   --color-accent-purple: #8b5cf6;
-  --color-accent-cyan: #06b6d4;
-  --color-accent-emerald: #10b981;
-  --color-accent-rose: #f43f5e;
-  --color-accent-amber: #f59e0b;
+  --color-accent-emerald:#10b981;
+  --color-accent-rose:   #f43f5e;
+  --color-accent-amber:  #f59e0b;
   --color-accent-indigo: #6366f1;
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #475569;
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-glow-blue: rgba(59, 130, 246, 0.15);
+
+  --color-text-primary:  #f1f5f9;
+  --color-text-secondary:#94a3b8;
+  --color-text-muted:    #475569;
+  --color-border:        rgba(255, 255, 255, 0.07);
+
+  --color-glow-teal:   rgba(0, 216, 182, 0.15);
+  --color-glow-blue:   rgba(59, 130, 246, 0.15);
   --color-glow-purple: rgba(139, 92, 246, 0.15);
-  --color-glow-cyan: rgba(6, 182, 212, 0.15);
+  --color-glow-cyan:   rgba(0, 216, 182, 0.15);
+
   --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Space Grotesk', 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono:    'JetBrains Mono', monospace;
 }
 
 /* ===== BASE STYLES ===== */
@@ -43,7 +51,7 @@ html {
 
 body {
   font-family: var(--font-primary);
-  background: var(--color-bg-primary);
+  background: #060b14;
   color: var(--color-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
@@ -88,7 +96,7 @@ body {
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%);
+  background: linear-gradient(135deg, rgba(11,16,33,0.80) 0%, rgba(6,11,20,0.60) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -98,9 +106,9 @@ body {
 }
 
 .glass-card:hover {
-  background: linear-gradient(135deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.03) 100%);
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(255,255,255,0.06);
+  background: linear-gradient(135deg, rgba(11,16,33,0.95) 0%, rgba(6,11,20,0.85) 100%);
+  border-color: rgba(0, 216, 182, 0.18);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.50), 0 0 0 1px rgba(0,216,182,0.08);
 }
 
 /* Glow cards intensify on hover */
@@ -109,19 +117,19 @@ body {
 .glow-emerald:hover{ box-shadow: 0 20px 48px rgba(0,0,0,0.35), 0 0 28px rgba(16,185,129,0.22), 0 0 60px rgba(16,185,129,0.08); }
 .glow-amber:hover  { box-shadow: 0 20px 48px rgba(0,0,0,0.35), 0 0 28px rgba(245,158,11,0.22), 0 0 60px rgba(245,158,11,0.08); }
 .glow-rose:hover   { box-shadow: 0 20px 48px rgba(0,0,0,0.35), 0 0 28px rgba(244,63,94,0.22),  0 0 60px rgba(244,63,94,0.08); }
-.glow-cyan:hover   { box-shadow: 0 20px 48px rgba(0,0,0,0.35), 0 0 28px rgba(6,182,212,0.22),  0 0 60px rgba(6,182,212,0.08); }
+.glow-cyan:hover   { box-shadow: 0 20px 48px rgba(0,0,0,0.35), 0 0 28px rgba(0,216,182,0.25),  0 0 60px rgba(0,216,182,0.10); }
 
 /* ===== GLOW EFFECTS ===== */
 .glow-blue { box-shadow: 0 0 16px rgba(59, 130, 246, 0.10), 0 0 40px rgba(59, 130, 246, 0.03); }
 .glow-purple { box-shadow: 0 0 16px rgba(139, 92, 246, 0.10), 0 0 40px rgba(139, 92, 246, 0.03); }
-.glow-cyan { box-shadow: 0 0 16px rgba(6, 182, 212, 0.10), 0 0 40px rgba(6, 182, 212, 0.03); }
+.glow-cyan { box-shadow: 0 0 16px rgba(0, 216, 182, 0.12), 0 0 40px rgba(0, 216, 182, 0.04); }
 .glow-emerald { box-shadow: 0 0 16px rgba(16, 185, 129, 0.10), 0 0 40px rgba(16, 185, 129, 0.03); }
 .glow-rose { box-shadow: 0 0 16px rgba(244, 63, 94, 0.10), 0 0 40px rgba(244, 63, 94, 0.03); }
 .glow-amber { box-shadow: 0 0 16px rgba(245, 158, 11, 0.10), 0 0 40px rgba(245, 158, 11, 0.03); }
 
 /* ===== GRADIENT TEXT ===== */
 .gradient-text {
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
+  background: linear-gradient(135deg, #00d8b6, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -143,10 +151,10 @@ body {
 
 .bg-mesh {
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.10) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse at 40% 80%, rgba(6, 182, 212, 0.07) 0%, transparent 50%),
-    var(--color-bg-primary);
+    radial-gradient(ellipse at 20% 50%, rgba(0, 216, 182, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 40% 80%, rgba(0, 216, 182, 0.05) 0%, transparent 50%),
+    #060b14;
   animation: mesh-breathe 12s ease-in-out infinite;
 }
 
@@ -209,9 +217,9 @@ body {
 }
 
 .input-premium:focus {
-  border-color: var(--color-accent-blue);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: #00d8b6;
+  box-shadow: 0 0 0 3px rgba(0, 216, 182, 0.12);
+  background: rgba(0, 216, 182, 0.03);
 }
 
 .input-premium::placeholder { color: var(--color-text-muted); }
@@ -223,13 +231,13 @@ select.input-premium option {
 
 /* ===== BUTTON STYLES ===== */
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  color: white;
+  background: linear-gradient(135deg, #00d8b6, #8b5cf6);
+  color: #060b14;
   border: none;
   border-radius: 12px;
   padding: 12px 24px;
   font-family: var(--font-primary);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -239,7 +247,7 @@ select.input-premium option {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 216, 182, 0.30);
 }
 
 .btn-primary:active { transform: translateY(0); }

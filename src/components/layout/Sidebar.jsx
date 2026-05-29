@@ -69,8 +69,8 @@ export default function Sidebar() {
   const { anomalies = [], gamification } = useData();
   const { theme } = useTheme();
   const isLight = theme === 'light';
-  const sidebarBg = isLight ? '#ffffff' : '#11131c';
-  const borderColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+  const sidebarBg = isLight ? '#ffffff' : '#07090e';
+  const borderColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(0,216,182,0.08)';
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({});
@@ -138,7 +138,7 @@ export default function Sidebar() {
       <div className={`${collapsed && !mobile ? 'px-4 py-5' : 'px-5 py-5'} flex-shrink-0`} style={{ borderBottom: `1px solid ${borderColor}` }}>
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-500/30">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-violet-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-teal-500/20">
               <Zap size={17} className="text-white" />
             </div>
             {(!collapsed || mobile) && (
@@ -210,7 +210,7 @@ export default function Sidebar() {
             {/* User Profile Card */}
             <div className="bg-[#1e2136] rounded-[20px] p-4 flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-indigo-500/30">
+                 <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
                    {user?.avatar ? (
                      <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
                    ) : (
@@ -268,7 +268,7 @@ export default function Sidebar() {
         ) : (
           /* Collapsed View */
           <div className="flex flex-col gap-4 items-center">
-             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-indigo-500/30">
+             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
                {user?.avatar ? (
                  <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
                ) : (
@@ -332,7 +332,7 @@ export default function Sidebar() {
             <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1.5 text-slate-400 hover:text-white transition-colors">
               <Menu size={19} />
             </button>
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-violet-500 flex items-center justify-center shadow-sm">
               <Zap size={13} className="text-white" />
             </div>
             <span className="text-[14px] font-bold text-white tracking-tight">BeyondSelf</span>

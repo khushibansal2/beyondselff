@@ -5,8 +5,7 @@ import { useData } from '../context/DataContext';
 import { generateNarrative } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
-import { GhostTimeline } from '../components/ui/GhostTimeline';
-import { LifePlant, getStage, PLANT_STAGES } from '../components/ui/LifePlant';
+// GhostTimeline and LifePlant kept for potential future use but not rendered in this layout
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';
 import { computeHealthScore } from '../engines/healthScoreEngine';
@@ -542,7 +541,6 @@ export default function Dashboard() {
   const [engineTab, setEngineTab] = useState('time_travel');
   const [hoveredNode, setHoveredNode] = useState(null);
   const [theme, setTheme] = useState('dark');
-  const scoreRingsRef = useRef(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -779,7 +777,7 @@ export default function Dashboard() {
 
   const futureNodes = [
     { key:'mind', label:'Mind', score:Math.max(0,100-burnoutRisk), st:burnoutRisk<40?'Good':'Average', col:'#10b981', icon:'🧠', pos:{top:'15%', left:'-10px'} },
-    { key:'energy', label:'Energy', score:Math.min(100, Math.round((h?.sleepDuration||7.5)*10)), st:(h?.sleepDuration||7.5)>=7?'Good':'Low', col:'#f59e0b', icon:'⚡', pos:{top:'50%', left:'-30px'} },
+    { key:'energy', label:'Energy', score:Math.min(100, Math.round((h?.sleepAvg||7.5)*10)), st:(h?.sleepAvg||7.5)>=7?'Good':'Low', col:'#f59e0b', icon:'⚡', pos:{top:'50%', left:'-30px'} },
     { key:'body', label:'Body', score:healthScore, st:healthScore>=70?'Good':'Low', col:'#f97316', icon:'🛡️', pos:{top:'85%', left:'-10px'} },
     { key:'heart', label:'Heart', score:Math.round(healthScore*0.8), st:healthScore>60?'Attention':'Critical', col:'#ef4444', icon:'❤️', pos:{top:'15%', right:'-10px'} },
     { key:'habits', label:'Habits', score:Math.round((actionPlan.length?Object.values(checkedTasks).filter(Boolean).length/actionPlan.length*100:80)), st:'Good', col:'#3b82f6', icon:'✓', pos:{top:'50%', right:'-30px'} },
@@ -811,9 +809,6 @@ export default function Dashboard() {
 
   const S = (bg = C.panel, border = C.border) => ({background: bg, border: `1px solid ${border}`, borderRadius: 16});
 
-
-  // Image assets
-  const avatarImg = new URL('../../assets/hero.png', import.meta.url).href;
 
   const currentYear = new Date().getFullYear();
   const futureYear = currentYear + 5;
@@ -976,7 +971,7 @@ export default function Dashboard() {
                     <div style={{background:'rgba(239,68,68,0.05)', border:'1px solid rgba(239,68,68,0.2)', padding:16, borderRadius:8, display:'flex', flexDirection:'column', justifyContent:'center'}}>
                       <div style={{fontSize:18, marginBottom:6}}>🔥</div>
                       <div style={{fontSize:10, color:C.text, fontWeight:600}}>Burnout ETA</div>
-                      <div style={{fontSize:20, fontWeight:800, color:'#ef4444'}}>{doomStats?.burnoutImpactDays||30} days</div>
+                      <div style={{fontSize:20, fontWeight:800, color:'#ef4444'}}>{doomStats?.burnoutETA||30} days</div>
                     </div>
                     <div style={{background:'rgba(59,130,246,0.05)', border:'1px solid rgba(59,130,246,0.2)', padding:16, borderRadius:8, display:'flex', flexDirection:'column', justifyContent:'center'}}>
                       <div style={{fontSize:18, marginBottom:6}}>💤</div>
