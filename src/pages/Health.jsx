@@ -630,16 +630,217 @@ function NutritionPanel({ healthData, updateDomain }) {
   );
 }
 
-function HealthRecommendations({ recommendations }) {
-  const [, forceUpdate] = useReducer(x => x + 1, 0);
-  const feedback = loadFeedback();
-  const sorted   = sortByFeedback(recommendations, feedback);
+function HealthRecommendations({ recommendations, h, score }) {
+  const [checkedActions, setCheckedActions] = useState({});
+  const [accepted, setAccepted]             = useState({});
+  const [history, setHistory]               = useState(() => {
+    try { return JSON.parse(localStorage.getItem('health_rec_history') || '[]'); } catch { return []; }
+  });
+
+  const sorted = [...recommendations].sort((a, b) => a.priority - b.priority);
+  const top3   = sorted.slice(0, 3);
+  const best   = top3[0];
+
+  const priorityMeta = (risk) => {
+    if (risk === 'critical' || risk === 'high')   return { label: 'High Priority',   labelColor: '#f87171', bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.2)',   btnBg: 'rgba(239,68,68,0.15)',   btnText: '#f87171', btnLabel: 'Fix Now'     };
+    if (risk === 'medium')                         return { label: 'Medium Priority', labelColor: '#fb923c', bg: 'rgba(251,146,60,0.08)',  border: 'rgba(251,146,60,0.2)',  btnBg: 'rgba(251,146,60,0.15)',  btnText: '#fb923c', btnLabel: 'Start Plan'  };
+    return                                                { label: 'Low Priority',    labelColor: '#4ade80', bg: 'rgba(74,222,128,0.06)',  border: 'rgba(74,222,128,0.2)',  btnBg: 'rgba(74,222,128,0.12)',  btnText: '#4ade80', btnLabel: 'View Tips'   };
+  };
+
+  const icons = { '😴': '🌙', '🧘': '🧘', '🏃': '🏃', '💧': '💧', '🥗': '🥦', '😊': '😊' };
+
+  // Category scores derived from health data
+  const categories = [
+    { label: 'Mental Energy', icon: '🧠', score: Math.max(0, Math.min(100, Math.round(100 - (h?.stressLevel || 5) * 7 + (h?.moodAvg || 5) * 5))), color: '#4ade80' },
+    { label: 'Fitness',       icon: '🏃', score: Math.max(0, Math.min(100, Math.round((h?.workoutsPerWeek || 0) * 16))),                           color: '#fb923c' },
+    { label: 'Nutrition',     icon: '🥦', score: Math.max(0, Math.min(100, Math.round((h?.calories || 0) > 0 ? Math.max(30, 100 - Math.abs((h?.calories || 2000) - 2000) / 20) : 48))), color: '#facc15' },
+    { label: 'Recovery',      icon: '❤️', score: Math.max(0, Math.min(100, Math.round((h?.sleepAvg || 7) * 10 + (h?.waterIntake || 4) * 2))),     color: '#4ade80' },
+    { label: 'Sleep',         icon: '🌙', score: Math.max(0, Math.min(100, Math.round((h?.sleepAvg || 7) / 9 * 100))),                            color: '#a78bfa' },
+  ];
+
+  // Action plan — top 4 short action items
+  const actionItems = [
+    h?.waterIntake < 8  && { id:'water',   text: `Drink ${8 - (h?.waterIntake||0)} more glasses of water`, impact: 'High Impact'   },
+    h?.workoutsPerWeek < 3 && { id:'walk',  text: '15 min walk',                                           impact: 'Medium Impact' },
+    h?.sleepAvg < 7.5   && { id:'sleep',   text: 'Sleep before 11 PM',                                     impact: 'High Impact'   },
+    h?.calories < 1800  && { id:'protein', text: 'Have a protein-rich dinner',                              impact: 'Medium Impact' },
+    !h?.sleepAvg        && { id:'log',     text: 'Log today\'s health data',                                impact: 'High Impact'   },
+  ].filter(Boolean).slice(0, 4);
+
+  const handleAccept = (rec) => {
+    setAccepted(a => ({ ...a, [rec.id]: true }));
+    const entry = { title: rec.title, scoreDelta: `+${Math.round(rec.confidence / 12)}`, acceptedAt: new Date().toISOString() };
+    const next = [entry, ...history].slice(0, 10);
+    setHistory(next);
+    localStorage.setItem('health_rec_history', JSON.stringify(next));
+  };
+
+  const daysAgo = (iso) => {
+    const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    return d === 0 ? 'Today' : d === 1 ? '1 day ago' : `${d} days ago`;
+  };
+
   return (
-    <div className="space-y-5">
-      <p className="text-[11px] text-[#71717a]">Accept to prioritize · Mark Done to track completion · Not helpful to deprioritize</p>
-      {sorted.map((r, i) => (
-        <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* ── PRIORITY RECOMMENDATIONS ── */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9' }}>Priority Recommendations</span>
+            <span title="Sorted by impact on your health score" style={{ fontSize: 12, color: '#475569', cursor: 'help' }}>ⓘ</span>
+          </div>
+          <button style={{ fontSize: 12, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, alignItems: 'stretch' }}>
+          {top3.map((rec) => {
+            const m = priorityMeta(rec.risk);
+            const scoreDelta = Math.round(rec.confidence / 12);
+            const subtitle = rec.text.split('.')[0] + '.';
+            const body     = rec.text.split('.').slice(1, 3).join('.').trim();
+            return (
+              <motion.div key={rec.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: 16, padding: '20px 20px 16px', display: 'flex', flexDirection: 'column' }}>
+                {/* Priority label */}
+                <span style={{ fontSize: 10, fontWeight: 700, color: m.labelColor, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>{m.label}</span>
+                {/* Icon + title row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: m.btnBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{rec.icon}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', marginBottom: 2 }}>{rec.title}</p>
+                    <p style={{ fontSize: 11, color: '#94a3b8' }}>{subtitle}</p>
+                  </div>
+                </div>
+                {/* Body — fixed min-height so all cards match */}
+                <p style={{ fontSize: 11, color: '#64748b', lineHeight: 1.6, minHeight: 52, flex: 1 }}>{body}</p>
+                {/* Score */}
+                <p style={{ fontSize: 11, fontWeight: 700, color: m.labelColor, marginTop: 10, marginBottom: 10 }}>↑ +{scoreDelta} Health Score</p>
+                {/* CTA — always at bottom */}
+                <button
+                  onClick={() => handleAccept(rec)}
+                  disabled={accepted[rec.id]}
+                  style={{ padding: '11px 16px', borderRadius: 10, border: `1px solid ${m.border}`, background: accepted[rec.id] ? 'rgba(74,222,128,0.15)' : m.btnBg, color: accepted[rec.id] ? '#4ade80' : m.btnText, fontSize: 13, fontWeight: 700, cursor: accepted[rec.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  {accepted[rec.id] ? '✓ Accepted' : m.btnLabel}
+                  {!accepted[rec.id] && <span style={{ fontSize: 16 }}>›</span>}
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── BOTTOM ROW ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+        {/* Today's Biggest Opportunity */}
+        {best && (
+          <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 24px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Today's Biggest Opportunity</p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>{best.icon}</div>
+              <div>
+                <p style={{ fontSize: 22, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 }}>{best.title}</p>
+                <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{best.text.slice(0, 140)}…</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div>
+                <p style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Potential Gain</p>
+                <p style={{ fontSize: 22, fontWeight: 900, color: '#818cf8' }}>+{Math.round(best.confidence / 12)} <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>Health Score</span></p>
+              </div>
+              <button
+                onClick={() => handleAccept(best)}
+                disabled={accepted[best.id]}
+                style={{ padding: '12px 22px', borderRadius: 12, border: 'none', background: accepted[best.id] ? 'rgba(74,222,128,0.2)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: accepted[best.id] ? '#4ade80' : '#fff', fontSize: 14, fontWeight: 700, cursor: accepted[best.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                {accepted[best.id] ? '✓ Accepted' : 'Accept Recommendation'} {!accepted[best.id] && '›'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Recommendation Categories */}
+        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 24px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Recommendation Categories</p>
+            <span title="Health sub-scores" style={{ fontSize: 12, color: '#475569', cursor: 'help' }}>ⓘ</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {categories.map(cat => (
+              <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 14, width: 20, flexShrink: 0 }}>{cat.icon}</span>
+                <span style={{ fontSize: 12, color: '#94a3b8', width: 110, flexShrink: 0 }}>{cat.label}</span>
+                <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${cat.score}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
+                    style={{ height: '100%', background: cat.color, borderRadius: 3 }} />
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9', width: 28, textAlign: 'right' }}>{cat.score}</span>
+                <span style={{ fontSize: 11, color: '#475569' }}>/100</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── ACTION PLAN + HISTORY ROW ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+        {/* Today's Action Plan */}
+        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 24px' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 16 }}>Today's Action Plan</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {actionItems.length === 0 && (
+              <p style={{ fontSize: 12, color: '#475569' }}>Log health data to generate your action plan.</p>
+            )}
+            {actionItems.map(item => (
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                onClick={() => setCheckedActions(p => ({ ...p, [item.id]: !p[item.id] }))}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', border: checkedActions[item.id] ? 'none' : '2px solid rgba(255,255,255,0.15)', background: checkedActions[item.id] ? '#4ade80' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+                  {checkedActions[item.id] && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+                <span style={{ flex: 1, fontSize: 13, color: checkedActions[item.id] ? '#475569' : '#e2e8f0', textDecoration: checkedActions[item.id] ? 'line-through' : 'none', transition: 'all 0.2s' }}>{item.text}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: item.impact === 'High Impact' ? '#f87171' : '#fb923c', flexShrink: 0 }}>{item.impact}</span>
+              </div>
+            ))}
+          </div>
+          {actionItems.length > 0 && (
+            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14 }}>📋</span>
+              <span style={{ fontSize: 12, color: '#475569' }}>{actionItems.filter(i => !checkedActions[i.id]).length} recommendations remaining</span>
+            </div>
+          )}
+        </div>
+
+        {/* Recent Recommendations History */}
+        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>Recent Recommendations (History)</p>
+            <button style={{ fontSize: 12, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {history.length === 0 && (
+              <p style={{ fontSize: 12, color: '#475569' }}>Accept recommendations above to see your history here.</p>
+            )}
+            {history.slice(0, 4).map((h, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>{h.title}</p>
+                  <p style={{ fontSize: 11, color: '#475569' }}>Accepted {daysAgo(h.acceptedAt)}</p>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#4ade80' }}>{h.scoreDelta} Score</span>
+              </div>
+            ))}
+          </div>
+          {(Object.values(accepted).some(Boolean) || history.length > 0) && (
+            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 16 }}>⭐</span>
+              <span style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Great job! You're building healthy habits.</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1449,7 +1650,7 @@ export default function Health() {
       )}
 
       {tab === 'recommendations' && (
-        <HealthRecommendations recommendations={recommendations} />
+        <HealthRecommendations recommendations={recommendations} h={h} score={score} />
       )}
     </div>
   );

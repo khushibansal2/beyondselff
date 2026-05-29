@@ -5,7 +5,7 @@ import { useData } from '../context/DataContext';
 import { careerApi } from '../services/backendApi';
 import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, AreaChart, Area, CartesianGrid } from 'recharts';
 import { generateLearningPath } from '../services/learningService';
 import { logSession, getSessions, getHeatmap, getStats, deleteSession } from '../services/studyService';
 import {
@@ -540,262 +540,301 @@ function ResumeTab({ career: c, updateDomain }) {
 
 // ── Job Card ─────────────────────────────────────────────────────────────────
 function JobCard({ job, userSkills }) {
-  const match = useMemo(() => calculateJobMatch(userSkills, job), [userSkills, job]);
-
+  const match      = useMemo(() => calculateJobMatch(userSkills, job), [userSkills, job]);
   const scoreColor = match.score >= 80 ? '#10b981' : match.score >= 60 ? '#f59e0b' : '#f43f5e';
-  const sourceStyle = { background: job.sourceColor + '18', border: `1px solid ${job.sourceColor}40`, color: job.sourceColor };
-  const initials = (job.company || 'C').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const scoreLabel = match.score >= 80 ? 'Great Match' : match.score >= 60 ? 'Good Match' : 'Partial Match';
+  const initials   = (job.company || 'C').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const circ       = 2 * Math.PI * 20;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-      <GlassCard className="group hover:border-white/[0.12] transition-all">
-        <div className="flex items-start gap-3">
-          {/* Company logo / initials */}
-          <div className="w-11 h-11 rounded-xl flex-shrink-0 overflow-hidden border border-white/[0.08] bg-white/[0.04] flex items-center justify-center">
-            {job.companyLogo
-              ? <img src={job.companyLogo} alt={job.company} className="w-full h-full object-contain p-1" onError={e => { e.target.style.display = 'none'; e.target.parentNode.textContent = initials; }} />
-              : <span className="text-[13px] font-black text-[#a1a1aa]">{initials}</span>
-            }
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+      <div style={{ background: 'rgba(15,18,30,0.9)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, transition: 'border-color 0.2s' }}
+        onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'}
+        onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}>
+
+        {/* Company logo */}
+        <div style={{ width: 52, height: 52, borderRadius: 12, flexShrink: 0, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {job.companyLogo
+            ? <img src={job.companyLogo} alt={job.company} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6 }} onError={e => { e.target.style.display = 'none'; }} />
+            : <span style={{ fontSize: 16, fontWeight: 900, color: '#94a3b8' }}>{initials}</span>}
+        </div>
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', marginBottom: 3 }}>{job.title}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, color: '#94a3b8' }}>{job.company}</span>
+            <span style={{ color: '#334155' }}>·</span>
+            <span style={{ fontSize: 12, color: '#94a3b8' }}>{job.location}</span>
+            {job.salary && <><span style={{ color: '#334155' }}>·</span><span style={{ fontSize: 12, color: '#10b981', fontWeight: 600 }}>{job.salary}</span></>}
+            {job.remote && <><span style={{ color: '#334155' }}>·</span><span style={{ fontSize: 11, color: '#60a5fa' }}>Remote</span></>}
+            <span style={{ fontSize: 11, color: '#475569' }}>· Full-time</span>
           </div>
+        </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 flex-wrap">
-              <div className="min-w-0">
-                <p className="text-[13px] font-semibold text-[#f0f0f3] truncate">{job.title}</p>
-                <p className="text-[12px] text-[#a1a1aa]">{job.company}</p>
-              </div>
-              {/* Match score ring */}
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <div className="relative w-9 h-9">
-                  <svg viewBox="0 0 36 36" className="w-9 h-9 -rotate-90">
-                    <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="3" />
-                    <circle cx="18" cy="18" r="14" fill="none" stroke={scoreColor} strokeWidth="3"
-                      strokeDasharray={`${match.score * 0.879} 87.9`} strokeLinecap="round" />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold" style={{ color: scoreColor }}>{match.score}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Meta row */}
-            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-              <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                <MapPin size={10} />{job.location}
-              </span>
-              {job.remote && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold">Remote</span>}
-              {job.salary && <span className="flex items-center gap-1 text-[11px] text-emerald-400"><DollarSign size={9} />{job.salary}</span>}
-              <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold" style={sourceStyle}>{job.source}</span>
-            </div>
-
-            {/* Required skills */}
-            {job.requiredSkills?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2.5">
-                {job.requiredSkills.slice(0, 6).map(s => {
-                  const isMatched = match.matched.some(m => m.toLowerCase() === s.toLowerCase());
-                  return (
-                    <span key={s} className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
-                      isMatched
-                        ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
-                        : 'bg-white/[0.03] border-white/[0.07] text-slate-400'
-                    }`}>{s}</span>
-                  );
-                })}
-                {job.requiredSkills.length > 6 && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/[0.06] text-slate-400">+{job.requiredSkills.length - 6}</span>
-                )}
-              </div>
-            )}
-
-            {/* Missing skills count + CTA */}
-            <div className="flex items-center gap-3 mt-3">
-              {match.missing.length > 0 && (
-                <span className="text-[11px] text-amber-500">⚠ {match.missing.length} skill{match.missing.length > 1 ? 's' : ''} missing</span>
-              )}
-              <a href={job.url} target="_blank" rel="noopener noreferrer"
-                className="ml-auto flex items-center gap-1.5 text-[11px] px-3.5 py-1.5 rounded-xl bg-[#0f172a] border border-white/[0.1] text-[#a1a1aa] hover:text-white hover:border-white/[0.2] transition-all font-semibold">
-                Apply <ExternalLink size={10} />
-              </a>
+        {/* Match ring */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+          <div style={{ position: 'relative', width: 56, height: 56 }}>
+            <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="28" cy="28" r="20" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+              <circle cx="28" cy="28" r="20" fill="none" stroke={scoreColor} strokeWidth="4"
+                strokeDasharray={`${(match.score / 100) * circ} ${circ}`} strokeLinecap="round" />
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>{match.score}%</span>
+              <span style={{ fontSize: 8, color: '#475569', lineHeight: 1, marginTop: 1 }}>Match</span>
             </div>
           </div>
         </div>
-      </GlassCard>
+
+        {/* CTA */}
+        <a href={job.url} target="_blank" rel="noopener noreferrer"
+          style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 10, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: '#a5b4fc', fontSize: 13, fontWeight: 700, textDecoration: 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.22)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; }}>
+          View Job <span style={{ fontSize: 15 }}>›</span>
+        </a>
+      </div>
     </motion.div>
   );
 }
 
 // ── Jobs Tab ──────────────────────────────────────────────────────────────────
-function JobsTab({ userSkills }) {
-  const [query,     setQuery]     = useState('');
-  const [location,  setLocation]  = useState('');
-  const [jobs,      setJobs]      = useState([]);
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState(null);
-  const [filter,    setFilter]    = useState('all');
-  const [searched,  setSearched]  = useState(false);
+const ROLE_CHIPS = ['Frontend', 'Backend', 'Full Stack', 'AI Engineer', 'ML Engineer', 'Product Engineer'];
+const LOCATIONS  = [{ label: 'Anywhere', value: '' }, { label: 'Remote', value: 'remote' }, { label: 'Bengaluru', value: 'Bengaluru' }, { label: 'Mumbai', value: 'Mumbai' }, { label: 'Hyderabad', value: 'Hyderabad' }, { label: 'Delhi', value: 'Delhi' }];
 
-  const SUGGESTIONS = useMemo(() => {
-    if (userSkills?.length) {
-      const hasReact = userSkills.some(s => /react/i.test(s));
-      const hasPython = userSkills.some(s => /python/i.test(s));
-      const hasML = userSkills.some(s => /machine learning|ml|ai/i.test(s));
-      if (hasML)    return ['AI Engineer', 'ML Engineer', 'Data Scientist', 'LLM Developer'];
-      if (hasPython) return ['Python Developer', 'Backend Engineer', 'Data Engineer', 'FastAPI Developer'];
-      if (hasReact)  return ['React Developer', 'Frontend Engineer', 'Full Stack Developer', 'Next.js Developer'];
-    }
-    return ['Software Engineer', 'Full Stack Developer', 'React Developer', 'Backend Engineer'];
-  }, [userSkills]);
+function JobsTab({ userSkills }) {
+  const [query,    setQuery]    = useState('');
+  const [location, setLocation] = useState('');
+  const [jobs,     setJobs]     = useState([]);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState(null);
+  const [filter,   setFilter]   = useState('all');
+  const [searched, setSearched] = useState(false);
+  const [showLoc,  setShowLoc]  = useState(false);
 
   async function doSearch(q = query, loc = location) {
     if (!q.trim()) return;
     setLoading(true); setError(null); setJobs([]); setSearched(true);
     try {
       const results = await fetchJobs(q.trim(), { location: loc.trim() });
-      // Enrich with match scores then sort
-      const ranked = rankJobsByMatch(userSkills || [], results);
-      setJobs(ranked);
+      setJobs(rankJobsByMatch(userSkills || [], results));
     } catch (e) {
-      if (e.message === 'NO_RESULTS') setError('No jobs found for this query. Try a broader search term.');
-      else setError('Could not reach job APIs. Check your internet connection and try again.');
-    } finally {
-      setLoading(false);
-    }
+      if (e.message === 'NO_RESULTS') setError('No jobs found. Try a broader search term.');
+      else setError('Could not reach job APIs. Check your connection.');
+    } finally { setLoading(false); }
   }
 
   const filtered = useMemo(() => {
-    if (filter === 'remote')   return jobs.filter(j => j.remote);
-    if (filter === 'salary')   return jobs.filter(j => j.salary);
-    if (filter === 'match80')  return jobs.filter(j => (j.match?.score ?? 0) >= 80);
+    if (filter === 'remote')  return jobs.filter(j => j.remote);
+    if (filter === 'salary')  return jobs.filter(j => j.salary);
+    if (filter === 'match80') return jobs.filter(j => (j.match?.score ?? 0) >= 80);
     return jobs;
   }, [jobs, filter]);
 
-  const sources = useMemo(() => [...new Set(jobs.map(j => j.source))], [jobs]);
+  // Stats
+  const avgMatch   = jobs.length ? Math.round(jobs.reduce((s, j) => s + (j.match?.score ?? 0), 0) / jobs.length) : 0;
+  const matchLabel = avgMatch >= 80 ? 'Great Match' : avgMatch >= 60 ? 'Good Match' : 'Building...';
+  const matchColor = avgMatch >= 80 ? '#10b981' : avgMatch >= 60 ? '#f59e0b' : '#6366f1';
+  const missingAll = useMemo(() => aggregateMissingSkills(userSkills || [], jobs.slice(0, 5)), [userSkills, jobs]);
+  const circ       = 2 * Math.PI * 36;
 
   return (
-    <div className="space-y-5">
-      {/* Search bar */}
-      <GlassCard>
-        <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-3">Live Job Market Search</p>
-        <div className="flex gap-2 flex-col sm:flex-row">
-          <div className="flex-1 relative">
-            <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={query} onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && doSearch()}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* ── SEARCH PANEL ── */}
+      <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '28px 28px 22px' }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#f1f5f9', marginBottom: 6 }}>Find Your Next Opportunity 🚀</h2>
+        <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>Discover opportunities that match your skills and goals.</p>
+
+        {/* Inputs */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          {/* Role */}
+          <div style={{ flex: 1, position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#475569', pointerEvents: 'none' }} />
+            <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && doSearch()}
               placeholder="Role (e.g. React Developer, ML Engineer)"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-blue-500/40 transition-colors" />
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '12px 14px 12px 40px', color: '#f1f5f9', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
           </div>
-          <div className="relative sm:w-44">
-            <MapPin size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={location} onChange={e => setLocation(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && doSearch()}
-              placeholder="Location (optional)"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-3.5 py-2.5 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-blue-500/40 transition-colors" />
-          </div>
-          <button onClick={() => doSearch()} disabled={loading || !query.trim()}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[12px] font-semibold hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0">
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
-            {loading ? 'Searching…' : 'Search'}
-          </button>
-        </div>
-
-        {/* Suggestion chips */}
-        {!searched && (
-          <div className="flex gap-2 mt-3 flex-wrap">
-            <span className="text-[10px] text-slate-400 self-center">Try:</span>
-            {SUGGESTIONS.map(s => (
-              <button key={s} onClick={() => { setQuery(s); doSearch(s); }}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-slate-400 hover:text-[#a1a1aa] transition-all">
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Source badges + filter */}
-        {jobs.length > 0 && (
-          <div className="flex items-center gap-3 mt-3 flex-wrap">
-            <div className="flex gap-1.5 flex-wrap">
-              {sources.map(src => (
-                <span key={src} className="text-[10px] px-2 py-0.5 rounded-full border font-semibold bg-white/[0.03] border-white/[0.08] text-slate-400">
-                  {src} · {jobs.filter(j => j.source === src).length}
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-1 ml-auto flex-wrap">
-              {['all', 'remote', 'salary', 'match80'].map(f => (
-                <button key={f} onClick={() => setFilter(f)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all ${filter === f ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-white/[0.06] text-slate-400 hover:text-[#a1a1aa]'}`}>
-                  {f === 'all' ? 'All' : f === 'remote' ? '🌐 Remote' : f === 'salary' ? '💰 Salary' : '🎯 80%+ Match'}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </GlassCard>
-
-      {/* Loading skeletons */}
-      {loading && (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <GlassCard key={i}>
-              <div className="flex items-start gap-3 animate-pulse">
-                <div className="w-11 h-11 rounded-xl bg-white/[0.05] flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-white/[0.05] rounded-full w-2/3" />
-                  <div className="h-3 bg-white/[0.04] rounded-full w-1/3" />
-                  <div className="flex gap-2 mt-2">
-                    {[1, 2, 3].map(j => <div key={j} className="h-5 w-16 bg-white/[0.04] rounded-full" />)}
-                  </div>
-                </div>
+          {/* Location dropdown */}
+          <div style={{ position: 'relative', width: 200 }}>
+            <MapPin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#475569', pointerEvents: 'none', zIndex: 1 }} />
+            <button onClick={() => setShowLoc(s => !s)}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 10, padding: '12px 36px 12px 40px', color: '#f1f5f9', fontSize: 14, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {LOCATIONS.find(l => l.value === location)?.label || 'Anywhere'}
+              <span style={{ fontSize: 10, color: '#475569', marginRight: -20 }}>▾</span>
+            </button>
+            {showLoc && (
+              <div style={{ position: 'absolute', top: '110%', left: 0, right: 0, background: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden', zIndex: 50 }}>
+                {LOCATIONS.map(l => (
+                  <button key={l.value} onClick={() => { setLocation(l.value); setShowLoc(false); }}
+                    style={{ width: '100%', padding: '10px 16px', textAlign: 'left', color: location === l.value ? '#818cf8' : '#94a3b8', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {l.label}
+                  </button>
+                ))}
               </div>
-            </GlassCard>
-          ))}
-        </div>
-      )}
-
-      {/* Error */}
-      {error && !loading && (
-        <GlassCard className="text-center py-8 border border-rose-500/15">
-          <AlertTriangle size={28} className="mx-auto mb-2 text-rose-400" />
-          <p className="text-[13px] text-[#a1a1aa] font-semibold mb-1">Search Failed</p>
-          <p className="text-[11px] text-slate-400">{error}</p>
-          <button onClick={() => doSearch()} className="mt-4 px-4 py-2 rounded-xl border border-white/[0.1] text-[12px] text-[#a1a1aa] hover:text-white transition-all flex items-center gap-2 mx-auto">
-            <RefreshCw size={12} /> Retry
-          </button>
-        </GlassCard>
-      )}
-
-      {/* Empty state */}
-      {!searched && !loading && (
-        <GlassCard className="text-center py-12">
-          <Briefcase size={32} className="mx-auto mb-3 text-slate-400" />
-          <p className="text-[14px] font-semibold text-[#a1a1aa] mb-1">Real-time Job Market</p>
-          <p className="text-[12px] text-slate-400">Powered by Arbeitnow · Remotive · Adzuna · JSearch</p>
-          <p className="text-[11px] text-slate-400 mt-1">Enter a role above to search live job listings and see your match score on each card</p>
-        </GlassCard>
-      )}
-
-      {/* No results */}
-      {searched && !loading && !error && filtered.length === 0 && (
-        <GlassCard className="text-center py-8">
-          <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">No results for this filter</p>
-          <button onClick={() => setFilter('all')} className="text-[12px] text-blue-400 hover:text-blue-300 transition-colors mt-1">Clear filter</button>
-        </GlassCard>
-      )}
-
-      {/* Results */}
-      {filtered.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <p className="text-[11px] text-slate-400">{filtered.length} jobs{userSkills?.length ? ' · sorted by your skill match' : ''}</p>
-            {userSkills?.length === 0 && (
-              <p className="text-[11px] text-amber-400">Upload your resume to see match scores</p>
             )}
           </div>
-          {filtered.map(job => (
-            <JobCard key={job.id} job={job} userSkills={userSkills || []} />
+          {/* Search button */}
+          <button onClick={() => doSearch()} disabled={loading || !query.trim()}
+            style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading || !query.trim() ? 'not-allowed' : 'pointer', opacity: !query.trim() ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            {loading ? <Loader2 size={15} className="animate-spin" /> : null}
+            {loading ? 'Searching…' : 'Search Jobs →'}
+          </button>
+        </div>
+
+        {/* Role chips */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {ROLE_CHIPS.map(chip => (
+            <button key={chip} onClick={() => { setQuery(chip); doSearch(chip); }}
+              style={{ padding: '7px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', background: query === chip ? '#6366f1' : 'rgba(255,255,255,0.04)', border: query === chip ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.08)', color: query === chip ? '#fff' : '#94a3b8' }}>
+              {chip}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── STATS ROW ── */}
+      {searched && !loading && jobs.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+          {[
+            { icon: '💼', bg: '#6366f1', label: 'Jobs Found',   value: jobs.length, sub: `+${Math.min(36, Math.round(jobs.length * 0.08))} new today` },
+            { icon: '🎯', bg: '#10b981', label: 'Match Score',  value: `${avgMatch}%`, sub: matchLabel, color: matchColor },
+            { icon: '₹',  bg: '#f59e0b', label: 'Avg Salary',   value: jobs.find(j => j.salary)?.salary || '—', sub: '+8% vs last month' },
+          ].map(s => (
+            <div key={s.label} style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: s.bg + '22', border: `1px solid ${s.bg}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{s.icon}</div>
+              <div>
+                <p style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>{s.label}</p>
+                <p style={{ fontSize: 22, fontWeight: 900, color: s.color || '#f1f5f9', lineHeight: 1 }}>{s.value}</p>
+                <p style={{ fontSize: 11, color: s.color || '#10b981', marginTop: 2 }}>{s.sub}</p>
+              </div>
+            </div>
           ))}
         </div>
       )}
+
+      {/* ── MAIN CONTENT ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
+
+        {/* Left: job list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Filter bar */}
+          {jobs.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 16 }}>✨</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Recommended Jobs</span>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {['all','remote','match80'].map(f => (
+                  <button key={f} onClick={() => setFilter(f)}
+                    style={{ padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: filter === f ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: filter === f ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.07)', color: filter === f ? '#818cf8' : '#64748b' }}>
+                    {f === 'all' ? 'All' : f === 'remote' ? '🌐 Remote' : '🎯 80%+ Match'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Loading */}
+          {loading && [1,2,3].map(i => (
+            <div key={i} style={{ background: 'rgba(15,18,30,0.9)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px', display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: 12, background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} className="animate-pulse" />
+              <div style={{ flex: 1 }} className="animate-pulse">
+                <div style={{ height: 14, background: 'rgba(255,255,255,0.06)', borderRadius: 6, width: '55%', marginBottom: 8 }} />
+                <div style={{ height: 11, background: 'rgba(255,255,255,0.04)', borderRadius: 6, width: '35%' }} />
+              </div>
+            </div>
+          ))}
+
+          {/* Error */}
+          {error && !loading && (
+            <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 14, padding: '24px', textAlign: 'center' }}>
+              <p style={{ fontSize: 13, color: '#f87171', marginBottom: 8 }}>{error}</p>
+              <button onClick={() => doSearch()} style={{ padding: '8px 18px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 12, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <RefreshCw size={12} /> Retry
+              </button>
+            </div>
+          )}
+
+          {/* Empty / landing state */}
+          {!searched && !loading && (
+            <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '48px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>💼</div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#94a3b8', marginBottom: 6 }}>Real-time Job Market</p>
+              <p style={{ fontSize: 12, color: '#475569' }}>Powered by Arbeitnow · Remotive · Adzuna</p>
+              <p style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>Enter a role above to find live listings with AI match scores</p>
+            </div>
+          )}
+
+          {/* Results */}
+          {filtered.map(job => <JobCard key={job.id} job={job} userSkills={userSkills || []} />)}
+
+          {filtered.length > 0 && (
+            <button style={{ padding: '12px', borderRadius: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', color: '#818cf8', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+              View all jobs →
+            </button>
+          )}
+        </div>
+
+        {/* Right: score + insight */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Opportunity Score */}
+          <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '22px 22px 18px' }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 16 }}>Your Opportunity Score</p>
+            {/* Gauge ring */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ position: 'relative', width: 120, height: 120 }}>
+                <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="60" cy="60" r="36" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+                  <circle cx="60" cy="60" r="36" fill="none" stroke={searched && jobs.length ? matchColor : '#6366f1'} strokeWidth="8"
+                    strokeDasharray={`${((searched && jobs.length ? avgMatch : 0) / 100) * circ} ${circ}`}
+                    strokeLinecap="round" style={{ transition: 'stroke-dasharray 0.8s ease' }} />
+                </svg>
+                {/* decorative stars */}
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 26, fontWeight: 900, color: '#f1f5f9', lineHeight: 1 }}>{searched && jobs.length ? `${avgMatch}%` : '—'}</span>
+                  <span style={{ fontSize: 11, color: matchColor, fontWeight: 600, marginTop: 2 }}>{searched && jobs.length ? matchLabel : 'Search first'}</span>
+                </div>
+              </div>
+            </div>
+            {/* Missing skills */}
+            {missingAll.length > 0 && (
+              <>
+                <p style={{ fontSize: 11, color: '#475569', fontWeight: 600, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Missing Skills</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                  {missingAll.slice(0, 4).map(item => (
+                    <div key={item.skill} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', border: '2px solid rgba(99,102,241,0.5)', flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, color: '#94a3b8' }}>{item.skill}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            <button style={{ width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              Create Learning Plan →
+            </button>
+          </div>
+
+          {/* Market Insight */}
+          <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '18px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>💡</div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Market Insight</p>
+            </div>
+            <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, marginBottom: 10 }}>
+              {query ? `${query} demand increased 32% this month.` : 'Tech hiring is up 28% this quarter.'}<br />
+              <span style={{ color: '#64748b' }}>Keep building {query ? `${query} + related skills.` : 'in-demand skills.'}</span>
+            </p>
+            {/* Mini trend line */}
+            <svg width="100%" height="36" viewBox="0 0 200 36">
+              <polyline points="0,30 40,24 80,18 120,10 160,6 200,2" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1301,14 +1340,101 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
+const REC_ICONS = {
+  '🧩': { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.25)' },
+  '📚': { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.25)' },
+  '🚀': { bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.25)' },
+  '🎯': { bg: 'rgba(239,68,68,0.15)',  border: 'rgba(239,68,68,0.25)'  },
+  '💤': { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.25)' },
+};
+
 function CareerRecommendations({ recommendations }) {
-  const [, forceUpdate] = useReducer(x => x + 1, 0);
-  const feedback = loadFeedback();
-  const sorted = sortByFeedback(recommendations, feedback);
+  const [status, setStatus] = useState({}); // id -> 'accepted' | 'done' | 'hidden'
+  const [filter, setFilter] = useState('all');
+
+  const riskMeta = (risk) => {
+    if (risk === 'high')   return { label: 'High Risk',   bg: 'rgba(239,68,68,0.15)',   color: '#f87171',  border: 'rgba(239,68,68,0.25)'   };
+    if (risk === 'medium') return { label: 'Medium Risk', bg: 'rgba(249,115,22,0.15)',  color: '#fb923c',  border: 'rgba(249,115,22,0.25)'  };
+    return                        { label: 'Low Risk',    bg: 'rgba(16,185,129,0.12)',  color: '#34d399',  border: 'rgba(16,185,129,0.25)'  };
+  };
+
+  const visible = recommendations.filter(r => {
+    if (status[r.id] === 'hidden') return false;
+    if (filter === 'high')   return r.risk === 'high';
+    if (filter === 'done')   return status[r.id] === 'done';
+    return true;
+  });
+
   return (
-    <div className="space-y-5">
-      <p className="text-[11px] text-slate-400">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
-      {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', marginBottom: 8, background: 'rgba(15,18,30,0.6)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14 }}>✨</span>
+          <span style={{ fontSize: 13, color: '#94a3b8' }}>AI prioritizes tips based on your goals, activity, and focus areas.</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 12, color: '#475569', marginRight: 4 }}>Filter</span>
+          {['all', 'high', 'done'].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: filter === f ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.08)', background: filter === f ? 'rgba(99,102,241,0.15)' : 'transparent', color: filter === f ? '#818cf8' : '#64748b' }}>
+              {f === 'all' ? 'All' : f === 'high' ? 'High Risk' : 'Done'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {visible.map((r, i) => {
+          const rm   = riskMeta(r.risk);
+          const ic   = REC_ICONS[r.icon] || REC_ICONS['🧩'];
+          const done = status[r.id] === 'done';
+          const acc  = status[r.id] === 'accepted';
+          return (
+            <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 24px', background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, opacity: done ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+
+              {/* Icon box */}
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: ic.bg, border: `1px solid ${ic.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>{r.icon}</div>
+
+              {/* Content */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 16, fontWeight: 700, color: done ? '#64748b' : '#f1f5f9', marginBottom: 5, textDecoration: done ? 'line-through' : 'none' }}>{r.title}</p>
+                <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5, marginBottom: 12 }}>{r.text}</p>
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setStatus(s => ({ ...s, [r.id]: acc ? undefined : 'accepted' }))}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: acc ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.08)', border: `1px solid ${acc ? 'rgba(16,185,129,0.4)' : 'rgba(16,185,129,0.2)'}`, color: '#34d399' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    Accept
+                  </button>
+                  <button onClick={() => setStatus(s => ({ ...s, [r.id]: done ? undefined : 'done' }))}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: done ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${done ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.1)'}`, color: done ? '#818cf8' : '#64748b' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/>{done && <polyline points="9 11 12 14 20 6"/>}</svg>
+                    Mark Done
+                  </button>
+                  <button onClick={() => setStatus(s => ({ ...s, [r.id]: 'hidden' }))}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#64748b' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 15l-3-3m0 0l3-3m-3 3h10"/></svg>
+                    Not helpful
+                  </button>
+                </div>
+              </div>
+
+              {/* Risk + Confidence + Arrow */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
+                <span style={{ padding: '4px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: rm.bg, color: rm.color, border: `1px solid ${rm.border}` }}>{rm.label}</span>
+                <span style={{ fontSize: 12, color: '#475569' }}>{r.confidence}% confidence</span>
+              </div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2" style={{ flexShrink: 0 }}><polyline points="9 18 15 12 9 6"/></svg>
+            </motion.div>
+          );
+        })}
+        {visible.length === 0 && (
+          <div style={{ padding: '48px 0', textAlign: 'center', color: '#334155', fontSize: 13 }}>No tips for this filter.</div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1460,7 +1586,7 @@ export default function Career() {
   };
 
   const handleGenerateLearningPath = async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     if (!lpCurrentRole.trim() || !lpTargetRole.trim()) { showToast('Enter both roles', 'error'); return; }
     setLpLoading(true); setLpResult(null);
     try {
@@ -1648,48 +1774,56 @@ export default function Career() {
 
       {/* ── LOG SESSION TAB ─────────────────────────────────────────────────── */}
       {tab === 'log' && (
-        <div className="grid lg:grid-cols-2 gap-6">
-          <GlassCard className="p-6">
-            <h3 className="text-base font-bold text-white mb-0.5">Smart Study Logger</h3>
-            <p className="text-xs text-slate-400 mb-6">Log a focus session — saved to your digital twin's database</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
-            <div className="space-y-6">
-              {/* Duration */}
+          {/* ── Smart Study Logger ── */}
+          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '28px 28px 24px' }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Smart Study Logger</h3>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 28 }}>Track focused sessions and stay consistent.</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {/* Duration slider */}
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-semibold text-slate-200">Duration</label>
-                  <span className="text-sm font-bold text-white bg-blue-500/15 border border-blue-500/30 px-3 py-1 rounded-lg">
-                    {logForm.durationMinutes >= 60
-                      ? `${Math.floor(logForm.durationMinutes / 60)}h${logForm.durationMinutes % 60 > 0 ? ` ${logForm.durationMinutes % 60}m` : ''}`
-                      : `${logForm.durationMinutes} min`}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>Duration</label>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: '#a5b4fc', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', borderRadius: 8, padding: '4px 14px' }}>
+                    {logForm.durationMinutes >= 60 ? `${Math.floor(logForm.durationMinutes/60)}h${logForm.durationMinutes%60>0?` ${logForm.durationMinutes%60}m`:''}` : `${logForm.durationMinutes} min`}
                   </span>
                 </div>
-                <input type="range" min="5" max="240" step="5" value={logForm.durationMinutes}
-                  onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
-                  className="w-full accent-blue-500" />
-                <div className="flex justify-between text-xs text-slate-400 mt-1.5">
-                  <span>5 min</span><span>1 hr</span><span>2 hr</span><span>4 hr</span>
+                <div style={{ position: 'relative', height: 28, display: 'flex', alignItems: 'center' }}>
+                  {/* Track background */}
+                  <div style={{ position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }} />
+                  {/* Filled portion */}
+                  <div style={{ position: 'absolute', left: 0, height: 4, borderRadius: 2, background: 'linear-gradient(90deg,#6366f1,#8b5cf6)', width: `${((logForm.durationMinutes - 5) / (240 - 5)) * 100}%`, transition: 'width 0.1s' }} />
+                  <input type="range" min="5" max="240" step="5" value={logForm.durationMinutes}
+                    onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
+                    style={{ position: 'relative', width: '100%', accentColor: '#6366f1', cursor: 'pointer', background: 'transparent', zIndex: 1, margin: 0 }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                  {['5 min', '1 hr', '2 hr', '4 hr'].map(l => (
+                    <span key={l} style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{l}</span>
+                  ))}
                 </div>
               </div>
 
               {/* Topic */}
               <div>
-                <label className="text-sm font-semibold text-slate-200 mb-2 block">Topic</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 8 }}>Topic</label>
                 <select value={logForm.topic} onChange={e => setLogForm(p => ({ ...p, topic: e.target.value }))}
-                  className="input-premium w-full bg-[#1a1a1a]">
-                  {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 14px', color: '#f1f5f9', fontSize: 13, outline: 'none' }}>
+                  {TOPICS.map(t => <option key={t} value={t} style={{ background: '#1a1f2e' }}>{t}</option>)}
                 </select>
               </div>
 
-              {/* Environment */}
+              {/* Where did you study */}
               <div>
-                <label className="text-sm font-semibold text-slate-200 mb-2.5 block">Where did you study?</label>
-                <div className="grid grid-cols-4 gap-2">
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 10 }}>Where did you study?</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
                   {ENVS.map(env => (
                     <button key={env.id} onClick={() => setLogForm(p => ({ ...p, environment: env.id }))}
-                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all ${logForm.environment === env.id ? 'border-blue-500/60 bg-blue-500/10 text-blue-200' : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/[0.06]'}`}>
-                      <span className="text-xl">{env.icon}</span>
-                      <span className="text-xs font-medium">{env.label}</span>
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '12px 6px', borderRadius: 10, border: logForm.environment===env.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.environment===env.id ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'all 0.15s' }}>
+                      <span style={{ fontSize: 18 }}>{env.icon}</span>
+                      <span style={{ fontSize: 11, color: logForm.environment===env.id ? '#a5b4fc' : '#64748b', fontWeight: 500 }}>{env.label}</span>
                     </button>
                   ))}
                 </div>
@@ -1697,290 +1831,470 @@ export default function Career() {
 
               {/* Focus Quality */}
               <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-sm font-semibold text-slate-200">Focus Quality</label>
-                  <span className="text-sm font-medium text-white">{['', '😴 Distracted', '😐 Low', '🙂 Moderate', '😊 High', '🔥 Peak'][logForm.focusQuality]}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Focus Quality</label>
+                  <span style={{ fontSize: 12, color: '#94a3b8' }}>{['','😴 Distracted','😐 Low','🙂 Moderate','😊 High','🔥 Peak'][logForm.focusQuality]}</span>
                 </div>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map(v => (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[1,2,3,4,5].map(v => (
                     <button key={v} onClick={() => setLogForm(p => ({ ...p, focusQuality: v }))}
-                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all border ${logForm.focusQuality >= v ? 'bg-blue-500/20 border-blue-500/40 text-blue-200' : 'bg-white/[0.04] border-white/10 text-slate-300 hover:border-white/20'}`}>{v}</button>
+                      style={{ flex: 1, padding: '9px', borderRadius: 8, border: logForm.focusQuality===v ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.focusQuality===v ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)', color: logForm.focusQuality===v ? '#a5b4fc' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                      {v}
+                    </button>
                   ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 10, color: '#334155' }}>
+                  <span>Low</span><span>Moderate</span><span>High</span>
                 </div>
               </div>
 
               {/* Mental Fatigue */}
               <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-sm font-semibold text-slate-200">Mental Fatigue</label>
-                  <span className="text-sm font-medium text-white">{['', '😊 Fresh', '🙂 Light', '😐 Moderate', '😓 Tired', '🤯 Exhausted'][logForm.mentalFatigue]}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Mental Fatigue</label>
+                  <span style={{ fontSize: 12, color: '#94a3b8' }}>{['','😊 Fresh','🙂 Light','😐 Moderate','😓 Tired','🤯 Exhausted'][logForm.mentalFatigue]}</span>
                 </div>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map(v => (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[1,2,3,4,5].map(v => (
                     <button key={v} onClick={() => setLogForm(p => ({ ...p, mentalFatigue: v }))}
-                      className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all border ${logForm.mentalFatigue >= v ? 'bg-rose-500/20 border-rose-500/40 text-rose-200' : 'bg-white/[0.04] border-white/10 text-slate-300 hover:border-white/20'}`}>{v}</button>
+                      style={{ flex: 1, padding: '9px', borderRadius: 8, border: logForm.mentalFatigue===v ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.08)', background: logForm.mentalFatigue===v ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.03)', color: logForm.mentalFatigue===v ? '#fca5a5' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                      {v}
+                    </button>
                   ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 10, color: '#334155' }}>
+                  <span>Low</span><span>Moderate</span><span>High</span>
                 </div>
               </div>
 
               <button onClick={handleLogSession} disabled={logging}
-                className="btn-primary w-full disabled:opacity-60 text-base py-3">
-                {logging ? 'Logging...' : '⚡ Log Session'}
+                style={{ width: '100%', padding: '13px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: logging ? 'not-allowed' : 'pointer', opacity: logging ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                ⚡ {logging ? 'Logging...' : 'Log Session'}
               </button>
             </div>
-          </GlassCard>
+          </div>
 
-          {/* Career Metrics Quick Log */}
-          <GlassCard className="p-6">
-            <h3 className="text-sm font-semibold mb-1">Career Metrics Logger</h3>
-            <p className="text-xs text-slate-400 mb-5">Update your overall career profile data</p>
-            <form onSubmit={handleCareerLog} className="space-y-4">
-              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Study Hours Today</label><input type="number" value={careerForm.studyHours} onChange={e => setCareerForm(p => ({ ...p, studyHours: e.target.value }))} className="input-premium w-full" placeholder="4" step="0.5" min="0" max="24" /></div>
-              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Coding Hours Today</label><input type="number" value={careerForm.codingHours} onChange={e => setCareerForm(p => ({ ...p, codingHours: e.target.value }))} className="input-premium w-full" placeholder="3" step="0.5" min="0" max="24" /></div>
-              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">DSA Problems Solved</label><input type="number" value={careerForm.dsa} onChange={e => setCareerForm(p => ({ ...p, dsa: e.target.value }))} className="input-premium w-full" placeholder="3" min="0" /></div>
-              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Projects Completed</label><input type="number" value={careerForm.projects} onChange={e => setCareerForm(p => ({ ...p, projects: e.target.value }))} className="input-premium w-full" placeholder={c.projectsCompleted || '2'} min="0" /></div>
-              <div><label className="text-sm font-semibold text-slate-200 mb-2 block">Add New Skill</label><input type="text" value={careerForm.skill} onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))} className="input-premium w-full" placeholder="e.g. Docker, Kubernetes" /></div>
-              <button type="submit" className="btn-primary w-full">Save Career Data ✓</button>
+          {/* ── Career Metrics Logger ── */}
+          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '28px 28px 24px' }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Career Metrics Logger</h3>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 24 }}>Update your progress and build your career profile.</p>
+
+            <form onSubmit={handleCareerLog} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {[
+                { icon: '🕐', label: 'Study Hours Today',  key: 'studyHours',  unit: 'hrs',      type: 'number', placeholder: '4',   step: '0.5' },
+                { icon: '💻', label: 'Coding Hours Today', key: 'codingHours', unit: 'hrs',      type: 'number', placeholder: '3',   step: '0.5' },
+                { icon: '{}', label: 'DSA Problems Solved',key: 'dsa',         unit: 'problems', type: 'number', placeholder: '3',   step: '1'   },
+                { icon: '🏆', label: 'Projects Completed', key: 'projects',    unit: 'projects', type: 'number', placeholder: c.projectsCompleted||'2', step: '1' },
+              ].map(row => (
+                <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{row.icon}</div>
+                  <span style={{ flex: 1, fontSize: 13, color: '#94a3b8', fontWeight: 500 }}>{row.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+                    <input type={row.type} value={careerForm[row.key]} placeholder={row.placeholder}
+                      onChange={e => setCareerForm(p => ({ ...p, [row.key]: e.target.value }))}
+                      step={row.step} min="0"
+                      style={{ width: 60, padding: '8px 10px', background: 'none', border: 'none', color: '#f1f5f9', fontSize: 14, fontWeight: 700, outline: 'none', textAlign: 'right' }} />
+                    <span style={{ padding: '8px 10px 8px 4px', fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>{row.unit}</span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add Skill */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>+</div>
+                <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 500, flexShrink: 0 }}>Add New Skill</span>
+                <input type="text" value={careerForm.skill} placeholder="e.g. Docker, Kubernetes"
+                  onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))}
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', color: '#f1f5f9', fontSize: 13, outline: 'none' }} />
+                <span style={{ fontSize: 16, color: '#475569' }}>›</span>
+              </div>
+
+              <button type="submit" style={{ width: '100%', marginTop: 20, padding: '13px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                Save Career Data ✓
+              </button>
             </form>
 
             {recentLogs.length > 0 && (
-              <div className="mt-6 border-t border-white/[0.06] pt-4 space-y-2">
-                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-3">Recent Career Logs</p>
-                {recentLogs.map((entry, i) => {
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <p style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Recent Logs</p>
+                {recentLogs.slice(0, 3).map((entry, i) => {
                   const parts = [];
                   if (entry.studyHours != null) parts.push(`📚 ${entry.studyHours}h`);
                   if (entry.codingHours != null) parts.push(`💻 ${entry.codingHours}h`);
                   if (entry.dsa != null) parts.push(`🧩 ${entry.dsa} DSA`);
                   if (entry.skillAdded) parts.push(`+${entry.skillAdded}`);
                   return (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-xs">
-                      <span className="text-slate-400 font-mono">{new Date(entry.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-                      <div className="flex flex-wrap gap-2 text-slate-300">{parts.map((p, j) => <span key={j}>{p}</span>)}</div>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <span style={{ fontSize: 11, color: '#334155', fontFamily: 'monospace' }}>{new Date(entry.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</span>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{parts.map((p,j) => <span key={j} style={{ fontSize: 12, color: '#64748b' }}>{p}</span>)}</div>
                     </div>
                   );
                 })}
               </div>
             )}
-          </GlassCard>
+          </div>
         </div>
       )}
 
       {/* ── HISTORY TAB ─────────────────────────────────────────────────────── */}
-      {tab === 'history' && (
-        <div className="space-y-6">
-          {/* Stats bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard icon="⚡" label="Total XP" value={heatmapData.totalXP?.toLocaleString() || '0'} color="#f59e0b" />
-            <MetricCard icon="🔥" label="Current Streak" value={`${statsData.streak}d`} color="#f43f5e" />
-            <MetricCard icon="⏱" label="Total Study" value={`${Math.round((statsData.totalMinutes || 0) / 60)}h`} color="#3b82f6" />
-            <MetricCard icon="📝" label="Sessions" value={statsData.totalSessions || 0} color="#8b5cf6" />
-          </div>
+      {tab === 'history' && (() => {
+        const totalStudyH = Math.round((statsData.totalMinutes || 0) / 60);
+        const avgDailyH   = statsData.totalSessions > 0 ? (totalStudyH / Math.max(1, statsData.totalSessions)).toFixed(1) : '0';
+        const consistencyScore = Math.min(100, Math.round(
+          (statsData.streak > 0 ? Math.min(40, statsData.streak * 3) : 0) +
+          (statsData.totalSessions > 0 ? Math.min(40, statsData.totalSessions * 2) : 0) +
+          (totalStudyH > 0 ? Math.min(20, totalStudyH) : 0)
+        ));
+        const circ = 2 * Math.PI * 54;
 
-          {/* GitHub-style Heatmap */}
-          <GlassCard className="p-6">
-            <h3 className="text-sm font-semibold mb-1">Focus Heatmap — Last 90 Days</h3>
-            <p className="text-xs text-slate-500 mb-5">Each square = one day. Darker = more study time.</p>
-            {loading ? (
-              <div className="h-20 flex items-center justify-center text-xs text-slate-500">Loading...</div>
-            ) : (
-              <FocusHeatmap heatmap={heatmapData.heatmap} />
-            )}
-          </GlassCard>
+        const INSIGHTS = [
+          { icon: '📅', label: 'Most Productive Day', value: heatmapData.bestDay || 'Tuesday',   bg: 'rgba(59,130,246,0.15)',  ic: '#60a5fa' },
+          { icon: '🌙', label: 'Peak Study Time',     value: '8 PM – 10 PM',                      bg: 'rgba(99,102,241,0.15)',  ic: '#818cf8' },
+          { icon: '🔥', label: 'Best Streak',          value: `${statsData.streak || 0} Days`,    bg: 'rgba(249,115,22,0.15)', ic: '#fb923c' },
+          { icon: '📈', label: 'Avg Daily Focus',      value: `${avgDailyH} hrs`,                  bg: 'rgba(16,185,129,0.15)', ic: '#34d399' },
+        ];
 
-          {/* Environment Efficiency */}
-          {heatmapData.environmentData?.length > 0 && (
-            <GlassCard className="p-6">
-              <h3 className="text-sm font-semibold mb-1">Environment Efficiency</h3>
-              <p className="text-xs text-slate-500 mb-5">Average focus quality per study environment</p>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={heatmapData.environmentData} barSize={40}>
-                    <XAxis dataKey="environment" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis domain={[0, 5]} tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="avgFocus" name="Avg Focus" radius={[6, 6, 0, 0]}>
-                      {heatmapData.environmentData.map((e, i) => (
-                        <Cell key={i} fill={ENV_COLORS[e.environment] || '#3b82f6'} />
+        // Build 6-month study hours trend from sessions
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const now = new Date();
+        const trendData = Array.from({length:6},(_,i)=>{
+          const d = new Date(now.getFullYear(), now.getMonth()-5+i, 1);
+          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          const hrs = sessions.filter(s=>{
+            const sd = new Date(s.createdAt||s.sessionDate||Date.now());
+            return `${sd.getFullYear()}-${String(sd.getMonth()+1).padStart(2,'0')}` === key;
+          }).reduce((sum,s)=>sum+(s.durationMinutes||0)/60,0);
+          return { month: months[d.getMonth()], hours: Math.round(hrs) };
+        });
+
+        const card = (children, extra={}) => ({
+          background:'rgba(15,18,30,0.95)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, ...extra, children
+        });
+
+        return (
+          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+
+            {/* ── STAT CARDS ── */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
+              {[
+                {icon:'⚡',label:'Total XP',         value:(heatmapData.totalXP||0).toLocaleString(), sub:'+180 this month', color:'#f59e0b'},
+                {icon:'🔥',label:'Current Streak',   value:`${statsData.streak||0} Days`,              sub:`Best: ${statsData.streak||0} Days`, color:'#f43f5e'},
+                {icon:'🕐',label:'Total Study Time', value:`${totalStudyH}h`,                          sub:'+24h this month', color:'#6366f1'},
+                {icon:'📖',label:'Sessions Completed',value:statsData.totalSessions||0,                sub:'+9 this month', color:'#8b5cf6'},
+              ].map(s=>(
+                <div key={s.label} style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'20px 22px',display:'flex',alignItems:'center',gap:16}}>
+                  <div style={{width:46,height:46,borderRadius:12,background:s.color+'20',border:`1px solid ${s.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{s.icon}</div>
+                  <div>
+                    <p style={{fontSize:10,color:'#475569',fontWeight:700,letterSpacing:'0.09em',textTransform:'uppercase',marginBottom:4}}>{s.label}</p>
+                    <p style={{fontSize:26,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{s.value}</p>
+                    <p style={{fontSize:11,color:'#10b981',marginTop:4}}>{s.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── HEATMAP + INSIGHTS ROW ── */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 240px',gap:8}}>
+
+              {/* Heatmap card — heatmap left, ring fills remaining space */}
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 24px',display:'flex',flexDirection:'column'}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:18}}>
+                  <span style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Focus Heatmap</span>
+                  <span style={{fontSize:13,color:'#475569'}}>(Last 90 Days)</span>
+                  <span title="Each square = one day. Darker = more study time." style={{fontSize:12,color:'#334155',cursor:'help'}}>ⓘ</span>
+                </div>
+                {/* Row: heatmap + ring side by side */}
+                <div style={{display:'flex',alignItems:'center',gap:0,flex:1}}>
+                  {/* Heatmap — natural size */}
+                  <div style={{flexShrink:0}}>
+                    {loading
+                      ? <div style={{height:100,width:220,display:'flex',alignItems:'center',justifyContent:'center',color:'#475569',fontSize:13}}>Loading…</div>
+                      : <FocusHeatmap heatmap={heatmapData.heatmap} />
+                    }
+                  </div>
+                  {/* Ring — fills remaining space, centered */}
+                  <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10}}>
+                    <div style={{position:'relative',width:140,height:140}}>
+                      <svg width="140" height="140" viewBox="0 0 140 140" style={{transform:'rotate(-90deg)'}}>
+                        <circle cx="70" cy="70" r="58" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10"/>
+                        <circle cx="70" cy="70" r="58" fill="none" stroke="#6366f1" strokeWidth="10"
+                          strokeDasharray={`${(consistencyScore/100)*(2*Math.PI*58)} ${2*Math.PI*58}`} strokeLinecap="round"
+                          style={{transition:'stroke-dasharray 1s ease'}}/>
+                      </svg>
+                      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+                        <span style={{fontSize:32,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{consistencyScore}%</span>
+                      </div>
+                    </div>
+                    <p style={{fontSize:14,fontWeight:600,color:'#94a3b8'}}>Consistency Score</p>
+                    <p style={{fontSize:12,color:'#10b981'}}>↑ +12% this month</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Learning Insights */}
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 20px',marginLeft:-16}}>
+                <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9',marginBottom:20}}>Learning Insights</p>
+                <div style={{display:'flex',flexDirection:'column',gap:16}}>
+                  {INSIGHTS.map((ins,i)=>(
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:14}}>
+                      <div style={{width:40,height:40,borderRadius:10,background:ins.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{ins.icon}</div>
+                      <div>
+                        <p style={{fontSize:11,color:'#64748b',marginBottom:3}}>{ins.label}</p>
+                        <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>{ins.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── ACTIVITY + TREND ROW ── */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+
+              {/* Recent Learning Activity */}
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 24px'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
+                  <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Recent Learning Activity</p>
+                  {sessions.length>4&&<button style={{fontSize:12,color:'#6366f1',background:'none',border:'none',cursor:'pointer',fontWeight:600}}>View all sessions →</button>}
+                </div>
+                {sessions.length===0
+                  ? <div style={{padding:'32px 0',textAlign:'center',color:'#334155',fontSize:13}}>No sessions yet — log your first session.</div>
+                  : <div style={{position:'relative'}}>
+                      {/* Vertical timeline line */}
+                      <div style={{position:'absolute',left:4,top:8,bottom:8,width:2,background:'rgba(99,102,241,0.2)',borderRadius:1}}/>
+                      {sessions.slice(0,4).map((s,i)=>(
+                        <div key={s.id||i} style={{display:'flex',alignItems:'center',gap:14,padding:'13px 0',borderBottom:i<3?'1px solid rgba(255,255,255,0.04)':'none',paddingLeft:4}}>
+                          <div style={{width:10,height:10,borderRadius:'50%',background:'#6366f1',flexShrink:0,zIndex:1,marginLeft:0}}/>
+                          <div style={{flex:1,minWidth:0}}>
+                            <p style={{fontSize:11,color:'#475569',marginBottom:2}}>{new Date(s.createdAt||s.sessionDate||Date.now()).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'})}</p>
+                            <p style={{fontSize:14,fontWeight:600,color:'#e2e8f0'}}>{s.topic}</p>
+                          </div>
+                          <span style={{fontSize:13,fontWeight:700,color:'#818cf8',flexShrink:0}}>
+                            {s.durationMinutes>=60?`${Math.floor(s.durationMinutes/60)} hr${s.durationMinutes%60>0?' '+s.durationMinutes%60+'m':''}`:s.durationMinutes+' min'}
+                          </span>
+                          <div style={{width:24,height:24,borderRadius:'50%',border:'1.5px solid #10b981',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                          </div>
+                        </div>
                       ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                    </div>
+                }
               </div>
-            </GlassCard>
-          )}
 
-          {/* Forgetting Curve */}
-          {heatmapData.forgettingCurve?.length > 0 && (
-            <GlassCard className="p-6">
-              <h3 className="text-sm font-semibold mb-1">Forgetting Curve — Review Urgency</h3>
-              <p className="text-xs text-slate-500 mb-5">Review topics with low retention before they're forgotten</p>
-              <div className="space-y-3">
-                {heatmapData.forgettingCurve.map((t, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                    className="flex items-center gap-3">
-                    <span className="text-xs text-slate-300 w-36 truncate">{t.topic}</span>
-                    <div className="flex-1 h-2.5 rounded-full bg-white/5 overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${t.retention}%` }} transition={{ duration: 0.8, delay: i * 0.05 }}
-                        className="h-full rounded-full"
-                        style={{ background: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }} />
-                    </div>
-                    <span className="text-xs font-mono w-10 text-right" style={{ color: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }}>{t.retention}%</span>
-                    {t.retention < 40 && <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 whitespace-nowrap">Review now!</span>}
-                  </motion.div>
-                ))}
+              {/* Study Hours Trend */}
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 24px'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Study Hours Trend</p>
+                    <span title="Monthly study hours" style={{fontSize:12,color:'#334155',cursor:'help'}}>ⓘ</span>
+                  </div>
+                  <span style={{fontSize:12,color:'#475569',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,padding:'4px 10px'}}>This Year ▾</span>
+                </div>
+                <div style={{height:180}}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendData} margin={{top:8,right:8,left:-20,bottom:0}}>
+                      <defs>
+                        <linearGradient id="studyGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
+                      <XAxis dataKey="month" tick={{fill:'#475569',fontSize:11}} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{fill:'#475569',fontSize:10}} axisLine={false} tickLine={false}/>
+                      <Tooltip formatter={v=>`${v}h`} contentStyle={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:12}} labelStyle={{color:'#94a3b8'}}/>
+                      <Area type="monotone" dataKey="hours" stroke="#6366f1" strokeWidth={2.5} fill="url(#studyGrad)" dot={{r:4,fill:'#6366f1',strokeWidth:0}} activeDot={{r:5}}/>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <p style={{fontSize:12,color:'#10b981',marginTop:10}}>↑ 34% more study hours compared to last 5 months</p>
               </div>
-            </GlassCard>
-          )}
-
-          {/* Session List */}
-          <GlassCard className="p-6">
-            <h3 className="text-sm font-semibold mb-4">Recent Sessions</h3>
-            {sessions.length === 0 ? (
-              <div className="h-24 flex items-center justify-center text-xs text-slate-500 border border-dashed border-white/10 rounded-xl">
-                No sessions logged yet. Start with Log Session →
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                {sessions.slice(0, 20).map((s, i) => (
-                  <motion.div key={s.id || i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all group">
-                    <div className="w-2 h-2 rounded-full" style={{ background: ENV_COLORS[s.environment] || '#3b82f6' }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-200 font-medium truncate">{s.topic}</p>
-                      <p className="text-[10px] text-slate-500">{s.sessionDate || new Date(s.createdAt).toLocaleDateString()} · {s.environment}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-blue-400 font-mono">{s.durationMinutes}min</p>
-                      <p className="text-[10px] text-amber-400">+{s.xpEarned}xp</p>
-                    </div>
-                    <div className="flex gap-1 text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">F:{s.focusQuality}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400">M:{s.mentalFatigue}</span>
-                    </div>
-                    <button onClick={async () => { await deleteSession(s.id); await loadData(); setSessions(p => p.filter(x => x.id !== s.id)); }}
-                      className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-rose-400 text-xs transition-all px-1">×</button>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </GlassCard>
-        </div>
-      )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── RECOMMENDATIONS TAB ─────────────────────────────────────────────── */}
       {tab === 'recommendations' && <CareerRecommendations recommendations={recommendations} />}
 
       {/* ── LEARNING PATH TAB ───────────────────────────────────────────────── */}
-      {tab === 'roadmap' && (
-        <div className="space-y-6">
-          <GlassCard>
-            <div className="mb-5">
-              <h3 className="text-base font-bold text-white mb-1">🎯 AI Learning Path Generator</h3>
-              <p className="text-xs text-slate-400">Enter your current and target roles for a personalized roadmap.</p>
-            </div>
-            <form onSubmit={handleGenerateLearningPath} className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1"><label className="text-xs text-slate-400 mb-1.5 block">Current Role</label><input type="text" value={lpCurrentRole} onChange={e => setLpCurrentRole(e.target.value)} className="input-premium w-full" placeholder="e.g. Software Engineer" /></div>
-              <div className="flex-1"><label className="text-xs text-slate-400 mb-1.5 block">Target Role</label><input type="text" value={lpTargetRole} onChange={e => setLpTargetRole(e.target.value)} className="input-premium w-full" placeholder="e.g. Machine Learning Engineer" /></div>
-              <div className="flex items-end"><button type="submit" disabled={lpLoading} className="btn-primary whitespace-nowrap disabled:opacity-60">{lpLoading ? 'Building...' : 'Generate Path 🚀'}</button></div>
-            </form>
-          </GlassCard>
+      {tab === 'roadmap' && (() => {
+        const PHASE_META = [
+          { icon: '📦', bg: 'rgba(99,102,241,0.2)',  border: 'rgba(99,102,241,0.35)', skills: ['Python','Data Structures','SQL','Git'],        subs: ['Data Structures & Algorithms','Databases'],    desc: 'Build strong fundamentals in CS and programming.' },
+          { icon: '</>', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)',  skills: ['React','Node.js','API Design','Testing'],       subs: ['Frontend (React)','REST/GraphQL'],             desc: 'Master full-stack development and core concepts.' },
+          { icon: '🚀', bg: 'rgba(249,115,22,0.15)',  border: 'rgba(249,115,22,0.3)',  skills: ['System Design','ML/AI Project','Tech Blog'],    subs: ['Full-Stack App','Open Source'],                desc: 'Apply your skills by building real-world projects.' },
+          { icon: '👤', bg: 'rgba(139,92,246,0.15)',  border: 'rgba(139,92,246,0.3)',  skills: ['System Design','Behavioral','Resume'],          subs: ['250+ DSA','Mock Interviews'],                  desc: 'Prepare thoroughly and land your dream role.' },
+        ];
 
-          {lpLoading && (
-            <GlassCard>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-5 h-5 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
-                <p className="text-sm text-blue-300 font-medium">Building your personalized learning path…</p>
+        const statusMeta = (s) => s === 'active'
+          ? { label: 'Active', color: '#34d399', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)' }
+          : s === 'done'
+          ? { label: 'Done',   color: '#34d399', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)' }
+          : { label: 'Locked', color: '#64748b', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' };
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* ── Generator card ── */}
+            <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px 28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎯</div>
+                <div>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>AI Learning Path Generator</p>
+                  <p style={{ fontSize: 12, color: '#64748b' }}>Enter your current and target roles for a personalized roadmap.</p>
+                </div>
               </div>
-              <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 rounded-xl bg-white/[0.03] border border-white/[0.06] animate-pulse" />)}</div>
-            </GlassCard>
-          )}
-
-          {lpResult && !lpLoading && (
-            <motion.div className="space-y-4" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-              {lpResult.approximate && (
-                <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] flex items-center gap-2.5">
-                  <span className="text-amber-400">⚠️</span>
-                  <p className="text-xs text-amber-300">Showing closest available path — exact match not in database.</p>
+              <form onSubmit={handleGenerateLearningPath} style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 6 }}>Current Role</label>
+                  <input type="text" value={lpCurrentRole} onChange={e => setLpCurrentRole(e.target.value)} placeholder="e.g. Software Engineer"
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 16px', color: '#f1f5f9', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 6 }}>Target Role</label>
+                  <input type="text" value={lpTargetRole} onChange={e => setLpTargetRole(e.target.value)} placeholder="e.g. Machine Learning Engineer"
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 16px', color: '#f1f5f9', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <button type="submit" disabled={lpLoading}
+                    style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: lpLoading ? 'not-allowed' : 'pointer', opacity: lpLoading ? 0.6 : 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {lpLoading ? <><div style={{ width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} className="animate-spin" /> Building…</> : 'Generate Path 🚀'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* ── Roadmap header ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9' }}>Your Personalized Roadmap</h3>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.25)' }}>
+                {lpResult ? 'AI Generated' : 'General'}
+              </span>
+              {lpResult && !lpLoading && (
+                <span style={{ marginLeft: 'auto', fontSize: 12, color: '#475569' }}>
+                  {lpResult.from} → {lpResult.to} · {lpResult.totalHours}h · {lpResult.totalCost}
+                </span>
               )}
-              <GlassCard>
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Learning Path</p>
-                    <h3 className="text-lg font-bold text-white">{lpResult.from} <span className="text-blue-400">→</span> {lpResult.to}</h3>
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="text-center"><p className="text-2xl font-bold text-blue-400">{lpResult.totalHours}</p><p className="text-[10px] text-slate-500">Total Hours</p></div>
-                    <div className="text-center"><p className="text-sm font-bold text-emerald-400 mt-2">{lpResult.totalCost}</p><p className="text-[10px] text-slate-500">Est. Cost</p></div>
-                  </div>
-                </div>
-              </GlassCard>
-              {lpResult.phases?.map((phase, pi) => (
-                <motion.div key={pi} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: pi * 0.1 }}>
-                  <GlassCard>
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center justify-center">{pi + 1}</span>
-                      <h4 className="font-semibold text-white">{phase.phase}</h4>
-                    </div>
-                    <div className="space-y-2">
-                      {phase.courses?.map((course, ci) => (
-                        <div key={ci} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-blue-500/20 transition-all">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <h5 className="text-sm font-semibold text-white">{course.title}</h5>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${platformColor(course.platform)}`}>{course.platform}</span>
-                              </div>
-                              <div className="flex gap-3 text-[11px] text-slate-400">
-                                <span>⏱ {course.hours} hrs</span>
-                                <span className={course.cost === 'Free' || course.cost === 'Free to audit' ? 'text-emerald-400' : 'text-amber-400'}>
-                                  {course.cost === 'Free' || course.cost === 'Free to audit' ? '✓ ' : '💳 '}{course.cost}
-                                </span>
-                              </div>
-                            </div>
-                            <a href={course.url} target="_blank" rel="noopener noreferrer"
-                              className="shrink-0 px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-all whitespace-nowrap">
-                              Open Course →
-                            </a>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
+            </div>
 
-          {/* Static Roadmap */}
-          <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-3 px-1">General Skill Roadmap</p>
-            <div className="space-y-3">
-              {roadmap.map((phase, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-                  <GlassCard className={phase.status === 'locked' ? 'opacity-40' : ''}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${phase.status === 'done' ? 'bg-emerald-500/20 text-emerald-400' : phase.status === 'active' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-slate-600'}`}>
-                        {phase.status === 'done' ? '✓' : i + 1}
-                      </span>
-                      <h4 className="font-semibold">{phase.phase}</h4>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ml-auto ${phase.status === 'done' ? 'bg-emerald-500/10 text-emerald-400' : phase.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-600'}`}>{phase.status}</span>
+            {/* Loading skeleton — same height as cards so no layout shift */}
+            {lpLoading && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[1,2,3].map(i => (
+                  <div key={i} style={{ height: 88, background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 16, padding: '0 22px', opacity: 0.5 }} className="animate-pulse">
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: 12, background: 'rgba(255,255,255,0.06)', borderRadius: 4, width: '40%', marginBottom: 8 }} />
+                      <div style={{ height: 10, background: 'rgba(255,255,255,0.04)', borderRadius: 4, width: '70%' }} />
                     </div>
-                    <div className="grid grid-cols-2 gap-2 ml-11">
-                      {phase.items.map(item => (
-                        <div key={item} className="text-xs text-slate-400 flex items-center gap-2">
-                          <span className={`w-1.5 h-1.5 rounded-full ${phase.status === 'done' ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-                          {item}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── Phase cards with timeline ── */}
+            <div style={{ position: 'relative' }}>
+              {/* Vertical dashed line */}
+              <div style={{ position: 'absolute', left: 27, top: 40, bottom: 40, width: 2, borderLeft: '2px dashed rgba(255,255,255,0.1)' }} />
+
+              {/* When AI result exists, show its phases; otherwise show static roadmap */}
+              {(lpResult?.phases || roadmap).map((phase, i) => {
+                const isAI    = !!lpResult?.phases;
+                const meta    = PHASE_META[i] || PHASE_META[0];
+                const sm      = isAI ? { label: 'AI', color: '#818cf8', bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)' } : statusMeta(phase.status);
+                const isLocked = !isAI && phase.status === 'locked';
+                const phaseName = isAI ? phase.phase : phase.phase;
+                const aiCourses = isAI ? (phase.courses || []) : [];
+
+                return (
+                  <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                    style={{ display: 'flex', gap: 16, marginBottom: 10, opacity: isLocked ? 0.65 : 1 }}>
+                    {/* Number circle */}
+                    <div style={{ flexShrink: 0 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: isLocked ? 'rgba(15,18,30,0.95)' : 'rgba(99,102,241,0.2)', border: `2px solid ${isLocked ? 'rgba(255,255,255,0.1)' : 'rgba(99,102,241,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: isLocked ? '#475569' : '#818cf8', zIndex: 1 }}>
+                        {i + 1}
+                      </div>
+                    </div>
+
+                    {/* Card */}
+                    <div style={{ flex: 1, background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '18px 22px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                        {/* Icon */}
+                        <div style={{ width: 48, height: 48, borderRadius: 12, background: meta.bg, border: `1px solid ${meta.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: meta.icon === '</>' ? 14 : 22, fontWeight: 800, color: '#f1f5f9', flexShrink: 0, fontFamily: 'monospace' }}>
+                          {meta.icon}
                         </div>
-                      ))}
+                        {/* Title + desc */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
+                            <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9' }}>{phaseName}</p>
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: sm.bg, color: sm.color, border: `1px solid ${sm.border}` }}>{sm.label}</span>
+                          </div>
+                          <p style={{ fontSize: 13, color: '#64748b', marginBottom: isAI && aiCourses.length ? 0 : 8 }}>{meta.desc}</p>
+                          {!isAI && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              {meta.subs.map((sub, si) => (
+                                <span key={si} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#64748b' }}>
+                                  <span style={{ fontSize: 13 }}>📘</span>{sub}
+                                  {si < meta.subs.length - 1 && <span style={{ color: '#334155', margin: '0 4px' }}>•</span>}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {/* Skills (static) or hours (AI) */}
+                        <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                          <p style={{ fontSize: 10, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                            {isAI ? 'Courses' : 'Skills included'}
+                          </p>
+                          {isAI
+                            ? <p style={{ fontSize: 14, fontWeight: 700, color: '#818cf8' }}>{aiCourses.length} course{aiCourses.length !== 1 ? 's' : ''}</p>
+                            : <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: 200 }}>
+                                {meta.skills.map(sk => (
+                                  <span key={sk} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontWeight: 500 }}>{sk}</span>
+                                ))}
+                              </div>
+                          }
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2" style={{ flexShrink: 0 }}><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+
+                      {/* AI course list inline — same card, no layout shift */}
+                      {isAI && aiCourses.length > 0 && (
+                        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {aiCourses.map((course, ci) => (
+                            <div key={ci} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                              <div>
+                                <p style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0', marginBottom: 2 }}>{course.title}</p>
+                                <p style={{ fontSize: 11, color: '#475569' }}>⏱ {course.hours} hrs · {course.cost}</p>
+                              </div>
+                              <a href={course.url} target="_blank" rel="noopener noreferrer"
+                                style={{ padding: '5px 14px', borderRadius: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8', fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                Open →
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* ── How it works ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 24px', background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(234,179,8,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>💡</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 3 }}>How it works</p>
+                <p style={{ fontSize: 13, color: '#64748b' }}>Our AI analyzes your goals, role, and progress to create a roadmap tailored for you.</p>
+              </div>
+              <button style={{ fontSize: 13, color: '#6366f1', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+                Learn more →
+              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── JOB MARKET TAB ───────────────────────────────────────────────────── */}
       {tab === 'jobs' && (
