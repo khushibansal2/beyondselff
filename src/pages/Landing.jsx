@@ -4,81 +4,183 @@ import { Lock, Eye, ShieldCheck, Heart, Briefcase, Wallet, ArrowRight, Brain, Pl
 
 const f = (d=0) => ({ initial:{opacity:0,y:20}, animate:{opacity:1,y:0}, transition:{duration:0.7,delay:d,ease:[0.16,1,0.3,1]} });
 
-function HumanSVG() {
+// ── Life OS Core visualization — three domain arcs → central life score ───────
+const CX = 230, CY = 248; // SVG centre point
+const DOMAIN_ARCS = [
+  { r:162, pct:0.89, color:'#3b82f6', label:'CAREER',  score:89, lx: 68, ly: 68  },
+  { r:132, pct:0.84, color:'#10b981', label:'HEALTH',  score:84, lx:-68, ly: 68  },
+  { r:102, pct:0.76, color:'#f59e0b', label:'FINANCE', score:76, lx: 0,  ly:-105 },
+];
+
+function LifeOSVisual() {
+  // Arc endpoint positions (angle from -90° ccw, then swept by pct×360)
+  const endPt = (r, pct) => {
+    const a = (-90 + pct * 360) * Math.PI / 180;
+    return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
+  };
+
   return (
-    <svg viewBox="0 0 420 700" width="100%" height="100%" style={{maxHeight:'640px'}}>
+    <svg viewBox="0 0 460 500" width="100%" height="100%" style={{ maxHeight: 600, overflow: 'visible' }}>
       <defs>
-        <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <radialGradient id="platformGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#00d8b6" stopOpacity="0.4"/>
+        <radialGradient id="coreGrad" cx="38%" cy="32%" r="65%">
+          <stop offset="0%"   stopColor="#00d8b6" stopOpacity="0.45"/>
+          <stop offset="55%"  stopColor="#0b1021" stopOpacity="0.92"/>
+          <stop offset="100%" stopColor="#060b14" stopOpacity="1"/>
+        </radialGradient>
+        <radialGradient id="ambientGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#00d8b6" stopOpacity="0.12"/>
           <stop offset="100%" stopColor="#00d8b6" stopOpacity="0"/>
         </radialGradient>
+        <filter id="lg">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="ng">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="coreShadow">
+          <feGaussianBlur stdDeviation="18" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
-      {/* Platform glow */}
-      <ellipse cx="210" cy="640" rx="130" ry="25" fill="url(#platformGlow)"/>
-      {/* Platform rings */}
-      <ellipse cx="210" cy="640" rx="120" ry="22" fill="none" stroke="#00d8b6" strokeWidth="1" opacity="0.6"/>
-      <ellipse cx="210" cy="640" rx="90" ry="16" fill="none" stroke="#00d8b6" strokeWidth="0.8" opacity="0.4"/>
-      <ellipse cx="210" cy="640" rx="55" ry="10" fill="none" stroke="#00d8b6" strokeWidth="1" opacity="0.7"/>
-      <ellipse cx="210" cy="640" rx="28" ry="5" fill="none" stroke="#00d8b6" strokeWidth="1.2" opacity="0.9"/>
 
-      {/* Outer orbit circle */}
-      <circle cx="210" cy="320" r="260" fill="none" stroke="#00d8b6" strokeWidth="0.4" opacity="0.15" strokeDasharray="4 6"/>
+      {/* Ambient outer glow */}
+      <ellipse cx={CX} cy={CY} rx="200" ry="200" fill="url(#ambientGlow)">
+        <animate attributeName="rx" values="190;220;190" dur="5s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="190;220;190" dur="5s" repeatCount="indefinite"/>
+      </ellipse>
 
-      {/* Body in teal wireframe */}
-      <g stroke="#00d8b6" strokeWidth="1" fill="none" filter="url(#glow)" opacity="0.85">
-        {/* Head */}
-        <circle cx="210" cy="95" r="32"/>
-        {/* Head mesh */}
-        <path d="M178 95 L242 95 M210 63 L210 127" strokeWidth="0.5" opacity="0.5"/>
-        <path d="M181 79 L239 79 M181 111 L239 111" strokeWidth="0.4" opacity="0.4"/>
-        <path d="M190 68 L230 68 M190 122 L230 122" strokeWidth="0.4" opacity="0.3"/>
-        {/* Eyes glow */}
-        <circle cx="197" cy="90" r="3" fill="#00d8b6" opacity="0.9"/>
-        <circle cx="223" cy="90" r="3" fill="#00d8b6" opacity="0.9"/>
-        {/* Neck */}
-        <path d="M200 127 L200 155 M220 127 L220 155"/>
-        {/* Shoulders */}
-        <path d="M200 155 L155 175 M220 155 L265 175"/>
-        {/* Torso outline */}
-        <path d="M155 175 L145 340 L175 480 L200 490 L220 490 L245 480 L275 340 L265 175"/>
-        {/* Torso mesh - horizontal */}
-        <path d="M152 210 L268 210 M150 250 L270 250 M148 295 L272 295 M146 340 L274 340 M150 385 L270 385 M155 430 L265 430"/>
-        {/* Torso mesh - vertical */}
-        <path d="M183 175 L178 490 M210 155 L210 490 M237 175 L242 490"/>
-        {/* Torso mesh - diagonals */}
-        <path d="M155 175 L210 210 L265 175 M145 250 L210 295 L275 250 M146 340 L210 385 L274 340" strokeWidth="0.5"/>
-        {/* Left arm */}
-        <path d="M155 175 L120 200 L105 310 L108 420 L118 430 L122 310 L138 200"/>
-        <path d="M120 200 L110 260 L105 310 M113 255 L107 310" strokeWidth="0.5"/>
-        {/* Right arm */}
-        <path d="M265 175 L300 200 L315 310 L312 420 L302 430 L298 310 L282 200"/>
-        <path d="M300 200 L310 260 L315 310" strokeWidth="0.5"/>
-        {/* Left leg */}
-        <path d="M175 490 L168 575 L172 635 L185 638 L190 575 L195 490"/>
-        <path d="M168 535 L172 575 M172 575 L180 610 L185 638" strokeWidth="0.5"/>
-        {/* Right leg */}
-        <path d="M245 490 L252 575 L248 635 L235 638 L230 575 L225 490"/>
-        <path d="M252 535 L248 575 M248 575 L240 610 L235 638" strokeWidth="0.5"/>
-        {/* Center spine */}
-        <path d="M210 155 L210 490" strokeWidth="1.2"/>
-        {/* Chest detail */}
-        <path d="M183 195 L210 220 L237 195 M183 195 L183 250 M237 195 L237 250" strokeWidth="0.7"/>
-      </g>
+      {/* Tick ring — precision clock feel */}
+      {Array.from({length:60}).map((_,i) => {
+        const a = (i/60)*2*Math.PI - Math.PI/2;
+        const isMajor = i % 5 === 0;
+        const r1 = isMajor ? 196 : 199, r2 = 204;
+        return (
+          <line key={i}
+            x1={CX + r1*Math.cos(a)} y1={CY + r1*Math.sin(a)}
+            x2={CX + r2*Math.cos(a)} y2={CY + r2*Math.sin(a)}
+            stroke="#00d8b6" strokeWidth={isMajor ? 1.4 : 0.6} opacity={isMajor ? 0.35 : 0.15}
+          />
+        );
+      })}
 
-      {/* Intersection glow dots */}
-      <g fill="#00d8b6" filter="url(#glow)">
-        {[[210,155],[155,175],[265,175],[210,210],[145,250],[275,250],[210,295],[146,340],[274,340],[210,385],[175,480],[245,480],[210,490],[108,420],[312,420],[172,635],[248,635]].map(([x,y],i)=>(
-          <circle key={i} cx={x} cy={y} r="2.5" opacity="0.9"/>
-        ))}
-      </g>
+      {/* Outer dashed decorative ring — slow rotation */}
+      <circle cx={CX} cy={CY} r="192" fill="none"
+        stroke="rgba(0,216,182,0.12)" strokeWidth="1" strokeDasharray="6 14">
+        <animateTransform attributeName="transform" type="rotate"
+          values={`0 ${CX} ${CY};360 ${CX} ${CY}`} dur="45s" repeatCount="indefinite"/>
+      </circle>
 
-      {/* Floating particles */}
-      {[[50,180],[370,220],[40,380],[390,420],[80,520],[340,150]].map(([x,y],i)=>(
-        <circle key={i} cx={x} cy={y} r="2" fill="#00d8b6" opacity="0.6">
-          <animate attributeName="opacity" values="0.3;0.9;0.3" dur={`${2+i*0.7}s`} repeatCount="indefinite"/>
+      {/* Arc tracks (faint full-circle guides) */}
+      {DOMAIN_ARCS.map(d => (
+        <circle key={d.label+'-track'} cx={CX} cy={CY} r={d.r}
+          fill="none" stroke={d.color} strokeWidth="2.5" opacity="0.07"/>
+      ))}
+
+      {/* Filled score arcs — animated in on mount */}
+      {DOMAIN_ARCS.map(d => {
+        const circ = 2 * Math.PI * d.r;
+        const offset = circ * (1 - d.pct);
+        return (
+          <circle key={d.label+'-arc'} cx={CX} cy={CY} r={d.r}
+            fill="none" stroke={d.color} strokeWidth="2.5" strokeLinecap="round"
+            strokeDasharray={`${circ} ${circ}`}
+            strokeDashoffset={offset}
+            style={{ transform:'rotate(-90deg)', transformOrigin:`${CX}px ${CY}px` }}
+            filter="url(#lg)">
+            <animate attributeName="stroke-dashoffset"
+              from={circ} to={offset} dur="1.8s" calcMode="spline"
+              keySplines="0.16 1 0.3 1" fill="freeze"/>
+          </circle>
+        );
+      })}
+
+      {/* Glowing endpoint dots on each arc */}
+      {DOMAIN_ARCS.map(d => {
+        const {x, y} = endPt(d.r, d.pct);
+        return (
+          <g key={d.label+'-dot'}>
+            <circle cx={x} cy={y} r="10" fill={d.color} opacity="0.15" filter="url(#ng)"/>
+            <circle cx={x} cy={y} r="4.5" fill={d.color} filter="url(#lg)">
+              <animate attributeName="r" values="4;5.5;4" dur="2.2s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+        );
+      })}
+
+      {/* Domain score panels — glassmorphism cards */}
+      {DOMAIN_ARCS.map(d => {
+        const px = CX + d.lx * 2.5, py = CY + d.ly * 2.5;
+        return (
+          <g key={d.label+'-panel'}>
+            {/* Card background */}
+            <rect x={px-44} y={py-30} width={90} height={56} rx="11"
+              fill="rgba(8,14,28,0.90)" stroke={d.color} strokeWidth="0.8" strokeOpacity="0.35"/>
+            {/* Domain label */}
+            <text x={px+1} y={py-12} textAnchor="middle" fontSize="8"
+              fill={d.color} fontWeight="700" letterSpacing="2" fontFamily="JetBrains Mono, monospace">
+              {d.label}
+            </text>
+            {/* Score */}
+            <text x={px+1} y={py+14} textAnchor="middle" fontSize="26"
+              fill="#ffffff" fontWeight="800" fontFamily="Space Grotesk, sans-serif">
+              {d.score}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Connector lines: panel → arc endpoint */}
+      {DOMAIN_ARCS.map(d => {
+        const {x: ex, y: ey} = endPt(d.r, d.pct);
+        const px = CX + d.lx * 2.5, py = CY + d.ly * 2.5;
+        return (
+          <line key={d.label+'-line'}
+            x1={px} y1={py} x2={ex} y2={ey}
+            stroke={d.color} strokeWidth="0.8" strokeDasharray="5 4" opacity="0.22"/>
+        );
+      })}
+
+      {/* Central sphere */}
+      <circle cx={CX} cy={CY} r="80" fill="#060b14" filter="url(#coreShadow)"/>
+      <circle cx={CX} cy={CY} r="80" fill="url(#coreGrad)"/>
+      {/* Subtle highlight */}
+      <ellipse cx={CX-22} cy={CY-26} rx="30" ry="19" fill="white" opacity="0.04"/>
+      {/* Sphere ring */}
+      <circle cx={CX} cy={CY} r="80" fill="none" stroke="rgba(0,216,182,0.55)" strokeWidth="1"/>
+      <circle cx={CX} cy={CY} r="72" fill="none" stroke="rgba(0,216,182,0.12)" strokeWidth="0.8"/>
+
+      {/* Central text — LIFE SCORE */}
+      <text x={CX} y={CY-16} textAnchor="middle" fontSize="9"
+        fill="rgba(0,216,182,0.75)" fontWeight="700" letterSpacing="3"
+        fontFamily="JetBrains Mono, monospace">
+        LIFE SCORE
+      </text>
+      <text x={CX} y={CY+24} textAnchor="middle" fontSize="46"
+        fill="#ffffff" fontWeight="800" fontFamily="Space Grotesk, sans-serif">
+        81
+      </text>
+      <text x={CX} y={CY+40} textAnchor="middle" fontSize="9"
+        fill="rgba(0,216,182,0.60)" fontWeight="600" letterSpacing="2"
+        fontFamily="JetBrains Mono, monospace">
+        BALANCED
+      </text>
+
+      {/* Floating ambient particles */}
+      {[[55,100],[400,140],[38,340],[415,300],[140,450],[340,430],[60,240],[410,220]].map(([x,y],i)=>(
+        <circle key={i} cx={x} cy={y} r="1.8" fill="#00d8b6" opacity="0.5">
+          <animate attributeName="opacity" values="0.15;0.7;0.15" dur={`${2.8+i*0.55}s`} repeatCount="indefinite"/>
         </circle>
       ))}
+
+      {/* Platform rings */}
+      <ellipse cx={CX} cy="478" rx="88" ry="13" fill="rgba(0,216,182,0.06)">
+        <animate attributeName="rx" values="82;102;82" dur="4s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx={CX} cy="482" rx="65" ry="9"  fill="none" stroke="rgba(0,216,182,0.2)" strokeWidth="1"/>
+      <ellipse cx={CX} cy="485" rx="42" ry="5.5" fill="none" stroke="rgba(0,216,182,0.4)" strokeWidth="1"/>
+      <ellipse cx={CX} cy="487" rx="22" ry="3"  fill="none" stroke="rgba(0,216,182,0.7)" strokeWidth="1.2"/>
     </svg>
   );
 }
@@ -414,12 +516,9 @@ export default function Landing() {
             </motion.div>
           </div>
 
-          {/* Right - Human visual */}
-          <motion.div {...f(0.2)} style={{position:'relative',height:660,display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <HumanSVG/>
-            <Card icon={Heart} title="Health" desc={"Optimize your\nbody & mind"} style={{top:'12%',left:'2%'}} delay={0.5}/>
-            <Card icon={Briefcase} title="Career" desc={"Build skills.\nUnlock potential."} style={{top:'48%',left:'-8%'}} delay={0.7}/>
-            <Card icon={Wallet} title="Finance" desc={"Grow wealth\nwith clarity"} style={{top:'38%',right:'-5%'}} delay={0.9}/>
+          {/* Right - Life OS Core visualization */}
+          <motion.div {...f(0.2)} style={{position:'relative',height:620,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <LifeOSVisual/>
           </motion.div>
         </div>
       </section>
