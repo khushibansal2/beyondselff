@@ -347,46 +347,46 @@ function InvestmentRoboAdvisor({ f, score }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
       {/* ── TOP PANEL: Strategy + Action Cards ── */}
       <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
         <div style={{ display: 'flex' }}>
 
           {/* LEFT: Allocation Strategy */}
-          <div style={{ flex: 1, padding: '28px 28px 24px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
+          <div style={{ flex: 1, padding: '16px 20px 14px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
-                  <p style={{ fontSize: 20, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{strategyNames[riskProfile]}</p>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Active Strategy</p>
+                  <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{strategyNames[riskProfile]}</p>
                 </div>
               </div>
-              <span style={{ padding: '5px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: risk.color + '20', color: risk.color, border: `1px solid ${risk.color}40`, whiteSpace: 'nowrap', marginTop: 4 }}>
+              <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: risk.color + '20', color: risk.color, border: `1px solid ${risk.color}40`, whiteSpace: 'nowrap', marginTop: 2 }}>
                 {risk.label}
               </span>
             </div>
 
-            <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.7, marginBottom: 28 }}>{strategyDesc[riskProfile]}</p>
+            <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5, marginBottom: 12 }}>{strategyDesc[riskProfile]}</p>
 
             {/* Allocation bars */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {ALLOC_META.map((a, i) => {
                 const pct = risk[a.key];
                 const amount = Math.round(Math.max(0, (f.income || 0) - (f.expenses || 0)) * pct / 100);
                 return (
                   <motion.div key={a.key} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-                      <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{a.icon} {a.label}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{amount.toLocaleString()}</span>
-                        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600, minWidth: 32, textAlign: 'right' }}>{pct}%</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 500 }}>{a.icon} {a.label}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{amount.toLocaleString()}</span>
+                        <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600, minWidth: 28, textAlign: 'right' }}>{pct}%</span>
                       </div>
                     </div>
-                    <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
                       <motion.div
                         initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
@@ -400,66 +400,66 @@ function InvestmentRoboAdvisor({ f, score }) {
           </div>
 
           {/* RIGHT: Tax + SIP action cards */}
-          <div style={{ width: 320, flexShrink: 0, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p style={{ fontSize: 9, color: '#475569', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 2 }}>Investment Actions</p>
+          <div style={{ width: 280, flexShrink: 0, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <p style={{ fontSize: 9, color: '#475569', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 1 }}>Investment Actions</p>
 
             {/* Tax Optimizer card */}
-            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 16px 14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>💸</div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Tax Savings Optimizer</p>
+            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>💸</div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>Tax Savings Optimizer</p>
               </div>
-              <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, marginBottom: 10 }}>
+              <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.5, marginBottom: 7 }}>
                 ₹{totalTaxSaving.toLocaleString()} in deductions available this FY under 80C, 80CCD(1B) & 80D. Assuming 30% bracket.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
                 {taxRows.map(row => (
                   <div key={row.section} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'JetBrains Mono, monospace' }}>§ {row.section}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#10b981' }}>₹{row.saving.toLocaleString()}</span>
+                    <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'JetBrains Mono, monospace' }}>§ {row.section}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981' }}>₹{row.saving.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button style={{ flex: 1, padding: '9px 0', borderRadius: 8, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   Claim Deductions
                 </button>
-                <button style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                <button style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                   Later
                 </button>
               </div>
             </div>
 
             {/* SIP card */}
-            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 16px 14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>📅</div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>SIP Wealth Planner</p>
+            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>📅</div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>SIP Wealth Planner</p>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 7 }}>
                 <div>
-                  <label style={{ fontSize: 10, color: '#64748b', display: 'block', marginBottom: 4 }}>Monthly SIP (₹)</label>
+                  <label style={{ fontSize: 9, color: '#64748b', display: 'block', marginBottom: 3 }}>Monthly SIP (₹)</label>
                   <input type="number" value={sipAmt} min={100}
                     onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))}
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 8, padding: '7px 10px', color: '#f1f5f9', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 7, padding: '5px 8px', color: '#f1f5f9', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: 10, color: '#64748b', display: 'block', marginBottom: 4 }}>Period: <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{sipYrs} yrs</span></label>
+                  <label style={{ fontSize: 9, color: '#64748b', display: 'block', marginBottom: 2 }}>Period: <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{sipYrs} yrs</span></label>
                   <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)}
                     style={{ width: '100%', accentColor: '#f59e0b' }} />
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 8, padding: '8px 10px' }}>
-                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 2 }}>Invested</p>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9' }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 7, padding: '5px 8px' }}>
+                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 1 }}>Invested</p>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
                   </div>
-                  <div style={{ flex: 1, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '8px 10px' }}>
-                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 2 }}>Value</p>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: '#10b981' }}>₹{(sipFV / 100000).toFixed(1)}L</p>
+                  <div style={{ flex: 1, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 7, padding: '5px 8px' }}>
+                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 1 }}>Value</p>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: '#10b981' }}>₹{(sipFV / 100000).toFixed(1)}L</p>
                   </div>
                 </div>
               </div>
-              <button style={{ width: '100%', padding: '9px 0', borderRadius: 8, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button style={{ width: '100%', padding: '6px 0', borderRadius: 7, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                 Set Up SIP
               </button>
             </div>
@@ -481,29 +481,29 @@ function InvestmentRoboAdvisor({ f, score }) {
       </div>
 
       {/* ── FUND RECOMMENDATIONS ── */}
-      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Curated Portfolio</p>
-            <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
+            <p style={{ fontSize: 9, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Curated Portfolio</p>
+            <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
           </div>
-          <span style={{ fontSize: 11, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
+          <span style={{ fontSize: 10, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
         </div>
-        <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {FUND_RECS[riskProfile].map((fund, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10 }}>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8 }}>
+              <span style={{ fontSize: 15, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{fund.name}</p>
-                  {fund.tag && <span style={{ fontSize: 9, padding: '2px 7px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>{fund.name}</p>
+                  {fund.tag && <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
                 </div>
-                <p style={{ fontSize: 11, color: '#475569' }}>{fund.type} · Risk: {fund.risk}</p>
+                <p style={{ fontSize: 10, color: '#475569' }}>{fund.type} · Risk: {fund.risk}</p>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <p style={{ fontSize: 15, fontWeight: 800, color: '#00d8b6' }}>{fund.ret}</p>
-                <p style={{ fontSize: 10, color: '#475569' }}>Expected CAGR</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: '#00d8b6' }}>{fund.ret}</p>
+                <p style={{ fontSize: 9, color: '#475569' }}>Expected CAGR</p>
               </div>
             </motion.div>
           ))}
@@ -803,16 +803,20 @@ export default function Finance() {
   ];
 
   return (
-    <div className="px-4 pt-2 md:px-8 md:pt-4 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container min-h-screen pb-2 bg-mesh">
       {/* Floating live notification */}
       <AnimatePresence>
         {notification && <LiveNotification tx={notification} onDismiss={() => { setNotification(null); clearTimeout(notifTimerRef.current); }} />}
       </AnimatePresence>
 
-      <PageHeader title="Financial Intelligence" subtitle="AI-powered transaction parsing, live feed, and spending analytics." icon="💰" />
+      {/* ── Page Header ── */}
+      <div style={{ marginBottom: 8 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Financial Intelligence</h1>
+        <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>AI-powered transaction parsing, live feed, and spending analytics.</p>
+      </div>
 
       {/* Tab bar */}
-      <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, marginTop:16, flexWrap:'wrap', gap:10}}>
+      <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, marginTop:8, flexWrap:'wrap', gap:8}}>
         <div style={{display:'flex', flexWrap:'wrap', gap:4, padding:'4px', background:'rgba(13,17,28,0.95)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14}}>
           {tabs.map(t => {
             const isActive = tab === t.id;
@@ -862,115 +866,115 @@ export default function Finance() {
           : 'Review subscriptions and reduce impulse spending.';
 
         return (
-        <div style={{display:'flex', flexDirection:'column', gap:12}}>
+        <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
           {/* ROW 1 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:12}}>
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
 
             {/* Score card */}
-            <div style={{...card, padding:'28px 24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-              <div style={{display:'flex', alignItems:'center', gap:20}}>
+            <div style={{...card, padding:'14px 16px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+              <div style={{display:'flex', alignItems:'center', gap:12}}>
                 {/* Ring */}
-                <div style={{position:'relative', width:160, height:160, flexShrink:0}}>
-                  <svg viewBox="0 0 160 160" width="160" height="160">
-                    <circle cx="80" cy="80" r="66" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="12"/>
-                    <circle cx="80" cy="80" r="66" fill="none" stroke={scoreColor} strokeWidth="12"
+                <div style={{position:'relative', width:110, height:110, flexShrink:0}}>
+                  <svg viewBox="0 0 110 110" width="110" height="110">
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
+                    <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
                       strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*66} ${2*Math.PI*66}`}
-                      strokeDashoffset={2*Math.PI*66*(1-score/100)}
-                      style={{transform:'rotate(-90deg)', transformOrigin:'80px 80px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                      strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
+                      strokeDashoffset={2*Math.PI*44*(1-score/100)}
+                      style={{transform:'rotate(-90deg)', transformOrigin:'55px 55px', transition:'stroke-dashoffset 1.2s ease'}}/>
                   </svg>
                   <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:44, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                    <span style={{fontSize:11, color:'#475569', marginTop:2}}>/ 100</span>
+                    <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                    <span style={{fontSize:10, color:'#475569', marginTop:2}}>/ 100</span>
                   </div>
                 </div>
                 {/* Text beside ring */}
                 <div>
-                  <p style={{fontSize:18, fontWeight:700, color:'#f1f5f9', marginBottom:10}}>Finance Score</p>
-                  <span style={{display:'inline-block', fontSize:12, fontWeight:700, padding:'4px 14px', borderRadius:999, marginBottom:12,
+                  <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Finance Score</p>
+                  <span style={{display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, marginBottom:6,
                     background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
                     {score>=70?'Good':score>=45?'Moderate':'Low'}
                   </span>
-                  <p style={{fontSize:13, color:'#64748b', lineHeight:1.7}}>
+                  <p style={{fontSize:11.5, color:'#64748b', lineHeight:1.4}}>
                     {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
                   </p>
                 </div>
               </div>
               <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:20, padding:'11px 0', borderRadius:10, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                style={{marginTop:10, padding:'7px 0', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11.5, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
                 View Insights →
               </button>
             </div>
 
             {/* Metrics card */}
-            <div style={{...card, padding:'16px', display:'flex', flexDirection:'column', gap:10}}>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10}}>
+            <div style={{...card, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
                 {METRICS.map(m => (
-                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12, padding:'14px 16px'}}>
-                    <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:10}}>
-                      <div style={{width:32, height:32, borderRadius:8, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, flexShrink:0}}>{m.icon}</div>
-                      <span style={{fontSize:12, color:'#64748b'}}>{m.label}</span>
+                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 10px'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:4}}>
+                      <div style={{width:24, height:24, borderRadius:6, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>{m.icon}</div>
+                      <span style={{fontSize:10.5, color:'#64748b'}}>{m.label}</span>
                     </div>
-                    <p style={{fontSize:22, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:4}}>{m.value}</p>
-                    <p style={{fontSize:11, color:'#475569'}}>{m.sub}</p>
+                    <p style={{fontSize:16, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:3}}>{m.value}</p>
+                    <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
                   </div>
                 ))}
               </div>
               {/* Savings Rate */}
-              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12, padding:'14px 16px', display:'flex', alignItems:'center', gap:16}}>
-                <div style={{width:38, height:38, borderRadius:10, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
-                <div style={{flexShrink:0, minWidth:100}}>
-                  <p style={{fontSize:12, color:'#64748b'}}>Savings Rate</p>
-                  <p style={{fontSize:24, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
-                  <p style={{fontSize:11, color:'#475569'}}>of income</p>
+              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
+                <div style={{width:30, height:30, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
+                <div style={{flexShrink:0, minWidth:80}}>
+                  <p style={{fontSize:10, color:'#64748b'}}>Savings Rate</p>
+                  <p style={{fontSize:18, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
+                  <p style={{fontSize:9, color:'#475569'}}>of income</p>
                 </div>
                 <div style={{flex:1}}>
-                  <p style={{fontSize:12, color:'#475569', marginBottom:8}}>Aim for 20% to build strong financial health.</p>
-                  <div style={{height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                  <p style={{fontSize:10.5, color:'#475569', marginBottom:4}}>Aim for 20% to build strong financial health.</p>
+                  <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
                     <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
                       style={{height:'100%', borderRadius:3, background:scoreColor}}/>
                   </div>
                 </div>
-                <span style={{fontSize:13, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
+                <span style={{fontSize:11, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
               </div>
             </div>
           </div>
 
           {/* ROW 2 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:12}}>
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
             {/* Expense Breakdown */}
-            <div style={{...card, padding:'22px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:16}}>
-                <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
-                <span style={{fontSize:12, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
+            <div style={{...card, padding:'12px 16px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
+                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
+                <span style={{fontSize:11, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
               </div>
               {f.expenses>0||categoryTotals.length>0 ? (() => {
                 const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
                 const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
                 return (
-                  <div style={{display:'flex', alignItems:'center', gap:20}}>
-                    <div style={{position:'relative', flexShrink:0, width:130, height:130}}>
-                      <ResponsiveContainer width={130} height={130}>
+                  <div style={{display:'flex', alignItems:'center', gap:16}}>
+                    <div style={{position:'relative', flexShrink:0, width:100, height:100}}>
+                      <ResponsiveContainer width={100} height={100}>
                         <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={58} innerRadius={38} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
+                          <Pie data={data} cx="50%" cy="50%" outerRadius={45} innerRadius={28} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
                             {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
                           </Pie>
                           <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:11}}/>
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                        <span style={{fontSize:12,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
+                        <span style={{fontSize:10,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
                       </div>
                     </div>
-                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:9}}>
+                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
                       {data.slice(0,5).map((e,i)=>{
                         const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
                         return(
-                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:8}}>
-                            <span style={{width:7,height:7,borderRadius:'50%',background:color,flexShrink:0}}/>
-                            <span style={{fontSize:12,color:'#94a3b8',flex:1}}>{e.name}</span>
-                            <span style={{fontSize:11,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
+                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:6}}>
+                            <span style={{width:6,height:6,borderRadius:'50%',background:color,flexShrink:0}}/>
+                            <span style={{fontSize:10.5,color:'#94a3b8',flex:1}}>{e.name}</span>
+                            <span style={{fontSize:10,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                           </div>
                         );
                       })}
@@ -991,14 +995,14 @@ export default function Finance() {
             </div>
 
             {/* Spending Trend */}
-            <div style={{...card, padding:'22px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
-                <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9'}}>
-                  Spending Trend{!hasFinanceData&&<span style={{fontSize:12, color:'#475569', marginLeft:6}}>(demo)</span>}
+            <div style={{...card, padding:'12px 16px'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>
+                  Spending Trend{!hasFinanceData&&<span style={{fontSize:10.5, color:'#475569', marginLeft:6}}>(demo)</span>}
                 </h3>
-                <span style={{fontSize:11, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'4px 12px', cursor:'pointer'}}>This Month ▾</span>
+                <span style={{fontSize:10, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'3px 10px', cursor:'pointer'}}>This Month ▾</span>
               </div>
-              <div style={{height:220}}>
+              <div style={{height:120}}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{top:4, right:4, left:-28, bottom:0}}>
                     <defs>
@@ -1007,30 +1011,30 @@ export default function Finance() {
                         <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02}/>
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tick={{fill:'#334155',fontSize:9}} tickFormatter={v=>v?.slice(8)||''} axisLine={false} tickLine={false} interval={2}/>
-                    <YAxis tick={{fill:'#334155',fontSize:9}} tickFormatter={v=>v>=1000?`₹${(v/1000).toFixed(0)}K`:`₹${v}`} axisLine={false} tickLine={false}/>
-                    <Tooltip formatter={v=>`₹${Number(v).toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:11}} labelStyle={{color:'#94a3b8'}}/>
-                    <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2} fill="url(#spendG3)" dot={false} activeDot={{r:4,fill:'#f43f5e'}}/>
+                    <XAxis dataKey="date" tick={{fill:'#334155',fontSize:8.5}} tickFormatter={v=>v?.slice(8)||''} axisLine={false} tickLine={false} interval={2}/>
+                    <YAxis tick={{fill:'#334155',fontSize:8.5}} tickFormatter={v=>v>=1000?`₹${(v/1000).toFixed(0)}K`:`₹${v}`} axisLine={false} tickLine={false}/>
+                    <Tooltip formatter={v=>`₹${Number(v).toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:10.5}} labelStyle={{color:'#94a3b8'}}/>
+                    <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2} fill="url(#spendG3)" dot={false} activeDot={{r:3,fill:'#f43f5e'}}/>
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginTop:10}}>
-                <span style={{width:8,height:8,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
-                <span style={{fontSize:11,color:'#64748b'}}>Expenses</span>
+              <div style={{display:'flex', alignItems:'center', gap:5, marginTop:6}}>
+                <span style={{width:6,height:6,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
+                <span style={{fontSize:10,color:'#64748b'}}>Expenses</span>
               </div>
             </div>
           </div>
 
           {/* Financial Anxiety Detection */}
-          <div style={{...card, padding:'18px 22px', display:'flex', alignItems:'center', gap:20}}>
-            <div style={{width:46, height:46, borderRadius:12, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:22}}>🛡️</div>
+          <div style={{...card, padding:'10px 14px', display:'flex', alignItems:'center', gap:14}}>
+            <div style={{width:32, height:32, borderRadius:8, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:16}}>🛡️</div>
             <div style={{flex:1, minWidth:0}}>
-              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Financial Anxiety Detection</p>
-              <p style={{fontSize:13, fontWeight:600, color:flag.color, marginBottom:3}}>{flag.label}</p>
-              <p style={{fontSize:12, color:'#64748b'}}>{action}</p>
+              <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Financial Anxiety Detection</p>
+              <p style={{fontSize:11, fontWeight:600, color:flag.color, marginBottom:2}}>{flag.label}</p>
+              <p style={{fontSize:10, color:'#64748b'}}>{action}</p>
             </div>
             <button onClick={()=>setTab('recommendations')}
-              style={{padding:'10px 18px', borderRadius:10, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:6}}>
+              style={{padding:'6px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
               View Recommendations →
             </button>
           </div>
@@ -1041,53 +1045,53 @@ export default function Finance() {
 
       {/* ── SMS PARSER TAB ────────────────────────────────────────────────── */}
       {tab === 'parse' && (() => {
-        const pCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px', display:'flex', flexDirection:'column'};
+        const pCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'12px 16px', display:'flex', flexDirection:'column'};
         const BRAND_COLORS = { Uber:'#1a1a1a', Ola:'#2b9348', Swiggy:'#fc8019', Zomato:'#cb202d', Netflix:'#e50914', Amazon:'#ff9900', Flipkart:'#2874f0', Dunzo:'#00d25b', BigBasket:'#84c225', Blinkit:'#f8cc1b', Rapido:'#333', PhonePe:'#5f259f', Paytm:'#00b9f5' };
         const hashColor = s => { const c=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#10b981','#06b6d4','#3b82f6']; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffffff; return c[Math.abs(h)%c.length]; };
         const merchantBg = m => BRAND_COLORS[m] || hashColor(m||'X');
-        const inputStyle = {width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'7px 10px', color:'#f1f5f9', fontSize:12, outline:'none', boxSizing:'border-box'};
+        const inputStyle = {width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'5px 8px', color:'#f1f5f9', fontSize:11, outline:'none', boxSizing:'border-box'};
         return (
-          <div style={{display:'flex', flexDirection:'column', gap:16}}>
+          <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
             {/* ── Two parser cards ── */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
 
               {/* LEFT: Paste SMS */}
               <div style={pCard}>
-                <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Paste SMS</h3>
-                <p style={{fontSize:12, color:'#64748b', marginBottom:14}}>Paste a single SMS to parse the transaction.</p>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Paste SMS</h3>
+                <p style={{fontSize:11, color:'#64748b', marginBottom:8}}>Paste a single SMS to parse the transaction.</p>
 
-                <div style={{display:'flex', flexWrap:'wrap', gap:6, marginBottom:12}}>
+                <div style={{display:'flex', flexWrap:'wrap', gap:4, marginBottom:6}}>
                   {SAMPLE_MESSAGES.map(s => (
                     <button key={s.label} onClick={() => { setSmsInput(s.msg); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
-                      style={{fontSize:11, padding:'3px 10px', borderRadius:999, background:'rgba(139,92,246,0.1)', border:'1px solid rgba(139,92,246,0.25)', color:'#a78bfa', cursor:'pointer'}}>
+                      style={{fontSize:10, padding:'2px 8px', borderRadius:999, background:'rgba(139,92,246,0.1)', border:'1px solid rgba(139,92,246,0.25)', color:'#a78bfa', cursor:'pointer'}}>
                       {s.label}
                     </button>
                   ))}
                 </div>
 
-                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
+                <div style={{position:'relative', marginBottom:6, flex:1, display:'flex', flexDirection:'column'}}>
                   <textarea
                     value={smsInput}
                     onChange={e => { setSmsInput(e.target.value.slice(0,500)); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
                     maxLength={500}
                     placeholder='e.g. "Rs. 450 spent on Swiggy using HDFC Credit Card."'
-                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'12px 14px', paddingBottom:28, color:'#e2e8f0', fontSize:13, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.6}}
+                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'8px 10px', paddingBottom:20, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:70}}
                   />
-                  <span style={{position:'absolute', bottom:8, right:12, fontSize:11, color:'#475569', pointerEvents:'none'}}>{smsInput.length} / 500</span>
+                  <span style={{position:'absolute', bottom:4, right:10, fontSize:10, color:'#475569', pointerEvents:'none'}}>{smsInput.length} / 500</span>
                 </div>
 
                 {otpDetected && (
-                  <div style={{marginBottom:10, padding:'8px 12px', borderRadius:8, background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)', display:'flex', alignItems:'center', gap:8}}>
-                    <span>🔐</span>
+                  <div style={{marginBottom:6, padding:'6px 10px', borderRadius:6, background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)', display:'flex', alignItems:'center', gap:6}}>
+                    <span style={{fontSize:12}}>🔐</span>
                     <div>
-                      <p style={{fontSize:12, fontWeight:600, color:'#f43f5e'}}>OTP detected — will not be parsed</p>
+                      <p style={{fontSize:11, fontWeight:600, color:'#f43f5e'}}>OTP detected — will not be parsed</p>
                     </div>
                   </div>
                 )}
 
                 <button onClick={handleParse}
-                  style={{width:'100%', padding:'11px 0', borderRadius:9, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7}}>
+                  style={{width:'100%', padding:'7px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
                   <span>⚡</span> Parse Transaction
                 </button>
 
@@ -1133,22 +1137,22 @@ export default function Finance() {
 
               {/* RIGHT: Bulk Import */}
               <div style={pCard}>
-                <h3 style={{fontSize:15, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Bulk Import</h3>
-                <p style={{fontSize:12, color:'#64748b', marginBottom:14}}>Paste multiple SMS messages (one per line).</p>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Bulk Import</h3>
+                <p style={{fontSize:11, color:'#64748b', marginBottom:8}}>Paste multiple SMS messages (one per line).</p>
 
-                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
+                <div style={{position:'relative', marginBottom:6, flex:1, display:'flex', flexDirection:'column'}}>
                   <textarea
                     value={multiInput}
                     onChange={e => setMultiInput(e.target.value.slice(0,500))}
                     maxLength={500}
                     placeholder={'Rs. 450 spent on Swiggy using HDFC\nINR 320 debited from SBI for Uber ride\nRs. 649 charged to Axis for Netflix'}
-                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'12px 14px', paddingBottom:28, color:'#e2e8f0', fontSize:13, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.6, minHeight:120}}
+                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'8px 10px', paddingBottom:20, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:70}}
                   />
-                  <span style={{position:'absolute', bottom:8, right:12, fontSize:11, color:'#475569', pointerEvents:'none'}}>{multiInput.length} / 500</span>
+                  <span style={{position:'absolute', bottom:4, right:10, fontSize:10, color:'#475569', pointerEvents:'none'}}>{multiInput.length} / 500</span>
                 </div>
 
                 <button onClick={handleBulkParse}
-                  style={{width:'100%', padding:'11px 0', borderRadius:9, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7}}>
+                  style={{width:'100%', padding:'7px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
                   <span>⊞</span> Parse All Lines
                 </button>
 
@@ -1184,32 +1188,32 @@ export default function Finance() {
               const rows = allTxs.length > 0 ? allTxs.slice(0,5) : DEMO_TXS;
               const isDemo = allTxs.length === 0;
               return (
-                <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'24px'}}>
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20}}>
-                    <div style={{display:'flex', alignItems:'center', gap:10}}>
-                      <h3 style={{fontSize:16, fontWeight:700, color:'#f1f5f9'}}>Recent Activity</h3>
-                      {isDemo && <span style={{fontSize:11, padding:'2px 10px', borderRadius:999, background:'rgba(99,102,241,0.1)', color:'#818cf8', fontWeight:600}}>demo</span>}
+                <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'12px 16px'}}>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+                    <div style={{display:'flex', alignItems:'center', gap:8}}>
+                      <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Recent Activity</h3>
+                      {isDemo && <span style={{fontSize:10, padding:'1px 8px', borderRadius:999, background:'rgba(99,102,241,0.1)', color:'#818cf8', fontWeight:600}}>demo</span>}
                     </div>
-                    <button onClick={()=>setTab('transactions')} style={{fontSize:13,color:'#6366f1',background:'none',border:'none',cursor:'pointer',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
+                    <button onClick={()=>setTab('transactions')} style={{fontSize:11,color:'#6366f1',background:'none',border:'none',cursor:'pointer',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
                       View all →
                     </button>
                   </div>
                   {rows.map((tx,i) => (
-                    <div key={tx.id} style={{display:'flex', alignItems:'center', gap:16, padding:'14px 0', borderBottom:i<rows.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
-                      <div style={{width:44, height:44, borderRadius:12, background:merchantBg(tx.merchant), display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:'#fff', flexShrink:0, letterSpacing:'-0.5px'}}>
+                    <div key={tx.id} style={{display:'flex', alignItems:'center', gap:12, padding:'8px 0', borderBottom:i<rows.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
+                      <div style={{width:32, height:32, borderRadius:8, background:merchantBg(tx.merchant), display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:'#fff', flexShrink:0, letterSpacing:'-0.5px'}}>
                         {tx.merchant?.slice(0,2).toUpperCase()||'?'}
                       </div>
                       <div style={{flex:1, minWidth:0}}>
-                        <p style={{fontSize:14,fontWeight:600,color:'#f1f5f9',marginBottom:2}}>{tx.merchant} {tx.category==='Transport'?'Ride':tx.category==='Food'?'Order':tx.category==='Subscriptions'?'Subscription':''}</p>
-                        <p style={{fontSize:12,color:'#475569'}}>{tx.category}</p>
+                        <p style={{fontSize:13,fontWeight:600,color:'#f1f5f9',marginBottom:0}}>{tx.merchant} {tx.category==='Transport'?'Ride':tx.category==='Food'?'Order':tx.category==='Subscriptions'?'Subscription':''}</p>
+                        <p style={{fontSize:11,color:'#475569'}}>{tx.category}</p>
                       </div>
-                      <p style={{fontSize:15,fontWeight:700,color:tx.type==='Credit'?'#10b981':'#f1f5f9',flexShrink:0}}>
+                      <p style={{fontSize:14,fontWeight:700,color:tx.type==='Credit'?'#10b981':'#f1f5f9',flexShrink:0}}>
                         ₹{tx.amount.toLocaleString()}
                       </p>
-                      <p style={{fontSize:12,color:'#475569',flexShrink:0,minWidth:170,textAlign:'right'}}>
+                      <p style={{fontSize:11,color:'#475569',flexShrink:0,minWidth:140,textAlign:'right'}}>
                         {new Date(tx.parsedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})} • {new Date(tx.parsedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}
                       </p>
-                      <span style={{fontSize:12,padding:'4px 12px',borderRadius:6,background:'rgba(99,102,241,0.1)',color:'#818cf8',fontWeight:600,flexShrink:0,whiteSpace:'nowrap'}}>
+                      <span style={{fontSize:10,padding:'2px 8px',borderRadius:6,background:'rgba(99,102,241,0.1)',color:'#818cf8',fontWeight:600,flexShrink:0,whiteSpace:'nowrap'}}>
                         {tx.bank}
                       </span>
                     </div>

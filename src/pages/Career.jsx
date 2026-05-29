@@ -1640,7 +1640,7 @@ export default function Career() {
 
       {/* ── Page Header ── */}
       <div style={{ marginBottom: 10 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth <span style={{ fontSize: 16 }}>📈</span></h1>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth</h1>
         <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Study smarter — every session builds your digital twin.</p>
       </div>
 
