@@ -721,13 +721,13 @@ export default function Finance() {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Dashboard', icon: '📊' },
-    { id: 'parse', label: 'SMS Parser', icon: '🔍' },
-    { id: 'live', label: 'Live Feed', icon: '🔴' },
-    { id: 'transactions', label: 'Transactions', icon: '📋' },
-    { id: 'log', label: 'Log', icon: '✏️' },
-    { id: 'recommendations', label: 'AI Advisor', icon: '🤖' },
-    { id: 'invest',          label: 'Invest',     icon: '📊' },
+    { id: 'overview',         label: 'Dashboard',    sym: '⊞' },
+    { id: 'parse',            label: 'SMS Parser',   sym: '✦' },
+    { id: 'live',             label: 'Live Feed',    sym: '●' },
+    { id: 'transactions',     label: 'Transactions', sym: '≡' },
+    { id: 'log',              label: 'Log',          sym: '\\' },
+    { id: 'recommendations',  label: 'AI Advisor',   sym: '◉' },
+    { id: 'invest',           label: 'Invest',       sym: '↑' },
   ];
 
   return (
@@ -739,35 +739,78 @@ export default function Finance() {
 
       <PageHeader title="Financial Intelligence" subtitle="AI-powered transaction parsing, live feed, and spending analytics." icon="💰" />
 
-      {/* Tab bar */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${tab === t.id ? 'bg-gradient-to-r from-amber-600/80 to-orange-500/80 text-white shadow-lg' : 'bg-[#252525]/80 text-[#9B9B9B] hover:bg-white/5'}`}>
-            <span className="mr-1.5">{t.icon}</span>{t.label}
-            {t.id === 'live' && liveActive && <span className="ml-1.5 w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />}
-            {t.id === 'transactions' && allTxs.length > 0 && <span className="ml-1.5 text-[10px] px-1.5 rounded-full bg-amber-500/30 text-amber-300">{allTxs.length}</span>}
-          </button>
-        ))}
+      {/* Tab bar — matches screenshot style */}
+      <div className="flex flex-wrap gap-1.5 mb-8 p-1 rounded-2xl" style={{background:'rgba(8,14,26,0.80)', border:'1px solid rgba(255,255,255,0.06)', width:'fit-content'}}>
+        {tabs.map(t => {
+          const isActive = tab === t.id;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{
+                padding:'8px 18px', borderRadius:12, fontSize:13, fontWeight:600,
+                display:'flex', alignItems:'center', gap:7, transition:'all 0.2s',
+                background: isActive ? '#00d8b6' : 'transparent',
+                color: isActive ? '#060b14' : '#64748b',
+                border: 'none', cursor:'pointer',
+              }}>
+              <span style={{fontSize:11, fontWeight:700, opacity: isActive ? 1 : 0.7}}>{t.sym}</span>
+              {t.label}
+              {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
+              {t.id === 'transactions' && allTxs.length > 0 && (
+                <span style={{fontSize:9,padding:'1px 6px',borderRadius:999,background:isActive?'rgba(6,11,20,0.25)':'rgba(0,216,182,0.15)',color:isActive?'#060b14':'#00d8b6',fontWeight:700}}>{allTxs.length}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── OVERVIEW TAB ──────────────────────────────────────────────────── */}
       {tab === 'overview' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <GlassCard className="flex justify-center col-span-2 md:col-span-1" glow="glow-amber">
-              <ScoreRing score={score} color="auto" label="Finance Score" size={100} />
-            </GlassCard>
-            <MetricCard icon="💵" label="Income" value={`₹${f.income.toLocaleString()}`} color="#10b981" />
-            <MetricCard icon="💸" label="Expenses" value={`₹${f.expenses.toLocaleString()}`} color="#f43f5e" />
-            <MetricCard icon="🏦" label="Savings" value={`₹${f.savings.toLocaleString()}`} color="#3b82f6" />
-            <MetricCard icon="📈" label="Investments" value={`₹${f.investments.toLocaleString()}`} color="#8b5cf6" />
-            <MetricCard icon="🔄" label="Subscriptions" value={`₹${f.subscriptions.toLocaleString()}`} color="#f59e0b" />
-            <MetricCard icon="💎" label="Net Worth" value={`₹${((f.savings || 0) + (f.investments || 0) - (f.debt || 0)).toLocaleString()}`} color={(f.savings + f.investments - f.debt) >= 0 ? '#10b981' : '#ef4444'} />
-            <div className="rounded-3xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl p-4 flex flex-col items-center justify-center text-center">
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Savings Rate</p>
-              <p className="text-[24px] font-bold" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate}%</p>
-              <p className="text-[10px] mt-1 font-medium" style={{ color: savingsRate >= 20 ? '#22c55e' : savingsRate >= 10 ? '#f59e0b' : '#ef4444' }}>{savingsRate >= 20 ? 'Excellent' : savingsRate >= 10 ? 'Moderate' : 'Low'}</p>
+          {/* Hero row: score panel + metric grid */}
+          <div style={{display:'grid', gridTemplateColumns:'280px 1fr', gap:16, alignItems:'stretch'}}>
+
+            {/* Left: Finance Score panel */}
+            <div style={{background:'rgba(8,14,26,0.90)', border:'1px solid rgba(0,216,182,0.14)', borderRadius:20, padding:'32px 24px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:20}}>
+              {/* Circular score ring */}
+              <div style={{position:'relative', width:140, height:140}}>
+                <svg viewBox="0 0 140 140" width="140" height="140" style={{transform:'rotate(-90deg)'}}>
+                  <circle cx="70" cy="70" r="58" fill="none" stroke="rgba(0,216,182,0.10)" strokeWidth="10"/>
+                  <circle cx="70" cy="70" r="58" fill="none" stroke="#00d8b6" strokeWidth="10"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2*Math.PI*58} ${2*Math.PI*58}`}
+                    strokeDashoffset={2*Math.PI*58*(1-score/100)}
+                    style={{transition:'stroke-dashoffset 1s ease'}}/>
+                </svg>
+                <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                  <span style={{fontSize:38, fontWeight:900, color:'#00d8b6', lineHeight:1, fontFamily:'Space Grotesk, sans-serif'}}>{score}</span>
+                  <span style={{fontSize:11, color:'#475569', marginTop:2}}>/ 100</span>
+                </div>
+              </div>
+              <div style={{textAlign:'center'}}>
+                <p style={{fontSize:9, color:'#475569', fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', marginBottom:8, fontFamily:'JetBrains Mono, monospace'}}>Intelligence Index</p>
+                <p style={{fontSize:20, fontWeight:800, color:'#f1f5f9', marginBottom:6, fontFamily:'Space Grotesk, sans-serif'}}>Finance Score</p>
+                <p style={{fontSize:13, color:'#00d8b6', fontWeight:600}}>
+                  {score >= 70 ? 'Healthy · trending up' : score >= 45 ? 'Moderate · watch spending' : 'Needs attention'}
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Metric cards grid */}
+            <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
+              {[
+                { label:'INCOME',        value:`₹${(f.income||0).toLocaleString()}`,                                                                          color:'#00d8b6' },
+                { label:'EXPENSES',      value:`₹${(f.expenses||0).toLocaleString()}`,                                                                        color:'#f43f5e' },
+                { label:'NET SAVINGS',   value:`₹${Math.max(0,(f.income||0)-(f.expenses||0)).toLocaleString()}`,                                              color:'#00d8b6' },
+                { label:'INVESTMENTS',   value:`₹${(f.investments||0).toLocaleString()}`,                                                                     color:'#00d8b6' },
+                { label:'SUBSCRIPTIONS', value:`₹${(f.subscriptions||0).toLocaleString()}`,                                                                   color:'#f59e0b' },
+                { label:'NET WORTH',     value:`₹${((f.savings||0)+(f.investments||0)-(f.debt||0)).toLocaleString()}`,                                        color:(f.savings+f.investments-f.debt)>=0?'#00d8b6':'#f43f5e' },
+                { label:'SAVINGS RATE',  value:`${savingsRate}%`,                                                                                             color: savingsRate>=20?'#00d8b6':savingsRate>=10?'#f59e0b':'#f43f5e' },
+              ].map(m => (
+                <div key={m.label} style={{background:'rgba(8,14,26,0.85)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:16, padding:'20px 22px', display:'flex', flexDirection:'column', justifyContent:'space-between', minHeight:90}}>
+                  <p style={{fontSize:9, color:'#475569', fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', marginBottom:12, fontFamily:'JetBrains Mono, monospace'}}>{m.label}</p>
+                  <p style={{fontSize:24, fontWeight:800, color:m.color, fontFamily:'Space Grotesk, sans-serif', lineHeight:1}}>{m.value}</p>
+                </div>
+              ))}
             </div>
           </div>
 
