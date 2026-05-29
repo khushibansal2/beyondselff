@@ -9,22 +9,22 @@ import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionSer
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw, Calendar, Check, Brain } from 'lucide-react';
+import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw, Calendar, Check, Brain, Activity } from 'lucide-react';
 
 function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl border border-white/[0.04] p-1.5 flex flex-col items-center justify-center text-center group hover:bg-white/[0.03] transition-colors cursor-pointer"
+      className="rounded-2xl border border-white/[0.04] p-2.5 flex flex-col items-center justify-center text-center group hover:bg-white/[0.03] transition-colors cursor-pointer"
       style={{ background: 'rgba(17,19,28,0.8)' }}
     >
-      <div className="w-7 h-7 rounded-full flex items-center justify-center mb-1" style={{ background: `${color}18` }}>
-        <Icon size={13} style={{ color }} />
+      <div className="w-9 h-9 rounded-full flex items-center justify-center mb-1.5" style={{ background: `${color}18` }}>
+        <Icon size={17} style={{ color }} />
       </div>
-      <p className="text-[8px] text-[#71717a] uppercase tracking-widest font-semibold mb-0">{label}</p>
-      <p className="text-[15px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
-      {subtitle && <p className="text-[9px] text-[#6b7280] font-medium mt-0">{subtitle}</p>}
+      <p className="text-[10px] text-[#71717a] uppercase tracking-widest font-semibold mb-0">{label}</p>
+      <p className="text-[19px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
+      {subtitle && <p className="text-[11px] text-[#6b7280] font-medium mt-0.5">{subtitle}</p>}
     </motion.div>
   );
 }
@@ -1116,27 +1116,8 @@ export default function Health() {
       {tab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-          {/* ── Row 1: 7 Metric Cards ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
-            {/* Health Score Ring Card */}
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-              <div style={{ position: 'relative', width: 48, height: 48 }}>
-                <svg width="48" height="48" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
-                  <circle cx="24" cy="24" r="20" fill="none" stroke="#8b5cf6" strokeWidth="4"
-                    strokeDasharray={`${2 * Math.PI * 20}`}
-                    strokeDashoffset={`${2 * Math.PI * 20 * (1 - score / 100)}`}
-                    strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1.2s ease-out' }} />
-                </svg>
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: '#f0f0f3', lineHeight: 1 }}>{score}</span>
-                  <span style={{ fontSize: 8, color: '#71717a' }}>/100</span>
-                </div>
-              </div>
-              <span style={{ fontSize: 8, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Health Score</span>
-            </motion.div>
-
+          {/* ── Row 1: 6 Metric Cards ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
             <HealthMetric icon={Moon}           color="#a78bfa" label="Avg Sleep"  value={`${h.sleepAvg || 0}h ${Math.round((h.sleepAvg % 1) * 60) || 32}m`}  subtitle="per night"  delay={40} />
             <HealthMetric icon={Flame}          color="#f43f5e" label="Stress"     value={`${h.stressLevel}/10`}                                                   subtitle={h.stressLevel > 6 ? 'High' : 'Low'} delay={80} />
             <HealthMetric icon={Smile}          color="#f59e0b" label="Mood"       value={`${h.moodAvg}/10`}                                                       subtitle={h.moodAvg >= 7 ? 'Good' : 'Average'} delay={120} />
