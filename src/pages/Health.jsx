@@ -1102,7 +1102,7 @@ export default function Health() {
         {tabs.map(t => {
           const isActive = tab === t.id;
           return (
-            <button key={t.id} onClick={() => { setTab(t.id); document.getElementById('sec-' + t.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            <button key={t.id} onClick={() => setTab(t.id)}
               style={{ padding: '12px 4px', fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none', background: 'none',
                 color: isActive ? '#ffffff' : '#8e929b', position: 'relative', transition: 'color 0.2s ease',
                 borderBottom: isActive ? '2px solid #8b5cf6' : '2px solid transparent',
@@ -1114,8 +1114,7 @@ export default function Health() {
       </div>
 
 
-      <div id="sec-overview" style={{scrollMarginTop:80}}/>
-      {(
+      {tab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* ── Row 1: Health Score (1fr) + Metrics 3×2 (1.8fr) — matches Finance layout ── */}
@@ -1361,10 +1360,7 @@ export default function Health() {
         </div>
       )}
 
-
-      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'48px 0 36px'}}/>
-      <div id="sec-log" style={{scrollMarginTop:80}}/>
-      {(
+      {tab === 'log' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {/* ── Title ── */}
           <h2 style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3', margin: '0 0 2px 0' }}>Log Today's Health Data</h2>
@@ -1520,24 +1516,15 @@ export default function Health() {
       )}
 
 
-
-      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'48px 0 36px'}}/>
-      <div id="sec-scan" style={{scrollMarginTop:80}}/>
-      {(
+      {tab === 'scan' && (
         <ScanVisionPanel onApplyCalories={handleApplyCalories} />
       )}
 
-
-      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'48px 0 36px'}}/>
-      <div id="sec-nutrition" style={{scrollMarginTop:80}}/>
-      {(
+      {tab === 'nutrition' && (
         <NutritionPanel healthData={health} updateDomain={updateDomain} />
       )}
 
-
-      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'48px 0 36px'}}/>
-      <div id="sec-wellness" style={{scrollMarginTop:80}}/>
-      {(
+      {tab === 'wellness' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 
           {/* ── Wellness Factor Breakdown ── */}
@@ -1675,10 +1662,7 @@ export default function Health() {
         </div>
       )}
 
-
-      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'48px 0 36px'}}/>
-      <div id="sec-recommendations" style={{scrollMarginTop:80}}/>
-      {(
+      {tab === 'recommendations' && (
         <HealthRecommendations recommendations={recommendations} h={h} score={score} />
       )}
     </div>
