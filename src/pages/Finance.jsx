@@ -817,15 +817,27 @@ export default function Finance() {
 
       {/* Tab bar */}
       <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, marginTop:8, flexWrap:'wrap', gap:8}}>
-        <div style={{display:'flex', flexWrap:'wrap', gap:4, padding:'4px', background:'rgba(13,17,28,0.95)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14}}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {tabs.map(t => {
             const isActive = tab === t.id;
             return (
               <button key={t.id} onClick={() => setTab(t.id)}
-                style={{padding:'7px 16px', borderRadius:10, fontSize:13, fontWeight:600, display:'flex', alignItems:'center', gap:6, transition:'all 0.2s',
-                  background: isActive ? '#6366f1' : 'transparent',
-                  color: isActive ? '#fff' : '#64748b', border:'none', cursor:'pointer',
-                  boxShadow: isActive ? '0 2px 10px rgba(99,102,241,0.3)' : 'none'}}>
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: 12,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.2s ease',
+                  background: isActive ? 'rgba(139,92,246,0.85)' : 'rgba(37,37,37,0.8)',
+                  color: isActive ? '#ffffff' : '#9b9b9b',
+                  boxShadow: isActive ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
+                }}>
+                {t.sym && <span style={{ fontSize: 14 }}>{t.sym}</span>}
                 {t.label}
                 {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
                 {t.id === 'transactions' && allTxs.length > 0 && (

@@ -715,10 +715,10 @@ function JobsTab({ userSkills }) {
       )}
 
       {/* ── MAIN CONTENT ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
+      <div style={{ display: (!searched && !loading) ? 'flex' : 'grid', gridTemplateColumns: (!searched && !loading) ? undefined : '1fr 340px', gap: 16, alignItems: (!searched && !loading) ? 'stretch' : 'start' }}>
 
         {/* Left: job list */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: (!searched && !loading) ? 1 : undefined }}>
           {/* Filter bar */}
           {jobs.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -760,7 +760,7 @@ function JobsTab({ userSkills }) {
 
           {/* Empty / landing state */}
           {!searched && !loading && (
-            <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '48px 24px', textAlign: 'center' }}>
+            <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '48px 24px', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>💼</div>
               <p style={{ fontSize: 15, fontWeight: 700, color: '#94a3b8', marginBottom: 6 }}>Real-time Job Market</p>
               <p style={{ fontSize: 12, color: '#475569' }}>Powered by Arbeitnow · Remotive · Adzuna</p>
@@ -779,9 +779,9 @@ function JobsTab({ userSkills }) {
         </div>
 
         {/* Right: score + insight */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: (!searched && !loading) ? 'row' : 'column', gap: (!searched && !loading) ? 16 : 14, flex: (!searched && !loading) ? 2 : undefined }}>
           {/* Opportunity Score */}
-          <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '22px 22px 18px' }}>
+          <div style={{ flex: 1, background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '22px 22px 18px', display: 'flex', flexDirection: 'column' }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 16 }}>Your Opportunity Score</p>
             {/* Gauge ring */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
@@ -813,13 +813,13 @@ function JobsTab({ userSkills }) {
                 </div>
               </>
             )}
-            <button style={{ width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <button style={{ marginTop: 'auto', width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               Create Learning Plan →
             </button>
           </div>
 
           {/* Market Insight */}
-          <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '18px 20px' }}>
+          <div style={{ flex: 1, background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '18px 20px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>💡</div>
               <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Market Insight</p>
@@ -829,7 +829,7 @@ function JobsTab({ userSkills }) {
               <span style={{ color: '#64748b' }}>Keep building {query ? `${query} + related skills.` : 'in-demand skills.'}</span>
             </p>
             {/* Mini trend line */}
-            <svg width="100%" height="36" viewBox="0 0 200 36">
+            <svg width="100%" height="36" viewBox="0 0 200 36" style={{ marginTop: 'auto' }}>
               <polyline points="0,30 40,24 80,18 120,10 160,6 200,2" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
