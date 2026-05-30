@@ -1785,7 +1785,6 @@ export default function Career() {
   const tabs = [
     { id: 'brain',           label: 'Brain Twin' },
     { id: 'jobs',            label: 'Job Market' },
-    { id: 'intelligence',    label: 'Intelligence' },
     { id: 'log',             label: 'Log Session' },
     { id: 'history',         label: 'History' },
     { id: 'recommendations', label: 'AI Tips' },
@@ -2769,122 +2768,6 @@ export default function Career() {
           )}
           <JobsTab userSkills={userSkills} />
         </div>
-      )}
-
-      {/* ── CAREER INTELLIGENCE TAB ──────────────────────────────────────────── */}
-      {tab === 'intelligence' && (
-        userSkills.length === 0 ? (
-          <div style={{
-            background: '#12141a',
-            border: '1px solid #20222a',
-            borderRadius: 16,
-            padding: '36px 44px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 24,
-            width: '100%',
-            boxSizing: 'border-box'
-          }}>
-            {/* Left side: Icon + Text */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 24, flex: 1 }}>
-              {/* Premium Target Icon */}
-              <div style={{
-                width: 58,
-                height: 58,
-                borderRadius: '50%',
-                background: 'rgba(99, 102, 241, 0.08)',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <svg style={{ width: 28, height: 28, color: '#818cf8' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="6" />
-                  <circle cx="12" cy="12" r="2" />
-                  <path d="M19 5l-5 5" />
-                  <path d="M19 5h-3m3 0v3" />
-                </svg>
-              </div>
-
-              {/* Text info */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: 0, lineHeight: 1.2 }}>
-                  Connect Your Skills First
-                </h3>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
-                  Unlock AI career intelligence, skill-gap analysis and job matching.
-                </p>
-              </div>
-            </div>
-
-            {/* Right side: Action Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-              {/* Upload Resume Button */}
-              <button 
-                onClick={() => setTab('resume')}
-                style={{
-                  background: '#4f46e5',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: 10,
-                  padding: '12px 24px',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  transition: 'background 0.2s ease',
-                }}
-                onMouseOver={(e) => e.currentTarget.style.background = '#4338ca'}
-                onMouseOut={(e) => e.currentTarget.style.background = '#4f46e5'}
-              >
-                <svg style={{ width: 15, height: 15 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-                Upload Resume
-              </button>
-
-              {/* Log Skills Manually Button */}
-              <button 
-                onClick={() => setTab('log')}
-                style={{
-                  background: 'transparent',
-                  color: '#e2e8f0',
-                  border: '1px solid #20222a',
-                  borderRadius: 10,
-                  padding: '12px 24px',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                  e.currentTarget.style.borderColor = '#475569';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.borderColor = '#20222a';
-                }}
-              >
-                Log Skills Manually
-              </button>
-            </div>
-          </div>
-        ) : (
-          <CareerIntelligenceTab
-            userSkills={userSkills}
-            targetRole={c.targetRole || ''}
-            health={health}
-            computed={computed}
-          />
-        )
       )}
 
       {/* ── RESUME AI TAB ─────────────────────────────────────────────────────── */}
