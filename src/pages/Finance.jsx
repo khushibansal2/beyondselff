@@ -315,20 +315,18 @@ function InvestmentRoboAdvisor({ f, score }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      
-      {/* ── 2-COLUMN DASHBOARD GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20 }}>
-        
-        {/* ── LEFT COLUMN: Strategy & Funds ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          
-          {/* Strategy & Allocation Card */}
-          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 8px #6366f1' }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+      {/* ── TOP PANEL: Strategy + Action Cards ── */}
+      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
+        <div style={{ display: 'flex' }}>
+
+          {/* LEFT: Allocation Strategy */}
+          <div style={{ flex: 1, padding: '16px 20px 14px', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
@@ -366,6 +364,41 @@ function InvestmentRoboAdvisor({ f, score }) {
                   </motion.div>
                 );
               })}
+            </div>
+
+            {/* ── FUND RECOMMENDATIONS ── */}
+            <div style={{ marginTop: 24 }}>
+              <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
+                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Curated Portfolio</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
+                  </div>
+                  <span style={{ fontSize: 10, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
+                </div>
+                <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {FUND_RECS[riskProfile].map((fund, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8 }}>
+                      <span style={{ fontSize: 15, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>{fund.name}</p>
+                          {fund.tag && <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
+                        </div>
+                        <p style={{ fontSize: 10, color: '#475569' }}>{fund.type} · Risk: {fund.risk}</p>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 800, color: '#00d8b6' }}>{fund.ret}</p>
+                        <p style={{ fontSize: 9, color: '#475569' }}>Expected CAGR</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                <div style={{ padding: '10px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
+                  <p style={{ fontSize: 10, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>⚠ NOT FINANCIAL ADVICE · Consult a SEBI-registered advisor before investing</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -439,14 +472,13 @@ function InvestmentRoboAdvisor({ f, score }) {
             </div>
           </div>
 
-          {/* SIP Wealth Planner Card */}
-          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', boxSizing: 'border-box' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>📅</div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>SIP Wealth Planner</p>
+            {/* SIP card */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>📅</div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>SIP Wealth Planner</p>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6, marginBottom: 7 }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Monthly SIP (₹)</label>
@@ -464,10 +496,48 @@ function InvestmentRoboAdvisor({ f, score }) {
                   <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)}
                     style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }} />
                 </div>
-                <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
-                  <div style={{ flex: 1, background: '#090a0f', border: '1px solid #20222a', borderRadius: 8, padding: '12px 14px' }}>
-                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Total Invested</p>
-                    <p style={{ fontSize: 16, fontWeight: 800, color: '#cbd5e1', margin: 0 }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
+                {/* SIP Projection Chart */}
+                <div>
+                  <p style={{ fontSize: 9, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Projected Growth</p>
+                  <div style={{ height: 95 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={Array.from({ length: sipYrs + 1 }, (_, yr) => {
+                          const m = yr * 12;
+                          const fv = m === 0 ? 0 : Math.round(sipAmt * ((Math.pow(1 + mr, m) - 1) / mr));
+                          return { yr, invested: +(sipAmt * m / 100000).toFixed(2), value: +(fv / 100000).toFixed(2) };
+                        })}
+                        margin={{ top: 4, right: 2, left: -22, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="sipValueGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#00d8b6" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="#00d8b6" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="sipInvGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="yr" tick={{ fontSize: 9, fill: '#475569' }} tickLine={false} axisLine={false}
+                          tickFormatter={v => v === 0 ? '' : `${v}y`} interval={Math.max(1, Math.ceil(sipYrs / 5))} />
+                        <YAxis tick={{ fontSize: 9, fill: '#475569' }} tickLine={false} axisLine={false}
+                          tickFormatter={v => `₹${v}L`} width={36} />
+                        <Tooltip
+                          contentStyle={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 10, padding: '4px 8px' }}
+                          formatter={(val, name) => [`₹${val}L`, name === 'value' ? 'Portfolio Value' : 'Invested']}
+                          labelFormatter={l => `Year ${l}`}
+                        />
+                        <Area type="monotone" dataKey="invested" stroke="#f59e0b" strokeWidth={1.5} fill="url(#sipInvGrad)" dot={false} />
+                        <Area type="monotone" dataKey="value" stroke="#00d8b6" strokeWidth={1.5} fill="url(#sipValueGrad)" dot={false} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 7, padding: '5px 8px' }}>
+                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 1 }}>Invested</p>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
                   </div>
                   <div style={{ flex: 1, background: '#090a0f', border: '1px solid #20222a', borderRadius: 8, padding: '12px 14px' }}>
                     <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Future Value</p>
@@ -475,16 +545,12 @@ function InvestmentRoboAdvisor({ f, score }) {
                   </div>
                 </div>
               </div>
+              <button style={{ marginTop: 'auto', width: '100%', padding: '6px 0', borderRadius: 7, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                Set Up SIP
+              </button>
             </div>
-            <button style={{ width: '100%', padding: '12px 0', borderRadius: 8, border: 'none', background: '#4f46e5', color: '#ffffff', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.opacity = 0.9} onMouseLeave={e => e.currentTarget.style.opacity = 1}>
-              Set Up SIP
-            </button>
           </div>
-
         </div>
-
-      </div>
 
       {/* ── Status bar at the very bottom ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#12141a', border: '1px solid #20222a', borderRadius: 8, padding: '12px 20px', marginTop: 16 }}>
@@ -498,6 +564,7 @@ function InvestmentRoboAdvisor({ f, score }) {
         </div>
         <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>SESSION ID: {sessionId}</span>
       </div>
+
 
     </div>
   );
