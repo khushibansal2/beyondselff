@@ -2,53 +2,52 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NeuralEngine } from '../engines/NeuralEngine';
 import { useData } from '../context/DataContext';
-import { GlassCard, PageHeader, ScoreRing, showToast } from '../components/ui/Components';
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, Legend, ReferenceLine,
-} from 'recharts';
+import { showToast } from '../components/ui/Components';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="glass-strong p-3 rounded-xl text-xs space-y-1 min-w-[160px]">
-      <p className="text-slate-400 mb-1 font-medium">{label}</p>
-      {payload.map(p => (
-        <p key={p.name} style={{ color: p.color }} className="font-semibold flex justify-between gap-4">
-          <span>{p.name}</span><span>{p.value}%</span>
-        </p>
-      ))}
-    </div>
-  );
-};
-
-function Slider({ label, value, min, max, step = 1, onChange, color, unit, desc }) {
+/* ─── Custom Slider for What-If Lab ───────────────────────────────── */
+function CustomSlider({ label, value, min, max, step = 1, onChange, color, unit, desc }) {
   const pct = ((value - min) / (max - min)) * 100;
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center text-xs">
-        <span className="text-slate-400 font-medium">{label}</span>
-        <span className="font-bold tabular-nums px-2 py-0.5 rounded-lg text-[11px]" style={{ color, background: `${color}18` }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, color, background: `${color}15` }}>
           {value > 0 && min >= 0 && value !== min ? '+' : ''}{value}{unit}
         </span>
       </div>
-      <p className="text-[10px] text-slate-600 leading-tight">{desc}</p>
-      <div className="relative h-6 flex items-center">
-        <div className="w-full h-1.5 rounded-full bg-white/[0.06]">
-          <div className="h-full rounded-full transition-all duration-150" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}80, ${color})` }} />
+      <p style={{ fontSize: 10, color: '#475569', margin: 0, lineHeight: 1.3 }}>{desc}</p>
+      <div style={{ position: 'relative', height: 24, display: 'flex', alignItems: 'center' }}>
+        <div style={{ width: '100%', height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', position: 'relative' }}>
+          <div style={{ height: '100%', borderRadius: 99, width: `${pct}%`, background: `linear-gradient(90deg, ${color}aa, ${color})` }} />
         </div>
         <input
           type="range" min={min} max={max} step={step} value={value}
           onChange={e => onChange(Number(e.target.value))}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'
+          }}
         />
-      </div>
-      <div className="flex justify-between text-[9px] text-slate-600">
-        <span>{min}{unit}</span><span>{max}{unit}</span>
       </div>
     </div>
   );
 }
+
+/* ─── Chart Tooltip ───────────────────────────────────────────────── */
+const ChartTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: '#090d16', border: '1px solid rgba(255,255,255,0.08)', padding: '12px 16px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 150 }}>
+      <p style={{ color: '#64748b', fontSize: 11, margin: 0, fontWeight: 600 }}>{label}</p>
+      {payload.map(p => (
+        <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, fontSize: 11, fontWeight: 600 }}>
+          <span style={{ color: p.color }}>{p.name}</span>
+          <span style={{ color: '#f1f5f9' }}>{p.value}%</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function NeuralCore() {
   const state = useData();
@@ -57,11 +56,12 @@ export default function NeuralCore() {
   const [loading, setLoading] = useState(false);
   const [showWhatIf, setShowWhatIf] = useState(false);
   const hasData = (state?.computed?.healthScore?.score ?? 0) > 0 || (state?.computed?.financeScore?.score ?? 0) > 0;
+  
   const [adjustments, setAdjustments] = useState({
-    extraSleep: 0,      // 0–3 extra hours
-    extraStudy: 0,      // 0–6 extra hours
-    extraSavings: 0,    // 0–20 extra % savings rate
-    stressReduction: 0, // 0–5 stress points reduced
+    extraSleep: 0,
+    extraStudy: 0,
+    extraSavings: 0,
+    stressReduction: 0,
   });
 
   const hs = state?.computed?.healthScore?.score  ?? 0;
@@ -73,12 +73,11 @@ export default function NeuralCore() {
   const coding = parseFloat(state?.career?.codingHoursDaily || 0);
 
   const endStability    = timeline.length > 0 ? timeline[timeline.length - 1].stability : null;
-  const endRisk         = timeline.length > 0 ? timeline[timeline.length - 1].risk      : null;
   const wiEndStability  = whatIfTimeline.length > 0 ? whatIfTimeline[whatIfTimeline.length - 1].stability : null;
   const trajectory      = endStability !== null ? (endStability > 65 ? 'positive' : endStability > 40 ? 'neutral' : 'critical') : null;
   const stabilityDelta  = (wiEndStability !== null && endStability !== null) ? wiEndStability - endStability : null;
 
-  // Merge current + what-if timelines for the chart
+  // Merge timelines
   const chartData = useMemo(() => {
     if (!timeline.length) return [];
     return timeline.map((t, i) => ({
@@ -87,7 +86,6 @@ export default function NeuralCore() {
       risk: t.risk,
       ...(whatIfTimeline[i] ? {
         wiStability: whatIfTimeline[i].stability,
-        wiRisk: whatIfTimeline[i].risk,
       } : {}),
     }));
   }, [timeline, whatIfTimeline]);
@@ -106,7 +104,7 @@ export default function NeuralCore() {
     }
   }, [state]);
 
-  // Auto-run on first load when user has data
+  // Auto-run when data exists
   useEffect(() => {
     if (hasData && timeline.length === 0) {
       handleInference();
@@ -147,12 +145,12 @@ export default function NeuralCore() {
   };
 
   const inputs = [
-    { label: 'Health Score',    value: `${hs}/100`,             color: '#10b981' },
-    { label: 'Finance Score',   value: `${fs}/100`,             color: '#f59e0b' },
-    { label: 'Career Score',    value: `${cs}/100`,             color: '#6366f1' },
-    { label: 'Burnout Risk',    value: `${burnout}%`,           color: burnout > 60 ? '#ef4444' : burnout > 30 ? '#f59e0b' : '#10b981' },
-    { label: 'Monthly Income',  value: `₹${income.toLocaleString()}`, color: '#06b6d4' },
-    { label: 'Daily Effort',    value: `${study + coding}h`,    color: '#8b5cf6' },
+    { label: 'Health Score',   value: `${hs}/100`, color: '#10b981' },
+    { label: 'Finance Score',  value: `${fs}/100`, color: '#f59e0b' },
+    { label: 'Career Score',   value: `${cs}/100`, color: '#3b82f6' },
+    { label: 'Burnout Risk',   value: `${burnout}%`, color: '#10b981' },
+    { label: 'Monthly Income', value: `₹${income.toLocaleString()}`, color: '#f1f5f9' },
+    { label: 'Daily Effort',   value: `${study + coding}h`, color: '#f1f5f9' },
   ];
 
   const sliders = [
@@ -163,238 +161,421 @@ export default function NeuralCore() {
   ];
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
-      <PageHeader
-        title="Neural Core"
-        subtitle="Deterministic 20-year life trajectory + What-If scenario lab."
-        icon="🧬"
-      />
+    <div style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+          <span style={{ fontSize: 24, color: '#a855f7' }}>✨</span>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Neural Core</h1>
+        </div>
+        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Deterministic 20-year life trajectory + What-if scenario lab.</p>
+      </motion.div>
 
-      <div className="grid lg:grid-cols-4 gap-6">
-        {/* Sidebar — inputs */}
-        <div className="space-y-4">
-          <GlassCard>
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Input Tensors</h3>
-            <div className="space-y-3">
+      {/* ── Grid Layout ─────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 24, alignItems: 'start' }}>
+        
+        {/* Left Column: Sidebar Cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          
+          {/* Input Tensors Card */}
+          <motion.div
+            initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
+            style={{
+              padding: 20,
+              borderRadius: 16,
+              border: '1px solid rgba(255,255,255,0.07)',
+              background: 'rgba(255,255,255,0.03)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Input Tensors</span>
+              <span style={{
+                width: 13, height: 13, borderRadius: '50%', border: '1px solid #475569',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 9, color: '#64748b', cursor: 'help'
+              }} title="Current states from your profile">i</span>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
               {inputs.map(({ label, value, color }) => (
-                <div key={label} className="flex justify-between items-center text-xs border-b border-white/[0.04] pb-2 last:border-0 last:pb-0">
-                  <span className="text-slate-400">{label}</span>
-                  <span className="font-bold" style={{ color }}>{value}</span>
+                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
+                  <span style={{ color: '#64748b' }}>{label}</span>
+                  <span style={{ fontWeight: 600, color }}>{value}</span>
                 </div>
               ))}
             </div>
-          </GlassCard>
 
-          <button
-            onClick={handleInference}
-            disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Computing…</>
-            ) : (
-              <>🧬 Generate Trajectory</>
-            )}
-          </button>
+            <button
+              onClick={handleInference}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: 10,
+                background: 'rgba(139,92,246,0.1)',
+                border: '1px solid rgba(139,92,246,0.3)',
+                color: '#c084fc',
+                fontWeight: 600,
+                fontSize: 12,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.18)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.1)'; }}
+            >
+              {loading ? (
+                <>
+                  <div style={{ width: 14, height: 14, border: '2px solid rgba(192,132,252,0.3)', borderTopColor: '#c084fc', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  Computing...
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: 14 }}>✨</span>
+                  Generate Trajectory
+                </>
+              )}
+            </button>
+            <p style={{ fontSize: 10, color: '#334155', textAlign: 'center', margin: '10px 0 0' }}>Model: Deterministic v2.1</p>
+          </motion.div>
 
+          {/* 2045 Outlook Card */}
           {trajectory && (
-            <GlassCard className={trajectory === 'positive' ? 'glow-emerald' : trajectory === 'critical' ? 'glow-rose' : ''}>
-              <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">2045 Outlook</p>
-              <p className="text-2xl font-bold mb-1" style={{ color: trajectory === 'positive' ? '#10b981' : trajectory === 'critical' ? '#ef4444' : '#f59e0b' }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              style={{
+                padding: 20,
+                borderRadius: 16,
+                border: '1px solid rgba(255,255,255,0.07)',
+                background: 'rgba(255,255,255,0.03)',
+              }}
+            >
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', margin: '0 0 10px' }}>2045 Outlook</p>
+              <h2 style={{ fontSize: 32, fontWeight: 800, color: '#10b981', margin: '0 0 2px', lineHeight: 1 }}>
                 {endStability}%
-              </p>
-              <p className="text-xs text-slate-400">Stability score</p>
-              <p className="text-xs mt-2" style={{ color: trajectory === 'positive' ? '#10b981' : trajectory === 'critical' ? '#ef4444' : '#f59e0b' }}>
-                {trajectory === 'positive' ? '✅ Sustainable trajectory' : trajectory === 'critical' ? '🚨 Intervention needed' : '⚠️ Monitor closely'}
-              </p>
-            </GlassCard>
+              </h2>
+              <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 12px' }}>Stability Score</p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#f59e0b', fontWeight: 600 }}>
+                <span>⚠️</span> Monitor closely
+              </div>
+            </motion.div>
           )}
 
-          {/* What-If delta result */}
-          <AnimatePresence>
-            {stabilityDelta !== null && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <GlassCard className={stabilityDelta > 0 ? 'border-purple-500/30' : 'border-slate-700'}>
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">What-If 2045</p>
-                  <p className="text-2xl font-bold mb-1" style={{ color: stabilityDelta > 10 ? '#8b5cf6' : stabilityDelta > 0 ? '#06b6d4' : '#f59e0b' }}>
-                    {wiEndStability}%
-                  </p>
-                  <p className="text-xs font-semibold mt-1" style={{ color: stabilityDelta > 0 ? '#8b5cf6' : '#f59e0b' }}>
-                    {stabilityDelta > 0 ? `▲ +${stabilityDelta} pts gain` : `▼ ${stabilityDelta} pts`}
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-1">vs. current trajectory</p>
-                </GlassCard>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
-        {/* Main chart */}
-        <GlassCard className="lg:col-span-3">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 className="text-sm font-semibold" style={{ fontFamily: 'var(--font-display)' }}>
-              20-Year Life Trajectory
-            </h3>
-            <div className="flex items-center gap-4 flex-wrap">
-              {timeline.length > 0 && (
-                <div className="flex items-center gap-3 text-[10px] text-slate-500">
-                  <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-cyan-400 inline-block" /> Stability</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-red-400 inline-block" style={{ borderTop: '2px dashed #f87171' }} /> Risk</span>
+        {/* Right Column: Life Trajectory Chart & Milestones */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          
+          {/* Trajectory Chart Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            style={{
+              padding: 24,
+              borderRadius: 16,
+              border: '1px solid rgba(255,255,255,0.07)',
+              background: 'rgba(255,255,255,0.03)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>20-Year Life Trajectory</h3>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 11 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8' }}>
+                    <span style={{ width: 10, height: 1.5, background: '#3b82f6', display: 'inline-block' }} /> Stability
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8' }}>
+                    <span style={{ width: 10, height: 1.5, background: '#ef4444', display: 'inline-block', borderTop: '1px dashed #ef4444' }} /> Risk
+                  </span>
                   {whatIfTimeline.length > 0 && (
-                    <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-purple-400 inline-block" style={{ borderTop: '2px dashed #a78bfa' }} /> What-If</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8' }}>
+                      <span style={{ width: 10, height: 1.5, background: '#10b981', display: 'inline-block', borderTop: '2.5px dotted #10b981' }} /> What-if Lab
+                    </span>
                   )}
                 </div>
+                
+                {timeline.length > 0 && (
+                  <button
+                    onClick={() => setShowWhatIf(w => !w)}
+                    style={{
+                      fontSize: 11,
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      border: showWhatIf ? '1px solid rgba(139,92,246,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                      background: showWhatIf ? 'rgba(139,92,246,0.12)' : 'transparent',
+                      color: showWhatIf ? '#c084fc' : '#94a3b8',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
+                  >
+                    🧪 What-If Lab
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{ height: 280 }}>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="stabilGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="year" stroke="#334155" fontSize={10} tickLine={false} />
+                    <YAxis domain={[0, 100]} stroke="#334155" fontSize={10} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Area type="monotone" dataKey="stability" stroke="#3b82f6" strokeWidth={2} fill="url(#stabilGrad)" name="Stability" dot={false} />
+                    <Area type="monotone" dataKey="risk" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4 4" fill="url(#riskGrad)" name="Risk" dot={false} />
+                    {whatIfTimeline.length > 0 && (
+                      <Area type="monotone" dataKey="wiStability" stroke="#10b981" strokeWidth={2} strokeDasharray="1 4" strokeLinecap="round" fill="none" name="What-If Stability" dot={false} />
+                    )}
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, textAlign: 'center' }}>
+                  <span style={{ fontSize: 44, opacity: 0.15 }}>🧬</span>
+                  <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>Click "Generate Trajectory" to project your next 20 years based on current data.</p>
+                  <p style={{ fontSize: 10, color: '#334155', margin: 0 }}>Uses health, finance, career scores + burnout risk for deterministic simulation.</p>
+                </div>
               )}
-              {timeline.length > 0 && (
-                <button
-                  onClick={() => setShowWhatIf(p => !p)}
-                  className={`text-[11px] px-3 py-1.5 rounded-lg border font-medium transition-all ${showWhatIf ? 'bg-purple-500/20 border-purple-500/40 text-purple-300' : 'border-white/[0.08] text-slate-400 hover:text-white'}`}
+            </div>
+
+            {/* Slider Lab Expansion */}
+            <AnimatePresence>
+              {showWhatIf && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  style={{ overflow: 'hidden' }}
                 >
-                  🧪 What-If Lab
-                </button>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 20, paddingTop: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <div>
+                        <h4 style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>🧪 What-If Lab</h4>
+                        <p style={{ fontSize: 11, color: '#475569', margin: '2px 0 0' }}>Adjust habits below — trajectory updates live</p>
+                      </div>
+                      {stabilityDelta !== null && (
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>2045 impact</p>
+                          <p style={{ fontSize: 18, fontWeight: 700, color: '#10b981', margin: 0 }}>
+                            {stabilityDelta > 0 ? '+' : ''}{stabilityDelta}%
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px', marginBottom: 14 }}>
+                      {sliders.map(s => (
+                        <CustomSlider
+                          key={s.key}
+                          label={s.label}
+                          value={adjustments[s.key]}
+                          min={s.min}
+                          max={s.max}
+                          step={s.step}
+                          unit={s.unit}
+                          desc={s.desc}
+                          color={s.color}
+                          onChange={val => updateAdj(s.key, val)}
+                        />
+                      ))}
+                    </div>
+
+                    <div style={{ padding: 12, borderRadius: 10, background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.15)', fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>
+                      <span style={{ color: '#10b981', fontWeight: 600 }}>How it works: </span>
+                      Each slider projects a realistic habit improvement and recomputes the full 20-year trajectory. The green dotted line shows your adjusted future.
+                    </div>
+                  </div>
+                </motion.div>
               )}
+            </AnimatePresence>
+
+          </motion.div>
+
+          {/* Stability Milestones cards */}
+          {timeline.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {[
+                {
+                  label: '5-Year Stability',
+                  desc: 'Near-term trajectory',
+                  current: timeline[4]?.stability,
+                  wi: whatIfTimeline[4]?.stability,
+                  color: '#c084fc',
+                  icon: (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10" />
+                      <line x1="12" y1="20" x2="12" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                  )
+                },
+                {
+                  label: '10-Year Stability',
+                  desc: 'Mid-term projection',
+                  current: timeline[9]?.stability,
+                  wi: whatIfTimeline[9]?.stability,
+                  color: '#c084fc',
+                  icon: (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                  )
+                },
+                {
+                  label: '20-Year Stability',
+                  desc: 'Long-term outlook',
+                  current: timeline[19]?.stability,
+                  wi: whatIfTimeline[19]?.stability,
+                  color: '#10b981',
+                  icon: (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <circle cx="12" cy="12" r="6" />
+                      <circle cx="12" cy="12" r="2" />
+                    </svg>
+                  )
+                }
+              ].map(({ label, desc, current, wi, color, icon }) => {
+                const delta = wi != null ? wi - current : null;
+                return (
+                  <motion.div
+                    key={label}
+                    initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      padding: 18,
+                      borderRadius: 16,
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      background: 'rgba(255,255,255,0.03)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                    }}
+                  >
+                    <div>
+                      <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 6px' }}>{label}</p>
+                      <h3 style={{ fontSize: 24, fontWeight: 800, color, margin: '0 0 4px', lineHeight: 1 }}>{current}%</h3>
+                      {delta !== null && (
+                        <p style={{ fontSize: 10, color: '#10b981', fontWeight: 600, margin: '0 0 4px' }}>
+                          What-If: {wi}% ({delta > 0 ? '+' : ''}{delta})
+                        </p>
+                      )}
+                      <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{desc}</p>
+                    </div>
+
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                    }}>
+                      {icon}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+
+        </div>
+
+      </div>
+
+      {/* ── How This Works ──────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        style={{
+          marginTop: 24,
+          padding: 24,
+          borderRadius: 16,
+          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(255,255,255,0.03)',
+        }}
+      >
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: '0 0 16px' }}>How This Works</h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+          
+          {/* Section 1 */}
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+              </svg>
+            </div>
+            <div>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px' }}>Deterministic Model</h4>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                No black-box ML — every output is traceable back to your health, finance, and career scores combined with your burnout risk.
+              </p>
             </div>
           </div>
 
-          <div className="h-[340px]">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="stabG" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#06b6d4" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}   />
-                    </linearGradient>
-                    <linearGradient id="riskG" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}   />
-                    </linearGradient>
-                    <linearGradient id="wiG" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#8b5cf6" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}    />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                  <XAxis dataKey="year" stroke="#475569" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} />
-                  <YAxis domain={[0, 100]} stroke="#475569" fontSize={10} tick={{ fill: '#64748b' }} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="stability" stroke="#06b6d4" strokeWidth={2.5} fill="url(#stabG)" name="Stability" />
-                  <Area type="monotone" dataKey="risk"      stroke="#ef4444" strokeWidth={1.5} fill="url(#riskG)" strokeDasharray="5 3" name="Risk" />
-                  {whatIfTimeline.length > 0 && (
-                    <Area type="monotone" dataKey="wiStability" stroke="#8b5cf6" strokeWidth={2} fill="url(#wiG)" strokeDasharray="6 3" name="What-If Stability" />
-                  )}
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="h-full flex flex-col items-center justify-center gap-4 text-center"
-              >
-                <span className="text-5xl opacity-20">🧬</span>
-                <p className="text-slate-500 text-sm">Click "Generate Trajectory" to project<br />your next 20 years based on current data.</p>
-                <p className="text-[10px] text-slate-600">Uses health, finance, career scores + burnout risk<br />for deterministic simulation — no black-box ML.</p>
-              </motion.div>
-            )}
+          {/* Section 2 */}
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                <path d="M2 12h20" />
+              </svg>
+            </div>
+            <div>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px' }}>Compounding Effects</h4>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                Career effort drives financial growth. Burnout degrades health. All three domains influence each other over time.
+              </p>
+            </div>
           </div>
 
-          {/* What-If Lab Panel */}
-          <AnimatePresence>
-            {showWhatIf && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden"
-              >
-                <div className="mt-5 pt-5 border-t border-white/[0.06]">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-2">🧪 What-If Lab</h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Adjust habits below — trajectory updates live</p>
-                    </div>
-                    {stabilityDelta !== null && (
-                      <div className="text-right">
-                        <p className="text-[10px] text-slate-500">2045 impact</p>
-                        <p className="text-xl font-bold" style={{ color: stabilityDelta > 0 ? '#8b5cf6' : '#f59e0b' }}>
-                          {stabilityDelta > 0 ? '+' : ''}{stabilityDelta}%
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-                    {sliders.map(s => (
-                      <Slider
-                        key={s.key}
-                        label={s.label}
-                        value={adjustments[s.key]}
-                        min={s.min}
-                        max={s.max}
-                        step={s.step}
-                        unit={s.unit}
-                        desc={s.desc}
-                        color={s.color}
-                        onChange={val => updateAdj(s.key, val)}
-                      />
-                    ))}
-                  </div>
-                  <div className="mt-4 p-3 rounded-xl bg-purple-500/[0.05] border border-purple-500/20 text-[11px] text-slate-400 leading-relaxed">
-                    <span className="text-purple-300 font-semibold">How it works: </span>
-                    Each slider projects a realistic habit improvement and recomputes the full 20-year trajectory. The purple dashed line shows your adjusted future.
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </GlassCard>
-      </div>
+          {/* Section 3 */}
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 2v7.31a6 6 0 0 0 1.76 4.24l4.48 4.48a2 2 0 0 1-1.42 3.41H9.18a2 2 0 0 1-1.42-3.41l4.48-4.48A6 6 0 0 0 14 9.31V2" />
+                <line x1="8" y1="2" x2="16" y2="2" />
+              </svg>
+            </div>
+            <div>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px' }}>What-if Lab</h4>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                Use the sliders to simulate habit changes. The green trajectory shows your adjusted 20-year outcome — identify the highest-leverage interventions.
+              </p>
+            </div>
+          </div>
 
-      {timeline.length > 0 && (
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
-          {[
-            { label: '5-Year Stability',  idx: 4,  color: '#06b6d4', desc: 'Near-term trajectory' },
-            { label: '10-Year Stability', idx: 9,  color: '#8b5cf6', desc: 'Mid-term projection'  },
-            { label: '20-Year Stability', idx: 19, color: '#10b981', desc: 'Long-term outlook'    },
-          ].map(({ label, idx, color, desc }) => {
-            const current = timeline[idx]?.stability;
-            const wi = whatIfTimeline[idx]?.stability;
-            const delta = wi != null ? wi - current : null;
-            return (
-              <GlassCard key={label} className="text-center">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">{label}</p>
-                <p className="text-3xl font-bold mb-1" style={{ color, fontFamily: 'var(--font-display)' }}>{current}%</p>
-                {delta !== null && (
-                  <p className="text-[11px] font-semibold mt-1" style={{ color: delta > 0 ? '#8b5cf6' : '#f59e0b' }}>
-                    What-If: {wi}% ({delta > 0 ? '+' : ''}{delta})
-                  </p>
-                )}
-                <p className="text-xs text-slate-500">{desc}</p>
-              </GlassCard>
-            );
-          })}
         </div>
-      )}
+      </motion.div>
 
-      <GlassCard className="mt-6" glow="glow-purple">
-        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          🧠 How This Works
-        </h3>
-        <div className="grid md:grid-cols-3 gap-4 text-xs text-slate-400">
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-            <p className="font-semibold text-white mb-1">Deterministic Model</p>
-            <p>No black-box ML — every output is traceable back to your health, finance, and career scores combined with your burnout risk.</p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-            <p className="font-semibold text-white mb-1">Compounding Effects</p>
-            <p>Career effort drives financial growth. Burnout degrades health. Health enables career performance. All three domains influence each other over time.</p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-            <p className="font-semibold text-white mb-1">What-If Lab</p>
-            <p>Use the sliders to simulate habit changes. The purple trajectory shows your adjusted 20-year outcome — identify the highest-leverage interventions.</p>
-          </div>
-        </div>
-      </GlassCard>
     </div>
   );
 }
