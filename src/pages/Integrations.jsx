@@ -1332,9 +1332,8 @@ function IndiaBankingPanel() {
         <div className="flex items-start justify-between gap-6">
           {/* Left: big icon + text */}
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-3xl"
-              style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              🏛️
+            <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <Landmark size={24} className="text-emerald-500" />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -1344,10 +1343,10 @@ function IndiaBankingPanel() {
               <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-2">
                 Powered by India's <strong className="text-[#e2e8f0]">Account Aggregator (AA) framework</strong> — RBI-regulated, consent-based open banking.
               </p>
-              <div className="flex items-center gap-2">
-                <span className="text-[#10b981] text-[13px]">🔓</span>
+              <div className="flex items-center gap-1.5 mt-2">
+                <span className="text-[12px]">🔒</span>
                 <span className="text-[12px] text-[#71717a]">
-                  Your data is encrypted and secure. Read our <span className="text-[#10b981] hover:underline cursor-pointer">privacy policy</span>
+                  Your data is encrypted and secure. Read our <span className="text-emerald-500 hover:underline cursor-pointer">privacy policy</span>
                 </span>
               </div>
             </div>
@@ -1359,13 +1358,13 @@ function IndiaBankingPanel() {
               <>
                 <button
                   onClick={() => setPhase('demo')}
-                  className="flex items-center gap-2 text-[14px] px-5 py-2.5 rounded-xl font-semibold text-[#f0f0f3] transition-all hover:bg-white/[0.07] whitespace-nowrap"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.14)' }}
+                  className="flex items-center gap-2 text-[14px] px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 whitespace-nowrap"
+                  style={{ background: '#10b981' }}
                 >
                   Connect Banking <ExternalLink size={15} />
                 </button>
                 <div className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
-                  <span>🛡️</span> Secure OAuth 2.0
+                  <CheckCircle size={13} /> Secure OAuth 2.0
                 </div>
               </>
             ) : (
@@ -1390,7 +1389,7 @@ function IndiaBankingPanel() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
           {/* 3-column provider cards — individual bordered cards */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-4">
             {AA_PROVIDERS.map(p => (
               <button key={p.id} onClick={() => handleProviderClick(p)}
                 className="text-left p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all group flex flex-col">
@@ -1419,16 +1418,15 @@ function IndiaBankingPanel() {
             ))}
           </div>
 
-          {/* Upload card — containing PDF row + divider + demo button */}
+          {/* Upload card — standalone */}
           <GlassCard>
-            {/* PDF Upload row */}
             <div className="flex items-center justify-between py-1">
               <div className="flex items-center gap-4">
                 {/* PDF Icon */}
                 <div className="w-14 h-14 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(30,41,59,0.9)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)' }}>
                   <span className="text-[18px] leading-none">📄</span>
-                  <span className="text-[9px] font-bold text-[#94a3b8] mt-1 tracking-wider">PDF</span>
+                  <span className="text-[9px] font-bold text-purple-400 mt-1 tracking-wider">PDF</span>
                 </div>
                 <div>
                   <h3 className="text-[15px] font-bold text-[#f0f0f3] mb-1">Upload bank statement PDF</h3>
@@ -1439,7 +1437,7 @@ function IndiaBankingPanel() {
               <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-2 text-[13px] px-4 py-2 rounded-xl font-semibold text-[#f0f0f3] transition-all hover:bg-white/[0.06] whitespace-nowrap"
+                  className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl font-semibold text-[#f0f0f3] transition-all hover:bg-white/[0.06] whitespace-nowrap"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.13)' }}
                 >
                   <span className="text-[16px] leading-none">↑</span> Upload PDF
@@ -1455,27 +1453,27 @@ function IndiaBankingPanel() {
                 <AlertTriangle size={13} /> {error}
               </div>
             )}
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 mt-5 mb-4">
-              <div className="flex-1 h-px bg-white/[0.06]" />
-              <span className="text-[12px] text-[#6b7280]">or view demo data</span>
-              <div className="flex-1 h-px bg-white/[0.06]" />
-            </div>
-
-            {/* View Demo Data button — centered */}
-            <div className="flex justify-center pb-1">
-              <button onClick={() => setPhase('demo')}
-                className="flex items-center gap-2 text-[13px] px-6 py-2.5 rounded-xl font-semibold text-[#a1a1aa] hover:text-[#f0f0f3] transition-all"
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.09)' }}>
-                <Activity size={15} />
-                View Demo Data Instead
-              </button>
-            </div>
           </GlassCard>
 
+          {/* Divider */}
+          <div className="flex items-center gap-3 pt-2 pb-2">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-[12px] text-[#6b7280]">or view demo data</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+
+          {/* View Demo Data button — centered */}
+          <div className="flex justify-center pb-2">
+            <button onClick={() => setPhase('demo')}
+              className="flex items-center gap-2 text-[13px] px-6 py-2.5 rounded-xl font-semibold text-[#a1a1aa] hover:text-[#f0f0f3] transition-all"
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.09)' }}>
+              <Activity size={15} />
+              View Demo Data Instead
+            </button>
+          </div>
+
           {/* Privacy footer — full width, outside card */}
-          <div className="flex items-center justify-between px-1 py-2">
+          <div className="flex items-center justify-between px-1 py-4 border-t border-white/[0.05]">
             <span className="flex items-center gap-2.5 text-[12px] text-[#64748b]">
               <span className="text-[15px]">🛡️</span>
               We never store your banking credentials. You're always in control.
