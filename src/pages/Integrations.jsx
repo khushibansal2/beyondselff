@@ -1327,51 +1327,57 @@ function IndiaBankingPanel() {
   return (
     <div className="space-y-5">
       {/* Header */}
+      {/* Header */}
       <GlassCard>
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2.5">
-            <Landmark size={16} className="text-emerald-400" />
-            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">India Banking Intelligence</h3>
-            <StatusBadge status={isResults ? 'live' : isDemo ? 'demo' : 'none'} />
-          </div>
-          {(isDemo || isResults) && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={handleSyncFinance} disabled={synced}
-                className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all disabled:cursor-default"
-                style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.25)', color: synced ? '#10b981' : '#6ee7b7' }}>
-                {synced ? <><CheckCircle size={11} /> Synced</> : <><Plus size={11} /> Sync to Finance</>}
-              </button>
-              <button onClick={handleReset}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all">
-                Reset
-              </button>
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center flex-shrink-0">
+              <Landmark size={20} className="text-[#10b981]" />
             </div>
-          )}
-        </div>
-        <p className="text-[12px] text-[#71717a] mt-2">
-          Powered by India's <strong className="text-[#a1a1aa]">Account Aggregator (AA) framework</strong> — RBI-regulated, consent-based open banking.
-        </p>
-        {/* Security note */}
-        <div className="flex items-center gap-1.5 mt-2">
-          <span style={{ fontSize: 11, color: '#22c55e' }}>🔒</span>
-          <span className="text-[11px] text-emerald-400/80">Your data is encrypted and secure. Read our <span className="underline cursor-pointer">privacy policy</span></span>
-        </div>
-        {/* Connect Banking button — only on landing */}
-        {phase === 'landing' && (
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.05] flex-wrap gap-2">
-            <button
-              onClick={() => setPhase('demo')}
-              className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl font-semibold text-white transition-all"
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 0 18px rgba(16,185,129,0.25)' }}
-            >
-              <ExternalLink size={14} />
-              Connect Banking
-            </button>
-            <span className="text-[11px] text-[#71717a] flex items-center gap-1.5">
-              <span style={{ fontSize: 11 }}>🛡️</span> Secure OAuth 2.0
-            </span>
+            <div>
+              <div className="flex items-center gap-3 mb-1.5">
+                <h2 className="text-[18px] font-bold text-[#f0f0f3] font-display tracking-tight">India Banking Intelligence</h2>
+                <StatusBadge status={isResults ? 'live' : isDemo ? 'demo' : 'none'} />
+              </div>
+              <p className="text-[12px] text-[#a1a1aa] mb-2">
+                Powered by India's Account Aggregator (AA) framework — RBI-regulated, consent-based open banking.
+              </p>
+              <div className="flex items-center gap-1.5 mt-2">
+                <span className="text-[12px]">🔓</span>
+                <span className="text-[12px] text-[#a1a1aa]">Your data is encrypted and secure. Read our <span className="text-[#10b981] cursor-pointer hover:underline">privacy policy</span></span>
+              </div>
+            </div>
           </div>
-        )}
+          
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            {phase === 'landing' ? (
+              <>
+                <button
+                  onClick={() => setPhase('demo')}
+                  className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90"
+                  style={{ background: '#10b981' }}
+                >
+                  Connect Banking <ExternalLink size={14} />
+                </button>
+                <div className="flex items-center gap-1.5 text-[11px] text-[#71717a] mt-1 mr-1">
+                  <CheckCircle size={12} /> Secure OAuth 2.0
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={handleSyncFinance} disabled={synced}
+                  className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all disabled:cursor-default"
+                  style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.25)', color: synced ? '#10b981' : '#6ee7b7' }}>
+                  {synced ? <><CheckCircle size={11} /> Synced</> : <><Plus size={11} /> Sync to Finance</>}
+                </button>
+                <button onClick={handleReset}
+                  className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all">
+                  Reset
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </GlassCard>
 
       {/* ── Landing ── */}
@@ -1385,23 +1391,23 @@ function IndiaBankingPanel() {
                 style={{ fontFamily: 'var(--font-primary)' }}>
                 {/* Top row: name + badge */}
                 <div className="flex items-start justify-between mb-1.5">
-                  <span className="text-[14px] font-bold text-[#f0f0f3]">{p.name}</span>
+                  <span className="text-[15px] font-bold text-[#f0f0f3]">{p.name}</span>
                   <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0"
                     style={{ color: p.color, borderColor: p.color + '40', background: p.color + '14' }}>
                     {p.badge}
                   </span>
                 </div>
                 {/* Subtitle */}
-                <p className="text-[11px] font-semibold mb-2" style={{ color: p.color }}>{p.subtitle}</p>
+                <p className="text-[12px] font-semibold mb-3" style={{ color: p.color }}>{p.subtitle}</p>
                 {/* Description */}
-                <p className="text-[11px] text-[#71717a] leading-relaxed mb-3">{p.desc}</p>
+                <p className="text-[12px] text-[#71717a] leading-relaxed mb-4">{p.desc}</p>
                 {/* Footer: bank count + Connect */}
-                <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.05]">
+                <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
                   <span className="flex items-center gap-1.5 text-[11px] text-[#6b7280]">
-                    <Landmark size={11} />
+                    <Landmark size={12} />
                     {p.banks}+ banks
                   </span>
-                  <span className="text-[11px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>
+                  <span className="text-[12px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>
                     Connect →
                   </span>
                 </div>
@@ -1411,26 +1417,31 @@ function IndiaBankingPanel() {
 
           {/* PDF Upload card — compact row style */}
           <GlassCard>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.20)' }}>
-                📄
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)' }}>
+                  <span className="text-[16px] leading-none">📄</span>
+                  <span className="text-[9px] font-bold text-purple-400 mt-0.5">PDF</span>
+                </div>
+                <div>
+                  <h3 className="text-[15px] font-bold text-[#f0f0f3] mb-1">Upload bank statement PDF</h3>
+                  <p className="text-[12px] text-[#a1a1aa]">AI extracts &amp; categorises all transactions instantly</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-[13px] font-semibold text-[#f0f0f3]">Upload bank statement PDF</p>
-                <p className="text-[11px] text-[#71717a]">AI extracts &amp; categorises all transactions instantly</p>
+              <div className="flex flex-col items-end gap-2">
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="flex items-center gap-2 text-[12px] px-5 py-2.5 rounded-xl font-semibold transition-all hover:bg-white/[0.04]"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.12)', color: '#f0f0f3' }}
+                >
+                  <span className="text-[14px]">↑</span> Upload PDF
+                </button>
+                <p className="text-[11px] text-[#6b7280]">Supports PDF up to 25MB</p>
               </div>
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-2 text-[12px] px-4 py-2 rounded-xl font-semibold transition-all hover:opacity-90 flex-shrink-0"
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#f0f0f3' }}
-              >
-                ↑ Upload PDF
-              </button>
             </div>
             <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
               onChange={e => e.target.files[0] && processStatement(e.target.files[0])} />
-            <p className="text-[11px] text-[#6b7280] text-right">Supports PDF up to 25MB</p>
             {error && (
               <div className="mt-3 flex items-center gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2">
                 <AlertTriangle size={13} /> {error}
@@ -1439,27 +1450,29 @@ function IndiaBankingPanel() {
           </GlassCard>
 
           {/* Divider */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 py-2">
             <div className="flex-1 h-px bg-white/[0.06]" />
             <span className="text-[11px] text-[#6b7280] font-medium">or view demo data</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
           {/* View Demo Data button */}
-          <button onClick={() => setPhase('demo')}
-            className="w-full flex items-center justify-center gap-2 text-[12px] py-2.5 rounded-xl border border-white/[0.08] text-[#a1a1aa] hover:text-white hover:bg-white/[0.03] transition-all font-semibold">
-            <span style={{ fontSize: 14 }}>📊</span>
-            View Demo Data Instead
-          </button>
+          <div className="flex justify-center">
+            <button onClick={() => setPhase('demo')}
+              className="flex items-center gap-2 text-[12px] px-6 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.01] text-[#a1a1aa] hover:text-white hover:bg-white/[0.03] transition-all font-semibold shadow-sm">
+              <Activity size={14} />
+              View Demo Data Instead
+            </button>
+          </div>
 
           {/* Privacy footer */}
-          <div className="flex items-center justify-between px-1 flex-wrap gap-2">
-            <span className="flex items-center gap-2 text-[11px] text-[#64748b]">
-              <span>🛡️</span>
+          <div className="flex items-center justify-between px-1 pt-6 pb-2 flex-wrap gap-2">
+            <span className="flex items-center gap-2 text-[12px] text-[#64748b]">
+              <span className="text-[13px]">🛡️</span>
               We never store your banking credentials. You're always in control.
             </span>
-            <button className="text-[11px] text-[#64748b] hover:text-[#a1a1aa] flex items-center gap-1 transition-colors">
-              Learn more about AA framework <ExternalLink size={10} />
+            <button className="text-[12px] text-[#64748b] hover:text-[#a1a1aa] flex items-center gap-1.5 transition-colors">
+              Learn more about AA framework <ExternalLink size={12} />
             </button>
           </div>
         </motion.div>
