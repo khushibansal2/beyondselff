@@ -1079,38 +1079,29 @@ export default function Health() {
 
   return (
     <div className="page-container min-h-screen pb-2 bg-mesh">
-      {/* ── Breadcrumbs ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
-        <span>BeyondSelf</span>
-        <span style={{ color: '#475569' }}>/</span>
-        <span style={{ color: '#ffffff' }}>Health &amp; Wellness</span>
-      </div>
-
       {/* ── Page Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, background: 'rgba(34,197,94,0.15)', color: '#22c55e', flexShrink: 0 }}>
-          <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-          </svg>
-        </div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Health &amp; Wellness</h1>
+      <div style={{ marginBottom: 8 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Health &amp; Wellness</h1>
+        <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Track, understand, and optimize your physical and mental wellbeing.</p>
       </div>
-      <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>Track, understand, and optimize your physical and mental wellbeing.</p>
 
-      {/* ── Tab Bar ── */}
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 24, gap: 24, overflowX: 'auto', paddingBottom: 0 }}>
-        {tabs.map(t => {
-          const isActive = tab === t.id;
-          return (
+      {/* ── Tab Bar (Finance style) ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, marginTop: 8, flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px', background: 'rgba(13,17,28,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
+          {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              style={{ padding: '12px 4px', fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none', background: 'none',
-                color: isActive ? '#ffffff' : '#8e929b', position: 'relative', transition: 'color 0.2s ease',
-                borderBottom: isActive ? '2px solid #8b5cf6' : '2px solid transparent',
-                marginBottom: -1, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+              style={{ padding: '7px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s',
+                background: tab === t.id ? '#6366f1' : 'transparent',
+                color: tab === t.id ? '#fff' : '#64748b', border: 'none', cursor: 'pointer',
+                boxShadow: tab === t.id ? '0 2px 10px rgba(99,102,241,0.3)' : 'none' }}>
               {t.label}
             </button>
-          );
-        })}
+          ))}
+        </div>
+        <button onClick={() => setTab('log')}
+          style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          + Log Entry
+        </button>
       </div>
 
 
