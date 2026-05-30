@@ -316,49 +316,49 @@ function InvestmentRoboAdvisor({ f, score }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-
-      {/* ── TOP PANEL: Strategy + Action Cards ── */}
-      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
+      {/* ── TOP PANEL ── */}
+      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ display: 'flex' }}>
-
-          {/* LEFT: Allocation Strategy */}
-          <div style={{ flex: 1, padding: '16px 20px 14px', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
+          
+          {/* LEFT COLUMN */}
+          <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
+            {/* Active Strategy */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 6px #00d8b6' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
-                  <p style={{ fontSize: 17, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{strategyNames[riskProfile]}</p>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Active Strategy</p>
+                  <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{strategyNames[riskProfile]}</p>
                 </div>
               </div>
-              <span style={{ padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: risk.color + '20', color: risk.color, border: `1px solid ${risk.color}40`, whiteSpace: 'nowrap' }}>
+              <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: risk.color + '20', color: risk.color, border: `1px solid ${risk.color}40`, whiteSpace: 'nowrap' }}>
                 {risk.label}
               </span>
             </div>
 
-            <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 24 }}>{strategyDesc[riskProfile]}</p>
+            <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4, marginBottom: 16 }}>{strategyDesc[riskProfile]}</p>
 
             {/* Allocation bars */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {ALLOC_META.map((a, i) => {
                 const pct = risk[a.key];
                 const amount = Math.round(Math.max(0, (f.income || 0) - (f.expenses || 0)) * pct / 100);
                 return (
                   <motion.div key={a.key} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{a.icon} {a.label}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{amount.toLocaleString()}</span>
-                        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600, minWidth: 32, textAlign: 'right' }}>{pct}%</span>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4, justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 11, color: '#cbd5e1', fontWeight: 500 }}>{a.icon} {a.label}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{amount.toLocaleString()}</span>
+                        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, minWidth: 28, textAlign: 'right' }}>{pct}%</span>
                       </div>
                     </div>
-                    <div style={{ height: 6, background: '#090a0f', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: 4, background: '#090a0f', borderRadius: 2, overflow: 'hidden' }}>
                       <motion.div
                         initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                        style={{ height: '100%', borderRadius: 3, background: a.color }}
+                        style={{ height: '100%', borderRadius: 2, background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : a.color === '#f43f5e' ? '#f43f5e' : '#3b82f6' }}
                       />
                     </div>
                   </motion.div>
@@ -366,140 +366,100 @@ function InvestmentRoboAdvisor({ f, score }) {
               })}
             </div>
 
-            {/* ── FUND RECOMMENDATIONS ── */}
-            <div style={{ marginTop: 24 }}>
-              <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
-                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* Recommended Funds */}
+            <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+              <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <p style={{ fontSize: 9, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Curated Portfolio</p>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
+                    <p style={{ fontSize: 8, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Curated Portfolio</p>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
                   </div>
-                  <span style={{ fontSize: 10, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
+                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
                 </div>
-                <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ padding: '6px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {FUND_RECS[riskProfile].map((fund, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8 }}>
-                      <span style={{ fontSize: 15, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 6 }}>
+                      <span style={{ fontSize: 13, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                          <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>{fund.name}</p>
-                          {fund.tag && <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 1 }}>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{fund.name}</p>
+                          {fund.tag && <span style={{ fontSize: 7, padding: '1px 4px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
                         </div>
-                        <p style={{ fontSize: 10, color: '#475569' }}>{fund.type} · Risk: {fund.risk}</p>
+                        <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>{fund.type} · Risk: {fund.risk}</p>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <p style={{ fontSize: 13, fontWeight: 800, color: '#00d8b6' }}>{fund.ret}</p>
-                        <p style={{ fontSize: 9, color: '#475569' }}>Expected CAGR</p>
+                        <p style={{ fontSize: 11, fontWeight: 800, color: '#00d8b6', margin: 0 }}>{fund.ret}</p>
+                        <p style={{ fontSize: 8, color: '#475569', margin: 0 }}>Expected CAGR</p>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-                <div style={{ padding: '10px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
-                  <p style={{ fontSize: 10, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>⚠ NOT FINANCIAL ADVICE · Consult a SEBI-registered advisor before investing</p>
+                <div style={{ padding: '6px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
+                  <p style={{ fontSize: 8, color: '#334155', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>⚠ NOT FINANCIAL ADVICE · Consult a SEBI-registered advisor before investing</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Curated Recommendations Card */}
-          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, borderBottom: '1px solid #20222a', paddingBottom: 12 }}>
-              <div>
-                <p style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Curated Portfolio</p>
-                <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
+          {/* RIGHT COLUMN: Tax & SIP Action Cards */}
+          <div style={{ width: 280, flexShrink: 0, padding: '12px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            
+            {/* Tax Savings Optimizer Card */}
+            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '12px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>💸</div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Tax Savings Optimizer</p>
               </div>
-              <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
-              {FUND_RECS[riskProfile].map((fund, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: '#090a0f', border: '1px solid #20222a', borderRadius: 10 }}>
-                  <span style={{ fontSize: 18, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{fund.name}</p>
-                      {fund.tag && <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
-                    </div>
-                    <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{fund.type} · Risk: {fund.risk}</p>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: '#10b981', margin: 0 }}>{fund.ret}</p>
-                    <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>Expected CAGR</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <div style={{ padding: '10px 16px', background: '#090a0f', border: '1px solid #20222a', borderRadius: 10 }}>
-              <p style={{ fontSize: 10, color: '#64748b', margin: 0, fontFamily: 'monospace', textAlign: 'center' }}>
-                ⚠️ NOT FINANCIAL ADVICE · Consult a SEBI-registered advisor before investing
-              </p>
-            </div>
-          </div>
-
-        </div>
-
-        {/* ── RIGHT COLUMN: Tax & SIP Action Cards ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          
-          {/* Tax Savings Optimizer Card */}
-          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', boxSizing: 'border-box' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>💸</div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Tax Savings Optimizer</p>
-              </div>
-              <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 20 }}>
+              <p style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, marginBottom: 12 }}>
                 ₹{totalTaxSaving.toLocaleString()} in deductions available this FY under 80C, 80CCD(1B) & 80D. Assuming 30% bracket.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                 {taxRows.map(row => (
-                  <div key={row.section} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#090a0f', border: '1px solid #20222a', borderRadius: 8 }}>
-                    <span style={{ fontSize: 12, color: '#64748b', fontFamily: 'monospace' }}>§ {row.section}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>₹{row.saving.toLocaleString()}</span>
+                  <div key={row.section} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>§ {row.section}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981' }}>₹{row.saving.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                <button style={{ flex: 1, padding: '6px 0', borderRadius: 6, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                  Claim Deductions
+                </button>
+                <button style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.10)', background: 'transparent', color: '#94a3b8', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                  Later
+                </button>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button style={{ flex: 1, padding: '12px 0', borderRadius: 8, border: 'none', background: '#4f46e5', color: '#ffffff', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = 0.9} onMouseLeave={e => e.currentTarget.style.opacity = 1}>
-                Claim Deductions
-              </button>
-              <button style={{ padding: '12px 20px', borderRadius: 8, border: '1px solid #20222a', background: 'transparent', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                Later
-              </button>
-            </div>
-          </div>
 
             {/* SIP card */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>📅</div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>SIP Wealth Planner</p>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>📅</div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>SIP Wealth Planner</p>
               </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6, marginBottom: 7 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Monthly SIP (₹)</label>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b' }}>₹{sipAmt.toLocaleString()}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <label style={{ fontSize: 10, color: '#64748b', fontWeight: 600 }}>Monthly SIP (₹)</label>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b' }}>₹{sipAmt.toLocaleString()}</span>
                   </div>
                   <input type="number" value={sipAmt} min={100} step={500}
                     onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))}
-                    style={{ width: '100%', background: '#090a0f', border: '1px solid #20222a', borderRadius: 8, padding: '12px 14px', color: '#f1f5f9', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 6, padding: '4px 6px', color: '#f1f5f9', fontSize: 11, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Investment Period</label>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{sipYrs} Years</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                    <label style={{ fontSize: 10, color: '#64748b', fontWeight: 600 }}>Investment Period</label>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9' }}>{sipYrs} Years</span>
                   </div>
                   <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)}
-                    style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }} />
+                    style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer', height: 2 }} />
                 </div>
                 {/* SIP Projection Chart */}
-                <div>
-                  <p style={{ fontSize: 9, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>Projected Growth</p>
-                  <div style={{ height: 95 }}>
+                <div style={{ marginTop: 2 }}>
+                  <p style={{ fontSize: 9, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>Projected Growth</p>
+                  <div style={{ height: 65 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
                         data={Array.from({ length: sipYrs + 1 }, (_, yr) => {
@@ -507,7 +467,7 @@ function InvestmentRoboAdvisor({ f, score }) {
                           const fv = m === 0 ? 0 : Math.round(sipAmt * ((Math.pow(1 + mr, m) - 1) / mr));
                           return { yr, invested: +(sipAmt * m / 100000).toFixed(2), value: +(fv / 100000).toFixed(2) };
                         })}
-                        margin={{ top: 4, right: 2, left: -22, bottom: 0 }}
+                        margin={{ top: 2, right: 2, left: -24, bottom: 0 }}
                       >
                         <defs>
                           <linearGradient id="sipValueGrad" x1="0" y1="0" x2="0" y2="1">
@@ -519,13 +479,13 @@ function InvestmentRoboAdvisor({ f, score }) {
                             <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <XAxis dataKey="yr" tick={{ fontSize: 9, fill: '#475569' }} tickLine={false} axisLine={false}
+                        <XAxis dataKey="yr" tick={{ fontSize: 8, fill: '#475569' }} tickLine={false} axisLine={false}
                           tickFormatter={v => v === 0 ? '' : `${v}y`} interval={Math.max(1, Math.ceil(sipYrs / 5))} />
-                        <YAxis tick={{ fontSize: 9, fill: '#475569' }} tickLine={false} axisLine={false}
-                          tickFormatter={v => `₹${v}L`} width={36} />
+                        <YAxis tick={{ fontSize: 8, fill: '#475569' }} tickLine={false} axisLine={false}
+                          tickFormatter={v => `₹${v}L`} width={30} />
                         <Tooltip
-                          contentStyle={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 10, padding: '4px 8px' }}
-                          formatter={(val, name) => [`₹${val}L`, name === 'value' ? 'Portfolio Value' : 'Invested']}
+                          contentStyle={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 9, padding: '4px 6px' }}
+                          formatter={(val, name) => [`₹${val}L`, name === 'value' ? 'Value' : 'Invested']}
                           labelFormatter={l => `Year ${l}`}
                         />
                         <Area type="monotone" dataKey="invested" stroke="#f59e0b" strokeWidth={1.5} fill="url(#sipInvGrad)" dot={false} />
@@ -535,37 +495,36 @@ function InvestmentRoboAdvisor({ f, score }) {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 7, padding: '5px 8px' }}>
+                  <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, padding: '4px 8px' }}>
                     <p style={{ fontSize: 9, color: '#64748b', marginBottom: 1 }}>Invested</p>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
+                    <p style={{ fontSize: 11, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
                   </div>
-                  <div style={{ flex: 1, background: '#090a0f', border: '1px solid #20222a', borderRadius: 8, padding: '12px 14px' }}>
-                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Future Value</p>
-                    <p style={{ fontSize: 16, fontWeight: 800, color: '#10b981', margin: 0 }}>₹{(sipFV / 100000).toFixed(1)}L</p>
+                  <div style={{ flex: 1, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 6, padding: '4px 8px' }}>
+                    <p style={{ fontSize: 9, color: '#64748b', margin: '0 0 1px' }}>Value</p>
+                    <p style={{ fontSize: 11, fontWeight: 800, color: '#10b981', margin: 0 }}>₹{(sipFV / 100000).toFixed(1)}L</p>
                   </div>
                 </div>
               </div>
-              <button style={{ marginTop: 'auto', width: '100%', padding: '6px 0', borderRadius: 7, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              <button style={{ marginTop: 'auto', width: '100%', padding: '6px 0', borderRadius: 6, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                 Set Up SIP
               </button>
             </div>
           </div>
         </div>
 
-      {/* ── Status bar at the very bottom ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#12141a', border: '1px solid #20222a', borderRadius: 8, padding: '12px 20px', marginTop: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-            ENGINE CONNECTED
-          </span>
-          <span style={{ color: '#20222a' }}>|</span>
-          <span>LAST SYNC: {syncMin}M AGO</span>
+        {/* Status bar */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '8px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 9, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+              ENGINE CONNECTED
+            </span>
+            <span style={{ color: '#334155' }}>|</span>
+            <span>LAST SYNC: {syncMin}M AGO</span>
+          </div>
+          <span style={{ fontSize: 9, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>SESSION ID: {sessionId}</span>
         </div>
-        <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>SESSION ID: {sessionId}</span>
       </div>
-
-
     </div>
   );
 }
@@ -1163,44 +1122,39 @@ export default function Finance() {
         {notification && <LiveNotification tx={notification} onDismiss={() => { setNotification(null); clearTimeout(notifTimerRef.current); }} />}
       </AnimatePresence>
 
-      {/* Breadcrumbs */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
-        <span>BeyondSelf</span>
-        <span style={{ color: '#475569' }}>/</span>
-        <span style={{ color: '#ffffff' }}>Financial Health</span>
-      </div>
+
 
       {/* ── Page Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: 32,
-          height: 32,
-          borderRadius: 8,
+          width: 28,
+          height: 28,
+          borderRadius: 7,
           background: 'rgba(139, 92, 246, 0.15)',
           color: '#8b5cf6',
           flexShrink: 0
         }}>
-          <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg style={{ width: 16, height: 16 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <path d="m19 8-5 5-3-3-5 5" />
           </svg>
         </div>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Financial Intelligence</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Financial Intelligence</h1>
         </div>
       </div>
-      <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>AI-powered transaction parsing, live feed, and spending analytics.</p>
+      <p style={{ fontSize: 12, color: '#8e929b', marginTop: 1, marginBottom: 12 }}>AI-powered transaction parsing, live feed, and spending analytics.</p>
 
       {/* Tab bar */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        marginBottom: 24,
-        gap: 24,
+        marginBottom: 14,
+        gap: 20,
         overflowX: 'auto',
         paddingBottom: 0
       }}>
@@ -1211,8 +1165,8 @@ export default function Finance() {
               key={t.id}
               onClick={() => setTab(t.id)}
               style={{
-                padding: '12px 4px',
-                fontSize: 14,
+                padding: '8px 4px',
+                fontSize: 13,
                 fontWeight: 500,
                 cursor: 'pointer',
                 border: 'none',
@@ -1263,115 +1217,115 @@ export default function Finance() {
           : 'Review subscriptions and reduce impulse spending.';
 
         return (
-        <div style={{display:'flex', flexDirection:'column', gap:20}}>
+        <div style={{display:'flex', flexDirection:'column', gap:12}}>
 
           {/* ROW 1 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:20}}>
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:14}}>
 
             {/* Score card */}
-            <div style={{...card, padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-              <div style={{display:'flex', alignItems:'center', gap:16}}>
+            <div style={{...card, padding:'14px 18px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+              <div style={{display:'flex', alignItems:'center', gap:12}}>
                 {/* Ring */}
-                <div style={{position:'relative', width:110, height:110, flexShrink:0}}>
-                  <svg viewBox="0 0 110 110" width="110" height="110">
-                    <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                    <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
+                <div style={{position:'relative', width:88, height:88, flexShrink:0}}>
+                  <svg viewBox="0 0 88 88" width="88" height="88">
+                    <circle cx="44" cy="44" r="36" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="8"/>
+                    <circle cx="44" cy="44" r="36" fill="none" stroke={scoreColor} strokeWidth="8"
                       strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
-                      strokeDashoffset={2*Math.PI*44*(1-score/100)}
-                      style={{transform:'rotate(-90deg)', transformOrigin:'55px 55px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                      strokeDasharray={`${2*Math.PI*36} ${2*Math.PI*36}`}
+                      strokeDashoffset={2*Math.PI*36*(1-score/100)}
+                      style={{transform:'rotate(-90deg)', transformOrigin:'44px 44px', transition:'stroke-dashoffset 1.2s ease'}}/>
                   </svg>
                   <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                    <span style={{fontSize:10, color:'#475569', marginTop:2}}>/ 100</span>
+                    <span style={{fontSize:26, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                    <span style={{fontSize:9, color:'#475569', marginTop:1}}>/ 100</span>
                   </div>
                 </div>
                 {/* Text beside ring */}
                 <div>
-                  <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:6}}>Finance Score</p>
-                  <span style={{display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, marginBottom:8,
+                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Finance Score</p>
+                  <span style={{display:'inline-block', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, marginBottom:6,
                     background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
                     {score>=70?'Good':score>=45?'Moderate':'Low'}
                   </span>
-                  <p style={{fontSize:12, color:'#64748b', lineHeight:1.4, whiteSpace:'pre-line'}}>
+                  <p style={{fontSize:11, color:'#64748b', lineHeight:1.35, whiteSpace:'pre-line'}}>
                     {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
                   </p>
                 </div>
               </div>
               <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:16, padding:'8px 16px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
+                style={{marginTop:10, padding:'6px 12px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
                 View Insights →
               </button>
             </div>
 
             {/* Metrics card */}
-            <div style={{...card, padding:'20px', display:'flex', flexDirection:'column', gap:12}}>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
+            <div style={{...card, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8}}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8}}>
                 {METRICS.map(m => (
-                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'12px 14px'}}>
-                    <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:6}}>
-                      <div style={{width:24, height:24, borderRadius:6, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>{m.icon}</div>
-                      <span style={{fontSize:11, color:'#64748b'}}>{m.label}</span>
+                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:9, padding:'8px 10px'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:5, marginBottom:4}}>
+                      <div style={{width:20, height:20, borderRadius:5, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0}}>{m.icon}</div>
+                      <span style={{fontSize:10, color:'#64748b'}}>{m.label}</span>
                     </div>
-                    <p style={{fontSize:17, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:4}}>{m.value}</p>
+                    <p style={{fontSize:14, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:2}}>{m.value}</p>
                     <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
                   </div>
                 ))}
               </div>
               {/* Savings Rate */}
-              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'12px 16px', display:'flex', alignItems:'center', gap:12}}>
-                <div style={{width:30, height:30, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
-                <div style={{flexShrink:0, minWidth:80}}>
-                  <p style={{fontSize:10, color:'#64748b'}}>Savings Rate</p>
-                  <p style={{fontSize:18, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
+              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:9, padding:'7px 10px', display:'flex', alignItems:'center', gap:10}}>
+                <div style={{width:24, height:24, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
+                <div style={{flexShrink:0, minWidth:64}}>
+                  <p style={{fontSize:9, color:'#64748b'}}>Savings Rate</p>
+                  <p style={{fontSize:15, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
                   <p style={{fontSize:9, color:'#475569'}}>of income</p>
                 </div>
                 <div style={{flex:1}}>
-                  <p style={{fontSize:11, color:'#475569', marginBottom:6}}>Aim for 20% to build strong financial health.</p>
-                  <div style={{height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                  <p style={{fontSize:10, color:'#475569', marginBottom:4}}>Aim for 20% to build strong financial health.</p>
+                  <div style={{height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
                     <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
                       style={{height:'100%', borderRadius:3, background:scoreColor}}/>
                   </div>
                 </div>
-                <span style={{fontSize:11.5, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
+                <span style={{fontSize:10, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
               </div>
             </div>
           </div>
 
           {/* ROW 2 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:20}}>
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:14}}>
             {/* Expense Breakdown */}
-            <div style={{...card, padding:'24px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:16}}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
+            <div style={{...card, padding:'14px 16px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
+                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
                 <span style={{fontSize:11, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
               </div>
               {f.expenses>0||categoryTotals.length>0 ? (() => {
                 const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
                 const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
                 return (
-                  <div style={{display:'flex', alignItems:'center', gap:20}}>
-                    <div style={{position:'relative', flexShrink:0, width:110, height:110}}>
-                      <ResponsiveContainer width={110} height={110}>
+                  <div style={{display:'flex', alignItems:'center', gap:14}}>
+                    <div style={{position:'relative', flexShrink:0, width:88, height:88}}>
+                      <ResponsiveContainer width={88} height={88}>
                         <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={50} innerRadius={32} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
+                          <Pie data={data} cx="50%" cy="50%" outerRadius={40} innerRadius={26} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
                             {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
                           </Pie>
                           <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:11}}/>
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                        <span style={{fontSize:11,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
+                        <span style={{fontSize:10,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
                       </div>
                     </div>
-                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
+                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:6}}>
                       {data.slice(0,5).map((e,i)=>{
                         const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
                         return(
-                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:8}}>
-                            <span style={{width:6,height:6,borderRadius:'50%',background:color,flexShrink:0}}/>
-                            <span style={{fontSize:11,color:'#94a3b8',flex:1}}>{e.name}</span>
-                            <span style={{fontSize:11,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
+                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:6}}>
+                            <span style={{width:5,height:5,borderRadius:'50%',background:color,flexShrink:0}}/>
+                            <span style={{fontSize:10,color:'#94a3b8',flex:1}}>{e.name}</span>
+                            <span style={{fontSize:10,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                           </div>
                         );
                       })}
@@ -1392,14 +1346,14 @@ export default function Finance() {
             </div>
 
             {/* Spending Trend */}
-            <div style={{...card, padding:'24px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12}}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>
-                  Spending Trend{!hasFinanceData&&<span style={{fontSize:11, color:'#475569', marginLeft:6}}>(demo)</span>}
+            <div style={{...card, padding:'14px 16px'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>
+                  Spending Trend{!hasFinanceData&&<span style={{fontSize:10, color:'#475569', marginLeft:6}}>(demo)</span>}
                 </h3>
-                <span style={{fontSize:11, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'4px 12px', cursor:'pointer'}}>This Month ▾</span>
+                <span style={{fontSize:10, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'3px 10px', cursor:'pointer'}}>This Month ▾</span>
               </div>
-              <div style={{height:130}}>
+              <div style={{height:105}}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{top:4, right:4, left:-28, bottom:0}}>
                     <defs>
@@ -1423,15 +1377,15 @@ export default function Finance() {
           </div>
 
           {/* Financial Anxiety Detection */}
-          <div style={{...card, padding:'16px 20px', display:'flex', alignItems:'center', gap:18}}>
-            <div style={{width:36, height:36, borderRadius:8, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:18}}>🛡️</div>
+          <div style={{...card, padding:'9px 14px', display:'flex', alignItems:'center', gap:12}}>
+            <div style={{width:28, height:28, borderRadius:7, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:15}}>🛡️</div>
             <div style={{flex:1, minWidth:0}}>
-              <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Financial Anxiety Detection</p>
-              <p style={{fontSize:12, fontWeight:600, color:flag.color, marginBottom:2}}>{flag.label}</p>
-              <p style={{fontSize:11, color:'#64748b'}}>{action}</p>
+              <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Financial Anxiety Detection</p>
+              <p style={{fontSize:11, fontWeight:600, color:flag.color, marginBottom:1}}>{flag.label}</p>
+              <p style={{fontSize:10, color:'#64748b'}}>{action}</p>
             </div>
             <button onClick={()=>setTab('recommendations')}
-              style={{padding:'8px 16px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
+              style={{padding:'6px 12px', borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
               View Recommendations →
             </button>
           </div>
@@ -1717,71 +1671,149 @@ export default function Finance() {
 
       {/* ── TRANSACTIONS TAB ──────────────────────────────────────────────── */}
       {tab === 'transactions' && (
-        <div className="space-y-6">
-          {/* Summary */}
-          {allTxs.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricCard icon="📋" label="Total Parsed" value={allTxs.length} color="#f59e0b" />
-              <MetricCard icon="💸" label="Total Debited" value={`₹${Math.round(allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0)).toLocaleString()}`} color="#f43f5e" />
-              <MetricCard icon="💚" label="Total Credited" value={`₹${Math.round(allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0)).toLocaleString()}`} color="#10b981" />
-              <MetricCard icon="🏆" label="Top Merchant" value={(() => { const m = {}; allTxs.forEach(t => { m[t.merchant] = (m[t.merchant] || 0) + t.amount; }); return Object.entries(m).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'; })()} color="#8b5cf6" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+          
+          {/* Top 4 Stat Cards */}
+          {allTxs.length >= 0 && (
+            <div style={{ display: 'flex', gap: 12 }}>
+              {/* Total Parsed */}
+              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 16 }}>📄</span>
+                </div>
+                <div>
+                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Total Parsed</p>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1 }}>{allTxs.length}</p>
+                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Transactions</p>
+                </div>
+              </div>
+
+              {/* Total Debited */}
+              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(244,63,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 16, color: '#f43f5e' }}>↓</span>
+                </div>
+                <div>
+                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Total Debited</p>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1 }}>₹{Math.round(allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0)).toLocaleString()}</p>
+                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Total Spent</p>
+                </div>
+              </div>
+
+              {/* Total Credited */}
+              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 16, color: '#10b981' }}>↑</span>
+                </div>
+                <div>
+                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Total Credited</p>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1 }}>₹{Math.round(allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0)).toLocaleString()}</p>
+                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Total Received</p>
+                </div>
+              </div>
+
+              {/* Top Merchant */}
+              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 16 }}>🏆</span>
+                </div>
+                <div>
+                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Top Merchant</p>
+                  <p style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 100 }}>
+                    {(() => { const m = {}; allTxs.forEach(t => { m[t.merchant] = (m[t.merchant] || 0) + t.amount; }); return Object.entries(m).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'; })()}
+                  </p>
+                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Most Frequent</p>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Category bar chart */}
-          {categoryTotals.length > 1 && (
-            <GlassCard className="p-6">
-              <h3 className="text-sm font-semibold mb-4">Spending by Category</h3>
-              <div className="h-52">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={categoryTotals} barSize={32}>
-                    <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="value" name="₹ Spent" radius={[6, 6, 0, 0]}>
-                      {categoryTotals.map((c, i) => <Cell key={i} fill={CATEGORY_META[c.name]?.color || COLORS[i % COLORS.length]} />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+          {/* Spending by Category */}
+          {categoryTotals.length >= 0 && (
+            <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '14px 16px 8px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Spending by Category</h3>
+                <div style={{ padding: '4px 10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 11, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  This Month <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
               </div>
-            </GlassCard>
+              <div style={{ height: 120 }}>
+                {categoryTotals.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={categoryTotals} barSize={36} margin={{ top: 18, right: 0, left: -24, bottom: 0 }}>
+                      <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ background: '#1e2128', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 11, padding: '4px 8px' }} />
+                      <Bar dataKey="value" name="₹ Spent" radius={[4, 4, 0, 0]} label={{ position: 'top', fill: '#f1f5f9', fontSize: 10, formatter: v => `₹${v.toLocaleString()}` }}>
+                        {categoryTotals.map((c, i) => <Cell key={i} fill={CATEGORY_META[c.name]?.color || COLORS[i % COLORS.length]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 11 }}>No spending data for chart</div>
+                )}
+              </div>
+            </div>
           )}
 
-          {/* Transaction list */}
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold">All Transactions ({allTxs.length})</h3>
+          {/* All Transactions List */}
+          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>All Transactions ({allTxs.length})</h3>
               {parsedTxs.length > 0 && (
                 <button onClick={() => { saveTxs([]); showToast('Cleared manual transactions', 'success'); }}
-                  className="text-[11px] text-rose-400 hover:text-rose-300 border border-rose-500/20 px-3 py-1 rounded-lg transition-all">
+                  style={{ background: 'none', border: 'none', color: '#f43f5e', fontSize: 11, fontWeight: 500, cursor: 'pointer', padding: 0 }}>
                   Clear manual
                 </button>
               )}
             </div>
+            
             {allTxs.length === 0 ? (
-              <div className="h-32 flex flex-col items-center justify-center gap-2 border border-dashed border-white/10 rounded-2xl text-xs text-slate-500">
-                <span className="text-3xl opacity-40">📋</span>
+              <div style={{ height: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 8, color: '#64748b', fontSize: 12 }}>
+                <span style={{ fontSize: 20, opacity: 0.5 }}>📋</span>
                 No transactions yet — use the SMS Parser or Live Feed tab
               </div>
             ) : (
-              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                {allTxs.map(tx => (
-                  <TxCard key={tx.id} tx={tx} onDelete={tx.source !== 'live' ? handleDeleteTx : undefined} />
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {allTxs.map((tx, i) => {
+                  const meta = CATEGORY_META[tx.category] || CATEGORY_META.Others;
+                  return (
+                    <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < allTxs.length - 1 ? '1px solid #20222a' : 'none' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', border: `1px solid ${meta.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                        {meta.icon}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tx.merchant}</p>
+                        <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{tx.category} • {tx.bank || 'Unknown'} • {tx.paymentMode || 'UPI'}</p>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: tx.type === 'Credit' ? '#10b981' : '#f43f5e', margin: '0 0 2px' }}>
+                          {tx.type === 'Credit' ? '+' : '−'}₹{tx.amount.toLocaleString()}
+                        </p>
+                        <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>
+                          {new Date(tx.parsedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      <div style={{ color: '#475569', marginLeft: 6, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
-          </GlassCard>
+          </div>
         </div>
       )}
 
       {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
       {tab === 'log' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
           
           {/* Form Section Header */}
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#ffffff', margin: 0 }}>Log Financial Data</h2>
-            <p style={{ fontSize: 13, color: '#8e929b', marginTop: 4, marginBottom: 0 }}>Manually add or record financial transactions.</p>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', margin: 0 }}>Log Financial Data</h2>
+            <p style={{ fontSize: 12, color: '#8e929b', marginTop: 2, marginBottom: 0 }}>Manually add or record financial transactions.</p>
           </div>
 
           {/* Form Card */}
@@ -1789,16 +1821,16 @@ export default function Finance() {
             background: '#12141a',
             border: '1px solid #20222a',
             borderRadius: 12,
-            padding: 24,
+            padding: 16,
             width: '100%',
           }}>
-            <form onSubmit={handleLog} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 24px' }}>
+            <form onSubmit={handleLog} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
               
               {/* Monthly Income */}
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#8e929b', marginBottom: 8 }}>Monthly Income</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#8e929b', marginBottom: 6 }}>Monthly Income</label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ position: 'absolute', left: 16, color: '#8e929b', fontSize: 14 }}>₹</span>
+                  <span style={{ position: 'absolute', left: 12, color: '#8e929b', fontSize: 13 }}>₹</span>
                   <input
                     type="number"
                     value={form.income}
@@ -1808,10 +1840,10 @@ export default function Finance() {
                       width: '100%',
                       background: '#0a0b0e',
                       border: '1px solid #20222a',
-                      borderRadius: 8,
-                      padding: '12px 16px 12px 32px',
+                      borderRadius: 6,
+                      padding: '8px 12px 8px 24px',
                       color: '#ffffff',
-                      fontSize: 14,
+                      fontSize: 13,
                       outline: 'none',
                     }}
                   />
@@ -1820,7 +1852,7 @@ export default function Finance() {
 
               {/* Expense Category */}
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#8e929b', marginBottom: 8 }}>Expense Category</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#8e929b', marginBottom: 6 }}>Expense Category</label>
                 <select
                   value={form.category}
                   onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
@@ -1828,15 +1860,15 @@ export default function Finance() {
                     width: '100%',
                     background: '#0a0b0e',
                     border: '1px solid #20222a',
-                    borderRadius: 8,
-                    padding: '12px 16px',
+                    borderRadius: 6,
+                    padding: '8px 12px',
                     color: '#ffffff',
-                    fontSize: 14,
+                    fontSize: 13,
                     outline: 'none',
                     appearance: 'none',
-                    backgroundImage: 'url("data:image/svg+xml;utf8,<svg fill=\'%238e929b\' height=\'24\' viewBox=\'0 0 24 24\' width=\'24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/><path d=\'M0 0h24v24H0z\' fill=\'none\'/></svg>")',
+                    backgroundImage: 'url("data:image/svg+xml;utf8,<svg fill=\'%238e929b\' height=\'20\' viewBox=\'0 0 24 24\' width=\'20\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/><path d=\'M0 0h24v24H0z\' fill=\'none\'/></svg>")',
                     backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 16px center',
+                    backgroundPosition: 'right 12px center',
                     backgroundSize: '16px'
                   }}
                 >
@@ -1851,9 +1883,9 @@ export default function Finance() {
 
               {/* Amount */}
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#8e929b', marginBottom: 8 }}>Amount</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#8e929b', marginBottom: 6 }}>Amount</label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ position: 'absolute', left: 16, color: '#8e929b', fontSize: 14 }}>₹</span>
+                  <span style={{ position: 'absolute', left: 12, color: '#8e929b', fontSize: 13 }}>₹</span>
                   <input
                     type="number"
                     value={form.amount}
@@ -1863,10 +1895,10 @@ export default function Finance() {
                       width: '100%',
                       background: '#0a0b0e',
                       border: '1px solid #20222a',
-                      borderRadius: 8,
-                      padding: '12px 16px 12px 32px',
+                      borderRadius: 6,
+                      padding: '8px 12px 8px 24px',
                       color: '#ffffff',
-                      fontSize: 14,
+                      fontSize: 13,
                       outline: 'none',
                     }}
                   />
@@ -1881,9 +1913,9 @@ export default function Finance() {
                     background: '#5a3bee',
                     color: '#ffffff',
                     border: 'none',
-                    borderRadius: 8,
-                    padding: '12px 28px',
-                    fontSize: 14,
+                    borderRadius: 6,
+                    padding: '8px 20px',
+                    fontSize: 13,
                     fontWeight: 600,
                     cursor: 'pointer',
                     transition: 'background 0.2s',
@@ -1903,10 +1935,10 @@ export default function Finance() {
             background: '#12141a',
             border: '1px solid #20222a',
             borderRadius: 12,
-            padding: 24,
+            padding: 16,
             width: '100%',
           }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', margin: '0 0 20px 0' }}>Recent Logs</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', margin: '0 0 12px 0' }}>Recent Logs</h3>
             
             {financeRecords.length === 0 ? (
               <div style={{
@@ -1914,37 +1946,37 @@ export default function Finance() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '40px 0',
+                padding: '20px 0',
                 textAlign: 'center',
               }}>
-                <svg style={{ width: 40, height: 40, color: '#374151', marginBottom: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                <svg style={{ width: 32, height: 32, color: '#374151', marginBottom: 8 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                   <rect width="14" height="18" x="5" y="3" rx="2" />
                   <path d="M9 7h6M9 11h6M9 15h4" />
                 </svg>
-                <h4 style={{ fontSize: 16, fontWeight: 600, color: '#ffffff', margin: '0 0 6px 0' }}>No logs yet</h4>
-                <p style={{ fontSize: 13, color: '#8e929b', margin: 0 }}>You haven't added any financial logs.</p>
+                <h4 style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>No logs yet</h4>
+                <p style={{ fontSize: 12, color: '#8e929b', margin: 0 }}>You haven't added any financial logs.</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {financeRecords.map((rec, idx) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {financeRecords.slice(0, 5).map((rec, idx) => (
                   <div key={idx} style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '12px 16px',
+                    padding: '8px 12px',
                     background: '#0a0b0e',
                     border: '1px solid #20222a',
-                    borderRadius: 8,
+                    borderRadius: 6,
                   }}>
                     <div>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', textTransform: 'capitalize' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#ffffff', textTransform: 'capitalize' }}>
                         {rec.category}
                       </span>
-                      <span style={{ fontSize: 12, color: '#8e929b', marginLeft: 12 }}>
+                      <span style={{ fontSize: 11, color: '#8e929b', marginLeft: 12 }}>
                         {new Date(rec.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                     </div>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: rec.category === 'Income' ? '#10b981' : '#f43f5e' }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: rec.category === 'Income' ? '#10b981' : '#f43f5e' }}>
                       {rec.category === 'Income' ? '+' : '-'} ₹{rec.amount}
                     </span>
                   </div>
