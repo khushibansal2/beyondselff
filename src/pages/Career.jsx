@@ -1705,7 +1705,7 @@ export default function Career() {
 
       {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
       {tab === 'brain' && (() => {
-        const bCard = { background: '#12141a', border: '1px solid #20222a', borderRadius: 12 };
+        const bCard = { background: '#12141a', border: '1px solid #20222a', borderRadius: 16 };
         const scoreColor = score >= 70 ? '#10b981' : score >= 45 ? '#8b5cf6' : '#f43f5e';
         const radarWithIdeal = skillRadar.map(d => ({ ...d, full: 100 }));
         const loadColor = cognitiveLoad < 40 ? '#10b981' : cognitiveLoad < 70 ? '#f59e0b' : '#f43f5e';
@@ -1720,14 +1720,14 @@ export default function Career() {
         ];
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
             {/* ── ROW 1: Score card + 5 Metrics ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1fr 1fr', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1fr 1fr', gap: 20 }}>
 
               {/* Career Score card */}
-              <div style={{ ...bCard, padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ position: 'relative', width: 110, height: 110, flexShrink: 0, marginBottom: 8 }}>
+              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', width: 110, height: 110, flexShrink: 0, marginBottom: 12 }}>
                   <svg viewBox="0 0 110 110" width="110" height="110">
                     <circle cx="55" cy="55" r="44" fill="none" stroke="#20222a" strokeWidth="10" />
                     <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
@@ -1750,8 +1750,8 @@ export default function Career() {
 
               {/* 5 Metric cards */}
               {STAT_METRICS.map(m => (
-                <div key={m.label} style={{ ...bCard, padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: m.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, marginBottom: 12, color: m.color }}>
+                <div key={m.label} style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: m.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, marginBottom: 12, color: m.color, border: `1px solid ${m.color}22` }}>
                     {m.icon}
                   </div>
                   <div>
@@ -1765,34 +1765,34 @@ export default function Career() {
             </div>
 
             {/* ── ROW 2: Cognitive Load Meter, Skill Radar, Skills Portfolio ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
 
               {/* Cognitive Load Meter */}
-              <div style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 14 }}>🧠</span>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Cognitive Load Meter</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 16 }}>🧠</span>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Cognitive Load Meter</p>
                   </div>
-                  <p style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>Based on today's study, sleep & stress</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>Based on today's study, sleep & stress</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
                     <CognitiveGauge value={cognitiveLoad} />
                   </div>
                 </div>
                 <div>
                   {/* Range indicators */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
                     {[['< 40', '#10b981', 'Optimal'], ['40 - 70', '#f59e0b', 'Moderate'], ['> 70', '#f43f5e', 'Burnout Risk']].map(([v, c, l]) => (
-                      <div key={l} style={{ padding: '6px 4px', borderRadius: 8, background: c + '0c', border: `1px solid ${c}22`, textAlign: 'center' }}>
-                        <p style={{ fontSize: 10, fontWeight: 700, color: c, margin: 0 }}>{v}</p>
-                        <p style={{ fontSize: 9, color: '#64748b', margin: '2px 0 0' }}>{l}</p>
+                      <div key={l} style={{ padding: '8px 6px', borderRadius: 10, background: c + '0c', border: `1px solid ${c}22`, textAlign: 'center' }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: c, margin: 0 }}>{v}</p>
+                        <p style={{ fontSize: 10, color: '#64748b', margin: '2px 0 0' }}>{l}</p>
                       </div>
                     ))}
                   </div>
                   {/* Alert box */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 8, background: '#090a0f', border: '1px solid #20222a' }}>
-                    <span style={{ fontSize: 14, color: '#3b82f6' }}>ⓘ</span>
-                    <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 10, background: '#090a0f', border: '1px solid #20222a' }}>
+                    <span style={{ fontSize: 15, color: '#3b82f6' }}>ⓘ</span>
+                    <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
                       {cognitiveLoad < 40 ? "Great! You're in a good zone to learn deeply." : cognitiveLoad < 70 ? "Manageable load. Take breaks every 45 min." : "High load! Rest before your next session."}
                     </p>
                   </div>
@@ -1800,66 +1800,66 @@ export default function Career() {
               </div>
 
               {/* Skill Radar */}
-              <div style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Skill Radar</p>
-                  <p style={{ fontSize: 11, color: '#64748b', marginBottom: 8 }}>Your overall skill distribution</p>
-                  <div style={{ height: 180, margin: '8px 0' }}>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Skill Radar</p>
+                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Your overall skill distribution</p>
+                  <div style={{ height: 210, margin: '12px 0' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart data={radarWithIdeal}>
                         <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
                         <Radar name="You" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
                         <Radar name="Ideal" dataKey="full" stroke="rgba(255,255,255,0.2)" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
                       </RadarChart>
                     </ResponsiveContainer>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ width: 12, height: 2, background: '#8b5cf6', display: 'inline-block', borderRadius: 1 }} />
-                      <span style={{ fontSize: 10, color: '#94a3b8' }}>You</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 12, height: 2.5, background: '#8b5cf6', display: 'inline-block', borderRadius: 1 }} />
+                      <span style={{ fontSize: 11, color: '#94a3b8' }}>You</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 12, height: 1, background: 'rgba(255,255,255,0.3)', display: 'inline-block', borderTop: '1px dashed rgba(255,255,255,0.3)' }} />
-                      <span style={{ fontSize: 10, color: '#94a3b8' }}>Ideal</span>
+                      <span style={{ fontSize: 11, color: '#94a3b8' }}>Ideal</span>
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setTab('roadmap')} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #20222a', background: 'transparent', color: '#cbd5e1', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
-                  View all skills <span style={{ fontSize: 12 }}>›</span>
+                <button onClick={() => setTab('roadmap')} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #20222a', background: 'transparent', color: '#cbd5e1', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
+                  View all skills <span style={{ fontSize: 13 }}>›</span>
                 </button>
               </div>
 
               {/* Skills Portfolio */}
-              <div style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 14 }}>📁</span>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Skills Portfolio</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 16 }}>📁</span>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Skills Portfolio</p>
                   </div>
-                  <p style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>Showcase your skills and progress</p>
+                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>Showcase your skills and progress</p>
                   
                   {c.skills.length > 0 ? (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '8px 0' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
                       {c.skills.map(s => (
-                        <span key={s} style={{ padding: '4px 10px', borderRadius: 6, background: '#1e293b', border: '1px solid #334155', fontSize: 11, color: '#e2e8f0', fontWeight: 500 }}>
+                        <span key={s} style={{ padding: '6px 12px', borderRadius: 8, background: '#1e293b', border: '1px solid #334155', fontSize: 12, color: '#e2e8f0', fontWeight: 500 }}>
                           {s}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '24px 16px', borderRadius: 8, border: '1px dashed #20222a', margin: '8px 0', textAlign: 'center' }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 8, border: '1px dashed #20222a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#64748b' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '32px 20px', borderRadius: 10, border: '1px dashed #20222a', margin: '12px 0', textAlign: 'center' }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, border: '1px dashed #20222a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#64748b' }}>
                         📄
                       </div>
                       <div>
-                        <p style={{ fontSize: 12, fontWeight: 600, color: '#f1f5f9', margin: '0 0 2px' }}>0 Skills Logged</p>
-                        <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Add your first skill to get started.</p>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', margin: '0 0 4px' }}>0 Skills Logged</p>
+                        <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Add your first skill to get started.</p>
                       </div>
                     </div>
                   )}
                 </div>
-                <button onClick={() => setTab('log')} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #4f46e5', background: 'transparent', color: '#a5b4fc', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
+                <button onClick={() => setTab('log')} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #4f46e5', background: 'transparent', color: '#a5b4fc', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
                   + Add Skill
                 </button>
               </div>
@@ -1867,9 +1867,9 @@ export default function Career() {
             </div>
 
             {/* ── Bottom Tip Bar ── */}
-            <div style={{ ...bCard, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
-              <span style={{ fontSize: 16 }}>💡</span>
-              <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>
+            <div style={{ ...bCard, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>💡</span>
+              <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
                 <span style={{ color: '#f1f5f9', fontWeight: 600 }}>Tip: </span>
                 Consistent small steps lead to massive growth. Log sessions regularly to track your progress.
               </p>
