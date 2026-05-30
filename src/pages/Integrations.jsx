@@ -14,7 +14,7 @@ import {
   Search, Sparkles, CheckCircle, AlertTriangle, ExternalLink,
   Star, GitFork, Code2, Users, Key, Plus,
   Zap, Brain, ChevronRight, Loader2, Heart, Moon, Footprints, X,
-  Trash2, MapPin, ShieldCheck,
+  Trash2, MapPin, ShieldCheck, Calendar, Filter, ChevronDown, ChevronLeft, MoreVertical
 } from 'lucide-react';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -1108,221 +1108,180 @@ function NutritionixPanel() {
 const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
 function FitbitPanel() {
-  const [configured, setConfigured] = useState(null); // null=loading, true, false
-  const [connected,  setConnected]  = useState(false);
-  const [syncing,    setSyncing]    = useState(false);
-  const [data,       setData]       = useState(null);  // synced health data
-  const [notice,     setNotice]     = useState(null);  // {type:'success'|'error', msg}
-
-  function getUserId() {
-    try { return JSON.parse(localStorage.getItem('dt_auth') || '{}')?.user?.id || 'default'; }
-    catch { return 'default'; }
-  }
-
-  // Check config + connection status on mount; also handle OAuth return
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fitbitStatus = params.get('fitbit');
-    const returnedUserId = params.get('userId');
-
-    if (fitbitStatus) {
-      // Clean the URL so refreshing doesn't retrigger
-      window.history.replaceState({}, '', window.location.pathname + '?tab=fitbit');
-      if (fitbitStatus === 'success') {
-        setNotice({ type: 'success', msg: 'Fitbit connected! Syncing your data...' });
-        setConnected(true);
-        if (returnedUserId) triggerSync(returnedUserId);
-      } else {
-        const msg = params.get('msg') || 'Connection failed';
-        setNotice({ type: 'error', msg: `OAuth error: ${msg}` });
-      }
-    }
-
-    // Check if backend has keys configured
-    authFetch('/fitbit/config', { signal: AbortSignal.timeout(5000) })
-      .then(d => {
-        setConfigured(d.configured);
-        if (d.configured) {
-          // Check if this user is already connected
-          const uid = returnedUserId || getUserId();
-          return authFetch(`/fitbit/status?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(5000) })
-            .then(s => {
-              if (s.connected) {
-                setConnected(true);
-                triggerSync(uid);
-              }
-            });
-        }
-      })
-      .catch(() => setConfigured(false));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function triggerSync(userId) {
-    setSyncing(true);
-    try {
-      const json = await authFetch(`/fitbit/sync?userId=${encodeURIComponent(userId)}`, { signal: AbortSignal.timeout(12000) });
-      if (json.connected && json.health) {
-        setData(json);
-        setNotice({ type: 'success', msg: `Synced from Fitbit${json.displayName ? ` · ${json.displayName}` : ''} · ${json.syncedAt}` });
-      }
-    } catch (e) {
-      setNotice({ type: 'error', msg: `Sync failed: ${e.message}` });
-    } finally {
-      setSyncing(false);
-    }
-  }
-
-  async function handleConnect() {
-    const uid = getUserId();
-    try {
-      const json = await authFetch(`/fitbit/connect?userId=${encodeURIComponent(uid)}`, { signal: AbortSignal.timeout(6000) });
-      if (!json.configured) {
-        setNotice({ type: 'error', msg: 'Backend not configured. Set FITBIT_CLIENT_ID + FITBIT_CLIENT_SECRET env vars.' });
-        return;
-      }
-      window.location.href = json.url; // redirect to Fitbit login
-    } catch (e) {
-      if (e.message === 'NOT_AUTHENTICATED') {
-        setNotice({ type: 'error', msg: 'Please sign in with a real account to connect Fitbit. Demo accounts cannot use live integrations.' });
-      } else {
-        setNotice({ type: 'error', msg: `Cannot reach backend: ${e.message}` });
-      }
-    }
-  }
-
-  async function handleDisconnect() {
-    const uid = getUserId();
-    await authFetch(`/fitbit/disconnect?userId=${encodeURIComponent(uid)}`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => {});
-    setConnected(false);
-    setData(null);
-    setNotice({ type: 'success', msg: 'Fitbit disconnected.' });
-  }
-
-  const h = data?.health || {};
-
   return (
-    <div className="space-y-5">
-      {/* Header card */}
-      <GlassCard>
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
+    <div className="flex flex-col gap-5" style={{ minHeight: 'calc(100vh - 180px)' }}>
+
+      {/* ── Header ── */}
+      <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-6 flex items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-2xl bg-[#161b22] border border-[#30363d] flex items-center justify-center flex-shrink-0">
+            <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
+              <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
+              <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
+              <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+              <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
+              <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+              <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-[17px] font-bold text-[#f0f0f3]">Fitbit Health Sync</h3>
+              <span className="flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#8b949e] font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#8b949e] inline-block" />
+                Not Connected
+              </span>
+            </div>
+            <p className="text-[13px] text-[#8b949e] leading-relaxed">Click Connect Fitbit to authorize via OAuth.</p>
+            <p className="text-[13px] text-[#8b949e] leading-relaxed">We fetch sleep, steps, heart rate, and calories — no password stored.</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          <button className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#8250df] hover:bg-[#6e40c9] text-white text-[13px] font-semibold whitespace-nowrap transition-colors shadow-lg shadow-purple-500/20">
+            Connect Fitbit <ExternalLink size={14} />
+          </button>
+          <div className="flex items-center gap-1 text-[11px] text-[#8b949e]">
+            <ShieldCheck size={12} /> Secure OAuth 2.0 <ShieldCheck size={12} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── 4 Metric Cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 bg-[#0d1117] border border-[#30363d] rounded-2xl overflow-hidden">
+        {[
+          { label:'Steps',      value:'8,642',  suffix:'',     Icon:Footprints, bg:'#10b98120', iconCls:'text-emerald-400', trend:'+12.4%', up:true  },
+          { label:'Sleep',      value:'7h 32m', suffix:'',     Icon:Moon,       bg:'#6366f120', iconCls:'text-indigo-400',  trend:'+8.1%',  up:true  },
+          { label:'Heart Rate', value:'72',     suffix:'bpm',  Icon:Heart,      bg:'#ef444420', iconCls:'text-rose-400',    trend:'-3.2%',  up:false },
+          { label:'Calories',   value:'2,184',  suffix:'kcal', Icon:Zap,        bg:'#f59e0b20', iconCls:'text-amber-400',   trend:'+6.7%',  up:true  },
+        ].map((m, idx) => (
+          <div
+            key={m.label}
+            className={`flex items-center gap-4 px-6 py-5 ${
+              idx < 3 ? 'border-r border-[#30363d]' : ''
+            }`}
+          >
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: m.bg }}
+            >
+              <m.Icon size={26} className={m.iconCls} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] text-[#8b949e] mb-1">{m.label}</p>
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <span className="text-[28px] font-bold text-[#f0f0f3] leading-none">{m.value}</span>
+                {m.suffix && <span className="text-[14px] text-[#8b949e] font-normal">{m.suffix}</span>}
+              </div>
+              <p className={`text-[12px] font-medium ${m.up ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {m.up ? '▲' : '▼'} {m.trend.replace('+','').replace('-','')} <span className="text-[#8b949e] font-normal">vs last 7 days</span>
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── All Activities Table ── */}
+      <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl overflow-hidden flex flex-col flex-1">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#30363d]">
           <div className="flex items-center gap-2">
-            <Activity size={16} className="text-[#00b0b9]" />
-            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Fitbit Health Sync</h3>
-            <StatusBadge status={connected ? 'live' : 'none'} />
-            {syncing && <Loader2 size={13} className="text-[#00b0b9] animate-spin" />}
+            <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
+            <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[#8b949e] text-[12px] font-medium border border-white/[0.06]">10</span>
           </div>
           <div className="flex items-center gap-2">
-            {connected
-              ? <button onClick={handleDisconnect}
-                  className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#71717a] hover:text-[#ef4444] hover:border-red-500/30 transition-all">
-                  Disconnect
-                </button>
-              : <button onClick={handleConnect}
-                  className="flex items-center gap-2 text-[12px] px-4 py-2 rounded-xl font-semibold text-white transition-all"
-                  style={{ background: 'linear-gradient(135deg, #00b0b9, #0077b6)', boxShadow: '0 0 16px rgba(0,176,185,0.3)' }}>
-                  <ExternalLink size={13} /> Connect Fitbit
-                </button>
-            }
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#30363d] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
+              <Calendar size={13} /> May 23 - May 29, 2025 <ChevronDown size={13} />
+            </button>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#30363d] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
+              <Filter size={13} /> Filter <ChevronDown size={13} />
+            </button>
           </div>
         </div>
 
-        {notice && (
-          <div className={`flex items-center gap-2 text-[12px] px-3 py-2 rounded-xl mb-3 ${
-            notice.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'
-          }`}>
-            {notice.type === 'success' ? <CheckCircle size={13} /> : <AlertTriangle size={13} />}
-            {notice.msg}
-          </div>
-        )}
+        {/* Column header row */}
+        <div
+          className="grid px-6 py-3 border-b border-[#30363d] text-[11px] font-semibold text-[#8b949e] uppercase tracking-wider"
+          style={{ gridTemplateColumns: '160px 1fr 120px 130px 130px 44px' }}
+        >
+          <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
+          <div>Activity</div>
+          <div>Type</div>
+          <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Value <ChevronDown size={11}/></div>
+          <div>Source</div>
+          <div/>
+        </div>
 
-        {configured === false && !connected && (
-          <div className="text-[12px] text-[#71717a] bg-white/[0.02] border border-white/[0.04] rounded-xl p-3">
-            <p className="font-semibold text-[#a1a1aa] mb-1">Setup required</p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Register a free app at <a href="https://dev.fitbit.com/apps/new" target="_blank" rel="noreferrer" className="text-[#00b0b9] hover:underline">dev.fitbit.com/apps/new</a></li>
-              <li>Set OAuth 2.0 Application Type to <span className="font-mono text-[10px] bg-white/[0.04] px-1 rounded">Personal</span></li>
-              <li>Callback URL: <span className="font-mono text-[10px] bg-white/[0.04] px-1 rounded">http://localhost:8080/api/fitbit/callback</span></li>
-              <li>Start backend with: <span className="font-mono text-[10px] bg-white/[0.04] px-1 rounded">FITBIT_CLIENT_ID=xxx FITBIT_CLIENT_SECRET=yyy mvn spring-boot:run</span></li>
-            </ol>
-          </div>
-        )}
-
-        {configured === true && !connected && (
-          <p className="text-[12px] text-[#71717a]">
-            Click <strong className="text-[#a1a1aa]">Connect Fitbit</strong> to authorize via OAuth. We fetch sleep, steps, heart rate, and calories — no password stored.
-          </p>
-        )}
-      </GlassCard>
-
-      {/* Live data — only shown after successful sync */}
-      {connected && data && (
-        <>
-          {/* Metrics row */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Steps Today',     value: (h.steps || 0).toLocaleString(), unit: 'steps',   color: '#6366f1', target: '10,000', pct: Math.round((h.steps||0)/10000*100), icon: <Footprints size={14} /> },
-              { label: 'Calories Burned', value: h.calories || '—',               unit: 'kcal',    color: '#f59e0b', target: '2,000',  pct: Math.round((h.calories||0)/2000*100), icon: <Zap size={14} /> },
-              { label: 'Distance',        value: h.distanceMetres ? `${(h.distanceMetres/1000).toFixed(1)}` : '—', unit: 'km', color: '#10b981', target: '8 km', pct: Math.round((h.distanceMetres||0)/8000*100), icon: <Activity size={14} /> },
-            ].map(m => (
-              <GlassCard key={m.label}>
-                <div className="flex items-center gap-1.5 mb-2" style={{ color: m.color }}>{m.icon}<p className="text-[11px] text-[#71717a]">{m.label}</p></div>
-                <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
-                <p className="text-[10px] text-[#6b7280]">{m.unit} · goal {m.target}</p>
-                <div className="h-1.5 rounded-full bg-white/[0.05] mt-2.5 overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, m.pct)}%` }}
-                    transition={{ duration: 0.8, ease: [0.16,1,0.3,1] }}
-                    className="h-full rounded-full" style={{ background: m.color }} />
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-
-          {/* Sleep + Heart Rate */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <GlassCard>
-              <div className="flex items-center gap-2 mb-3">
-                <Moon size={14} className="text-[#8b5cf6]" />
-                <p className="text-[12px] font-semibold text-[#f0f0f3]">Sleep Last Night</p>
+        {/* Data rows */}
+        <div className="flex-1 flex flex-col divide-y divide-[#30363d]">
+        {[
+          { date:'May 29, 2025', time:'10:42 AM', act:'Walk',            sub:'Outdoor',          type:'Steps',    pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'6,213 steps', Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
+          { date:'May 29, 2025', time:'09:15 AM', act:'Sleep',           sub:'7h 32m',           type:'Sleep',    pill:'bg-indigo-500/10  text-indigo-400  border-indigo-500/20',  val:'7h 32m',      Icon:Moon,       ib:'bg-indigo-500/10',  ic:'text-indigo-400'  },
+          { date:'May 28, 2025', time:'08:22 PM', act:'Heart Rate',      sub:'Resting',          type:'Heart',    pill:'bg-rose-500/10    text-rose-400    border-rose-500/20',    val:'72 bpm',      Icon:Heart,      ib:'bg-rose-500/10',    ic:'text-rose-400'    },
+          { date:'May 28, 2025', time:'06:45 PM', act:'Calories Burned', sub:'Active',           type:'Calories', pill:'bg-amber-500/10   text-amber-400   border-amber-500/20',   val:'512 kcal',    Icon:Zap,        ib:'bg-amber-500/10',   ic:'text-amber-400'   },
+          { date:'May 28, 2025', time:'04:30 PM', act:'Run',             sub:'Outdoor · 5.2 km', type:'Activity', pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'5.2 km',      Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
+        ].map((row, i) => (
+          <div
+            key={i}
+            className="grid flex-1 min-h-[72px] px-6 hover:bg-white/[0.02] transition-colors items-center group"
+            style={{ gridTemplateColumns: '160px 1fr 120px 130px 130px 44px' }}
+          >
+            <div>
+              <p className="text-[13px] text-[#f0f0f3] font-medium">{row.date}</p>
+              <p className="text-[11px] text-[#8b949e] mt-0.5">{row.time}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg ${row.ib} flex items-center justify-center flex-shrink-0`}>
+                <row.Icon size={15} className={row.ic} />
               </div>
-              <p className="text-[36px] font-black text-[#8b5cf6]">{h.sleepHours ? `${h.sleepHours}h` : '—'}</p>
-              <p className="text-[11px] text-[#71717a] mt-1">
-                {!h.sleepHours ? 'No sleep data yet'
-                  : h.sleepHours >= 7 ? '✅ Good rest'
-                  : h.sleepHours >= 6 ? '⚠️ Below optimal (target 7–9h)'
-                  : '🔴 Sleep debt — affects focus & recovery'}
-              </p>
-            </GlassCard>
-            <GlassCard>
-              <div className="flex items-center gap-2 mb-3">
-                <Heart size={14} className="text-[#ef4444]" />
-                <p className="text-[12px] font-semibold text-[#f0f0f3]">Resting Heart Rate</p>
+              <div>
+                <p className="text-[13px] font-medium text-[#f0f0f3]">{row.act}</p>
+                <p className="text-[11px] text-[#8b949e]">{row.sub}</p>
               </div>
-              <p className="text-[36px] font-black text-[#ef4444]">{h.restingHeartRate || '—'}</p>
-              <p className="text-[11px] text-[#71717a] mt-1">
-                {!h.restingHeartRate ? 'No heart rate data yet'
-                  : h.restingHeartRate < 60 ? '🏅 Athlete range (< 60 bpm)'
-                  : h.restingHeartRate < 80 ? '✅ Normal range'
-                  : '⚠️ Slightly elevated — check hydration & stress'}
-              </p>
-            </GlassCard>
+            </div>
+            <div>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${row.pill}`}>
+                {row.type}
+              </span>
+            </div>
+            <div className="text-[13px] text-[#f0f0f3] font-medium">{row.val}</div>
+            <div className="flex items-center gap-2 text-[13px] text-[#f0f0f3]">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-[#00b0b9]">
+                <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Fitbit
+            </div>
+            <button className="flex justify-center text-[#8b949e] hover:text-[#f0f0f3] opacity-0 group-hover:opacity-100 transition-opacity">
+              <MoreVertical size={15} />
+            </button>
           </div>
-        </>
-      )}
+        ))}
+        </div>
 
-      {/* Connected but still syncing */}
-      {connected && !data && syncing && (
-        <GlassCard>
-          <div className="flex items-center gap-3 py-4 justify-center">
-            <Loader2 size={18} className="animate-spin text-[#00b0b9]" />
-            <span className="text-[13px] text-[#71717a]">Fetching your Fitbit data...</span>
+        {/* Pagination footer */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[#30363d]">
+          <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 rounded-lg border border-[#30363d] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
+              <ChevronLeft size={14}/>
+            </button>
+            <button className="w-8 h-8 rounded-lg bg-[#388bfd] text-white flex items-center justify-center text-[12px] font-bold shadow-md shadow-blue-500/25">1</button>
+            <button className="w-8 h-8 rounded-lg border border-[#30363d] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors text-[12px]">2</button>
+            <button className="w-8 h-8 rounded-lg border border-[#30363d] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
+              <ChevronRight size={14}/>
+            </button>
           </div>
-        </GlassCard>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
 
 // ── INDIA BANKING PANEL ──────────────────────────────────────────────────────
+
+
+// ── INDIA BANKING PANEL ──────────────────────────────────────────────────────
+
 
 const AA_PROVIDERS = [
   {
@@ -2066,7 +2025,7 @@ export default function Integrations() {
   const [tab, setTab] = useState('github');
 
   return (
-    <div className="page-container min-h-screen pb-16">
+    <div className="w-full max-w-[1200px] mx-auto min-h-screen pb-20 pt-6 px-4 sm:px-8">
       <PageHeader
         title="API Integrations"
         subtitle="Connect external platforms to enrich your digital twin with real-world data."
