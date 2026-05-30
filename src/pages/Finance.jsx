@@ -712,7 +712,15 @@ export default function Finance() {
     const updated = { ...f };
     let hasUpdate = false;
     const backendRecord = { date: new Date().toISOString() };
-    if (form.income) { updated.income = parseInt(form.income); hasUpdate = true; backendRecord.amount = parseInt(form.income); backendRecord.transactionType = 'credit'; backendRecord.category = 'Income'; addTimelineEvent({ type: 'Income Updated', text: `Logged income: ₹${updated.income}`, sentiment: 'positive', domain: 'finance' }); }
+    if (form.income) {
+      updated.income = parseInt(form.income);
+      hasUpdate = true;
+      backendRecord.amount = parseInt(form.income);
+      backendRecord.transactionType = 'credit';
+      backendRecord.category = 'Income';
+      addRecords('finance', [{ date: new Date().toISOString(), amount: parseInt(form.income), category: 'Income' }]);
+      addTimelineEvent({ type: 'Income Updated', text: `Logged income: ₹${updated.income}`, sentiment: 'positive', domain: 'finance' });
+    }
     if (form.amount) {
       const amount = parseInt(form.amount);
       updated.expenses = (updated.expenses || 0) + amount;
@@ -803,53 +811,84 @@ export default function Finance() {
   ];
 
   return (
-    <div className="page-container min-h-screen pb-2 bg-mesh">
+    <div className={`page-container min-h-screen pb-2 ${tab === 'log' ? '' : 'bg-mesh'}`} style={tab === 'log' ? { backgroundColor: '#090a0f' } : {}}>
       {/* Floating live notification */}
       <AnimatePresence>
         {notification && <LiveNotification tx={notification} onDismiss={() => { setNotification(null); clearTimeout(notifTimerRef.current); }} />}
       </AnimatePresence>
 
-      {/* ── Page Header ── */}
-      <div style={{ marginBottom: 8 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Financial Intelligence</h1>
-        <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>AI-powered transaction parsing, live feed, and spending analytics.</p>
+      {/* Breadcrumbs */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
+        <span>BeyondSelf</span>
+        <span style={{ color: '#475569' }}>/</span>
+        <span style={{ color: '#ffffff' }}>Financial Health</span>
       </div>
 
-      {/* Tab bar */}
-      <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, marginTop:8, flexWrap:'wrap', gap:8}}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {tabs.map(t => {
-            const isActive = tab === t.id;
-            return (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: 12,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s ease',
-                  background: isActive ? 'rgba(139,92,246,0.85)' : 'rgba(37,37,37,0.8)',
-                  color: isActive ? '#ffffff' : '#9b9b9b',
-                  boxShadow: isActive ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
-                }}>
-                {t.sym && <span style={{ fontSize: 14 }}>{t.sym}</span>}
-                {t.label}
-                {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
-                {t.id === 'transactions' && allTxs.length > 0 && (
-                  <span style={{fontSize:9,padding:'1px 6px',borderRadius:999,background:isActive?'rgba(255,255,255,0.2)':'rgba(99,102,241,0.15)',color:isActive?'#fff':'#818cf8',fontWeight:700}}>{allTxs.length}</span>
-                )}
-              </button>
-            );
-          })}
+      {/* ── Page Header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          background: 'rgba(139, 92, 246, 0.15)',
+          color: '#8b5cf6',
+          flexShrink: 0
+        }}>
+          <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect width="18" height="13" x="3" y="6" rx="2" />
+            <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M16 14h.01" />
+          </svg>
         </div>
-        <button style={{padding:'8px 18px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, flexShrink:0}}>
-          + New Goal
-        </button>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Financial Intelligence</h1>
+        </div>
+      </div>
+      <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>AI-powered transaction parsing, live feed, and spending analytics.</p>
+
+      {/* Tab bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        marginBottom: 24,
+        gap: 24,
+        overflowX: 'auto',
+        paddingBottom: 0
+      }}>
+        {tabs.map(t => {
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                padding: '12px 4px',
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: 'pointer',
+                border: 'none',
+                background: 'none',
+                color: isActive ? '#ffffff' : '#8e929b',
+                position: 'relative',
+                transition: 'color 0.2s ease',
+                borderBottom: isActive ? '2px solid #8b5cf6' : '2px solid transparent',
+                marginBottom: -1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              {t.label}
+              {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
+              {t.id === 'transactions' && allTxs.length > 0 && (
+                <span style={{fontSize:9,padding:'1px 6px',borderRadius:999,background:isActive?'rgba(255,255,255,0.2)':'rgba(99,102,241,0.15)',color:isActive?'#fff':'#818cf8',fontWeight:700}}>{allTxs.length}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* ── OVERVIEW TAB ──────────────────────────────────────────────────── */}
@@ -1391,28 +1430,184 @@ export default function Finance() {
 
       {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
       {tab === 'log' && (
-        <GlassCard>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/[0.06] pb-4">
-            <h3 className="text-sm font-semibold">Log Financial Data</h3>
-            <div className="relative w-full md:w-auto">
-              <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" disabled={ocrLoading} title="Upload receipt image" />
-              <button className={`w-full md:w-auto text-xs px-4 py-2 rounded-xl border flex items-center justify-center gap-2 transition-all ${ocrLoading ? 'bg-blue-500/20 border-blue-500/30 text-blue-300' : 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20'}`}>
-                {ocrLoading ? <><div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> Scanning ({ocrProgress}%)...</> : <><span>📸</span> Scan Receipt (OCR)</>}
-              </button>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+          
+          {/* Form Section Header */}
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#ffffff', margin: 0 }}>Log Financial Data</h2>
+            <p style={{ fontSize: 13, color: '#8e929b', marginTop: 4, marginBottom: 0 }}>Manually add or record financial transactions.</p>
           </div>
-          <form onSubmit={handleLog} className="grid md:grid-cols-2 gap-4">
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Monthly Income</label><input type="number" value={form.income} onChange={e => setForm(p => ({ ...p, income: e.target.value }))} className="input-premium" placeholder="₹25000" /></div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Expense Category</label>
-              <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} className="input-premium">
-                <option value="food">Food & Dining</option><option value="transport">Transport</option><option value="shopping">Shopping</option>
-                <option value="subscriptions">Subscriptions</option><option value="bills">Bills & Utilities</option><option value="other">Other</option>
-              </select>
-            </div>
-            <div><label className="text-xs text-slate-400 mb-1.5 block">Amount</label><input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} className="input-premium" placeholder="₹500" /></div>
-            <div className="flex items-end"><button type="submit" className="btn-primary w-full">Save Entry ✓</button></div>
-          </form>
-        </GlassCard>
+
+          {/* Form Card */}
+          <div style={{
+            background: '#12141a',
+            border: '1px solid #20222a',
+            borderRadius: 12,
+            padding: 24,
+            width: '100%',
+          }}>
+            <form onSubmit={handleLog} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 24px' }}>
+              
+              {/* Monthly Income */}
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#8e929b', marginBottom: 8 }}>Monthly Income</label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ position: 'absolute', left: 16, color: '#8e929b', fontSize: 14 }}>₹</span>
+                  <input
+                    type="number"
+                    value={form.income}
+                    onChange={e => setForm(p => ({ ...p, income: e.target.value }))}
+                    placeholder="25000"
+                    style={{
+                      width: '100%',
+                      background: '#0a0b0e',
+                      border: '1px solid #20222a',
+                      borderRadius: 8,
+                      padding: '12px 16px 12px 32px',
+                      color: '#ffffff',
+                      fontSize: 14,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Expense Category */}
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#8e929b', marginBottom: 8 }}>Expense Category</label>
+                <select
+                  value={form.category}
+                  onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    background: '#0a0b0e',
+                    border: '1px solid #20222a',
+                    borderRadius: 8,
+                    padding: '12px 16px',
+                    color: '#ffffff',
+                    fontSize: 14,
+                    outline: 'none',
+                    appearance: 'none',
+                    backgroundImage: 'url("data:image/svg+xml;utf8,<svg fill=\'%238e929b\' height=\'24\' viewBox=\'0 0 24 24\' width=\'24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/><path d=\'M0 0h24v24H0z\' fill=\'none\'/></svg>")',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 16px center',
+                    backgroundSize: '16px'
+                  }}
+                >
+                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="food">Food & Dining</option>
+                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="transport">Transport</option>
+                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="shopping">Shopping</option>
+                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="subscriptions">Subscriptions</option>
+                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="bills">Bills & Utilities</option>
+                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="other">Other</option>
+                </select>
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#8e929b', marginBottom: 8 }}>Amount</label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ position: 'absolute', left: 16, color: '#8e929b', fontSize: 14 }}>₹</span>
+                  <input
+                    type="number"
+                    value={form.amount}
+                    onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
+                    placeholder="500"
+                    style={{
+                      width: '100%',
+                      background: '#0a0b0e',
+                      border: '1px solid #20222a',
+                      borderRadius: 8,
+                      padding: '12px 16px 12px 32px',
+                      color: '#ffffff',
+                      fontSize: 14,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Save Entry Button */}
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                <button
+                  type="submit"
+                  style={{
+                    background: '#5a3bee',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '12px 28px',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#4a2ecc'}
+                  onMouseOut={(e) => e.currentTarget.style.background = '#5a3bee'}
+                >
+                  Save Entry
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          {/* Recent Logs Card */}
+          <div style={{
+            background: '#12141a',
+            border: '1px solid #20222a',
+            borderRadius: 12,
+            padding: 24,
+            width: '100%',
+          }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', margin: '0 0 20px 0' }}>Recent Logs</h3>
+            
+            {financeRecords.length === 0 ? (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px 0',
+                textAlign: 'center',
+              }}>
+                <svg style={{ width: 40, height: 40, color: '#374151', marginBottom: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                  <rect width="14" height="18" x="5" y="3" rx="2" />
+                  <path d="M9 7h6M9 11h6M9 15h4" />
+                </svg>
+                <h4 style={{ fontSize: 16, fontWeight: 600, color: '#ffffff', margin: '0 0 6px 0' }}>No logs yet</h4>
+                <p style={{ fontSize: 13, color: '#8e929b', margin: 0 }}>You haven't added any financial logs.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {financeRecords.map((rec, idx) => (
+                  <div key={idx} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    background: '#0a0b0e',
+                    border: '1px solid #20222a',
+                    borderRadius: 8,
+                  }}>
+                    <div>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', textTransform: 'capitalize' }}>
+                        {rec.category}
+                      </span>
+                      <span style={{ fontSize: 12, color: '#8e929b', marginLeft: 12 }}>
+                        {new Date(rec.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: rec.category === 'Income' ? '#10b981' : '#f43f5e' }}>
+                      {rec.category === 'Income' ? '+' : '-'} ₹{rec.amount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
       )}
 
       {/* ── RECOMMENDATIONS TAB ───────────────────────────────────────────── */}

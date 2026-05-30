@@ -1,5 +1,7 @@
 package com.digitaltwin.backend;
 
+import com.digitaltwin.backend.entity.User;
+import com.digitaltwin.backend.repository.UserRepository;
 import com.digitaltwin.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,13 +40,25 @@ class SecurityVerificationTest {
 
     @Autowired MockMvc mvc;
     @Autowired JwtUtil jwtUtil;
+    @Autowired UserRepository userRepository;
 
     private String validToken;
 
     @BeforeEach
     void setUp() {
-        // Generate a valid signed JWT for a test user
-        validToken = jwtUtil.generateToken("test-user-001", "test@example.com");
+        // Find or create test user in DB to ensure the check existsById(userId) passes
+        User testUser = userRepository.findByEmail("test@example.com").orElse(null);
+        if (testUser == null) {
+            testUser = User.builder()
+                    .email("test@example.com")
+                    .name("Test User")
+                    .passwordHash("password")
+                    .build();
+            testUser = userRepository.save(testUser);
+        }
+
+        // Generate a valid signed JWT for the saved test user
+        validToken = jwtUtil.generateToken(testUser.getId(), testUser.getEmail());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -64,6 +78,8 @@ class SecurityVerificationTest {
     @Test
     @DisplayName("POST /api/auth/signup is accessible without token")
     void publicRoute_signup_noTokenRequired() throws Exception {
+        userRepository.findByEmail("newuser@test.com").ifPresent(u -> userRepository.delete(u));
+
         mvc.perform(post("/api/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"newuser@test.com\",\"password\":\"password123\",\"name\":\"Test\"}"))
