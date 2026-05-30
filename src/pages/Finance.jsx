@@ -162,7 +162,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
                     initial={{ width: 0 }}
                     animate={{ width: `${a.pct}%` }}
                     transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                    style={{ height: '100%', background: a.color === '#10b981' ? 'linear-gradient(90deg,#00d8b680,#10b981)' : a.color === '#f59e0b' ? '#f59e0b' : 'rgba(255,255,255,0.15)', borderRadius: 3 }}
+                    style={{ height: '100%', background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : 'rgba(255,255,255,0.15)', borderRadius: 3 }}
                   />
                 </div>
               </motion.div>
@@ -390,7 +390,7 @@ function InvestmentRoboAdvisor({ f, score }) {
                       <motion.div
                         initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                        style={{ height: '100%', borderRadius: 3, background: a.color === '#10b981' ? 'linear-gradient(90deg,#00d8b680,#10b981)' : a.color === '#f59e0b' ? '#f59e0b' : a.color === '#f43f5e' ? '#f43f5e' : '#3b82f6' }}
+                        style={{ height: '100%', borderRadius: 3, background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : a.color === '#f43f5e' ? '#f43f5e' : '#3b82f6' }}
                       />
                     </div>
                   </motion.div>
@@ -1636,16 +1636,61 @@ export default function Finance() {
         hasFinanceData ? (
           <InvestmentRoboAdvisor f={f} score={score} />
         ) : (
-          <GlassCard className="text-center py-16 border border-white/[0.06]">
-            <div className="text-5xl mb-4">📊</div>
-            <h3 className="text-[15px] font-semibold text-slate-200 mb-2">No Financial Data Yet</h3>
-            <p className="text-[13px] text-slate-400 mb-6 max-w-sm mx-auto leading-relaxed">
-              Log your income and expenses first. The Robo-Advisor then calculates your investable surplus, risk profile, portfolio allocation, India tax savings (80C/80D), and SIP projections.
+          <div style={{
+            background: '#12141a',
+            border: '1px solid #20222a',
+            borderRadius: 12,
+            padding: '80px 24px',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center'
+          }}>
+            {/* Bar chart icon */}
+            <svg style={{ width: 48, height: 48, marginBottom: 24 }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="11" width="3" height="9" rx="1.5" fill="#10b981" />
+              <rect x="10.5" y="7" width="3" height="13" rx="1.5" fill="#06b6d4" />
+              <rect x="16" y="4" width="3" height="16" rx="1.5" fill="#8b5cf6" />
+            </svg>
+
+            {/* Heading */}
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', margin: '0 0 12px 0' }}>No Financial Data Yet</h3>
+            
+            {/* Subtitle */}
+            <p style={{ fontSize: 14, color: '#8e929b', lineHeight: 1.6, marginBottom: 24, maxWidth: 500, marginInline: 'auto' }}>
+              Log your income and expenses first.<br />
+              The Robo-Advisor will calculate your investable surplus,<br />
+              risk profile, portfolio allocation, India tax savings (80C/80D),<br />
+              and SIP projections.
             </p>
-            <button onClick={() => setTab('log')} className="btn-primary px-6 py-2.5 text-sm">
-              Log Financial Data →
+
+            {/* Button */}
+            <button onClick={() => setTab('log')} style={{
+              background: 'transparent',
+              border: '1px solid #5a3bee',
+              borderRadius: 8,
+              padding: '12px 24px',
+              color: '#8b5cf6',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'background 0.2s, color 0.2s',
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(90, 59, 238, 0.1)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <rect width="14" height="18" x="5" y="3" rx="2" />
+                <path d="M9 7h6M9 11h6M9 15h4" />
+              </svg>
+              Log Financial Data
             </button>
-          </GlassCard>
+          </div>
         )
       )}
     </div>
