@@ -1349,8 +1349,29 @@ function IndiaBankingPanel() {
           )}
         </div>
         <p className="text-[12px] text-[#71717a] mt-2">
-          Powered by India's <strong className="text-[#a1a1aa]">Account Aggregator (AA) framework</strong> — RBI-regulated, consent-based open banking. Choose a provider or upload a bank statement PDF for instant AI analysis.
+          Powered by India's <strong className="text-[#a1a1aa]">Account Aggregator (AA) framework</strong> — RBI-regulated, consent-based open banking.
         </p>
+        {/* Security note */}
+        <div className="flex items-center gap-1.5 mt-2">
+          <span style={{ fontSize: 11, color: '#22c55e' }}>🔒</span>
+          <span className="text-[11px] text-emerald-400/80">Your data is encrypted and secure. Read our <span className="underline cursor-pointer">privacy policy</span></span>
+        </div>
+        {/* Connect Banking button — only on landing */}
+        {phase === 'landing' && (
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.05] flex-wrap gap-2">
+            <button
+              onClick={() => setPhase('demo')}
+              className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl font-semibold text-white transition-all"
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 0 18px rgba(16,185,129,0.25)' }}
+            >
+              <ExternalLink size={14} />
+              Connect Banking
+            </button>
+            <span className="text-[11px] text-[#71717a] flex items-center gap-1.5">
+              <span style={{ fontSize: 11 }}>🛡️</span> Secure OAuth 2.0
+            </span>
+          </div>
+        )}
       </GlassCard>
 
       {/* ── Landing ── */}
@@ -1360,55 +1381,56 @@ function IndiaBankingPanel() {
           <div className="grid sm:grid-cols-3 gap-3">
             {AA_PROVIDERS.map(p => (
               <button key={p.id} onClick={() => handleProviderClick(p)}
-                className="text-left p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.10] transition-all hover:scale-[1.01] group">
-                <div className="flex items-start justify-between mb-2">
+                className="text-left p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.12] transition-all group"
+                style={{ fontFamily: 'var(--font-primary)' }}>
+                {/* Top row: name + badge */}
+                <div className="flex items-start justify-between mb-1.5">
                   <span className="text-[14px] font-bold text-[#f0f0f3]">{p.name}</span>
                   <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0"
                     style={{ color: p.color, borderColor: p.color + '40', background: p.color + '14' }}>
                     {p.badge}
                   </span>
                 </div>
-                <p className="text-[10px] font-semibold mb-1.5" style={{ color: p.color }}>{p.subtitle}</p>
+                {/* Subtitle */}
+                <p className="text-[11px] font-semibold mb-2" style={{ color: p.color }}>{p.subtitle}</p>
+                {/* Description */}
                 <p className="text-[11px] text-[#71717a] leading-relaxed mb-3">{p.desc}</p>
+                {/* Footer: bank count + Connect */}
                 <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.05]">
-                  <span className="text-[10px] text-[#6b7280]">{p.banks}+ banks</span>
-                  <span className="text-[10px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>Connect →</span>
+                  <span className="flex items-center gap-1.5 text-[11px] text-[#6b7280]">
+                    <Landmark size={11} />
+                    {p.banks}+ banks
+                  </span>
+                  <span className="text-[11px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>
+                    Connect →
+                  </span>
                 </div>
               </button>
             ))}
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[11px] text-[#6b7280] font-medium">or upload bank statement PDF directly</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
-          </div>
-
-          {/* PDF Upload */}
+          {/* PDF Upload card — compact row style */}
           <GlassCard>
-            <div
-              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) processStatement(f); }}
-              onClick={() => fileRef.current?.click()}
-              className={`rounded-2xl border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-3 p-8 ${
-                dragOver ? 'border-emerald-500/50 bg-emerald-500/[0.04]' : 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.03]'
-              }`}
-            >
-              <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
-                onChange={e => e.target.files[0] && processStatement(e.target.files[0])} />
-              <span className="text-3xl">🏦</span>
-              <div className="text-center">
-                <p className="text-[13px] font-semibold text-[#f0f0f3] mb-1">Drop your bank statement PDF</p>
-                <p className="text-[11px] text-[#71717a]">AI extracts & categorises all transactions instantly</p>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                style={{ background: 'rgba(99,102,241,0.10)', border: '1px solid rgba(99,102,241,0.20)' }}>
+                📄
               </div>
-              <div className="flex flex-wrap justify-center gap-1.5 mt-1">
-                {INDIA_BANKS.slice(0, 9).map(b => (
-                  <span key={b} className="text-[9px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[#71717a]">{b}</span>
-                ))}
+              <div className="flex-1">
+                <p className="text-[13px] font-semibold text-[#f0f0f3]">Upload bank statement PDF</p>
+                <p className="text-[11px] text-[#71717a]">AI extracts &amp; categorises all transactions instantly</p>
               </div>
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="flex items-center gap-2 text-[12px] px-4 py-2 rounded-xl font-semibold transition-all hover:opacity-90 flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#f0f0f3' }}
+              >
+                ↑ Upload PDF
+              </button>
             </div>
+            <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
+              onChange={e => e.target.files[0] && processStatement(e.target.files[0])} />
+            <p className="text-[11px] text-[#6b7280] text-right">Supports PDF up to 25MB</p>
             {error && (
               <div className="mt-3 flex items-center gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2">
                 <AlertTriangle size={13} /> {error}
@@ -1416,10 +1438,30 @@ function IndiaBankingPanel() {
             )}
           </GlassCard>
 
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-[11px] text-[#6b7280] font-medium">or view demo data</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+
+          {/* View Demo Data button */}
           <button onClick={() => setPhase('demo')}
-            className="w-full text-[12px] py-2.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] hover:bg-white/[0.02] transition-all">
+            className="w-full flex items-center justify-center gap-2 text-[12px] py-2.5 rounded-xl border border-white/[0.08] text-[#a1a1aa] hover:text-white hover:bg-white/[0.03] transition-all font-semibold">
+            <span style={{ fontSize: 14 }}>📊</span>
             View Demo Data Instead
           </button>
+
+          {/* Privacy footer */}
+          <div className="flex items-center justify-between px-1 flex-wrap gap-2">
+            <span className="flex items-center gap-2 text-[11px] text-[#64748b]">
+              <span>🛡️</span>
+              We never store your banking credentials. You're always in control.
+            </span>
+            <button className="text-[11px] text-[#64748b] hover:text-[#a1a1aa] flex items-center gap-1 transition-colors">
+              Learn more about AA framework <ExternalLink size={10} />
+            </button>
+          </div>
         </motion.div>
       )}
 
