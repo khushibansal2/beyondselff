@@ -1650,29 +1650,57 @@ export default function Career() {
         {impactSession && <TwinImpactFeed session={impactSession} onDone={() => { setImpactSession(null); setTab('history'); }} />}
       </AnimatePresence>
 
+      {/* ── Breadcrumbs ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b', marginBottom: 4 }}>
+        <span>BeyondSelf</span>
+        <span>/</span>
+        <span style={{ color: '#94a3b8' }}>Career &amp; Growth</span>
+      </div>
+
       {/* ── Page Header ── */}
       <div style={{ marginBottom: 10 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 6 }}>
+          Career &amp; Growth 📈
+        </h1>
         <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Study smarter — every session builds your digital twin.</p>
       </div>
 
-      {/* ── Tab Bar — Finance style ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, marginTop: 8, flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px', background: 'rgba(13,17,28,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
-          {tabs.map(t => (
+      {/* ── Tab Bar — Flat UI style ── */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12, marginTop: 8 }}>
+        {tabs.map(t => {
+          const tabIcons = {
+            brain: '🧠',
+            jobs: '💼',
+            intelligence: '🌀',
+            log: '⚡',
+            history: '📖',
+            recommendations: '🤖',
+            roadmap: '🎓',
+            resume: '📄'
+          };
+          const icon = tabIcons[t.id] || '';
+          const isActive = tab === t.id;
+          return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              style={{ padding: '7px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s',
-                background: tab === t.id ? '#6366f1' : 'transparent',
-                color: tab === t.id ? '#fff' : '#64748b', border: 'none', cursor: 'pointer',
-                boxShadow: tab === t.id ? '0 2px 10px rgba(99,102,241,0.3)' : 'none' }}>
-              {t.label}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.15s',
+                background: isActive ? '#4f46e5' : '#12141a',
+                color: isActive ? '#ffffff' : '#94a3b8',
+                border: isActive ? '1px solid #4f46e5' : '1px solid #20222a',
+                cursor: 'pointer'
+              }}>
+              <span>{icon}</span>
+              <span>{t.label}</span>
             </button>
-          ))}
-        </div>
-        <button onClick={() => setTab('log')}
-          style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          + Log Session
-        </button>
+          );
+        })}
       </div>
 
       {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
