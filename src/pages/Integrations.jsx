@@ -1389,14 +1389,14 @@ function IndiaBankingPanel() {
       {phase === 'landing' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
-          {/* 3-column provider cards */}
-          <div className="grid grid-cols-3 gap-0 rounded-2xl overflow-hidden border border-white/[0.07]">
-            {AA_PROVIDERS.map((p, idx) => (
+          {/* 3-column provider cards — individual bordered cards */}
+          <div className="grid grid-cols-3 gap-3">
+            {AA_PROVIDERS.map(p => (
               <button key={p.id} onClick={() => handleProviderClick(p)}
-                className={`text-left p-5 bg-white/[0.01] hover:bg-white/[0.03] transition-all group flex flex-col ${idx < AA_PROVIDERS.length - 1 ? 'border-r border-white/[0.07]' : ''}`}>
+                className="text-left p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all group flex flex-col">
                 {/* Name + badge row */}
                 <div className="flex items-start justify-between mb-2">
-                  <span className="text-[16px] font-bold text-[#f0f0f3]">{p.name}</span>
+                  <span className="text-[15px] font-bold text-[#f0f0f3]">{p.name}</span>
                   <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border flex-shrink-0 ml-2"
                     style={{ color: p.color, borderColor: p.color + '50', background: p.color + '18' }}>
                     {p.badge}
@@ -1405,7 +1405,7 @@ function IndiaBankingPanel() {
                 {/* Subtitle */}
                 <p className="text-[12px] font-semibold mb-3" style={{ color: p.color }}>{p.subtitle}</p>
                 {/* Description */}
-                <p className="text-[12px] text-[#71717a] leading-relaxed flex-1 mb-4">{p.desc}</p>
+                <p className="text-[12px] text-[#71717a] leading-relaxed flex-1 mb-5">{p.desc}</p>
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                   <span className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
