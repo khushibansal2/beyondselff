@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { analyzeDocument, hasApiKey, saveApiKey, getDemoMealResult } from '../services/visionService';
 import { authFetch } from '../services/backendApi';
-import { Upload as UploadIcon, FileText, X, Key, CheckCircle, Scan } from 'lucide-react';
+import { Upload as UploadIcon, FileText, X, Key, CheckCircle, Scan, ShieldCheck, ChevronRight, Clock, Link as LinkIcon } from 'lucide-react';
 import { SiGithub, SiLeetcode, SiNotion, SiRazorpay, SiGooglefit, SiGooglecalendar } from 'react-icons/si';
 
 const CARD = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
@@ -15,15 +15,6 @@ const fileTypes = [
   { type: 'xlsx', label: 'Excel Workbook', icon: '📗', desc: 'Import financial statements, course records', accept: '.xlsx,.xls' },
   { type: 'pdf', label: 'PDF Document', icon: '📄', desc: 'Import bank statements, medical reports, resumes', accept: '.pdf' },
   { type: 'json', label: 'JSON Data', icon: '🔧', desc: 'Import from other fitness/finance apps', accept: '.json' },
-];
-
-const mockApiSources = [
-  { name: 'Google Fit',       IconComp: SiGooglefit,      iconBg: '#fff',     iconColor: '#EA4335', desc: 'Sync steps, heart rate, workouts, sleep data' },
-  { name: 'Razorpay / UPI',  IconComp: SiRazorpay,       iconBg: '#fff',     iconColor: '#3395FF', desc: 'Sync transaction history and spending patterns' },
-  { name: 'GitHub',           IconComp: SiGithub,         iconBg: '#161b22',  iconColor: '#fff',    desc: 'Sync coding activity, contributions, repositories' },
-  { name: 'LeetCode',         IconComp: SiLeetcode,       iconBg: '#fff',     iconColor: '#FFA116', desc: 'Sync DSA stats and problem-solving history' },
-  { name: 'Google Calendar',  IconComp: SiGooglecalendar, iconBg: '#fff',     iconColor: '#4285F4', desc: 'Sync schedules, deadlines, productivity blocks' },
-  { name: 'Notion / Todoist', IconComp: SiNotion,         iconBg: '#fff',     iconColor: '#000',    desc: 'Sync task completion, goals, productivity data' },
 ];
 
 const DOC_TYPES = {
@@ -104,45 +95,45 @@ function SmartDocScanner({ onLogData }) {
   };
 
   return (
-    <div style={{ ...CARD, padding:'20px', marginBottom:12 }}>
+    <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-            <Scan size={18} className="text-violet-400" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[#8250df]/10 border border-[#8250df]/20 flex items-center justify-center">
+            <Scan size={22} className="text-[#b392f0]" />
           </div>
           <div>
-            <h3 className="text-[15px] font-semibold text-[#f0f0f3]">Smart Document Scanner</h3>
-            <p className="text-[12px] text-[#71717a]">Scan salary slips, hospital bills, lab reports & more</p>
+            <h3 className="text-[16px] font-bold text-[#f0f0f3]">Smart Document Scanner</h3>
+            <p className="text-[13px] text-[#8b949e]">Scan salary slips, bills, hospital reports and more</p>
           </div>
         </div>
         <button
           onClick={() => setShowFormats(p => !p)}
-          className="flex items-center gap-1.5 text-[12px] px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#94a3b8] font-medium transition-all hover:border-white/[0.14] hover:text-[#f0f0f3]"
+          className="flex items-center gap-1.5 text-[13px] px-4 py-2 rounded-xl border border-[#30363d] bg-[#21262d] text-[#c9d1d9] font-medium transition-colors hover:text-white hover:bg-[#30363d]"
         >
-          See supported formats {showFormats ? '▾' : '▸'}
+          See supported formats <span className="text-[10px] ml-1">{showFormats ? '▼' : '▶'}</span>
         </button>
       </div>
 
       {/* Supported doc types row */}
       {showFormats && (
-        <div className="flex flex-wrap gap-2 mb-5">
+        <div className="flex flex-wrap gap-2.5 mb-6">
           {Object.entries(DOC_TYPES).filter(([k]) => k !== 'unknown').map(([k, v]) => (
-            <span key={k} className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#71717a] font-medium">
-              <span>{v.icon}</span>{v.label}
+            <span key={k} className="flex items-center gap-1.5 text-[12px] px-3.5 py-1.5 rounded-full bg-[#21262d] border border-[#30363d] text-[#c9d1d9] font-medium">
+              <span>{v.icon}</span> {v.label}
             </span>
           ))}
-          <span className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[#71717a] font-medium">+ More</span>
+          <span className="flex items-center gap-1.5 text-[12px] px-3.5 py-1.5 rounded-full bg-[#21262d] border border-[#30363d] text-[#c9d1d9] font-medium">+ More</span>
         </div>
       )}
 
       <AnimatePresence>
         {showKeyPanel && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="mb-5 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] space-y-3">
-              <p className="text-[11px] text-[#71717a]">Enter your Groq API key from <span className="text-amber-400 font-medium">console.groq.com</span></p>
+            <div className="mb-6 p-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] space-y-3">
+              <p className="text-[12px] text-[#8b949e]">Enter your Groq API key from <span className="text-amber-400 font-medium">console.groq.com</span></p>
               <div className="flex gap-2">
-                <input type="password" value={keyInput} onChange={e => setKeyInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveKey()} placeholder="gsk_..." className="input-premium flex-1 font-mono text-[12px]" />
-                <button onClick={handleSaveKey} disabled={!keyInput.trim()} className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[12px] font-medium disabled:opacity-40 transition-all">Save</button>
+                <input type="password" value={keyInput} onChange={e => setKeyInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveKey()} placeholder="gsk_..." className="input-premium flex-1 font-mono text-[13px]" />
+                <button onClick={handleSaveKey} disabled={!keyInput.trim()} className="px-5 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[13px] font-medium disabled:opacity-40 transition-all hover:bg-amber-500/30">Save</button>
               </div>
             </div>
           </motion.div>
@@ -155,33 +146,33 @@ function SmartDocScanner({ onLogData }) {
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !preview && fileRef.current?.click()}
-        className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden ${preview ? 'border-white/[0.06] cursor-default' : `cursor-pointer hover:border-white/[0.14] ${dragOver ? 'border-violet-500/50 bg-violet-500/[0.04]' : 'border-white/[0.08] bg-white/[0.02]'}`}`}
-        style={{ minHeight: preview ? 'auto' : '160px' }}
+        className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden bg-[#0d1117] flex flex-col items-center justify-center ${preview ? 'border-[#30363d] cursor-default' : `cursor-pointer ${dragOver ? 'border-[#8250df] bg-[#8250df]/[0.04]' : 'border-[#30363d] hover:border-[#8b949e]'}`}`}
+        style={{ minHeight: preview ? 'auto' : '220px' }}
       >
         <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { if (e.target.files[0]) processFile(e.target.files[0]); e.target.value = ''; }} />
 
         {!preview ? (
-          <div className="flex flex-col items-center justify-center gap-3 p-8">
-            <div style={{ width:56, height:56, borderRadius:'50%', background:'linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.25))', border:'1px solid rgba(99,102,241,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <UploadIcon size={24} style={{ color:'#818cf8' }} />
+          <div className="flex flex-col items-center justify-center gap-4 p-8">
+            <div className="w-14 h-14 rounded-full bg-[#161b22] border border-[#30363d] shadow-lg shadow-indigo-500/10 flex items-center justify-center">
+              <UploadIcon size={24} className="text-[#b392f0]" />
             </div>
             <div className="text-center">
-              <p className="text-[13px] font-medium text-[#a1a1aa]">Drop document image here or click to browse</p>
-              <p className="text-[11px] text-[#71717a] mt-1">Take a photo on mobile • Salary slips, bills, lab reports & more</p>
+              <p className="text-[15px] font-bold text-[#f0f0f3]">Drop document image here or click to browse</p>
+              <p className="text-[13px] text-[#8b949e] mt-1.5">Take a photo on mobile • Salary slips, bills, lab reports & more</p>
             </div>
           </div>
         ) : (
-          <div className="relative">
-            <img src={preview} alt="document" className="w-full max-h-64 object-contain rounded-2xl" />
+          <div className="relative w-full">
+            <img src={preview} alt="document" className="w-full max-h-[300px] object-contain rounded-2xl" />
             {scanning && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl" style={{ background: 'rgba(9,9,11,0.8)', backdropFilter: 'blur(8px)' }}>
-                <div className="w-10 h-10 rounded-full border-2 border-violet-400 border-t-transparent animate-spin" />
-                <p className="text-[13px] text-violet-300 font-medium">Reading document with AI…</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl" style={{ background: 'rgba(13,17,23,0.8)', backdropFilter: 'blur(8px)' }}>
+                <div className="w-12 h-12 rounded-full border-4 border-[#8250df] border-t-transparent animate-spin" />
+                <p className="text-[14px] text-[#f0f0f3] font-bold mt-2">Reading document with AI…</p>
               </div>
             )}
             {!scanning && (
-              <button onClick={e => { e.stopPropagation(); reset(); }} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center hover:bg-black/80 transition-all">
-                <X size={12} className="text-white" />
+              <button onClick={e => { e.stopPropagation(); reset(); }} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#161b22] border border-[#30363d] shadow-lg flex items-center justify-center hover:bg-[#30363d] transition-colors">
+                <X size={14} className="text-white" />
               </button>
             )}
           </div>
@@ -189,7 +180,7 @@ function SmartDocScanner({ onLogData }) {
       </div>
 
       {error && (
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-3 rounded-xl border border-red-500/20 bg-red-500/[0.04] text-[12px] text-red-400">
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-5 p-4 rounded-xl border border-red-500/20 bg-red-500/[0.04] text-[13px] text-red-400 font-medium">
           {error}
         </motion.div>
       )}
@@ -197,52 +188,52 @@ function SmartDocScanner({ onLogData }) {
       {/* Results */}
       <AnimatePresence>
         {result && !scanning && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }} className="mt-5 space-y-4">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }} className="mt-6 space-y-4">
             {isDemo && (
-              <div className="px-4 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] flex items-center gap-2.5">
-                <span className="text-amber-400 text-sm">⚠️</span>
-                <p className="text-[11px] text-amber-300"><span className="font-semibold">Demo mode</span> — API quota exceeded. Get a free key at console.groq.com</p>
+              <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] flex items-center gap-3">
+                <span className="text-amber-400 text-lg">⚠️</span>
+                <p className="text-[12px] text-amber-300"><span className="font-bold text-[13px]">Demo mode</span> — API quota exceeded. Get a free key at console.groq.com</p>
               </div>
             )}
 
             {/* Doc type header */}
-            <div className="flex items-center justify-between p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{meta.icon}</span>
+            <div className="flex items-center justify-between p-5 rounded-2xl border border-[#30363d] bg-[#0d1117]">
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">{meta.icon}</span>
                 <div>
-                  <p className="text-[13px] font-semibold text-[#f0f0f3]">{meta.label} Detected</p>
-                  <p className="text-[11px] text-[#71717a] mt-0.5">{result.summary}</p>
+                  <p className="text-[15px] font-bold text-[#f0f0f3]">{meta.label} Detected</p>
+                  <p className="text-[13px] text-[#8b949e] mt-0.5">{result.summary}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[11px] px-2.5 py-1 rounded-lg font-semibold" style={{ color: meta.color, background: `${meta.color}15` }}>
+                <span className="text-[12px] px-3 py-1 rounded-lg font-bold border" style={{ color: meta.color, background: `${meta.color}15`, borderColor: `${meta.color}30` }}>
                   {result.confidence}% confident
                 </span>
               </div>
             </div>
 
             {/* Extracted fields */}
-            <div className="grid sm:grid-cols-2 gap-2.5">
+            <div className="grid sm:grid-cols-2 gap-3">
               {result.fields?.map((f, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                  <span className="text-[11px] text-[#71717a] font-medium">{f.label}</span>
-                  <span className="text-[12px] font-semibold tabular-nums" style={{ color: categoryColor(f.category) }}>{f.value}</span>
+                  className="flex items-center justify-between p-4 rounded-xl border border-[#30363d] bg-[#0d1117]">
+                  <span className="text-[12px] text-[#8b949e] font-semibold">{f.label}</span>
+                  <span className="text-[13px] font-bold tabular-nums" style={{ color: categoryColor(f.category) }}>{f.value}</span>
                 </motion.div>
               ))}
             </div>
 
             {/* Log button */}
             {result.logTo !== 'none' && result.autoFill && (
-              <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-white/[0.04]">
+              <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-[#30363d]">
                 <button
                   onClick={() => { onLogData(result); reset(); }}
-                  className="btn-primary flex-1"
+                  className="flex-1 px-5 py-3 rounded-xl border text-[14px] font-bold shadow-lg transition-all hover:brightness-110"
                   style={{ background: `linear-gradient(135deg, ${meta.color}30, ${meta.color}15)`, borderColor: `${meta.color}40`, color: meta.color }}
                 >
                   {meta.logLabel}
                 </button>
-                <button onClick={() => fileRef.current?.click()} className="flex-1 px-5 py-2.5 rounded-xl border border-white/[0.08] text-[13px] font-medium text-[#a1a1aa] hover:text-[#f0f0f3] hover:border-white/[0.14] transition-all">
+                <button onClick={() => fileRef.current?.click()} className="flex-1 px-5 py-3 rounded-xl border border-[#30363d] bg-[#21262d] text-[14px] font-bold text-[#c9d1d9] hover:text-white hover:bg-[#30363d] transition-colors">
                   Scan Another
                 </button>
               </div>
@@ -261,10 +252,7 @@ export default function Upload() {
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [connectedApis, setConnectedApis] = useState(new Set());
   const [importHistory, setImportHistory] = useState([]);
-  const [githubModal, setGithubModal] = useState(false);
-  const [githubUsername, setGithubUsername] = useState('');
 
   const fetchHistory = async () => {
     if (!user || !token) return;
@@ -389,51 +377,6 @@ export default function Upload() {
     fetchHistory(); // Refresh history table
   };
 
-  const submitGithub = async (e) => {
-    e.preventDefault();
-    setGithubModal(false);
-    if (!githubUsername) return;
-    setImporting(true);
-    try {
-      showToast(`Syncing with GitHub...`, 'info');
-      const data = await authFetch(`/sync/github?githubUsername=${githubUsername}`, { 
-        method: 'POST'
-      });
-      
-      setConnectedApis(prev => new Set(prev).add('GitHub'));
-      showToast(`Synced ${data.repos} repos and ${data.commits} commits from GitHub!`, 'success');
-      fetchHistory();
-      
-      setUserData({
-        health,
-        finance,
-        career: { ...career, projectsCompleted: (career.projectsCompleted || 0) + Math.floor(data.repos / 2) },
-        timeline: [{ type: 'positive', domain: 'career', message: `Synced GitHub: ${data.repos} repos`, date: new Date().toISOString() }, ...timeline],
-        goals: goals
-      }, 'imported');
-    } catch (err) {
-      showToast(`Failed to sync GitHub: ${err.message}`, 'error');
-    } finally {
-      setImporting(false);
-      setGithubUsername('');
-    }
-  };
-
-  const toggleApi = async (name) => {
-    if (name === 'GitHub' && !connectedApis.has(name)) {
-      if (importing) return;
-      setGithubModal(true);
-      return;
-    }
-
-    setConnectedApis(prev => {
-      const next = new Set(prev);
-      if (next.has(name)) { next.delete(name); showToast(`Disconnected from ${name}`, 'info'); }
-      else { next.add(name); showToast(`Connected to ${name}!`, 'success'); }
-      return next;
-    });
-  };
-
   const handleDocLog = (result) => {
     const fill = result.autoFill || {};
     const type = result.docType;
@@ -465,52 +408,37 @@ export default function Upload() {
   ];
 
   return (
-    <div style={{ padding:'20px 24px 80px', minHeight:'100vh' }}>
-
+    <div className="w-full max-w-[1200px] mx-auto min-h-screen pb-20 pt-6 px-4 sm:px-8 flex flex-col gap-8">
       {/* ── Header ── */}
-      <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:14 }}>
-        <div style={{ width:56, height:56, borderRadius:14, background:'linear-gradient(135deg,#6366f1,#4f46e5)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-          <UploadIcon size={24} style={{color:'#fff'}}/>
+      <div className="flex items-center gap-5">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
+          <UploadIcon size={28} className="text-white" />
         </div>
         <div>
-          <h1 style={{ fontSize:20, fontWeight:800, color:'#f1f5f9', margin:0 }}>Data Import Center</h1>
-          <p style={{ fontSize:12, color:'#64748b', marginTop:3 }}>Upload files or connect apps to feed your Digital Twin with real data.</p>
+          <h1 className="text-[24px] font-bold text-[#f0f0f3] leading-tight">Data Import Center</h1>
+          <p className="text-[14px] text-[#8b949e] mt-1">Upload files or connect apps to feed your Digital Twin with real data.</p>
         </div>
       </div>
 
-      {/* ── Security bar ── */}
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px', marginBottom:14, borderRadius:10, background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:14 }}>🛡️</span>
-          <span style={{ fontSize:12, color:'#94a3b8' }}>Your data is secure</span>
-          <span style={{ fontSize:12, color:'rgba(255,255,255,0.15)' }}>•</span>
-          <span style={{ fontSize:12, color:'#10b981' }}>End-to-end encrypted</span>
-          <span style={{ fontSize:12, color:'rgba(255,255,255,0.15)' }}>•</span>
-          <span style={{ fontSize:12, color:'#10b981' }}>Private to you only</span>
-          <span style={{ fontSize:12, color:'rgba(255,255,255,0.15)' }}>•</span>
-          <span style={{ fontSize:12, color:'#10b981' }}>GDPR compliant</span>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 12px', borderRadius:999, background:'rgba(16,185,129,0.12)', border:'1px solid rgba(16,185,129,0.25)' }}>
-          <CheckCircle size={12} style={{color:'#10b981'}}/>
-          <span style={{ fontSize:12, fontWeight:600, color:'#10b981' }}>AI Ready</span>
-        </div>
-      </div>
+
 
       {/* ── Smart Document Scanner ── */}
       <SmartDocScanner onLogData={handleDocLog} />
 
       {/* ── Upload File ── */}
-      <div style={{ ...sCard, padding:'20px', marginBottom:12 }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ width:36, height:36, borderRadius:9, background:'rgba(99,102,241,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>📄</div>
+      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-[#58a6ff]/10 flex items-center justify-center flex-shrink-0">
+              <FileText size={20} className="text-[#58a6ff]" />
+            </div>
             <div>
-              <p style={{ fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:2 }}>Upload File</p>
-              <p style={{ fontSize:12, color:'#64748b' }}>Supports CSV, Excel, PDF, JSON & more</p>
+              <p className="text-[16px] font-bold text-[#f0f0f3]">Upload File</p>
+              <p className="text-[13px] text-[#8b949e] mt-0.5">Supports CSV, Excel, PDF, JSON & more</p>
             </div>
           </div>
           <button onClick={() => document.getElementById('file-input-main').click()}
-            style={{ padding:'8px 18px', borderRadius:9, border:'1px solid rgba(255,255,255,0.12)', background:'rgba(255,255,255,0.05)', color:'#f1f5f9', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+            className="px-5 py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] hover:bg-[#30363d] text-[#f0f0f3] text-[13px] font-bold transition-colors">
             Browse files
           </button>
         </div>
@@ -518,30 +446,27 @@ export default function Upload() {
           onChange={e => handleFile(e.target.files[0])} />
 
         {/* Format cards */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:10 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {FILE_FORMATS.map(ft => (
             <div key={ft.type}
-              style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', borderRadius:10, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.06)', cursor:'pointer' }}
-              onClick={() => document.getElementById('file-input-main').click()}
-              onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.04)'}
-              onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}>
-              <div style={{ width:36, height:36, borderRadius:8, background:ft.iconBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:ft.type==='json'?11:18, fontWeight:ft.type==='json'?700:'normal', color:ft.type==='json'?'#818cf8':'inherit', flexShrink:0 }}>
-                {ft.icon}
+              className="flex items-center gap-4 p-4 rounded-xl bg-[#0d1117] border border-[#30363d] hover:border-[#8b949e] cursor-pointer transition-colors group"
+              onClick={() => document.getElementById('file-input-main').click()}>
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-[20px]" style={{ background: ft.iconBg }}>
+                {ft.type === 'json' ? <span className="text-[#8250df] font-bold text-[15px]">{'</>'}</span> : ft.icon}
               </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ fontSize:12, fontWeight:600, color:'#f1f5f9', marginBottom:2 }}>{ft.label}</p>
-                <p style={{ fontSize:10, color:'#64748b', lineHeight:1.4 }}>{ft.desc}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-bold text-[#f0f0f3] mb-0.5 truncate">{ft.label}</p>
+                <p className="text-[12px] text-[#8b949e] leading-snug line-clamp-2">{ft.desc}</p>
               </div>
-              <span style={{ fontSize:16, color:'#475569', flexShrink:0 }}>›</span>
+              <ChevronRight size={18} className="text-[#8b949e] group-hover:text-[#f0f0f3] flex-shrink-0 transition-colors" />
             </div>
           ))}
         </div>
 
         {uploading && (
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginTop:12, padding:'10px 14px', borderRadius:8, background:'rgba(99,102,241,0.08)', border:'1px solid rgba(99,102,241,0.2)' }}>
-            <motion.div animate={{ rotate:360 }} transition={{ duration:1, repeat:Infinity, ease:'linear' }}
-              style={{ width:16, height:16, border:'2px solid rgba(99,102,241,0.3)', borderTopColor:'#6366f1', borderRadius:'50%' }}/>
-            <p style={{ fontSize:12, color:'#818cf8' }}>Parsing {uploadedFile?.name}...</p>
+          <div className="flex items-center gap-3 mt-5 p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+            <div className="w-5 h-5 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" />
+            <p className="text-[13px] font-medium text-indigo-300">Parsing {uploadedFile?.name}...</p>
           </div>
         )}
       </div>
@@ -549,46 +474,46 @@ export default function Upload() {
       {/* ── File Preview ── */}
       <AnimatePresence>
         {preview && (
-          <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-16 }} style={{ marginBottom:12 }}>
-            <div style={{ ...sCard, padding:'20px', border:'1px solid rgba(99,102,241,0.25)' }}>
-              <p style={{ fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:14 }}>📋 Preview: {preview.name}</p>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:14 }}>
-                {[['Records Found', preview.records, '#3b82f6'],['Columns', preview.columns.length, '#8b5cf6'],['File Size', preview.size, '#10b981']].map(([l,v,c]) => (
-                  <div key={l} style={{ padding:'12px', borderRadius:10, background:'rgba(255,255,255,0.02)', textAlign:'center' }}>
-                    <p style={{ fontSize:18, fontWeight:700, color:c, marginBottom:3 }}>{v}</p>
-                    <p style={{ fontSize:10, color:'#64748b' }}>{l}</p>
+          <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-16 }}>
+            <div className="bg-[#161b22] p-6 rounded-2xl border border-indigo-500/30">
+              <p className="text-[16px] font-bold text-[#f0f0f3] mb-5">📋 Preview: {preview.name}</p>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                {[['Records Found', preview.records, 'text-blue-400'],['Columns', preview.columns.length, 'text-purple-400'],['File Size', preview.size, 'text-emerald-400']].map(([l,v,c]) => (
+                  <div key={l} className="p-4 rounded-xl bg-[#0d1117] border border-[#30363d] text-center">
+                    <p className={`text-[20px] font-bold mb-1 ${c}`}>{v}</p>
+                    <p className="text-[12px] text-[#8b949e] font-medium">{l}</p>
                   </div>
                 ))}
               </div>
-              <div style={{ overflowX:'auto', marginBottom:14 }}>
+              <div className="overflow-x-auto mb-6 rounded-xl border border-[#30363d]">
                 {preview.sampleRows?.length > 0 ? (
-                  <table style={{ width:'100%', fontSize:11, borderCollapse:'collapse' }}>
+                  <table className="w-full text-left border-collapse bg-[#0d1117]">
                     <thead>
-                      <tr style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                      <tr className="border-b border-[#30363d]">
                         {Object.keys(preview.sampleRows[0]).map(col => (
-                          <th key={col} style={{ textAlign:'left', padding:'6px 10px', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', fontWeight:600 }}>{col}</th>
+                          <th key={col} className="p-3 text-[11px] font-bold text-[#8b949e] uppercase tracking-wider">{col}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-[#30363d]">
                       {preview.sampleRows.map((row, i) => (
-                        <tr key={i} style={{ borderBottom:'1px solid rgba(255,255,255,0.03)' }}>
+                        <tr key={i} className="hover:bg-white/[0.02]">
                           {Object.values(row).map((val, j) => (
-                            <td key={j} style={{ padding:'6px 10px', color:'#94a3b8' }}>{val}</td>
+                            <td key={j} className="p-3 text-[13px] text-[#c9d1d9] truncate max-w-[200px]">{val}</td>
                           ))}
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                ) : <p style={{ fontSize:12, color:'#64748b', textAlign:'center', padding:'12px 0' }}>No readable data found.</p>}
+                ) : <p className="text-[13px] text-[#8b949e] text-center p-6 bg-[#0d1117]">No readable data found.</p>}
               </div>
-              <div style={{ display:'flex', gap:10 }}>
+              <div className="flex gap-4">
                 <button disabled={importing||uploading} onClick={confirmImport}
-                  style={{ flex:1, padding:'10px 0', borderRadius:9, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:(importing||uploading)?0.5:1 }}>
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white text-[14px] font-bold disabled:opacity-50 transition-all">
                   Import {preview.records} Records ✓
                 </button>
                 <button disabled={importing||uploading} onClick={() => { setPreview(null); setUploadedFile(null); }}
-                  style={{ padding:'10px 20px', borderRadius:9, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                  className="px-6 py-3 rounded-xl border border-[#30363d] bg-[#21262d] text-[#c9d1d9] hover:text-white hover:bg-[#30363d] text-[14px] font-bold transition-all">
                   Cancel
                 </button>
               </div>
@@ -597,70 +522,42 @@ export default function Upload() {
         )}
       </AnimatePresence>
 
-      {/* ── Connect Apps ── */}
-      <div style={{ ...sCard, padding:'20px', marginBottom:12 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
-          <span style={{ fontSize:15 }}>🔗</span>
-          <div>
-            <p style={{ fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:2 }}>Connect Apps</p>
-            <p style={{ fontSize:12, color:'#64748b' }}>Sync data securely from your favorite tools</p>
-          </div>
-        </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
-          {mockApiSources.map(api => {
-            const connected = connectedApis.has(api.name);
-            return (
-              <motion.div key={api.name} whileHover={{ scale:1.01 }}
-                style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 16px', borderRadius:12, border:`1px solid ${connected ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.06)'}`, background: connected ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.02)' }}>
-                <div style={{ width:44, height:44, borderRadius:10, background:api.iconBg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <api.IconComp size={24} color={api.iconColor} />
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:13, fontWeight:600, color:'#f1f5f9', marginBottom:3 }}>{api.name}</p>
-                  <p style={{ fontSize:11, color:'#64748b', lineHeight:1.4 }}>{api.desc}</p>
-                </div>
-                <button onClick={() => toggleApi(api.name)}
-                  style={{ flexShrink:0, fontSize:12, padding:'6px 18px', borderRadius:999, border: connected ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.18)', background:'transparent', color: connected ? '#f87171' : '#f1f5f9', fontWeight:500, cursor:'pointer', whiteSpace:'nowrap' }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                  {connected ? 'Disconnect' : 'Connect'}
-                </button>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* ── Import History ── */}
-      <div style={{ ...sCard, padding:'20px' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
-          <span style={{ fontSize:15 }}>🕐</span>
-          <p style={{ fontSize:14, fontWeight:700, color:'#f1f5f9' }}>Import History</p>
+      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-slate-500/10 flex items-center justify-center flex-shrink-0 text-[#8b949e]">
+            <Clock size={20} />
+          </div>
+          <p className="text-[16px] font-bold text-[#f0f0f3]">Import History</p>
         </div>
         {importHistory.length === 0 ? (
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 0', gap:12 }}>
-            <div style={{ fontSize:40, opacity:0.3 }}>📦</div>
-            <p style={{ fontSize:14, fontWeight:600, color:'#f1f5f9' }}>No data imported yet</p>
-            <p style={{ fontSize:12, color:'#64748b' }}>Start importing your data to build your Digital Twin</p>
+          <div className="flex flex-col items-center justify-center py-16 gap-5">
+            <div className="w-16 h-16 opacity-40">
+               <span className="text-[64px]">📦</span>
+            </div>
+            <div className="text-center">
+              <p className="text-[16px] font-bold text-[#f0f0f3]">No data imported yet</p>
+              <p className="text-[14px] text-[#8b949e] mt-1.5">Start importing your data to build your Digital Twin</p>
+            </div>
           </div>
         ) : (
-          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+          <div className="flex flex-col gap-3">
             {importHistory.map((h, i) => (
               <motion.div key={h.id || i} initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:i*0.05 }}
-                style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:10, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.05)' }}>
-                <span style={{ fontSize:18 }}>{h.fileType==='csv'?'📊':h.fileType==='xlsx'?'📗':'📄'}</span>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontSize:13, color:'#e2e8f0', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{h.originalFilename||h.file}</p>
-                  <p style={{ fontSize:10, color:'#64748b' }}>
+                className="flex items-center gap-4 p-4 rounded-xl bg-[#0d1117] border border-[#30363d]">
+                <span className="text-[24px]">{h.fileType==='csv'?'📊':h.fileType==='xlsx'?'📗':'📄'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-bold text-[#f0f0f3] mb-1 truncate">{h.originalFilename||h.file}</p>
+                  <p className="text-[12px] text-[#8b949e] font-medium">
                     {h.uploadedAt ? new Date(h.uploadedAt).toLocaleDateString() : h.date} • {h.recordCount||h.records} records
-                    {h.detectedDomain && <span style={{ marginLeft:6, opacity:0.6 }}>({h.detectedDomain})</span>}
+                    {h.detectedDomain && <span className="ml-2 px-2 py-0.5 rounded-md bg-[#21262d] border border-[#30363d] text-[10px] uppercase">{h.detectedDomain}</span>}
                   </p>
                 </div>
-                <span style={{ fontSize:10, padding:'3px 8px', borderRadius:999, background:(h.status==='SUCCESS'||h.status==='success')?'rgba(16,185,129,0.12)':'rgba(245,158,11,0.12)', color:(h.status==='SUCCESS'||h.status==='success')?'#10b981':'#f59e0b', fontWeight:600, flexShrink:0 }}>
-                  {(h.status||'').toLowerCase()==='success'?'✓ Imported':'⚠ '+h.status}
+                <span className={`text-[11px] px-3 py-1 rounded-full font-bold flex-shrink-0 ${h.status?.toLowerCase()==='success' ? 'bg-[#56d364]/10 text-[#56d364] border border-[#56d364]/20' : 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20'}`}>
+                  {h.status?.toLowerCase()==='success' ? '✓ Imported' : `⚠ ${h.status}`}
                 </span>
                 <button onClick={async () => { if (h.id) { await authFetch(`/uploads/${h.id}`,{method:'DELETE'}); fetchHistory(); showToast('Import deleted','info'); }}}
-                  style={{ fontSize:11, color:'#f87171', opacity:0.5, background:'none', border:'none', cursor:'pointer' }}
-                  onMouseEnter={e=>e.currentTarget.style.opacity='1'} onMouseLeave={e=>e.currentTarget.style.opacity='0.5'}>
+                  className="text-[12px] text-[#f87171] opacity-60 hover:opacity-100 font-medium transition-opacity px-2">
                   Delete
                 </button>
               </motion.div>
@@ -668,33 +565,6 @@ export default function Upload() {
           </div>
         )}
       </div>
-
-      {/* GitHub Sync Modal */}
-      <AnimatePresence>
-        {githubModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#0f111a] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative">
-              <button onClick={() => setGithubModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
-              <h3 className="text-xl font-bold mb-2">Connect GitHub</h3>
-              <p className="text-xs text-slate-400 mb-6">Enter your username to sync coding activity and project history.</p>
-              
-              <form onSubmit={submitGithub}>
-                <input 
-                  type="text" 
-                  value={githubUsername}
-                  onChange={(e) => setGithubUsername(e.target.value)}
-                  placeholder="e.g. torvalds"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 mb-4"
-                  autoFocus
-                  required
-                />
-                <button type="submit" className="w-full btn-primary py-3 rounded-xl text-sm font-medium">Sync Account</button>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
