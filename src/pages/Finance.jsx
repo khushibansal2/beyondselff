@@ -516,14 +516,297 @@ function InvestmentRoboAdvisor({ f, score }) {
   );
 }
 
+const REC_ICONS = {
+  'fin-spending': {
+    bg: 'rgba(16, 185, 129, 0.1)',
+    color: '#10b981',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <rect width="18" height="12" x="3" y="6" rx="2" />
+        <path d="M3 10h18M16 14h.01" />
+      </svg>
+    )
+  },
+  'fin-investment': {
+    bg: 'rgba(139, 92, 246, 0.1)',
+    color: '#8b5cf6',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+      </svg>
+    )
+  },
+  'fin-emergency': {
+    bg: 'rgba(59, 130, 246, 0.1)',
+    color: '#3b82f6',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+      </svg>
+    )
+  },
+  'fin-subscriptions': {
+    bg: 'rgba(6, 182, 212, 0.1)',
+    color: '#06b6d4',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+      </svg>
+    )
+  },
+  'fin-career': {
+    bg: 'rgba(245, 158, 11, 0.1)',
+    color: '#f59e0b',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <rect width="18" height="12" x="3" y="6" rx="2" />
+        <path d="M14 6V4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2M12 11v3" />
+      </svg>
+    )
+  },
+  'fin-emotional': {
+    bg: 'rgba(244, 63, 94, 0.1)',
+    color: '#f43f5e',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )
+  },
+  'fin-stress-sip': {
+    bg: 'rgba(139, 92, 246, 0.1)',
+    color: '#8b5cf6',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )
+  },
+  'fin-sleep-risk': {
+    bg: 'rgba(239, 68, 68, 0.1)',
+    color: '#ef4444',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+      </svg>
+    )
+  },
+  'fin-parser': {
+    bg: 'rgba(6, 182, 212, 0.1)',
+    color: '#06b6d4',
+    svg: (
+      <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l8.982-8.979M18 3.612V9M6 13.062V18M6 8.188v.031M18 13.062v.031" />
+      </svg>
+    )
+  }
+};
+
+function FinanceRecommendationCard({ rec, index = 0, feedback = {}, onFeedback }) {
+  const fb     = feedback[rec.id]?.action;
+  const isDone = fb === 'done';
+
+  function handle(action) {
+    if (fb === action) { clearFeedback(rec.id); } else { setFeedback(rec.id, action); }
+    onFeedback?.();
+  }
+
+  const meta = REC_ICONS[rec.id] || {
+    bg: 'rgba(255, 255, 255, 0.05)',
+    color: '#ffffff',
+    svg: <span>💡</span>
+  };
+
+  const riskColor = rec.risk === 'high' ? '#ef4444' : rec.risk === 'medium' ? '#f59e0b' : '#10b981';
+  const riskBg = rec.risk === 'high' ? 'rgba(239, 68, 68, 0.1)' : rec.risk === 'medium' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.08 }}
+      style={{
+        background: '#12141a',
+        border: '1px solid #20222a',
+        borderRadius: 12,
+        padding: '20px 24px',
+        opacity: isDone ? 0.45 : 1,
+        transition: 'opacity 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 20,
+        position: 'relative'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flex: 1, minWidth: 0 }}>
+        {/* Icon wrapper */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 40,
+          height: 40,
+          borderRadius: 8,
+          background: meta.bg,
+          color: meta.color,
+          flexShrink: 0,
+          marginTop: 2
+        }}>
+          {meta.svg}
+        </div>
+
+        {/* Content details */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h4 style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: '#ffffff',
+            margin: '0 0 6px 0',
+            textDecoration: isDone ? 'line-through' : 'none'
+          }}>{rec.title}</h4>
+          
+          <p style={{
+            fontSize: 13,
+            color: '#8e929b',
+            lineHeight: 1.5,
+            margin: '0 0 16px 0'
+          }}>{rec.text}</p>
+
+          {/* Feedback buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => handle('accept')}
+              style={{
+                background: fb === 'accept' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+                border: fb === 'accept' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid transparent',
+                color: fb === 'accept' ? '#10b981' : '#6b7280',
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                transition: 'all 0.2s'
+              }}
+            >
+              {fb === 'accept' ? '✓ Accepted' : '✓ Accept'}
+            </button>
+
+            <button
+              onClick={() => handle('done')}
+              style={{
+                background: isDone ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                border: isDone ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid transparent',
+                color: isDone ? '#3b82f6' : '#6b7280',
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                transition: 'all 0.2s'
+              }}
+            >
+              {isDone ? '✓ Done' : '📁 Mark Done'}
+            </button>
+
+            <button
+              onClick={() => handle('dismiss')}
+              style={{
+                background: fb === 'dismiss' ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
+                border: fb === 'dismiss' ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid transparent',
+                color: fb === 'dismiss' ? '#ef4444' : '#6b7280',
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                transition: 'all 0.2s'
+              }}
+            >
+              {fb === 'dismiss' ? '✕ Dismissed' : '👎 Not helpful'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Right meta */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
+        {rec.risk && (
+          <span style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: riskColor,
+            background: riskBg,
+            padding: '3px 8px',
+            borderRadius: 6,
+            textTransform: 'capitalize'
+          }}>
+            Risk: {rec.risk}
+          </span>
+        )}
+        {rec.confidence != null && (
+          <span style={{ fontSize: 11, color: '#6b7280' }}>{rec.confidence}% confidence</span>
+        )}
+      </div>
+
+      {/* Right chevron arrow */}
+      <div style={{ color: '#374151', fontSize: 16, paddingLeft: 4, flexShrink: 0 }}>
+        <svg style={{ width: 14, height: 14 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+
+    </motion.div>
+  );
+}
+
 function FinanceRecommendations({ recommendations }) {
   const [, forceUpdate] = useReducer(x => x + 1, 0);
   const feedback = loadFeedback();
   const sorted = sortByFeedback(recommendations, feedback);
   return (
-    <div className="space-y-5">
-      <p className="text-[11px] text-slate-400">Accept to prioritize · Mark Done · Not helpful to deprioritize</p>
-      {sorted.map((r, i) => <RecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Header & Subtitle */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12, marginTop: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: '#8b5cf6', fontSize: 16 }}>✦</span>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', margin: 0 }}>AI Spending Optimizations</h3>
+        </div>
+        <p style={{ fontSize: 13, color: '#8e929b', margin: 0 }}>Personalized insights to help you spend smarter and grow faster.</p>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {sorted.map((r, i) => <FinanceRecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
+      </div>
+
+      {/* Bottom info bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '12px 16px',
+        background: '#12141a',
+        border: '1px solid #20222a',
+        borderRadius: 8,
+        marginTop: 20
+      }}>
+        <svg style={{ width: 16, height: 16, color: '#8b5cf6', flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
+        </svg>
+        <span style={{ fontSize: 12, color: '#8e929b' }}>
+          AI recommendations are based on your financial data and market insights. Always review before taking action.
+        </span>
+      </div>
     </div>
   );
 }
@@ -811,7 +1094,7 @@ export default function Finance() {
   ];
 
   return (
-    <div className={`page-container min-h-screen pb-2 ${tab === 'log' ? '' : 'bg-mesh'}`} style={tab === 'log' ? { backgroundColor: '#090a0f' } : {}}>
+    <div className={`page-container min-h-screen pb-2 ${['log', 'invest', 'recommendations'].includes(tab) ? '' : 'bg-mesh'}`} style={['log', 'invest', 'recommendations'].includes(tab) ? { backgroundColor: '#090a0f' } : {}}>
       {/* Floating live notification */}
       <AnimatePresence>
         {notification && <LiveNotification tx={notification} onDismiss={() => { setNotification(null); clearTimeout(notifTimerRef.current); }} />}
@@ -838,8 +1121,8 @@ export default function Finance() {
           flexShrink: 0
         }}>
           <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="13" x="3" y="6" rx="2" />
-            <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M16 14h.01" />
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="m19 8-5 5-3-3-5 5" />
           </svg>
         </div>
         <div>
@@ -1612,21 +1895,33 @@ export default function Finance() {
 
       {/* ── RECOMMENDATIONS TAB ───────────────────────────────────────────── */}
       {tab === 'recommendations' && (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           {hasFinanceData ? (
             <RoboAdvisor f={f} h={h} c={c} savingsRate={savingsRate} />
           ) : (
-            <GlassCard className="border border-amber-500/20 bg-amber-500/[0.03]">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl flex-shrink-0">⚠️</span>
-                <div>
-                  <p className="text-sm font-semibold text-amber-300 mb-1">Log financial data first</p>
-                  <p className="text-xs text-slate-400">The portfolio advisor calculates allocations from your real income and expenses. Log them in the <button onClick={() => setTab('log')} className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">Log tab</button> to get accurate advice.</p>
-                </div>
+            <div style={{
+              background: '#1c1912',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              borderRadius: 8,
+              padding: '14px 20px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 12,
+              marginBottom: 24
+            }}>
+              <svg style={{ width: 20, height: 20, color: '#f59e0b', flexShrink: 0, marginTop: 2 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: '#f59e0b', margin: '0 0 4px 0' }}>Log financial data first</h4>
+                <p style={{ fontSize: 13, color: '#eab308', margin: 0, opacity: 0.85, lineHeight: 1.4 }}>
+                  The portfolio advisor calculates allocations from your real income and expenses. Log them in the{' '}
+                  <span style={{ textDecoration: 'underline', color: '#f59e0b', fontWeight: 600, cursor: 'pointer' }} onClick={() => setTab('log')}>Log tab</span>
+                  {' '}to get accurate advice.
+                </p>
               </div>
-            </GlassCard>
+            </div>
           )}
-          <h3 className="text-sm font-semibold flex items-center gap-2"><span>💡</span> AI Spending Optimizations</h3>
           <FinanceRecommendations recommendations={recommendations} />
         </div>
       )}
