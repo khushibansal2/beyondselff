@@ -903,54 +903,89 @@ function GuildsPanel({ myGuildId, onJoin }) {
 // ── BADGES PANEL ───────────────────────────────────────────────────────────────
 
 function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
-  return (
-    <div className="space-y-5">
-      {/* Streaks */}
-      <GlassCard>
-        <div className="flex items-center gap-2 mb-4">
-          <Flame size={14} className="text-orange-400" />
-          <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Active Streaks</h3>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {streaks.map((s, i) => (
-            <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.07 }}
-              className="text-center p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-              <span className="text-2xl block mb-2">{s.icon}</span>
-              <p className="text-[20px] font-black text-[#f0f0f3]">{s.value}<span className="text-[10px] text-[#71717a] font-normal ml-0.5">d</span></p>
-              <p className="text-[10px] text-[#71717a] mt-1">{s.label}</p>
-              <div className="h-1 rounded-full bg-white/[0.04] mt-2 overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${(s.value / s.max) * 100}%`, background: s.color }} />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </GlassCard>
+  const earnedCount = badges.filter(b => b.unlocked).length;
 
-      {/* Badges */}
-      <GlassCard>
-        <div className="flex items-center gap-2 mb-4">
-          <Trophy size={14} className="text-amber-400" />
-          <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Achievement Badges</h3>
-          <span className="text-[10px] text-[#71717a] ml-auto">{badges.filter(b => b.unlocked).length}/{badges.length} earned</span>
+  return (
+    <div className="space-y-6 max-w-[1100px]">
+
+      {/* ── Active Streaks ── */}
+      <div>
+        <h2 className="text-[17px] font-bold text-[#f0f0f3] mb-1">Active Streaks</h2>
+        <p className="text-[12px] text-[#8b949e] mb-4">Keep going. Consistency builds legends.</p>
+        <div className="flex gap-4">
+          {streaks.map((s, i) => (
+            <div key={i}
+              className="bg-[#161b22] border border-[#30363d] rounded-2xl px-8 py-6 flex items-center gap-6 min-w-[220px]">
+              <span className="text-[44px] leading-none">{s.icon}</span>
+              <div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[36px] font-black text-[#f0f0f3] leading-none">{s.value}</span>
+                  <span className="text-[16px] text-[#8b949e] font-medium ml-1">day</span>
+                </div>
+                <p className="text-[12px] text-[#8b949e] mt-1">{s.label}</p>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      </div>
+
+      {/* ── Achievement Badges ── */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <h2 className="text-[17px] font-bold text-[#f0f0f3]">Achievement Badges</h2>
+          <span className="text-[13px] text-[#8b949e]">{earnedCount} / {badges.length} earned</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {badges.map((b, i) => (
-            <motion.div key={b.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            <motion.div
+              key={b.id}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
               onClick={() => b.unlocked && setShowPopup(b)}
-              className={`p-3.5 rounded-xl text-center cursor-pointer transition-all ${b.unlocked ? 'bg-white/[0.03] border border-amber-500/20 hover:border-amber-500/40' : 'bg-white/[0.01] border border-white/[0.04] opacity-40'}`}>
-              <div className="flex justify-center mb-2"><Badge badge={b} /></div>
-              <p className="text-[11px] font-semibold text-[#a1a1aa]">{b.name}</p>
-              <p className="text-[10px] text-[#71717a] mt-0.5">{b.desc}</p>
+              className={`relative rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col items-center gap-2 ${
+                b.unlocked
+                  ? 'bg-[#161b22] border border-amber-500/30 shadow-lg shadow-amber-500/10 hover:border-amber-500/60 hover:shadow-amber-500/20'
+                  : 'bg-[#0d1117] border border-[#21262d]'
+              }`}
+            >
+              {/* Badge icon area */}
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-1 ${
+                b.unlocked ? 'bg-amber-500/15' : 'bg-[#161b22] border border-[#21262d]'
+              }`}>
+                {b.icon && b.icon.length <= 2
+                  ? <span className={`text-[32px] ${!b.unlocked ? 'grayscale opacity-50' : ''}`}>{b.icon}</span>
+                  : <Badge badge={b} />
+                }
+              </div>
+
+              <p className={`text-[13px] font-semibold leading-snug ${b.unlocked ? 'text-[#f0f0f3]' : 'text-[#6e7681]'}`}>
+                {b.name}
+              </p>
+              <p className={`text-[11px] leading-relaxed ${b.unlocked ? 'text-[#8b949e]' : 'text-[#484f58]'}`}>
+                {b.desc}
+              </p>
+
               {b.unlocked
-                ? <span className="text-[9px] text-amber-400 mt-1 block">✨ +100 XP</span>
-                : <Lock size={10} className="mx-auto mt-1.5 text-[#6b7280]" />}
+                ? <span className="text-[11px] text-amber-400 font-semibold mt-1">+100 XP</span>
+                : <Lock size={13} className="text-[#484f58] mt-1" />
+              }
+
+              {/* Locked overlay icon at bottom-left */}
+              {!b.unlocked && (
+                <div className="absolute bottom-3 left-3">
+                  <Lock size={12} className="text-[#484f58]" />
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
-      </GlassCard>
+      </div>
     </div>
   );
 }
+
 
 // ── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 
@@ -1035,7 +1070,7 @@ export default function Gamification() {
   }
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 min-h-screen" style={{ background: 'radial-gradient(ellipse at top, rgba(99,102,241,0.04) 0%, transparent 60%), #09090b' }}>
+    <div className="px-6 py-6 md:px-10 md:py-8 pb-24 lg:pb-10 min-h-screen" style={{ background: 'radial-gradient(ellipse at top, rgba(99,102,241,0.04) 0%, transparent 60%), #09090b' }}>
       <AnimatePresence>{showPopup && <AchievementPopup badge={showPopup} onClose={() => setShowPopup(null)} />}</AnimatePresence>
 
       {/* Header */}
