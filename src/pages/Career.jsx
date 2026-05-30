@@ -1599,14 +1599,14 @@ export default function Career() {
   };
 
   const tabs = [
-    { id: 'brain',        label: 'Brain Twin',      icon: '🧠' },
-    { id: 'jobs',         label: 'Job Market',       icon: '💼' },
-    { id: 'intelligence', label: 'Intelligence',     icon: '🎯' },
-    { id: 'log',          label: 'Log Session',      icon: '⚡' },
-    { id: 'history',      label: 'History',          icon: '📊' },
-    { id: 'recommendations', label: 'AI Tips',       icon: '🤖' },
-    { id: 'roadmap',      label: 'Learning Path',    icon: '🗺️' },
-    { id: 'resume',       label: 'Resume AI',        icon: '📄' },
+    { id: 'brain',           label: 'Brain Twin' },
+    { id: 'jobs',            label: 'Job Market' },
+    { id: 'intelligence',    label: 'Intelligence' },
+    { id: 'log',             label: 'Log Session' },
+    { id: 'history',         label: 'History' },
+    { id: 'recommendations', label: 'AI Tips' },
+    { id: 'roadmap',         label: 'Learning Path' },
+    { id: 'resume',          label: 'Resume AI' },
   ];
 
   const ENV_COLORS = { HOME: '#3b82f6', LIBRARY: '#8b5cf6', CAFE: '#f59e0b', GROUP: '#10b981' };
@@ -1633,7 +1633,7 @@ export default function Career() {
   const platformColor = (p) => p === 'Coursera' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' : p === 'Udemy' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20';
 
   return (
-    <div className="p-4 md:p-8 pb-24 lg:pb-8 bg-mesh min-h-screen">
+    <div className="page-container min-h-screen pb-2 bg-mesh">
       <AnimatePresence>
         {impactSession && <TwinImpactFeed session={impactSession} onDone={() => { setImpactSession(null); setTab('history'); }} />}
       </AnimatePresence>
@@ -1644,87 +1644,116 @@ export default function Career() {
         <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Study smarter — every session builds your digital twin.</p>
       </div>
 
-      {/* ── Custom Pill Tab Bar ── */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            style={{
-              padding: '7px 16px',
-              borderRadius: 12,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s ease',
-              background: tab === t.id ? 'rgba(139,92,246,0.85)' : 'rgba(37,37,37,0.8)',
-              color: tab === t.id ? '#ffffff' : '#9b9b9b',
-              boxShadow: tab === t.id ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
-            }}
-          >
-            <span style={{ fontSize: 14 }}>{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
+      {/* ── Tab Bar — Finance style ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, marginTop: 8, flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px', background: 'rgba(13,17,28,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{ padding: '7px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s',
+                background: tab === t.id ? '#6366f1' : 'transparent',
+                color: tab === t.id ? '#fff' : '#64748b', border: 'none', cursor: 'pointer',
+                boxShadow: tab === t.id ? '0 2px 10px rgba(99,102,241,0.3)' : 'none' }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setTab('log')}
+          style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          + Log Session
+        </button>
       </div>
 
       {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
       {tab === 'brain' && (() => {
-        const bCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14};
+        const bCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16};
         const scoreColor = score>=70?'#10b981':score>=45?'#8b5cf6':'#f43f5e';
         const radarWithIdeal = skillRadar.map(d => ({...d, full:100}));
         const loadColor = cognitiveLoad<40?'#10b981':cognitiveLoad<70?'#f59e0b':'#f43f5e';
         const loadLabel = cognitiveLoad<40?'Low Load':cognitiveLoad<70?'Moderate':'High Load';
-        const STAT_CARDS = [
-          {icon:'⚡', label:'TOTAL XP',    value:statsData.totalXP.toLocaleString(),              sub:'Level 1'},
-          {icon:'🔥', label:'STREAK',      value:`${statsData.streak}d`,                          sub:'Keep it going!'},
-          {icon:'🕐', label:'TOTAL STUDY', value:`${Math.round(statsData.totalMinutes/60)}h`,     sub:'This week'},
-          {icon:'📅', label:'SESSIONS',    value:String(statsData.totalSessions),                  sub:'This week'},
-          {icon:'🏆', label:'BEST TOPIC',  value:statsData.bestTopic||'—',                        sub:statsData.bestTopic?'Top performer':'Not enough data'},
+        const col = 'gridTemplateColumns';
+        const STAT_METRICS = [
+          {label:'Total XP',     icon:'⚡', color:'#f59e0b', value:statsData.totalXP.toLocaleString(),              sub:'Level 1'},
+          {label:'Study Streak', icon:'🔥', color:'#f43f5e', value:`${statsData.streak}d`,                          sub:'Keep going!'},
+          {label:'Total Study',  icon:'🕐', color:'#6366f1', value:`${Math.round(statsData.totalMinutes/60)}h`,     sub:'This week'},
+          {label:'Sessions',     icon:'📅', color:'#8b5cf6', value:String(statsData.totalSessions),                 sub:'This week'},
+          {label:'Best Topic',   icon:'🏆', color:'#10b981', value:statsData.bestTopic||'—',                        sub:statsData.bestTopic?'Top performer':'Not enough data'},
+          {label:'Cog. Load',    icon:'🧠', color:loadColor,  value:`${Math.round(cognitiveLoad)}%`,                sub:loadLabel},
         ];
         return (
           <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
-            {/* ── Row 1: Stats strip ── */}
-            <div style={{display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:8}}>
-              {/* Score ring */}
-              <div style={{...bCard, padding:'12px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6}}>
-                <div style={{position:'relative', width:62, height:62}}>
-                  <svg viewBox="0 0 62 62" width="62" height="62">
-                    <circle cx="31" cy="31" r="25" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5"/>
-                    <circle cx="31" cy="31" r="25" fill="none" stroke={scoreColor} strokeWidth="5"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*25} ${2*Math.PI*25}`}
-                      strokeDashoffset={2*Math.PI*25*(1-score/100)}
-                      style={{transform:'rotate(-90deg)', transformOrigin:'31px 31px', transition:'stroke-dashoffset 1s ease'}}/>
-                  </svg>
-                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:15, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                    <span style={{fontSize:7, color:'#475569'}}>/ 100</span>
+            {/* ── ROW 1: Score card + Metrics ── */}
+            <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+
+              {/* Score card */}
+              <div style={{...bCard, padding:'14px 16px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+                <div style={{display:'flex', alignItems:'center', gap:12}}>
+                  <div style={{position:'relative', width:110, height:110, flexShrink:0}}>
+                    <svg viewBox="0 0 110 110" width="110" height="110">
+                      <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
+                      <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
+                        strokeDashoffset={2*Math.PI*44*(1-score/100)}
+                        style={{transform:'rotate(-90deg)', transformOrigin:'55px 55px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                    </svg>
+                    <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                      <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                      <span style={{fontSize:10, color:'#475569', marginTop:2}}>/ 100</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Career Score</p>
+                    <span style={{display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, marginBottom:6,
+                      background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
+                      {score>=70?'Strong':score>=45?'Building':'Needs Work'}
+                    </span>
+                    <p style={{fontSize:11.5, color:'#64748b', lineHeight:1.4}}>
+                      {score>=45?'Keep building your\nskills consistently.':'Focus on DSA and\nproject building.'}
+                    </p>
                   </div>
                 </div>
-                <div style={{textAlign:'center'}}>
-                  <p style={{fontSize:10, fontWeight:600, color:'#94a3b8', marginBottom:1}}>Career Score</p>
-                  <p style={{fontSize:9, color:'#10b981'}}>↑ {Math.max(0, Math.round(score*0.11))} this week</p>
+                <button onClick={()=>setTab('recommendations')}
+                  style={{marginTop:10, padding:'7px 14px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11.5, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
+                  View Insights →
+                </button>
+              </div>
+
+              {/* Metrics card */}
+              <div style={{...bCard, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
+                  {STAT_METRICS.map(m => (
+                    <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 10px'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:4}}>
+                        <div style={{width:24, height:24, borderRadius:6, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>{m.icon}</div>
+                        <span style={{fontSize:10.5, color:'#64748b'}}>{m.label}</span>
+                      </div>
+                      <p style={{fontSize:16, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:3}}>{m.value}</p>
+                      <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
+                    </div>
+                  ))}
+                </div>
+                <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
+                  <div style={{width:30, height:30, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0, fontWeight:700, color:'#818cf8'}}>🎯</div>
+                  <div style={{flexShrink:0, minWidth:80}}>
+                    <p style={{fontSize:10, color:'#64748b'}}>Placement Ready</p>
+                    <p style={{fontSize:18, fontWeight:900, color:scoreColor, lineHeight:1}}>{placementReadiness}%</p>
+                    <p style={{fontSize:9, color:'#475569'}}>readiness score</p>
+                  </div>
+                  <div style={{flex:1}}>
+                    <p style={{fontSize:10.5, color:'#475569', marginBottom:4}}>Aim for 80%+ to unlock interviews.</p>
+                    <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                      <motion.div initial={{width:0}} animate={{width:`${Math.min(100,placementReadiness)}%`}} transition={{duration:1, ease:'easeOut'}}
+                        style={{height:'100%', borderRadius:3, background:scoreColor}}/>
+                    </div>
+                  </div>
+                  <span style={{fontSize:11, fontWeight:700, color:'#475569', flexShrink:0}}>80%</span>
                 </div>
               </div>
-              {/* Metric cards */}
-              {STAT_CARDS.map(m => (
-                <div key={m.label} style={{...bCard, padding:'12px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, textAlign:'center'}}>
-                  <span style={{fontSize:16}}>{m.icon}</span>
-                  <p style={{fontSize:8, fontWeight:700, color:'#475569', letterSpacing:'0.08em', textTransform:'uppercase'}}>{m.label}</p>
-                  <p style={{fontSize:17, fontWeight:800, color:'#f1f5f9', lineHeight:1}}>{m.value}</p>
-                  <p style={{fontSize:9, color:'#64748b'}}>{m.sub}</p>
-                </div>
-              ))}
             </div>
 
-            {/* ── Row 2: Three cards ── */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8}}>
+            {/* ── ROW 2: Cognitive Load + Skill Radar & Portfolio ── */}
+            <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
 
               {/* Cognitive Load Meter */}
               <div style={{...bCard, padding:'14px'}}>
@@ -1754,7 +1783,7 @@ export default function Career() {
                 </div>
               </div>
 
-              {/* Skill Radar */}
+              {/* Skill Radar + Skills Portfolio combined */}
               <div style={{...bCard, padding:'14px', display:'flex', flexDirection:'column'}}>
                 <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Skill Radar</p>
                 <p style={{fontSize:11, color:'#64748b', marginBottom:8}}>Your overall skill distribution</p>
@@ -1768,7 +1797,7 @@ export default function Career() {
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{display:'flex', alignItems:'center', gap:14, marginBottom:8}}>
+                <div style={{display:'flex', alignItems:'center', gap:14, marginBottom:10}}>
                   <div style={{display:'flex', alignItems:'center', gap:5}}>
                     <span style={{width:12, height:2, background:'#8b5cf6', display:'inline-block', borderRadius:1}}/>
                     <span style={{fontSize:10, color:'#94a3b8'}}>You</span>
@@ -1778,38 +1807,43 @@ export default function Career() {
                     <span style={{fontSize:10, color:'#94a3b8'}}>Ideal</span>
                   </div>
                 </div>
-                <button onClick={()=>setTab('recommendations')} style={{padding:'8px 0', borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:12, fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
-                  View all skills →
-                </button>
-              </div>
-
-              {/* Skills Portfolio */}
-              <div style={{...bCard, padding:'14px', display:'flex', flexDirection:'column'}}>
-                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Skills Portfolio</p>
-                <p style={{fontSize:11, color:'#64748b', marginBottom:10}}>Showcase your skills and progress</p>
+                <div style={{height:1, background:'rgba(255,255,255,0.05)', margin:'4px 0 10px'}}/>
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+                  <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Skills Portfolio</p>
+                  <button onClick={()=>setTab('log')} style={{padding:'4px 12px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer'}}>
+                    + Add Skill
+                  </button>
+                </div>
                 {c.skills.length > 0 ? (
-                  <div style={{flex:1, display:'flex', flexWrap:'wrap', gap:6, alignContent:'flex-start'}}>
+                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
                     {c.skills.map(s => (
                       <span key={s} style={{padding:'3px 10px', borderRadius:999, background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)', fontSize:11, color:'#93c5fd', fontWeight:500}}>{s}</span>
                     ))}
                   </div>
                 ) : (
-                  <div style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8}}>
-                    <div style={{width:54, height:54, borderRadius:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22}}>📄</div>
-                    <p style={{fontSize:13, fontWeight:600, color:'#f1f5f9'}}>{c.skills.length} Skills Logged</p>
-                    <p style={{fontSize:11, color:'#64748b', textAlign:'center'}}>Add your first skill to get started.</p>
+                  <div style={{display:'flex', alignItems:'center', gap:10, padding:'12px', borderRadius:8, background:'rgba(255,255,255,0.02)', border:'1px dashed rgba(255,255,255,0.08)'}}>
+                    <span style={{fontSize:18}}>📄</span>
+                    <div>
+                      <p style={{fontSize:12, fontWeight:600, color:'#f1f5f9'}}>No skills logged yet</p>
+                      <p style={{fontSize:11, color:'#64748b'}}>Add your first skill to get started.</p>
+                    </div>
                   </div>
                 )}
-                <button onClick={()=>setTab('log')} style={{marginTop:10, padding:'8px 0', borderRadius:7, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
-                  + Add Skill
-                </button>
               </div>
             </div>
 
-            {/* ── Tip bar ── */}
-            <div style={{...bCard, padding:'10px 16px', display:'flex', alignItems:'center', gap:8}}>
-              <span style={{fontSize:13, flexShrink:0}}>💡</span>
-              <p style={{fontSize:11, color:'#94a3b8'}}>Tip: Consistent small steps lead to massive growth. Log sessions regularly to track your progress.</p>
+            {/* ── Digital Twin insight bar ── */}
+            <div style={{...bCard, padding:'10px 14px', display:'flex', alignItems:'center', gap:14}}>
+              <div style={{width:32, height:32, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:16}}>💡</div>
+              <div style={{flex:1, minWidth:0}}>
+                <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Digital Twin Insight</p>
+                <p style={{fontSize:11, fontWeight:600, color:loadColor, marginBottom:2}}>{loadLabel} — Cognitive Load {Math.round(cognitiveLoad)}%</p>
+                <p style={{fontSize:10, color:'#64748b'}}>Consistent small steps lead to massive growth. Log sessions regularly to track your progress.</p>
+              </div>
+              <button onClick={()=>setTab('recommendations')}
+                style={{padding:'6px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
+                View Recommendations →
+              </button>
             </div>
 
             {/* Forgetting Curve (conditional) */}

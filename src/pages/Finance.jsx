@@ -1236,7 +1236,7 @@ export default function Finance() {
                 </div>
               </div>
               <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:10, padding:'7px 0', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11.5, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                style={{marginTop:10, padding:'7px 14px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11.5, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
                 View Insights →
               </button>
             </div>

@@ -15,16 +15,17 @@ function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay / 1000, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl border border-white/[0.04] p-2.5 flex flex-col items-center justify-center text-center group hover:bg-white/[0.03] transition-colors cursor-pointer"
-      style={{ background: 'rgba(17,19,28,0.8)' }}
+      transition={{ delay: delay / 1000, duration: 0.4 }}
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '10px 12px' }}
     >
-      <div className="w-9 h-9 rounded-full flex items-center justify-center mb-1.5" style={{ background: `${color}18` }}>
-        <Icon size={17} style={{ color }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon size={14} style={{ color }} />
+        </div>
+        <span style={{ fontSize: 10.5, color: '#64748b' }}>{label}</span>
       </div>
-      <p className="text-[10px] text-[#71717a] uppercase tracking-widest font-semibold mb-0">{label}</p>
-      <p className="text-[19px] font-bold tracking-tight leading-none text-[#f0f0f3]">{value}</p>
-      {subtitle && <p className="text-[11px] text-[#6b7280] font-medium mt-0.5">{subtitle}</p>}
+      <p style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, marginBottom: 3 }}>{value}</p>
+      {subtitle && <p style={{ fontSize: 9, color: '#475569' }}>{subtitle}</p>}
     </motion.div>
   );
 }
@@ -915,12 +916,12 @@ export default function Health() {
   }, [currentState]);
 
   const tabs = [
-    { id: 'overview',         label: 'Overview',           icon: '📋' },
-    { id: 'log',              label: 'Log Data',            icon: '✏️' },
-    { id: 'scan',             label: 'Scan AI',             icon: '👁️' },
-    { id: 'wellness',         label: 'Wellness',            icon: '🧘' },
-    { id: 'nutrition',        label: 'Nutrition',           icon: '🥗' },
-    { id: 'recommendations',  label: 'AI Recommendations',  icon: '🤖' },
+    { id: 'overview',        label: 'Overview' },
+    { id: 'log',             label: 'Log Data' },
+    { id: 'scan',            label: 'Scan AI' },
+    { id: 'wellness',        label: 'Wellness' },
+    { id: 'nutrition',       label: 'Nutrition' },
+    { id: 'recommendations', label: 'AI Recommendations' },
   ];
 
   const handleLog = async (e) => {
@@ -1084,168 +1085,149 @@ export default function Health() {
         <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Track, understand, and optimize your physical and mental wellbeing.</p>
       </div>
 
-      {/* ── Custom Pill Tab Bar (matching Finance style) ── */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            style={{
-              padding: '7px 16px',
-              borderRadius: 12,
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'all 0.2s ease',
-              background: tab === t.id ? 'rgba(139,92,246,0.85)' : 'rgba(37,37,37,0.8)',
-              color: tab === t.id ? '#ffffff' : '#9b9b9b',
-              boxShadow: tab === t.id ? '0 4px 15px rgba(139,92,246,0.3)' : 'none',
-            }}
-          >
-            <span style={{ fontSize: 14 }}>{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
+      {/* ── Tab Bar (Finance style) ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, marginTop: 8, flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px', background: 'rgba(13,17,28,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              style={{ padding: '7px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s',
+                background: tab === t.id ? '#6366f1' : 'transparent',
+                color: tab === t.id ? '#fff' : '#64748b', border: 'none', cursor: 'pointer',
+                boxShadow: tab === t.id ? '0 2px 10px rgba(99,102,241,0.3)' : 'none' }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setTab('log')}
+          style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          + Log Entry
+        </button>
       </div>
 
 
       {tab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* ── Row 1: 6 Metric Cards ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
-            <HealthMetric icon={Moon}           color="#a78bfa" label="Avg Sleep"  value={`${h.sleepAvg || 0}h ${Math.round((h.sleepAvg % 1) * 60) || 32}m`}  subtitle="per night"  delay={40} />
-            <HealthMetric icon={Flame}          color="#f43f5e" label="Stress"     value={`${h.stressLevel}/10`}                                                   subtitle={h.stressLevel > 6 ? 'High' : 'Low'} delay={80} />
-            <HealthMetric icon={Smile}          color="#f59e0b" label="Mood"       value={`${h.moodAvg}/10`}                                                       subtitle={h.moodAvg >= 7 ? 'Good' : 'Average'} delay={120} />
-            <HealthMetric icon={Dumbbell}       color="#22c55e" label="Workouts"   value={h.workoutsPerWeek}                                                        subtitle="per week"   delay={160} />
-            <HealthMetric icon={Droplets}       color="#3b82f6" label="Water"      value={h.waterIntake}                                                            subtitle="glasses/day" delay={200} />
-            <HealthMetric icon={UtensilsCrossed} color="#f97316" label="Calories"  value={h.calories ? h.calories.toLocaleString() : '1,842'}                       subtitle="kcal/day"   delay={240} />
-          </div>
-
-          {/* ── Row 2: Health Score Panel + 7-Day Trends ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {/* ── Row 1: Health Score (1fr) + Metrics 3×2 (1.8fr) — matches Finance layout ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 8 }}>
 
             {/* Health Score Detail */}
-            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 10 }}>
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>Health Score</span>
                 <span style={{ color: '#71717a', cursor: 'pointer', lineHeight: 0 }}><Eye size={12} /></span>
               </div>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
-                {/* Arc + Score */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 110, paddingRight: 10, borderRight: '1px solid rgba(255,255,255,0.04)' }}>
-                  <div style={{ position: 'relative', width: 80, height: 80 }}>
-                    <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
-                      <defs>
-                        <linearGradient id="hScoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#8b5cf6" />
-                          <stop offset="100%" stopColor="#22c55e" />
-                        </linearGradient>
-                      </defs>
-                      <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
-                      <circle cx="40" cy="40" r="34" fill="none" stroke="url(#hScoreGrad)" strokeWidth="8"
-                        strokeDasharray={`${2 * Math.PI * 34}`}
-                        strokeDashoffset={`${2 * Math.PI * 34 * (1 - score / 100)}`}
-                        strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1.5s ease-out' }} />
-                    </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', lineHeight: 1 }}>{score}</span>
-                      <span style={{ fontSize: 9, color: '#71717a' }}>/100</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', marginTop: 2 }}>{score >= 70 ? 'Good' : score >= 45 ? 'Average' : 'Low'}</span>
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 10, color: '#71717a' }}>
-                    <span style={{ color: '#22c55e', fontWeight: 600 }}>↑ 8 pts</span> vs last 30 days
+              {/* Ring + title/badge/desc — identical to Finance score card */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ position: 'relative', width: 110, height: 110, flexShrink: 0 }}>
+                  <svg viewBox="0 0 110 110" width="110" height="110">
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
+                    <circle cx="55" cy="55" r="44" fill="none"
+                      stroke={score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}
+                      strokeWidth="10" strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
+                      strokeDashoffset={2*Math.PI*44*(1-score/100)}
+                      style={{ transform:'rotate(-90deg)', transformOrigin:'55px 55px', transition:'stroke-dashoffset 1.2s ease' }}/>
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
+                    <span style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>/ 100</span>
                   </div>
                 </div>
-
-                {/* Trend chart + banner */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: '#a1a1aa' }}>Score Trend</span>
-                  <div style={{ flex: 1, height: 60 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={trendData.slice(-7)}>
-                        <defs>
-                          <linearGradient id="sTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.25} />
-                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <XAxis dataKey="date" hide />
-                        <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Area type="monotone" dataKey="sleep" stroke="#22c55e" fill="url(#sTrendGrad)" strokeWidth={2} dot={false} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* X labels */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#71717a', padding: '0 4px' }}>
-                    {['May 23','May 24','May 25','May 26','May 27','May 28','May 29'].map(d => <span key={d}>{d}</span>)}
-                  </div>
-                  {/* Progress banner */}
-                  <div style={{ background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.12)', borderRadius: 10, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 22, height: 22, background: 'rgba(34,197,94,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: 11 }}>🛡️</span>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: '#f0f0f3', margin: 0 }}>You're making great progress!</p>
-                      <p style={{ fontSize: 9, color: '#a1a1aa', margin: 0 }}>Keep maintaining your healthy habits.</p>
-                    </div>
-                  </div>
+                <div>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Health Score</p>
+                  <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, marginBottom: 6,
+                    background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'18',
+                    color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
+                    border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44` }}>
+                    {score >= 70 ? 'Good' : score >= 45 ? 'Average' : 'Low'}
+                  </span>
+                  <p style={{ fontSize: 11.5, color: '#64748b', lineHeight: 1.4 }}>
+                    {score >= 45 ? 'Keep maintaining your\nhealthy habits.' : 'Focus on sleep and\nreduce stress.'}
+                  </p>
+                </div>
+              </div>
+              {/* View Insights button — same position as Finance (right after ring/text, before trend) */}
+              <button onClick={() => setTab('recommendations')}
+                style={{ marginTop: 10, padding: '7px 0', borderRadius: 8,
+                  border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44`,
+                  background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'0f',
+                  color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
+                  fontSize: 11.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                View Insights →
+              </button>
+              {/* Score Trend — below the button */}
+              <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: '#a1a1aa', display: 'block', marginBottom: 4 }}>Score Trend</span>
+                <div style={{ height: 55 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendData.slice(-7)}>
+                      <defs>
+                        <linearGradient id="sTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" hide />
+                      <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="sleep" stroke="#22c55e" fill="url(#sTrendGrad)" strokeWidth={2} dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#71717a', padding: '2px 4px 0' }}>
+                  {['May 23','May 24','May 25','May 26','May 27','May 28','May 29'].map(d => <span key={d}>{d}</span>)}
                 </div>
               </div>
             </div>
 
-            {/* 7-Day Health Trends */}
-            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>7-Day Health Trends</span>
-                  <span style={{ color: '#71717a', lineHeight: 0, cursor: 'pointer' }}><Eye size={12} /></span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 9, color: '#a1a1aa', cursor: 'pointer' }}>
-                  7 Days <span style={{ fontSize: 9 }}>▾</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-                {[{ col: '#22c55e', label: 'Health Score' }, { col: '#a78bfa', label: 'Sleep (hrs)' }, { col: '#3b82f6', label: 'Water (glasses)' }].map(l => (
-                  <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: '#a1a1aa' }}>
-                    <span style={{ width: 10, height: 2, background: l.col, borderRadius: 2, display: 'inline-block' }} />
-                    {l.label}
+            {/* Metrics 3×2 grid — Finance style */}
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                {[
+                  { label: 'Avg Sleep', icon: '🌙', color: '#a78bfa', value: `${h.sleepAvg || 5.2}h`, sub: 'per night' },
+                  { label: 'Stress',    icon: '🔥', color: '#f43f5e', value: `${h.stressLevel || 8}/10`, sub: (h.stressLevel||8) > 6 ? 'High' : 'Low' },
+                  { label: 'Mood',      icon: '😊', color: '#f59e0b', value: `${h.moodAvg || 4}/10`, sub: (h.moodAvg||4) >= 7 ? 'Good' : 'Average' },
+                  { label: 'Workouts',  icon: '💪', color: '#22c55e', value: h.workoutsPerWeek || 1, sub: 'per week' },
+                  { label: 'Water',     icon: '💧', color: '#3b82f6', value: h.waterIntake || 4, sub: 'glasses/day' },
+                  { label: 'Calories',  icon: '🥗', color: '#f97316', value: h.calories ? h.calories.toLocaleString() : '2,800', sub: 'kcal/day' },
+                ].map(m => (
+                  <div key={m.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 6, background: m.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>{m.icon}</div>
+                      <span style={{ fontSize: 10.5, color: '#64748b' }}>{m.label}</span>
+                    </div>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, marginBottom: 3 }}>{m.value}</p>
+                    <p style={{ fontSize: 9, color: '#475569' }}>{m.sub}</p>
                   </div>
                 ))}
               </div>
-              <div style={{ height: 110 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData.slice(-7)} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 8 }} tickFormatter={v => {
-                      const days = ['Thu','Fri','Sat','Sun','Mon','Tue','Today'];
-                      const d = trendData.slice(-7);
-                      const idx = d.findIndex(x => x.date === v);
-                      return idx >= 0 ? days[idx] : '';
-                    }} axisLine={false} tickLine={false} dy={4} />
-                    <YAxis tick={{ fill: '#71717a', fontSize: 8 }} axisLine={false} tickLine={false} domain={[0, 100]} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="mood"  stroke="#22c55e" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#22c55e', strokeWidth: 0 }} activeDot={{ r: 4 }} />
-                    <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }} activeDot={{ r: 4 }} />
-                    <Area type="monotone" dataKey="water" stroke="#3b82f6" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 4 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
+              {/* Wellness Rate bar — mirrors Finance's Savings Rate bar */}
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0, fontWeight: 700, color: '#4ade80' }}>⚡</div>
+                <div style={{ flexShrink: 0, minWidth: 80 }}>
+                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Wellness Score</p>
+                  <p style={{ fontSize: 18, fontWeight: 900, color: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e', lineHeight: 1, margin: 0 }}>{score}</p>
+                  <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>out of 100</p>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 10.5, color: '#475569', marginBottom: 4 }}>Aim for 70+ to maintain strong health.</p>
+                  <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, score)}%` }} transition={{ duration: 1, ease: 'easeOut' }}
+                      style={{ height: '100%', borderRadius: 3, background: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e' }} />
+                  </div>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', flexShrink: 0 }}>100</span>
               </div>
             </div>
           </div>
 
-          {/* ── Row 3: Today's Plan + AI Coach ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {/* ── Row 2: Today's Plan (1fr) + 7-Day Trends (1.8fr) — mirrors Finance Row 2 ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 8 }}>
 
             {/* Today's Plan */}
-            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 10 }}>
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Calendar size={13} color="#a1a1aa" />
@@ -1283,8 +1265,48 @@ export default function Health() {
               </div>
             </div>
 
-            {/* AI Health Coach */}
-            <div style={{ background: 'rgba(17,19,28,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 16, padding: 10, position: 'relative', overflow: 'hidden' }}>
+            {/* 7-Day Health Trends — right column of Row 2 */}
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>7-Day Health Trends</span>
+                  <span style={{ color: '#71717a', lineHeight: 0, cursor: 'pointer' }}><Eye size={12} /></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 9, color: '#a1a1aa', cursor: 'pointer' }}>
+                  7 Days <span style={{ fontSize: 9 }}>▾</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
+                {[{ col: '#22c55e', label: 'Health Score' }, { col: '#a78bfa', label: 'Sleep (hrs)' }, { col: '#3b82f6', label: 'Water (glasses)' }].map(l => (
+                  <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: '#a1a1aa' }}>
+                    <span style={{ width: 10, height: 2, background: l.col, borderRadius: 2, display: 'inline-block' }} />
+                    {l.label}
+                  </div>
+                ))}
+              </div>
+              <div style={{ height: 130 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData.slice(-7)} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 8 }} tickFormatter={v => {
+                      const days = ['Thu','Fri','Sat','Sun','Mon','Tue','Today'];
+                      const d = trendData.slice(-7);
+                      const idx = d.findIndex(x => x.date === v);
+                      return idx >= 0 ? days[idx] : '';
+                    }} axisLine={false} tickLine={false} dy={4} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 8 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="mood"  stroke="#22c55e" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#22c55e', strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                    <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                    <Area type="monotone" dataKey="water" stroke="#3b82f6" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Row 3: AI Health Coach ── */}
+          <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12, position: 'relative', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
                 <span style={{ color: '#a78bfa' }}><Brain size={13} /></span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>AI Health Coach</span>
@@ -1326,7 +1348,6 @@ export default function Health() {
               </div>
             </div>
 
-          </div>
         </div>
       )}
 

@@ -97,9 +97,9 @@ export function GlassCard({ children, className = '', glow = '', onClick, animat
       whileInView={animate ? { opacity: 1, y: 0 } : false}
       viewport={{ once: true, margin: '-48px' }}
       transition={{ duration: 0.55, delay, ease: EASE_OUT }}
-      whileHover={{ y: -6, transition: { duration: 0.25, ease: EASE_OUT } }}
+      whileHover={{ y: -2, transition: { duration: 0.25, ease: EASE_OUT } }}
       onClick={onClick}
-      className={`glass-card p-5 ${glow} ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`glass-card p-3.5 ${glow} ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
       {children}
     </motion.div>
@@ -157,7 +157,7 @@ export function InsightCard({ insight, index = 0 }) {
 
 export function PageHeader({ title, subtitle, icon }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE_OUT }} className="mb-7">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE_OUT }} className="mb-3">
       <motion.div
         initial={{ opacity: 0, x: -16 }}
         animate={{ opacity: 1, x: 0 }}
