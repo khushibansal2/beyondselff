@@ -14,32 +14,92 @@ import {
   Search, Sparkles, CheckCircle, AlertTriangle, ExternalLink,
   Star, GitFork, Code2, Users, Key, Plus,
   Zap, Brain, ChevronRight, Loader2, Heart, Moon, Footprints, X,
-  Trash2, MapPin, ShieldCheck, Calendar, Filter, ChevronDown, ChevronLeft, MoreVertical
+  Trash2, MapPin, ShieldCheck, Calendar, Filter, ChevronDown, ChevronLeft, MoreVertical,
+  Link, Cable
 } from 'lucide-react';
+
+const Github = ({ size = 24, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+    <path d="M9 18c-4.51 2-5-2-7-2" />
+  </svg>
+);
+
+const Linkedin = ({ size = 24, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect x="2" y="9" width="4" height="12" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
+
+const PlugIcon = ({ size = 24, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 2v8" />
+    <path d="M16.24 7.76a6 6 0 0 1-8.49 0" />
+    <rect x="9" y="10" width="6" height="6" rx="2" />
+    <path d="M12 16v6" />
+  </svg>
+);
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
 function TabBar({ tabs, active, onChange }) {
+  const activeColor = {
+    github: '#ffffff',
+    linkedin: '#0077b5',
+    nutritionix: '#10b981',
+    fitbit: '#00b0b9',
+    banking: '#10b981'
+  };
+
   return (
-    <div className="flex gap-10 mb-8 border-b border-white/[0.08] px-2 flex-wrap">
-      {tabs.map(t => {
+    <div style={{
+      display: 'flex',
+      width: '100%',
+      background: 'rgba(10, 15, 30, 0.3)',
+      border: '1px solid rgba(255, 255, 255, 0.06)',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      marginBottom: '32px',
+      position: 'relative',
+      zIndex: 2
+    }}>
+      {tabs.map((t, idx) => {
         const isActive = active === t.id;
+        const brandColor = isActive ? (activeColor[t.id] || '#ffffff') : '#64748b';
         return (
           <button
             key={t.id}
             onClick={() => onChange(t.id)}
-            className={`flex items-center gap-2.5 pb-4 text-[15px] font-semibold transition-all relative ${
-              isActive
-                ? 'text-[#f0f0f3]'
-                : 'text-[#8b949e] hover:text-[#c9d1d9]'
-            }`}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              padding: '16px 12px',
+              background: isActive ? 'rgba(255, 255, 255, 0.01)' : 'transparent',
+              border: 'none',
+              borderRight: idx < tabs.length - 1 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
+              color: isActive ? '#ffffff' : '#8b949e',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              position: 'relative'
+            }}
           >
-            <t.icon size={16} className={isActive ? t.color : 'text-[#8b949e]'} />
+            <t.icon size={16} style={{ color: brandColor }} />
             {t.label}
             {isActive && (
               <motion.div
                 layoutId="activeTabUnderline"
-                className="absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-[#388bfd]"
+                style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
+                  background: '#818cf8', borderRadius: '2px 2px 0 0',
+                  boxShadow: '0 0 8px rgba(129, 140, 248, 0.6)'
+                }}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
               />
             )}
@@ -51,16 +111,41 @@ function TabBar({ tabs, active, onChange }) {
 }
 
 function StatusBadge({ status }) {
-  const cfg = {
-    live:  { cls: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400', dot: 'bg-emerald-400', label: 'Live' },
-    demo:  { cls: 'bg-amber-500/10  border-amber-500/20  text-amber-400',   dot: 'bg-amber-400',   label: 'Demo' },
-    none:  { cls: 'bg-[#27272a]/50  border-white/[0.06]  text-[#71717a]',   dot: 'bg-[#71717a]',   label: 'Not Connected' },
-  };
-  const c = cfg[status] ?? cfg.none;
+  const isLive = status === 'live';
+  const isDemo = status === 'demo';
+  
+  const pulseStyle = isLive 
+    ? 'pulse-dot 1.8s infinite'
+    : isDemo 
+      ? 'pulse-dot-orange 1.8s infinite'
+      : 'none';
+      
+  const labelColor = isLive 
+    ? '#34d399' 
+    : isDemo 
+      ? '#fbbf24' 
+      : '#8b949e';
+
   return (
-    <span className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border font-semibold ${c.cls}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-      {c.label}
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      fontSize: 11,
+      padding: '3px 10px',
+      borderRadius: 99,
+      fontWeight: 600,
+      background: isLive ? 'rgba(16,185,129,0.06)' : isDemo ? 'rgba(245,158,11,0.06)' : 'rgba(255,255,255,0.03)',
+      border: `1px solid ${isLive ? 'rgba(16,185,129,0.15)' : isDemo ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.08)'}`,
+      color: labelColor,
+      textTransform: 'none'
+    }}>
+      <span style={{
+        width: 6, height: 6, borderRadius: '50%',
+        background: isLive ? '#10b981' : isDemo ? '#f59e0b' : '#6e7681',
+        animation: pulseStyle
+      }} />
+      {status === 'live' ? 'Twin Live' : status === 'demo' ? 'Twin Demo' : 'Not Connected'}
     </span>
   );
 }
@@ -126,57 +211,112 @@ function GitHubPanel() {
   return (
     <div className="space-y-5">
       {/* Search */}
-      <GlassCard>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'rgba(36,41,46,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <GitBranch size={18} className="text-[#f0f0f3]" />
+      <GlassCard className="relative overflow-hidden">
+        <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-white/[0.015] blur-3xl pointer-events-none" />
+        
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 12,
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <Github size={20} className="text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-[14px] font-semibold text-[#f0f0f3]">GitHub Developer Analytics</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.01em' }}>GitHub Developer Analytics</h3>
                 <StatusBadge status={profile ? 'live' : 'none'} />
               </div>
-              <p className="text-[12px] text-[#71717a] mt-0.5">Enter any GitHub username to analyze their coding profile, tech stack, and get AI-powered career insights.</p>
+              <p style={{ fontSize: 12.5, color: '#8b949e', margin: '4px 0 0' }}>
+                Analyze any public profile — tech stack, activity, and AI career insights.
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="flex gap-2 mt-4">
-          <input
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleFetch()}
-            placeholder="e.g. torvalds"
-            className="input-premium flex-1 text-[13px]"
-          />
-          <button
+        <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Github size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#6e7681' }} />
+            <input
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleFetch()}
+              placeholder="e.g. torvalds"
+              className="input-premium w-full text-[13.5px]"
+              style={{ paddingLeft: 38 }}
+            />
+          </div>
+          <motion.button
             onClick={handleFetch}
             disabled={!username.trim() || loading}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 0 20px rgba(99,102,241,0.35)' }}
+            whileHover={!loading && username.trim() ? { scale: 1.03, y: -1 } : {}}
+            whileTap={!loading && username.trim() ? { scale: 0.97 } : {}}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 28px', borderRadius: 12, 
+              fontWeight: 700, fontSize: 13, color: '#ffffff', border: 'none',
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', cursor: 'pointer', transition: 'all 0.2s',
+              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)', opacity: !username.trim() || loading ? 0.5 : 1
+            }}
           >
-            {loading
-              ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <Zap size={14} />}
-            {loading ? 'Fetching…' : 'Analyze'}
-          </button>
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+            Analyze
+          </motion.button>
         </div>
 
-        {/* Examples */}
-        <div className="flex items-center flex-wrap gap-1.5 mt-3">
-          <span className="text-[11px] text-[#71717a] mr-1">Try examples:</span>
-          {['torvalds', 'gvanrossum', 'sindresorhus', 'yyx990803'].map(u => (
-            <button key={u} onClick={() => setUsername(u)}
-              className="text-[11px] px-2.5 py-1 rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all font-mono">
-              {u}
-            </button>
-          ))}
-        </div>
+        {!profile && (
+          <div style={{
+            marginTop: 24,
+            padding: '44px 24px',
+            borderRadius: 16,
+            border: '1px dashed rgba(255, 255, 255, 0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255, 255, 255, 0.005)'
+          }}>
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 16
+            }}>
+              <Github size={22} style={{ color: '#fff' }} />
+            </div>
+            <h4 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px 0' }}>Analyze any GitHub profile</h4>
+            <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 20px 0', textAlign: 'center' }}>
+              No authentication required • Works with any public profile
+            </p>
+            
+            {/* Suggested Chips inside empty state */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginRight: 4 }}>Try:</span>
+              {['torvalds', 'gvanrossum', 'sindresorhus', 'yyx990803'].map(u => (
+                <motion.button 
+                  key={u} 
+                  onClick={() => setUsername(u)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    fontSize: 11.5, padding: '5px 14px', borderRadius: 99, cursor: 'pointer',
+                    background: 'rgba(99, 102, 241, 0.06)', border: '1px solid rgba(99, 102, 241, 0.15)',
+                    color: '#a5b4fc', fontWeight: 600, transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)'; e.currentTarget.style.background = 'rgba(99,102,241,0.12)'; e.currentTarget.style.color = '#c7d2fe'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.15)'; e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; e.currentTarget.style.color = '#a5b4fc'; }}
+                >
+                  {u}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {error && (
-          <div className="mt-3 flex items-center gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2">
+          <div style={{ marginTop: 14, padding: 12, borderRadius: 12, background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.18)', fontSize: 12, color: '#f87171', display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertTriangle size={13} /> {error}
           </div>
         )}
@@ -185,165 +325,378 @@ function GitHubPanel() {
       {/* Profile Results */}
       <AnimatePresence>
         {profile && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
             {/* User card */}
-            <GlassCard>
-              <div className="flex items-start gap-4">
-                <img
-                  src={profile.user.avatar_url}
-                  alt={profile.user.login}
-                  className="w-16 h-16 rounded-2xl border border-white/[0.08]"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-[16px] font-bold text-[#f0f0f3]">{profile.user.name || profile.user.login}</h2>
-                    <a href={profile.user.html_url} target="_blank" rel="noreferrer"
-                      className="text-[11px] text-[#71717a] hover:text-indigo-400 transition-colors flex items-center gap-1">
-                      @{profile.user.login} <ExternalLink size={10} />
-                    </a>
+            <GlassCard className="relative overflow-hidden">
+              <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
+              
+              <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left flex-1">
+                  <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-40 group-hover:opacity-75 blur transition duration-300" />
+                    <img
+                      src={profile.user.avatar_url}
+                      alt={profile.user.login}
+                      className="relative w-18 h-18 rounded-2xl border border-white/[0.1] object-cover"
+                    />
+                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#090d16] rounded-full ring-2 ring-emerald-500/30 animate-pulse" />
                   </div>
-                  {profile.user.bio && <p className="text-[12px] text-[#71717a] mt-1 leading-relaxed">{profile.user.bio}</p>}
-                  {profile.domains.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {profile.domains.map(d => (
-                        <span key={d} className="text-[10px] px-2 py-0.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-medium">{d}</span>
-                      ))}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap justify-center sm:justify-start">
+                      <h2 className="text-[18px] font-black text-white tracking-tight">{profile.user.name || profile.user.login}</h2>
+                      <a href={profile.user.html_url} target="_blank" rel="noreferrer"
+                        className="text-[11.5px] font-bold text-[#8b949e] hover:text-indigo-400 transition-colors flex items-center gap-1">
+                        @{profile.user.login} <ExternalLink size={11} className="stroke-[2.5]" />
+                      </a>
                     </div>
-                  )}
-                </div>
-                {/* Developer Score */}
-                <div className="text-center flex-shrink-0">
-                  <div className="w-16 h-16 rounded-2xl border-2 flex items-center justify-center"
-                    style={{ borderColor: profile.metrics.devScore >= 70 ? '#10b981' : profile.metrics.devScore >= 40 ? '#f59e0b' : '#ef4444' }}>
-                    <span className="text-[20px] font-black" style={{ color: profile.metrics.devScore >= 70 ? '#10b981' : profile.metrics.devScore >= 40 ? '#f59e0b' : '#ef4444' }}>
-                      {profile.metrics.devScore}
-                    </span>
+                    {profile.user.bio && (
+                      <p className="text-[12.5px] text-[#8b949e] mt-2 leading-relaxed max-w-xl">
+                        {profile.user.bio}
+                      </p>
+                    )}
+                    {profile.domains.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                        {profile.domains.map(d => (
+                          <span key={d} className="text-[10px] px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/15 to-purple-500/15 border border-indigo-500/35 text-indigo-200 font-semibold shadow-[0_2px_8px_rgba(99,102,241,0.08)]">
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-[10px] text-[#71717a] mt-1">Dev Score</p>
                 </div>
+
+                {/* Developer Score Circular Gauge */}
+                {(() => {
+                  const score = profile.metrics.devScore;
+                  const strokeColor = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
+                  const glowColor = score >= 70 ? 'rgba(16, 185, 129, 0.4)' : score >= 40 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(239, 68, 68, 0.4)';
+                  const radius = 26;
+                  const circumference = 2 * Math.PI * radius;
+                  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+                  return (
+                    <div className="relative flex flex-col items-center justify-center flex-shrink-0 sm:pt-1">
+                      <div className="relative w-20 h-20 flex items-center justify-center">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 64 64">
+                          <circle
+                            cx="32"
+                            cy="32"
+                            r={radius}
+                            fill="transparent"
+                            stroke="rgba(255, 255, 255, 0.03)"
+                            strokeWidth="4.5"
+                          />
+                          <motion.circle
+                            cx="32"
+                            cy="32"
+                            r={radius}
+                            fill="transparent"
+                            stroke={strokeColor}
+                            strokeWidth="4.5"
+                            strokeDasharray={circumference}
+                            initial={{ strokeDashoffset: circumference }}
+                            animate={{ strokeDashoffset }}
+                            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                            strokeLinecap="round"
+                            style={{
+                              filter: `drop-shadow(0 0 6px ${strokeColor})`,
+                            }}
+                          />
+                        </svg>
+                        <div className="absolute flex flex-col items-center justify-center">
+                          <span className="text-[22px] font-black tracking-tight" style={{ color: strokeColor, textShadow: `0 0 10px ${glowColor}` }}>
+                            {score}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] font-bold text-[#8b949e] mt-1.5 uppercase tracking-wider">Dev Score</p>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Stats row */}
-              <div className="grid grid-cols-4 gap-3 mt-5 pt-4 border-t border-white/[0.05]">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mt-6 pt-5 border-t border-white/[0.06]">
                 {[
                   { label: 'Repositories', value: profile.user.public_repos, icon: Code2,   color: '#6366f1' },
-                  { label: 'Total Stars',  value: profile.metrics.totalStars, icon: Star,    color: '#f59e0b' },
+                  { label: 'Total Stars',  value: profile.metrics.totalStars, icon: Star,    color: '#fbbf24' },
                   { label: 'Followers',    value: profile.user.followers,      icon: Users,   color: '#10b981' },
-                  { label: 'Active (30d)', value: profile.metrics.recentRepos, icon: Activity,color: '#8b5cf6' },
+                  { label: 'Active (30d)', value: profile.metrics.recentRepos, icon: Activity,color: '#a78bfa' },
                 ].map(s => (
-                  <div key={s.label} className="text-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                    <s.icon size={14} className="mx-auto mb-1.5" style={{ color: s.color }} />
-                    <p className="text-[16px] font-bold text-[#f0f0f3]">{s.value}</p>
-                    <p className="text-[10px] text-[#71717a]">{s.label}</p>
-                  </div>
+                  <motion.div
+                    key={s.label}
+                    whileHover={{ y: -3, scale: 1.02, borderColor: 'rgba(255, 255, 255, 0.12)' }}
+                    className="relative overflow-hidden p-4 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col items-center justify-center transition-all duration-300"
+                    style={{
+                      boxShadow: `inset 0 1px 1px rgba(255,255,255,0.02)`
+                    }}
+                  >
+                    <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: `linear-gradient(90deg, ${s.color}00, ${s.color}40, ${s.color}00)` }} />
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 transition-colors"
+                         style={{ background: `rgba(255, 255, 255, 0.02)`, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                      <s.icon size={15} style={{ color: s.color, filter: `drop-shadow(0 0 4px ${s.color}40)` }} />
+                    </div>
+                    <p className="text-[20px] font-black text-white tracking-tight leading-none mb-1">{s.value}</p>
+                    <p className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-wider">{s.label}</p>
+                  </motion.div>
                 ))}
               </div>
             </GlassCard>
 
             {/* Language Chart */}
-            <GlassCard>
-              <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Tech Stack Distribution</h3>
-              <div className="space-y-3">
-                {profile.languages.map(l => (
-                  <div key={l.lang}>
-                    <div className="flex justify-between items-center mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: LANG_COLORS[l.lang] ?? '#6366f1' }} />
-                        <span className="text-[12px] text-[#a1a1aa] font-medium">{l.lang}</span>
+            <GlassCard className="relative overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-2 mb-5">
+                <Code2 size={15} className="text-indigo-400" />
+                <h3 className="text-[13.5px] font-bold text-white tracking-wide">Tech Stack Distribution</h3>
+              </div>
+              <div className="space-y-4">
+                {profile.languages.map(l => {
+                  const langColor = LANG_COLORS[l.lang] ?? '#6366f1';
+                  return (
+                    <motion.div 
+                      key={l.lang}
+                      whileHover={{ x: 3 }}
+                      className="group transition-all"
+                    >
+                      <div className="flex justify-between items-center mb-1.5">
+                        <div className="flex items-center gap-2.5">
+                          <span 
+                            className="w-3 h-3 rounded-full flex-shrink-0 transition-transform duration-300 group-hover:scale-110" 
+                            style={{ 
+                              background: langColor,
+                              boxShadow: `0 0 10px ${langColor}60`
+                            }} 
+                          />
+                          <span className="text-[13px] text-slate-200 font-semibold group-hover:text-white transition-colors">{l.lang}</span>
+                        </div>
+                        <span className="text-[11.5px] text-[#8b949e] font-medium transition-colors group-hover:text-slate-300">
+                          {l.count} {l.count === 1 ? 'repo' : 'repos'} <span className="text-slate-600 mx-1">•</span> {l.pct}%
+                        </span>
                       </div>
-                      <span className="text-[11px] text-[#71717a]">{l.count} repos · {l.pct}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }} animate={{ width: `${l.pct}%` }}
-                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="h-full rounded-full" style={{ background: LANG_COLORS[l.lang] ?? '#6366f1' }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                      <div className="h-[7px] rounded-full bg-white/[0.03] border border-white/[0.04] overflow-hidden p-[1px]">
+                        <motion.div
+                          initial={{ width: 0 }} 
+                          animate={{ width: `${l.pct}%` }}
+                          transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+                          className="h-full rounded-full transition-all duration-300" 
+                          style={{ 
+                            background: `linear-gradient(90deg, ${langColor}dd, ${langColor})`,
+                            boxShadow: `0 0 8px ${langColor}80`
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </GlassCard>
 
             {/* Top Repos */}
-            <GlassCard>
-              <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Top Repositories</h3>
-              <div className="grid sm:grid-cols-2 gap-3">
+            <GlassCard className="relative overflow-hidden">
+              <div className="absolute -bottom-12 -left-12 w-28 h-28 rounded-full bg-purple-500/5 blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-2 mb-5">
+                <GitBranch size={15} className="text-purple-400" />
+                <h3 className="text-[13.5px] font-bold text-white tracking-wide">Top Repositories</h3>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
                 {profile.topRepos.map(r => (
-                  <a key={r.id} href={r.html_url} target="_blank" rel="noreferrer"
-                    className="block p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.10] transition-all group">
-                    <div className="flex items-start justify-between gap-2">
+                  <motion.a 
+                    key={r.id} 
+                    href={r.html_url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    whileHover={{ y: -2, borderColor: 'rgba(255, 255, 255, 0.12)', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
+                    className="block p-4 rounded-xl border border-white/[0.05] bg-white/[0.005] hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all duration-300 group"
+                  >
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-[#a1a1aa] group-hover:text-indigo-300 transition-colors truncate">{r.name}</p>
-                        {r.description && <p className="text-[11px] text-[#71717a] mt-0.5 line-clamp-2 leading-relaxed">{r.description}</p>}
+                        <div className="flex items-center gap-1.5">
+                          <GitBranch size={13} className="text-[#8b949e] group-hover:text-indigo-400 transition-colors flex-shrink-0" />
+                          <p className="text-[13px] font-bold text-slate-200 group-hover:text-white transition-colors truncate">
+                            {r.name}
+                          </p>
+                        </div>
+                        {r.description ? (
+                          <p className="text-[11.5px] text-[#8b949e] mt-1.5 line-clamp-2 leading-relaxed group-hover:text-[#a1a1aa] transition-colors">
+                            {r.description}
+                          </p>
+                        ) : (
+                          <p className="text-[11.5px] text-slate-600 mt-1.5 italic">No description provided</p>
+                        )}
                       </div>
-                      <ExternalLink size={11} className="text-[#6b7280] group-hover:text-[#71717a] flex-shrink-0 mt-0.5" />
+                      <ExternalLink size={12} className="text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0 mt-0.5" />
                     </div>
-                    <div className="flex items-center gap-3 mt-2.5">
-                      {r.language && (
-                        <span className="flex items-center gap-1 text-[10px] text-[#71717a]">
-                          <span className="w-2 h-2 rounded-full" style={{ background: LANG_COLORS[r.language] ?? '#6366f1' }} />
-                          {r.language}
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.03]">
+                      <div className="flex items-center gap-3">
+                        {r.language && (
+                          <span className="flex items-center gap-1.5 text-[10.5px] font-semibold text-[#8b949e]">
+                            <span 
+                              className="w-2.5 h-2.5 rounded-full" 
+                              style={{ 
+                                background: LANG_COLORS[r.language] ?? '#6366f1',
+                                boxShadow: `0 0 6px ${(LANG_COLORS[r.language] ?? '#6366f1')}40`
+                              }} 
+                            />
+                            {r.language}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 text-[10.5px] font-medium text-[#8b949e] group-hover:text-amber-400 transition-colors">
+                          <Star size={11} className="fill-transparent group-hover:fill-amber-400/20" />
+                          {r.stargazers_count}
                         </span>
-                      )}
-                      <span className="flex items-center gap-1 text-[10px] text-[#71717a]"><Star size={10} />{r.stargazers_count}</span>
-                      <span className="flex items-center gap-1 text-[10px] text-[#71717a]"><GitFork size={10} />{r.forks_count}</span>
+                        <span className="flex items-center gap-1 text-[10.5px] font-medium text-[#8b949e] group-hover:text-indigo-400 transition-colors">
+                          <GitFork size={11} />
+                          {r.forks_count}
+                        </span>
+                      </div>
                     </div>
-                  </a>
+                  </motion.a>
                 ))}
               </div>
             </GlassCard>
 
             {/* Action buttons */}
-            <div className="flex flex-wrap gap-3">
-              <button onClick={handleSyncSkills}
-                className="flex items-center gap-2 text-[12px] px-4 py-2.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15 font-semibold transition-all">
-                <Plus size={13} /> Sync Languages to Career Profile
-              </button>
-              <button onClick={handleAIAnalysis} disabled={aiLoading}
-                className="flex items-center gap-2 text-[12px] px-4 py-2.5 rounded-xl font-semibold text-white disabled:opacity-50 transition-all"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                {aiLoading
-                  ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  : <Sparkles size={13} />}
-                {aiLoading ? 'Analyzing…' : 'AI Career Analysis'}
-              </button>
+            <div className="flex flex-wrap gap-4 py-1">
+              <motion.button 
+                onClick={handleSyncSkills}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center gap-2 text-[12.5px] px-5 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08] text-emerald-300 hover:text-emerald-200 hover:bg-emerald-500/[0.15] font-bold transition-all shadow-[0_0_12px_rgba(16,185,129,0.06)] hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] cursor-pointer"
+              >
+                <Plus size={14} className="stroke-[2.5]" /> Sync Languages to Career Profile
+              </motion.button>
+              
+              <motion.button 
+                onClick={handleAIAnalysis} 
+                disabled={aiLoading}
+                whileHover={!aiLoading ? { scale: 1.02, y: -1 } : {}}
+                whileTap={!aiLoading ? { scale: 0.98 } : {}}
+                className="relative overflow-hidden flex items-center gap-2 text-[12.5px] px-5 py-3 rounded-xl font-bold text-white disabled:opacity-50 transition-all cursor-pointer shadow-[0_0_16px_rgba(99,102,241,0.12)] hover:shadow-[0_0_25px_rgba(99,102,241,0.25)]"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+              >
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
+                {aiLoading ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin text-white" />
+                    <span>Analyzing tech stack…</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} className="text-white animate-pulse" />
+                    <span>AI Career Analysis</span>
+                  </>
+                )}
+              </motion.button>
             </div>
 
-            {/* AI Analysis */}
+            {/* AI Analysis Passport */}
             {analysis && (
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Brain size={14} className="text-indigo-400" />
-                      <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Career Analysis</h3>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <GlassCard className="relative overflow-hidden border border-indigo-500/20 bg-indigo-500/[0.01] shadow-[0_0_30px_rgba(99,102,241,0.06)]">
+                  <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/5 to-purple-500/5 blur-3xl pointer-events-none" />
+                  
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/[0.05]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center">
+                        <Brain size={16} className="text-indigo-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-[14px] font-bold text-white tracking-wide">AI Career Passport</h3>
+                        <p className="text-[11px] text-[#8b949e]">Personalized technical assessment & insights</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-[#71717a]">Level:</span>
-                      <span className="text-[11px] font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full">{analysis.overallLevel}</span>
-                      <span className="text-[11px] text-[#71717a] ml-2">Hirability:</span>
-                      <span className="text-[12px] font-bold text-emerald-400">{analysis.hirability}%</span>
+                    
+                    <div className="flex items-center gap-3.5 flex-wrap">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                        <span className="text-[11px] font-medium text-[#8b949e]">Level:</span>
+                        <span className="text-[11px] font-black text-indigo-300 bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                          {analysis.overallLevel}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                        <span className="text-[11px] font-medium text-[#8b949e]">Hirability:</span>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-12 h-[6px] rounded-full bg-white/[0.05] overflow-hidden">
+                            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${analysis.hirability}%` }} />
+                          </div>
+                          <span className="text-[12px] font-black text-emerald-400">
+                            {analysis.hirability}%
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <p className="text-[12px] text-[#a1a1aa] italic leading-relaxed mb-5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                    "{analysis.summary}"
-                  </p>
+                  {/* Summary quote */}
+                  <div className="relative p-4 rounded-xl bg-white/[0.015] border-l-2 border-indigo-500/40 border-y border-r border-white/[0.04] mb-6 shadow-inner">
+                    <span className="absolute -top-3 left-4 text-[42px] font-serif text-indigo-500/20 select-none leading-none">“</span>
+                    <p className="text-[12.5px] text-slate-300 italic leading-relaxed pl-3 pr-2 relative z-10">
+                      {analysis.summary}
+                    </p>
+                  </div>
 
-                  <div className="grid sm:grid-cols-3 gap-4">
+                  {/* Strengths / Gaps / Learn Next Columns */}
+                  <div className="grid sm:grid-cols-3 gap-5 mb-6">
                     {[
-                      { title: 'Strengths',    items: analysis.strengths,    color: 'text-emerald-400', bg: 'bg-emerald-500/[0.04] border-emerald-500/15', dot: 'bg-emerald-500/60' },
-                      { title: 'Skill Gaps',   items: analysis.gaps,         color: 'text-red-400',     bg: 'bg-red-500/[0.04] border-red-500/15',         dot: 'bg-red-500/60'     },
-                      { title: 'Learn Next',   items: analysis.nextSkills,   color: 'text-amber-400',   bg: 'bg-amber-500/[0.04] border-amber-500/15',     dot: 'bg-amber-500/60'   },
+                      { 
+                        title: 'Key Strengths', 
+                        items: analysis.strengths, 
+                        color: 'text-emerald-400', 
+                        border: 'border-emerald-500/15', 
+                        bg: 'from-emerald-500/[0.03] to-transparent',
+                        icon: (
+                          <svg className="w-3.5 h-3.5 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )
+                      },
+                      { 
+                        title: 'Skill Gaps', 
+                        items: analysis.gaps, 
+                        color: 'text-red-400', 
+                        border: 'border-red-500/15', 
+                        bg: 'from-red-500/[0.03] to-transparent',
+                        icon: (
+                          <svg className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                        )
+                      },
+                      { 
+                        title: 'Recommend Next', 
+                        items: analysis.nextSkills, 
+                        color: 'text-amber-400', 
+                        border: 'border-amber-500/15', 
+                        bg: 'from-amber-500/[0.03] to-transparent',
+                        icon: (
+                          <svg className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                        )
+                      },
                     ].map(s => (
-                      <div key={s.title} className={`p-3.5 rounded-xl border ${s.bg}`}>
-                        <p className={`text-[11px] font-bold uppercase tracking-wider mb-2.5 ${s.color}`}>{s.title}</p>
-                        <ul className="space-y-1.5">
+                      <div 
+                        key={s.title} 
+                        className={`p-4 rounded-2xl border ${s.border} bg-gradient-to-b ${s.bg} flex flex-col`}
+                      >
+                        <p className={`text-[11.5px] font-black uppercase tracking-wider mb-3 pb-1.5 border-b border-white/[0.03] ${s.color}`}>
+                          {s.title}
+                        </p>
+                        <ul className="space-y-2.5 flex-1">
                           {(s.items ?? []).map((item, i) => (
-                            <li key={i} className="flex items-start gap-2 text-[11px] text-[#a1a1aa]">
-                              <span className={`mt-1.5 w-1.5 h-1.5 rounded-full ${s.dot} flex-shrink-0`} />
-                              {item}
+                            <li key={i} className="flex items-start gap-2 text-[12px] text-slate-300 leading-relaxed font-medium">
+                              {s.icon}
+                              <span>{item}</span>
                             </li>
                           ))}
                         </ul>
@@ -351,20 +704,30 @@ function GitHubPanel() {
                     ))}
                   </div>
 
-                  <div className="mt-4">
-                    <p className="text-[11px] font-bold text-[#71717a] uppercase tracking-wider mb-2">Career Paths</p>
-                    <div className="flex flex-wrap gap-2">
+                  {/* Career Paths */}
+                  <div className="mt-5 p-4 rounded-2xl bg-white/[0.005] border border-white/[0.04]">
+                    <p className="text-[11.5px] font-black text-[#8b949e] uppercase tracking-wider mb-3">Target Career Paths</p>
+                    <div className="flex flex-wrap gap-2.5">
                       {(analysis.careerPaths ?? []).map((p, i) => (
-                        <span key={i} className="text-[11px] px-3 py-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-300 font-medium">{p}</span>
+                        <span 
+                          key={i} 
+                          className="text-[11.5px] px-3.5 py-1.5 rounded-xl border border-purple-500/25 bg-purple-500/[0.06] text-purple-200 font-semibold shadow-[0_2px_10px_rgba(168,85,247,0.04)]"
+                        >
+                          {p}
+                        </span>
                       ))}
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-white/[0.05]">
-                    <p className="text-[11px] font-bold text-[#71717a] uppercase tracking-wider mb-2">Resume Tips</p>
-                    <ul className="space-y-1.5">
+                  {/* Resume Tips */}
+                  <div className="mt-5 pt-5 border-t border-white/[0.05]">
+                    <p className="text-[11.5px] font-black text-[#8b949e] uppercase tracking-wider mb-3">Resume Optimization Tips</p>
+                    <ul className="grid sm:grid-cols-2 gap-3">
                       {(analysis.resumeTips ?? []).map((t, i) => (
-                        <li key={i} className="flex items-start gap-2 text-[12px] text-[#71717a]"><ChevronRight size={12} className="mt-0.5 text-indigo-500 flex-shrink-0" />{t}</li>
+                        <li key={i} className="flex items-start gap-2.5 text-[12px] text-slate-300 leading-relaxed font-medium">
+                          <ChevronRight size={13} className="mt-1 text-indigo-400 flex-shrink-0" />
+                          <span>{t}</span>
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -374,18 +737,6 @@ function GitHubPanel() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Empty state */}
-      {!profile && !loading && !error && (
-        <GlassCard className="text-center py-10">
-          <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: 'rgba(36,41,46,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <GitBranch size={24} className="text-[#a1a1aa]" />
-          </div>
-          <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">Analyze any GitHub profile</p>
-          <p className="text-[12px] text-[#71717a]">No authentication required • Works with any public profile</p>
-        </GlassCard>
-      )}
     </div>
   );
 }
@@ -570,59 +921,113 @@ function LinkedInPanel() {
     : 'text-amber-400 bg-amber-500/10 border-amber-500/25';
 
   return (
-    <div className="flex flex-col gap-8 max-w-[1050px]">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl bg-[#0a66c2] flex items-center justify-center text-white font-sans font-bold text-xl select-none">in</div>
-        <h2 className="text-[20px] font-bold text-[#f0f0f3]">LinkedIn Profile Intelligence</h2>
-        <span className="text-[12px] font-semibold px-3 py-1 rounded-full bg-[#1f1e2e] text-[#b392f0] border border-[#b392f0]/20">Mock Data</span>
-      </div>
-
-      {/* Search Bar */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-          <Search size={18} className="text-[#8b949e]" />
+    <div className="space-y-5">
+      {/* Search */}
+      <GlassCard>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="w-6 h-6 rounded-md bg-[#0077b5] flex items-center justify-center text-white font-sans font-bold text-[13px] select-none">in</div>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>LinkedIn Profile Intelligence</h3>
+              <StatusBadge status={profile ? 'live' : 'none'} />
+            </div>
+          </div>
         </div>
-        <input
-          value={searchInput}
-          onChange={e => setSearchInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSearch()}
-          placeholder="Search by name, headline, company or skill..."
-          className="w-full bg-[#0d1117] border border-[#30363d] rounded-2xl pl-14 pr-44 h-[60px] text-[15px] text-[#f0f0f3] placeholder-[#8b949e] focus:outline-none focus:border-[#388bfd]/50 transition-colors"
-        />
-        <div className="absolute inset-y-0 right-2.5 flex items-center">
-          <button 
+        
+        <p style={{ fontSize: 12.5, color: '#8b949e', margin: '4px 0 0' }}>
+          Analyze any LinkedIn profile or search for professional connections to enrich your career analytics and job matches.
+        </p>
+
+        <div style={{ display: 'flex', gap: 12, marginTop: 20, width: '100%' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Linkedin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#6e7681' }} />
+            <input
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              placeholder="e.g. Arjun Mehta"
+              className="input-premium w-full text-[13.5px]"
+              style={{ paddingLeft: 38 }}
+            />
+          </div>
+          <button
             onClick={handleSearch}
-            disabled={loading || !searchInput.trim()}
-            className="flex items-center gap-2 bg-[#8250df] hover:bg-[#925bf0] text-white px-5 h-[44px] rounded-xl text-[14px] font-semibold transition-colors disabled:opacity-50">
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            Analyze Profile
+            disabled={!searchInput.trim() || loading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 12, 
+              fontWeight: 600, fontSize: 13, color: '#ffffff', border: '1px solid rgba(99,102,241,0.35)',
+              background: 'rgba(99, 102, 241, 0.25)', cursor: 'pointer', transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.35)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.55)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.25)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)'; }}
+          >
+            {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
+            Analyze
           </button>
         </div>
-      </div>
 
-      {/* Suggested Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-[14px] text-[#8b949e] font-medium mr-2">Suggested</span>
-          {['Priya Sharma', 'Arjun Mehta', 'Rahul Gupta', 'Ananya Singh'].map(n => (
-            <button 
-              key={n} 
-              onClick={() => setSearchInput(n)} 
-              className="text-[13px] px-4 py-1.5 rounded-full bg-[#21262d] border border-[#30363d] text-[#c9d1d9] hover:text-white hover:bg-[#30363d] transition-colors font-medium"
-            >
-              {n}
-            </button>
-          ))}
+        {/* Suggested row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, color: '#8b949e', fontWeight: 600 }}>Suggested:</span>
+            {['Priya Sharma', 'Arjun Mehta', 'Rahul Gupta', 'Ananya Singh'].map(n => (
+              <button 
+                key={n} 
+                onClick={() => setSearchInput(n)} 
+                style={{
+                  fontSize: 11.5, padding: '6px 14px', borderRadius: 99, cursor: 'pointer',
+                  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                  color: '#94a3b8', fontWeight: 600, transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = '#94a3b8'; }}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={() => setSearchInput('')} 
+            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', color: '#6e7681', fontSize: 12, cursor: 'pointer', fontWeight: 600, transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
+            onMouseLeave={e => e.currentTarget.style.color = '#6e7681'}
+          >
+            <Trash2 size={13} /> Clear
+          </button>
         </div>
-        <button onClick={() => setSearchInput('')} className="flex items-center gap-1.5 text-[14px] text-[#8b949e] hover:text-white transition-colors font-medium">
-          <Trash2 size={15} /> Clear
-        </button>
-      </div>
+
+        {!profile && !loading && (
+          <div style={{
+            marginTop: 24,
+            padding: '48px 24px',
+            borderRadius: 16,
+            border: '1px dashed rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255, 255, 255, 0.005)'
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: '50%',
+              background: 'rgba(0, 119, 181, 0.1)',
+              border: '1px solid rgba(0, 119, 181, 0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 16
+            }}>
+              <Linkedin size={20} style={{ color: '#0077b5' }} />
+            </div>
+            <h4 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px 0' }}>Analyze any LinkedIn profile</h4>
+            <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 20px 0', textAlign: 'center' }}>
+              No authentication required • Works with any public profile
+            </p>
+          </div>
+        )}
+      </GlassCard>
 
       {/* Loading State */}
       {loading && (
-        <GlassCard className="text-center py-12 border-[#30363d] !bg-[#161b22]">
+        <GlassCard className="text-center py-12">
           <Loader2 size={32} className="mx-auto mb-4 text-indigo-400 animate-spin" />
           <p className="text-[14px] font-semibold text-[#8b949e]">Analyzing profile for "{searchInput}"…</p>
         </GlassCard>
@@ -631,26 +1036,26 @@ function LinkedInPanel() {
       {/* Empty State / Top Matches */}
       {!profile && !loading && (
         <>
-          <GlassCard className="!bg-[#161b22] border-[#30363d] p-0 overflow-hidden animate-fadeIn">
-            <div className="flex items-center justify-between py-5 px-8 border-b border-[#30363d]">
+          <GlassCard className="p-0 overflow-hidden animate-fadeIn">
+            <div className="flex items-center justify-between py-5 px-8 border-b border-white/[0.06]">
               <h3 className="text-[16px] font-semibold text-[#f0f0f3]">Top Matches</h3>
               <button className="text-[14px] text-[#58a6ff] hover:underline flex items-center gap-1 transition-colors font-medium">
                 View all <ChevronRight size={16} />
               </button>
             </div>
-            <div className="divide-y divide-[#30363d]">
+            <div className="divide-y divide-white/[0.06]">
               {MOCK_TOP_MATCHES.map(match => (
                 <div key={match.name} className="flex items-center py-6 px-8 hover:bg-white/[0.01] transition-colors cursor-pointer group" onClick={() => { setSearchInput(match.name); handleSearch(); }}>
                   {/* Avatar & Info */}
                   <div className="flex items-center gap-5 w-[38%]">
                     <div className="relative flex-shrink-0">
                       <img src={match.avatar} className="w-14 h-14 rounded-full border border-white/[0.08]" alt={match.name} />
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#56d364] border-2 border-[#161b22] rounded-full"></div>
+                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#56d364] border-2 border-[#0d1423] rounded-full"></div>
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2.5">
                         <h4 className="text-[16px] font-bold text-[#f0f0f3] truncate">{match.name}</h4>
-                        <span className="text-[11px] font-semibold text-[#8b949e] bg-[#21262d] border border-[#30363d] px-2 py-0.5 rounded-md flex-shrink-0">{match.degree}</span>
+                        <span className="text-[11px] font-semibold text-[#8b949e] bg-white/[0.04] border border-white/[0.08] px-2 py-0.5 rounded-md flex-shrink-0">{match.degree}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-1.5 min-w-0">
                         {match.company === 'Google' && <GoogleLogo />}
@@ -705,7 +1110,7 @@ function LinkedInPanel() {
             </div>
           </GlassCard>
 
-          <div className="flex items-center justify-between text-[#8b949e] text-[13px]">
+          <div className="flex items-center justify-between text-[#8b949e] text-[13px] px-1 py-2">
             <div className="flex items-center gap-2">
               <ShieldCheck size={18} className="text-[#8b949e]" />
               <span>We use OAuth 2.0 for secure authentication. Your data is private and never stored.</span>
@@ -959,19 +1364,41 @@ function NutritionixPanel() {
 
   return (
     <div className="space-y-5">
-      <GlassCard>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Utensils size={16} className="text-emerald-400" />
-            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Nutritionix Food Tracker</h3>
-            <StatusBadge status={hasNutritionixKey() ? 'live' : isDemo ? 'demo' : 'none'} />
+      <GlassCard className="relative overflow-hidden">
+        <div className="absolute -top-16 -left-16 w-40 h-40 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none" />
+        
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 12,
+              background: 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <Utensils size={20} className="text-emerald-400" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.01em' }}>Nutritionix Food Tracker</h3>
+                <StatusBadge status={hasNutritionixKey() ? 'live' : isDemo ? 'demo' : 'none'} />
+              </div>
+              <p style={{ fontSize: 12.5, color: '#8b949e', margin: '4px 0 0' }}>
+                Type your meal in plain English — AI parses full nutritional data instantly.
+              </p>
+            </div>
           </div>
           <button onClick={() => setShowSetup(p => !p)}
-            className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all">
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10,
+              fontSize: 11, fontWeight: 600, color: '#8b949e', border: '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(255,255,255,0.02)', cursor: 'pointer', transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#8b949e'; }}
+          >
             <Key size={11} /> {hasNutritionixKey() ? 'API Key Set' : 'Setup Keys'}
           </button>
         </div>
-        <p className="text-[12px] text-[#71717a] mb-4">Type your meal in plain English — the AI parses it into full nutritional data instantly.</p>
 
         {/* Key Setup */}
         <AnimatePresence>
@@ -992,31 +1419,54 @@ function NutritionixPanel() {
         </AnimatePresence>
 
         {/* Query input */}
-        <div className="flex gap-2">
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
-            placeholder="e.g. 2 eggs, toast and a glass of milk"
-            className="input-premium flex-1 text-[13px]"
-          />
-          <button onClick={handleAnalyze} disabled={!query.trim() || loading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-            style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-            {loading
-              ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <Zap size={14} />}
-            {loading ? 'Parsing…' : 'Analyze'}
-          </button>
+        <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Utensils size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#6e7681' }} />
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
+              placeholder="e.g. 2 eggs, toast and a glass of milk"
+              className="input-premium w-full text-[13.5px]"
+              style={{ paddingLeft: 38 }}
+            />
+          </div>
+          <motion.button
+            onClick={handleAnalyze}
+            disabled={!query.trim() || loading}
+            whileHover={!loading && query.trim() ? { scale: 1.03, y: -1 } : {}}
+            whileTap={!loading && query.trim() ? { scale: 0.97 } : {}}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 28px', borderRadius: 12, 
+              fontWeight: 700, fontSize: 13, color: '#ffffff', border: 'none',
+              background: 'linear-gradient(135deg, #10b981, #059669)', cursor: 'pointer', transition: 'all 0.2s',
+              boxShadow: '0 4px 16px rgba(16, 185, 129, 0.25)', opacity: !query.trim() || loading ? 0.5 : 1
+            }}
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+            Analyze
+          </motion.button>
         </div>
 
         {/* Examples */}
-        <div className="flex flex-wrap gap-1.5 mt-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+          <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Try:</span>
           {['2 eggs and toast', 'chicken biryani', 'protein shake with banana', '1 cup oatmeal with berries'].map(ex => (
-            <button key={ex} onClick={() => setQuery(ex)}
-              className="text-[10px] px-2.5 py-1 rounded-lg border border-white/[0.05] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all">
+            <motion.button 
+              key={ex} 
+              onClick={() => setQuery(ex)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                fontSize: 11.5, padding: '5px 14px', borderRadius: 99, cursor: 'pointer',
+                background: 'rgba(16, 185, 129, 0.06)', border: '1px solid rgba(16, 185, 129, 0.15)',
+                color: '#6ee7b7', fontWeight: 600, transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)'; e.currentTarget.style.background = 'rgba(16,185,129,0.12)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.15)'; e.currentTarget.style.background = 'rgba(16,185,129,0.06)'; }}
+            >
               {ex}
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -1030,7 +1480,7 @@ function NutritionixPanel() {
       {/* Results */}
       <AnimatePresence>
         {result && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
             {isDemo && (
               <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2">
                 <AlertTriangle size={13} /> Demo mode — add Nutritionix keys above for real results
@@ -1038,24 +1488,64 @@ function NutritionixPanel() {
             )}
 
             {/* Total nutrition */}
-            <GlassCard>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Nutrition Breakdown</h3>
+            <GlassCard className="relative overflow-hidden">
+              <div className="absolute -top-20 -right-20 w-44 h-44 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none" />
+              
+              <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-[#71717a]">Health Score:</span>
-                  <span className="text-[14px] font-bold" style={{ color: result.healthScore >= 70 ? '#10b981' : result.healthScore >= 50 ? '#f59e0b' : '#ef4444' }}>
-                    {result.healthScore}/100
-                  </span>
+                  <Utensils size={15} className="text-emerald-400" />
+                  <h3 className="text-[13.5px] font-bold text-white tracking-wide">Nutrition Breakdown</h3>
                 </div>
+                {/* Health Score Circular Gauge */}
+                {(() => {
+                  const score = result.healthScore;
+                  const strokeColor = score >= 70 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+                  const glowColor = score >= 70 ? 'rgba(16, 185, 129, 0.4)' : score >= 50 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(239, 68, 68, 0.4)';
+                  const radius = 20;
+                  const circumference = 2 * Math.PI * radius;
+                  const strokeDashoffset = circumference - (score / 100) * circumference;
+                  return (
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] font-medium text-[#8b949e]">Health Score</span>
+                      <div className="relative w-14 h-14 flex items-center justify-center">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 50 50">
+                          <circle cx="25" cy="25" r={radius} fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="3.5" />
+                          <motion.circle cx="25" cy="25" r={radius} fill="transparent" stroke={strokeColor} strokeWidth="3.5"
+                            strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset }}
+                            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }} strokeLinecap="round"
+                            style={{ filter: `drop-shadow(0 0 5px ${strokeColor})` }}
+                          />
+                        </svg>
+                        <span className="absolute text-[14px] font-black" style={{ color: strokeColor, textShadow: `0 0 8px ${glowColor}` }}>
+                          {score}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
-              {/* Calorie hero */}
-              <div className="text-center p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] mb-4">
-                <p className="text-[42px] font-black text-[#f0f0f3] leading-none">{result.total.calories}</p>
-                <p className="text-[12px] text-[#71717a] mt-1">total calories</p>
+              {/* Calorie hero + Macro cards row */}
+              <div className="grid grid-cols-4 gap-3.5 mb-5">
+                {[
+                  { label: 'Calories', value: result.total.calories, unit: 'kcal', color: '#f59e0b', icon: Zap },
+                  { label: 'Protein', value: result.total.protein, unit: 'g', color: '#6366f1', icon: Activity },
+                  { label: 'Carbs', value: result.total.carbs, unit: 'g', color: '#f97316', icon: Activity },
+                  { label: 'Fat', value: result.total.fat, unit: 'g', color: '#ec4899', icon: Activity },
+                ].map(m => (
+                  <motion.div
+                    key={m.label}
+                    whileHover={{ y: -3, scale: 1.02, borderColor: 'rgba(255, 255, 255, 0.12)' }}
+                    className="relative overflow-hidden p-4 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col items-center justify-center transition-all duration-300"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: `linear-gradient(90deg, ${m.color}00, ${m.color}40, ${m.color}00)` }} />
+                    <p className="text-[24px] font-black text-white tracking-tight leading-none mb-0.5">{m.value}</p>
+                    <p className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-wider">{m.unit} {m.label}</p>
+                  </motion.div>
+                ))}
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <MacroBar label="Protein"       value={result.total.protein} color="#6366f1" max={60}  />
                 <MacroBar label="Carbohydrates" value={result.total.carbs}   color="#f59e0b" max={100} />
                 <MacroBar label="Fat"           value={result.total.fat}     color="#ec4899" max={60}  />
@@ -1065,37 +1555,59 @@ function NutritionixPanel() {
             </GlassCard>
 
             {/* Food items */}
-            <GlassCard>
-              <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-3">Identified Foods</h3>
-              <div className="space-y-2">
+            <GlassCard className="relative overflow-hidden">
+              <div className="absolute -bottom-12 -left-12 w-28 h-28 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-2 mb-4">
+                <Utensils size={15} className="text-emerald-400" />
+                <h3 className="text-[13.5px] font-bold text-white tracking-wide">Identified Foods</h3>
+                <span className="ml-auto text-[11px] text-[#8b949e] font-medium">{result.items.length} items</span>
+              </div>
+              <div className="space-y-3">
                 {result.items.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-sm">
+                  <motion.div 
+                    key={i} 
+                    whileHover={{ y: -1, borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                    className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.05] transition-all duration-300 group"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/20 flex items-center justify-center text-base overflow-hidden flex-shrink-0">
                         {item.thumb ? <img src={item.thumb} alt="" className="w-full h-full object-cover rounded-xl" /> : '🥘'}
                       </div>
                       <div>
-                        <p className="text-[12px] font-medium text-[#a1a1aa] capitalize">{item.name}</p>
-                        <p className="text-[10px] text-[#71717a]">{item.qty}</p>
+                        <p className="text-[13px] font-semibold text-slate-200 capitalize group-hover:text-white transition-colors">{item.name}</p>
+                        <p className="text-[11px] text-[#8b949e] mt-0.5">{item.qty}</p>
                       </div>
                     </div>
-                    <div className="flex gap-3 text-right">
-                      <div><p className="text-[11px] font-bold text-[#f0f0f3]">{item.calories}</p><p className="text-[9px] text-[#71717a]">kcal</p></div>
-                      <div><p className="text-[11px] font-bold text-indigo-400">{item.protein}g</p><p className="text-[9px] text-[#71717a]">protein</p></div>
+                    <div className="flex gap-5 text-right">
+                      <div>
+                        <p className="text-[13px] font-black text-white">{item.calories}</p>
+                        <p className="text-[9px] text-[#8b949e] font-medium uppercase tracking-wider">kcal</p>
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-black text-indigo-400">{item.protein}g</p>
+                        <p className="text-[9px] text-[#8b949e] font-medium uppercase tracking-wider">protein</p>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </GlassCard>
 
-            <button
+            <motion.button
               onClick={handleLogToHealth}
               disabled={logged}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-[13px] transition-all disabled:cursor-default"
-              style={{ background: logged ? 'rgba(16,185,129,0.1)' : 'linear-gradient(135deg, #10b981, #059669)', border: logged ? '1px solid rgba(16,185,129,0.3)' : 'none', color: logged ? '#10b981' : 'white' }}
+              whileHover={!logged ? { scale: 1.02, y: -1 } : {}}
+              whileTap={!logged ? { scale: 0.98 } : {}}
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-[13px] transition-all disabled:cursor-default cursor-pointer"
+              style={{ 
+                background: logged ? 'rgba(16,185,129,0.08)' : 'linear-gradient(135deg, #10b981, #059669)', 
+                border: logged ? '1px solid rgba(16,185,129,0.25)' : 'none', 
+                color: logged ? '#10b981' : 'white',
+                boxShadow: logged ? 'none' : '0 4px 20px rgba(16, 185, 129, 0.2)'
+              }}
             >
               {logged ? <><CheckCircle size={15} /> Logged to Health Profile</> : <><Plus size={15} /> Log {result.total.calories} cal to Health Dashboard</>}
-            </button>
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1112,43 +1624,55 @@ function FitbitPanel() {
     <div className="flex flex-col gap-5" style={{ minHeight: 'calc(100vh - 180px)' }}>
 
       {/* ── Header ── */}
-      <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-6 flex items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-[#161b22] border border-[#30363d] flex items-center justify-center flex-shrink-0">
-            <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
-              <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
-              <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
-              <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
-              <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-              <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-              <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-              <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-            </svg>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-[17px] font-bold text-[#f0f0f3]">Fitbit Health Sync</h3>
-              <span className="flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#8b949e] font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#8b949e] inline-block" />
-                Not Connected
-              </span>
+      <GlassCard>
+        <div className="flex items-center justify-between flex-wrap gap-6">
+          <div className="flex items-center gap-5">
+            <div style={{
+              width: 56, height: 56, borderRadius: 16,
+              background: 'rgba(0, 176, 185, 0.1)',
+              border: '1px solid rgba(0, 176, 185, 0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
+                <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
+                <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
+                <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+                <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
+                <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+                <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
+              </svg>
             </div>
-            <p className="text-[13px] text-[#8b949e] leading-relaxed">Click Connect Fitbit to authorize via OAuth.</p>
-            <p className="text-[13px] text-[#8b949e] leading-relaxed">We fetch sleep, steps, heart rate, and calories — no password stored.</p>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-[17px] font-bold text-[#f0f0f3]">Fitbit Health Sync</h3>
+                <StatusBadge status="none" />
+              </div>
+              <p className="text-[13px] text-[#8b949e] leading-relaxed">Click Connect Fitbit to authorize via OAuth.</p>
+              <p className="text-[13px] text-[#8b949e] leading-relaxed">We fetch sleep, steps, heart rate, and calories — no password stored.</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            <button
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 12, 
+                fontWeight: 600, fontSize: 13, color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.25)',
+                background: 'rgba(99, 102, 241, 0.12)', cursor: 'pointer', transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.2)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.45)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.12)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)'; }}
+            >
+              Connect Fitbit <ExternalLink size={13} />
+            </button>
+            <div className="flex items-center gap-1 text-[11px] text-[#8b949e]">
+              <ShieldCheck size={12} /> Secure OAuth 2.0
+            </div>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          <button className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#8250df] hover:bg-[#6e40c9] text-white text-[13px] font-semibold whitespace-nowrap transition-colors shadow-lg shadow-purple-500/20">
-            Connect Fitbit <ExternalLink size={14} />
-          </button>
-          <div className="flex items-center gap-1 text-[11px] text-[#8b949e]">
-            <ShieldCheck size={12} /> Secure OAuth 2.0 <ShieldCheck size={12} />
-          </div>
-        </div>
-      </div>
+      </GlassCard>
 
       {/* ── 4 Metric Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 bg-[#0d1117] border border-[#30363d] rounded-2xl overflow-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden shadow-lg">
         {[
           { label:'Steps',      value:'8,642',  suffix:'',     Icon:Footprints, bg:'#10b98120', iconCls:'text-emerald-400', trend:'+12.4%', up:true  },
           { label:'Sleep',      value:'7h 32m', suffix:'',     Icon:Moon,       bg:'#6366f120', iconCls:'text-indigo-400',  trend:'+8.1%',  up:true  },
@@ -1157,8 +1681,8 @@ function FitbitPanel() {
         ].map((m, idx) => (
           <div
             key={m.label}
-            className={`flex items-center gap-4 px-6 py-5 ${
-              idx < 3 ? 'border-r border-[#30363d]' : ''
+            className={`flex items-center gap-4 px-6 py-5 bg-white/[0.01] ${
+              idx < 3 ? 'border-r border-white/[0.06]' : ''
             }`}
           >
             <div
@@ -1182,18 +1706,18 @@ function FitbitPanel() {
       </div>
 
       {/* ── All Activities Table ── */}
-      <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl overflow-hidden flex flex-col flex-1">
+      <div className="glass-card overflow-hidden flex flex-col flex-1">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#30363d]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
             <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[#8b949e] text-[12px] font-medium border border-white/[0.06]">10</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#30363d] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
               <Calendar size={13} /> May 23 - May 29, 2025 <ChevronDown size={13} />
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#30363d] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
               <Filter size={13} /> Filter <ChevronDown size={13} />
             </button>
           </div>
@@ -1201,7 +1725,7 @@ function FitbitPanel() {
 
         {/* Column header row */}
         <div
-          className="grid px-6 py-3 border-b border-[#30363d] text-[11px] font-semibold text-[#8b949e] uppercase tracking-wider"
+          className="grid px-6 py-3 border-b border-white/[0.06] text-[11px] font-semibold text-[#8b949e] uppercase tracking-wider"
           style={{ gridTemplateColumns: '160px 1fr 120px 130px 130px 44px' }}
         >
           <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
@@ -1213,7 +1737,7 @@ function FitbitPanel() {
         </div>
 
         {/* Data rows */}
-        <div className="flex-1 flex flex-col divide-y divide-[#30363d]">
+        <div className="flex-1 flex flex-col divide-y divide-white/[0.06]">
         {[
           { date:'May 29, 2025', time:'10:42 AM', act:'Walk',            sub:'Outdoor',          type:'Steps',    pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'6,213 steps', Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
           { date:'May 29, 2025', time:'09:15 AM', act:'Sleep',           sub:'7h 32m',           type:'Sleep',    pill:'bg-indigo-500/10  text-indigo-400  border-indigo-500/20',  val:'7h 32m',      Icon:Moon,       ib:'bg-indigo-500/10',  ic:'text-indigo-400'  },
@@ -1259,15 +1783,15 @@ function FitbitPanel() {
         </div>
 
         {/* Pagination footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#30363d]">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-white/[0.06]">
           <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
           <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-lg border border-[#30363d] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
+            <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
               <ChevronLeft size={14}/>
             </button>
             <button className="w-8 h-8 rounded-lg bg-[#388bfd] text-white flex items-center justify-center text-[12px] font-bold shadow-md shadow-blue-500/25">1</button>
-            <button className="w-8 h-8 rounded-lg border border-[#30363d] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors text-[12px]">2</button>
-            <button className="w-8 h-8 rounded-lg border border-[#30363d] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
+            <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors text-[12px]">2</button>
+            <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
               <ChevronRight size={14}/>
             </button>
           </div>
@@ -1460,59 +1984,49 @@ function IndiaBankingPanel() {
 
       {/* ── HEADER CARD ── */}
       <GlassCard>
-        <div className="flex items-start justify-between gap-6">
-          {/* Left: big icon + text */}
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-              <Landmark size={24} className="text-emerald-500" />
-            </div>
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-[20px] font-bold text-[#f0f0f3]" style={{ fontFamily: 'var(--font-display)' }}>India Banking Intelligence</h2>
-                <StatusBadge status={isResults ? 'live' : isDemo ? 'demo' : 'none'} />
-              </div>
-              <p className="text-[13px] text-[#a1a1aa] leading-relaxed mb-2">
-                Powered by India's <strong className="text-[#e2e8f0]">Account Aggregator (AA) framework</strong> — RBI-regulated, consent-based open banking.
-              </p>
-              <div className="flex items-center gap-1.5 mt-2">
-                <span className="text-[12px]">🔒</span>
-                <span className="text-[12px] text-[#71717a]">
-                  Your data is encrypted and secure. Read our <span className="text-emerald-500 hover:underline cursor-pointer">privacy policy</span>
-                </span>
-              </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Landmark size={18} className="text-white" />
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>India Banking Intelligence</h3>
+              <StatusBadge status={isResults ? 'live' : isDemo ? 'demo' : 'none'} />
             </div>
           </div>
 
-          {/* Right: button block */}
-          <div className="flex flex-col items-end gap-2.5 flex-shrink-0 ml-4">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
             {phase === 'landing' ? (
               <>
                 <button
                   onClick={() => setPhase('demo')}
-                  className="flex items-center gap-2 text-[14px] px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 whitespace-nowrap"
-                  style={{ background: '#10b981' }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 12, 
+                    fontWeight: 600, fontSize: 13, color: '#34d399', border: '1px solid rgba(16,185,129,0.25)',
+                    background: 'rgba(16, 185, 129, 0.12)', cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.2)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.45)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.12)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.25)'; }}
                 >
-                  Connect Banking <ExternalLink size={15} />
+                  Connect Banking <ExternalLink size={13} />
                 </button>
-                <div className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
-                  <CheckCircle size={13} /> Secure OAuth 2.0
-                </div>
               </>
             ) : (
               <div className="flex items-center gap-2">
                 <button onClick={handleSyncFinance} disabled={synced}
-                  className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border font-semibold transition-all disabled:cursor-default"
-                  style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.25)', color: synced ? '#10b981' : '#6ee7b7' }}>
-                  {synced ? <><CheckCircle size={11} /> Synced</> : <><Plus size={11} /> Sync to Finance</>}
+                  className="flex items-center gap-1.5 text-[11px] px-3.5 py-2 rounded-xl border font-semibold transition-all disabled:cursor-default"
+                  style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.12)', borderColor: 'rgba(16,185,129,0.25)', color: synced ? '#10b981' : '#34d399' }}>
+                  {synced ? <><CheckCircle size={12} /> Synced</> : <><Plus size={12} /> Sync to Finance</>}
                 </button>
                 <button onClick={handleReset}
-                  className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all">
+                  className="text-[11px] px-3.5 py-2 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all bg-white/[0.02]">
                   Reset
                 </button>
               </div>
             )}
           </div>
         </div>
+        <p style={{ fontSize: 12.5, color: '#8b949e', margin: '8px 0 0' }}>
+          Consent-based secure open banking powered by India's RBI-regulated Account Aggregator (AA) framework.
+        </p>
       </GlassCard>
 
       {/* ── Landing Phase ── */}
@@ -2010,12 +2524,9 @@ function CourseraPanel() {
   );
 }
 
-// ── MAIN PAGE ─────────────────────────────────────────────────────────────────
-
 const TABS = [
-  { id: 'github',      label: 'GitHub',       icon: GitBranch,  color: 'text-[#a1a1aa]'    },
-  { id: 'coursera',    label: 'Coursera',     icon: BookOpen,   color: 'text-[#0056d2]'    },
-  { id: 'linkedin',    label: 'LinkedIn',     icon: Briefcase,  color: 'text-[#0077b5]'    },
+  { id: 'github',      label: 'GitHub',       icon: Github,     color: 'text-[#a1a1aa]'    },
+  { id: 'linkedin',    label: 'LinkedIn',     icon: Linkedin,   color: 'text-[#0077b5]'    },
   { id: 'nutritionix', label: 'Nutrition',    icon: Utensils,   color: 'text-emerald-400'  },
   { id: 'fitbit',      label: 'Fitbit',       icon: Activity,   color: 'text-[#00b0b9]'    },
   { id: 'banking',     label: 'Banking',      icon: Landmark,   color: 'text-emerald-400'  },
@@ -2025,12 +2536,103 @@ export default function Integrations() {
   const [tab, setTab] = useState('github');
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto min-h-screen pb-20 pt-6 px-4 sm:px-8">
-      <PageHeader
-        title="API Integrations"
-        subtitle="Connect external platforms to enrich your digital twin with real-world data."
-        icon="🔌"
-      />
+    <div className="w-full max-w-[1200px] mx-auto min-h-screen pb-20 pt-6 px-4 sm:px-8 relative" style={{ zIndex: 1 }}>
+      
+      {/* ── Cybernetic CSS Keyframes & Overrides ── */}
+      <style>{`
+        @keyframes pulse-dot {
+          0% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.4); opacity: 0.8; }
+          50% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.8); opacity: 1; }
+          100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.4); opacity: 0.8; }
+        }
+        @keyframes pulse-dot-orange {
+          0% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); opacity: 0.8; }
+          50% { box-shadow: 0 0 12px rgba(245, 158, 11, 0.8); opacity: 1; }
+          100% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); opacity: 0.8; }
+        }
+        @keyframes scanline {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(260px); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+          100% { transform: translateY(0px); }
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .cyber-grid {
+          background-size: 40px 40px;
+          background-image: 
+            linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+        }
+        .glass-card {
+          background: rgba(13, 20, 35, 0.45) !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.06) !important;
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35) !important;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          position: relative !important;
+          overflow: hidden !important;
+        }
+        .glass-card:hover {
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          transform: translateY(-2px);
+        }
+        .input-premium, .input-premium-custom {
+          background: rgba(5, 8, 15, 0.6) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          border-radius: 12px !important;
+          padding: 10px 16px !important;
+          color: #fff !important;
+          font-size: 13.5px !important;
+          transition: all 0.25s ease !important;
+        }
+        .input-premium:focus, .input-premium-custom:focus {
+          border-color: rgba(99, 102, 241, 0.45) !important;
+          box-shadow: 0 0 12px rgba(99, 102, 241, 0.25) !important;
+          outline: none !important;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 6px;
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.01);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(99, 102, 241, 0.25);
+        }
+      `}</style>
+
+      {/* Cyber Grid & Glowing Ambient Blurs */}
+      <div className="cyber-grid" style={{ position: 'absolute', inset: -20, opacity: 0.6, pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '15%', left: '10%', width: 280, height: 280, background: 'rgba(99,102,241,0.06)', filter: 'blur(100px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(6,182,212,0.05)', filter: 'blur(120px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+
+      {/* ── Glowing Brand Header ── */}
+      <div className="mb-8 flex flex-col gap-1.5" style={{ position: 'relative', zIndex: 2 }}>
+        {/* Title block */}
+        <div className="flex items-center gap-4 mt-2">
+          <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/5">
+            <PlugIcon size={20} className="text-[#818cf8]" />
+          </div>
+          <div>
+            <h1 className="text-[26px] font-black text-white leading-tight tracking-tight">API Integrations</h1>
+            <p className="text-[13px] text-slate-400 mt-1">Connect external platforms to enrich your digital twin with real-world data.</p>
+          </div>
+        </div>
+      </div>
 
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
 
@@ -2043,13 +2645,36 @@ export default function Integrations() {
           transition={{ duration: 0.18 }}
         >
           {tab === 'github'      && <GitHubPanel />}
-          {tab === 'coursera'    && <CourseraPanel />}
           {tab === 'linkedin'    && <LinkedInPanel />}
           {tab === 'nutritionix' && <NutritionixPanel />}
           {tab === 'fitbit'      && <FitbitPanel />}
           {tab === 'banking'     && <IndiaBankingPanel />}
         </motion.div>
       </AnimatePresence>
+
+      {/* Floating Manage Connections Button */}
+      <div style={{
+        position: 'fixed',
+        bottom: 24,
+        right: 24,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 6,
+        zIndex: 50
+      }}>
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-12 h-12 rounded-full bg-[#4f46e5] text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 hover:bg-[#4338ca] transition-all border border-indigo-400/20 cursor-pointer"
+          onClick={() => alert('Integrate for production:\n\nLaunch connection management gateway on your backend to handle revoked consent tokens.')}
+        >
+          <Cable size={20} />
+        </motion.button>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          Manage Connections
+        </span>
+      </div>
     </div>
   );
 }

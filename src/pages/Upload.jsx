@@ -3,19 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { showToast } from '../components/ui/Components';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { analyzeDocument, hasApiKey, saveApiKey, getDemoMealResult } from '../services/visionService';
+import { analyzeDocument, saveApiKey } from '../services/visionService';
 import { authFetch } from '../services/backendApi';
-import { Upload as UploadIcon, FileText, X, Key, CheckCircle, Scan, ShieldCheck, ChevronRight, Clock, Link as LinkIcon } from 'lucide-react';
-import { SiGithub, SiLeetcode, SiNotion, SiRazorpay, SiGooglefit, SiGooglecalendar } from 'react-icons/si';
-
-const CARD = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
-
-const fileTypes = [
-  { type: 'csv', label: 'CSV Spreadsheet', icon: '📊', desc: 'Import expense reports, health logs, study hours', accept: '.csv' },
-  { type: 'xlsx', label: 'Excel Workbook', icon: '📗', desc: 'Import financial statements, course records', accept: '.xlsx,.xls' },
-  { type: 'pdf', label: 'PDF Document', icon: '📄', desc: 'Import bank statements, medical reports, resumes', accept: '.pdf' },
-  { type: 'json', label: 'JSON Data', icon: '🔧', desc: 'Import from other fitness/finance apps', accept: '.json' },
-];
 
 const DOC_TYPES = {
   salary_slip:    { label: 'Salary Slip',      icon: '💰', color: '#10b981', logLabel: 'Log income to Finance' },
@@ -32,6 +21,19 @@ const DEMO_DOCS = {
   hospital_bill: { docType:'hospital_bill', confidence:89, summary:'Hospital bill of ₹6,800 from City Hospital dated 10 Apr 2024', fields:[{label:'Hospital',value:'City Hospital',category:'provider'},{label:'Patient',value:'Demo User',category:'patient'},{label:'Date',value:'10 Apr 2024',category:'date'},{label:'Diagnosis',value:'Viral Fever',category:'medical'},{label:'Consultation',value:'₹800',category:'amount'},{label:'Medicines',value:'₹2,000',category:'amount'},{label:'Total',value:'₹6,800',category:'amount'}], logTo:'finance', autoFill:{expenses:6800,expenseCategory:'medical'} },
 };
 
+/* ─── Cybernetic Corner Overlays ────────────────────────────────── */
+function CyberCorners({ color = '#06b6d4' }) {
+  return (
+    <>
+      <div style={{ position: 'absolute', top: 0, left: 0, width: 14, height: 14, borderTop: `2px solid ${color}`, borderLeft: `2px solid ${color}`, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, width: 14, height: 14, borderTop: `2px solid ${color}`, borderRight: `2px solid ${color}`, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 14, height: 14, borderBottom: `2px solid ${color}`, borderLeft: `2px solid ${color}`, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 14, height: 14, borderBottom: `2px solid ${color}`, borderRight: `2px solid ${color}`, pointerEvents: 'none' }} />
+    </>
+  );
+}
+
+/* ─── Smart Doc Scanner Component ────────────────────────────────── */
 function SmartDocScanner({ onLogData }) {
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -44,8 +46,6 @@ function SmartDocScanner({ onLogData }) {
   const [keyInput, setKeyInput] = useState('');
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('groq_api_key') || '');
   const fileRef = useRef(null);
-
-  const keyConfigured = !!(apiKey || import.meta.env.VITE_GROQ_API_KEY);
 
   const handleSaveKey = () => {
     const k = keyInput.trim();
@@ -91,88 +91,215 @@ function SmartDocScanner({ onLogData }) {
     if (cat === 'income') return '#10b981';
     if (cat === 'deduction' || cat === 'amount') return '#f97316';
     if (cat === 'medical') return '#ef4444';
-    return '#a1a1aa';
+    return '#94a3b8';
   };
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#8250df]/10 border border-[#8250df]/20 flex items-center justify-center">
-            <Scan size={22} className="text-[#b392f0]" />
-          </div>
-          <div>
-            <h3 className="text-[16px] font-bold text-[#f0f0f3]">Smart Document Scanner</h3>
-            <p className="text-[13px] text-[#8b949e]">Scan salary slips, bills, hospital reports and more</p>
-          </div>
-        </div>
-        <button
-          onClick={() => setShowFormats(p => !p)}
-          className="flex items-center gap-1.5 text-[13px] px-4 py-2 rounded-xl border border-[#30363d] bg-[#21262d] text-[#c9d1d9] font-medium transition-colors hover:text-white hover:bg-[#30363d]"
-        >
-          See supported formats <span className="text-[10px] ml-1">{showFormats ? '▼' : '▶'}</span>
-        </button>
-      </div>
+    <div 
+      className="glass-card" 
+      style={{
+        padding: 24, 
+        borderRadius: 20, 
+        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'rgba(13, 20, 35, 0.45)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      <CyberCorners color="rgba(6,182,212,0.3)" />
 
-      {/* Supported doc types row */}
-      {showFormats && (
-        <div className="flex flex-wrap gap-2.5 mb-6">
-          {Object.entries(DOC_TYPES).filter(([k]) => k !== 'unknown').map(([k, v]) => (
-            <span key={k} className="flex items-center gap-1.5 text-[12px] px-3.5 py-1.5 rounded-full bg-[#21262d] border border-[#30363d] text-[#c9d1d9] font-medium">
-              <span>{v.icon}</span> {v.label}
-            </span>
-          ))}
-          <span className="flex items-center gap-1.5 text-[12px] px-3.5 py-1.5 rounded-full bg-[#21262d] border border-[#30363d] text-[#c9d1d9] font-medium">+ More</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(6,182,212,0.06)', border: '1px solid rgba(6,182,212,0.2)',
+              boxShadow: '0 0 15px rgba(6,182,212,0.1)'
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 4px rgba(6,182,212,0.4))' }}>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', margin: '0 0 2px', letterSpacing: '-0.01em' }}>Smart Document Scanner</h3>
+              <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>Analyze physical bills, salary slips & medical reports using computer vision</p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={() => setShowKeyPanel(p => !p)}
+              style={{
+                fontSize: 11.5, padding: '8px 14px', borderRadius: 10, cursor: 'pointer',
+                background: showKeyPanel ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.03)', 
+                border: `1px solid ${showKeyPanel ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.08)'}`,
+                color: showKeyPanel ? '#fbbf24' : '#94a3b8', fontWeight: 600, transition: 'all 0.2s'
+              }}
+            >
+              🔑 Groq Key
+            </button>
+            <button
+              onClick={() => setShowFormats(p => !p)}
+              className="cyber-button-cyan"
+              style={{
+                fontSize: 11.5, padding: '8px 14px', borderRadius: 10, cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              Scan Types {showFormats ? '▼' : '▶'}
+            </button>
+          </div>
         </div>
-      )}
+
+        {showFormats && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '4px 0' }}>
+            {Object.entries(DOC_TYPES).filter(([k]) => k !== 'unknown').map(([k, v]) => (
+              <span key={k} style={{
+                fontSize: 11.5, padding: '5px 12px', borderRadius: 99,
+                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
+                color: '#cbd5e1', display: 'inline-flex', alignItems: 'center', gap: 6,
+                transition: 'all 0.2s'
+              }}>
+                <span style={{ fontSize: 13 }}>{v.icon}</span> <span style={{ fontWeight: 600 }}>{v.label}</span>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       <AnimatePresence>
         {showKeyPanel && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="mb-6 p-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] space-y-3">
-              <p className="text-[12px] text-[#8b949e]">Enter your Groq API key from <span className="text-amber-400 font-medium">console.groq.com</span></p>
-              <div className="flex gap-2">
-                <input type="password" value={keyInput} onChange={e => setKeyInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveKey()} placeholder="gsk_..." className="input-premium flex-1 font-mono text-[13px]" />
-                <button onClick={handleSaveKey} disabled={!keyInput.trim()} className="px-5 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[13px] font-medium disabled:opacity-40 transition-all hover:bg-amber-500/30">Save</button>
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+            <div style={{ 
+              padding: 16, borderRadius: 14, border: '1px solid rgba(245,158,11,0.18)', 
+              background: 'rgba(245,158,11,0.03)', marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 16 }}>⚠️</span>
+                <p style={{ fontSize: 12, color: '#fcd34d', margin: 0, fontWeight: 600 }}>Custom Groq API Key Setup</p>
+              </div>
+              <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '0 0 4px', lineHeight: 1.4 }}>
+                A custom key is required to scan files when the default quota is exceeded. Get one free from <strong>console.groq.com</strong>.
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input 
+                  type="password" 
+                  value={keyInput} 
+                  onChange={e => setKeyInput(e.target.value)} 
+                  onKeyDown={e => e.key === 'Enter' && handleSaveKey()} 
+                  placeholder="Paste your gsk_... key here" 
+                  className="cyber-input"
+                  style={{ flex: 1, borderRadius: 10, padding: '10px 14px', color: '#fff', fontSize: 12, fontFamily: 'monospace' }} 
+                />
+                <button 
+                  onClick={handleSaveKey} 
+                  disabled={!keyInput.trim()} 
+                  style={{ 
+                    padding: '0 18px', borderRadius: 10, border: 'none', 
+                    background: keyInput.trim() ? 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)' : 'rgba(255,255,255,0.05)', 
+                    color: keyInput.trim() ? '#0f172a' : '#475569', fontSize: 12, fontWeight: 700, cursor: keyInput.trim() ? 'pointer' : 'default',
+                    transition: 'all 0.2s', boxShadow: keyInput.trim() ? '0 0 10px rgba(251,191,36,0.3)' : 'none'
+                  }}
+                >
+                  Save Key
+                </button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Drop zone */}
+      {/* Cyber Drag Area */}
       <div
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !preview && fileRef.current?.click()}
-        className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 overflow-hidden bg-[#0d1117] flex flex-col items-center justify-center ${preview ? 'border-[#30363d] cursor-default' : `cursor-pointer ${dragOver ? 'border-[#8250df] bg-[#8250df]/[0.04]' : 'border-[#30363d] hover:border-[#8b949e]'}`}`}
-        style={{ minHeight: preview ? 'auto' : '220px' }}
+        style={{
+          borderRadius: 16, 
+          border: `2px dashed ${dragOver ? '#06b6d4' : 'rgba(255,255,255,0.08)'}`, 
+          background: dragOver ? 'rgba(6,182,212,0.05)' : 'rgba(0,0,0,0.15)',
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          cursor: preview ? 'default' : 'pointer', 
+          minHeight: preview ? 'auto' : 190, 
+          position: 'relative', 
+          overflow: 'hidden',
+          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', 
+          boxShadow: dragOver ? 'inset 0 0 20px rgba(6,182,212,0.1)' : 'none'
+        }}
       >
-        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { if (e.target.files[0]) processFile(e.target.files[0]); e.target.value = ''; }} />
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) processFile(e.target.files[0]); e.target.value = ''; }} />
 
         {!preview ? (
-          <div className="flex flex-col items-center justify-center gap-4 p-8">
-            <div className="w-14 h-14 rounded-full bg-[#161b22] border border-[#30363d] shadow-lg shadow-indigo-500/10 flex items-center justify-center">
-              <UploadIcon size={24} className="text-[#b392f0]" />
+          <div style={{ padding: '36px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 50, height: 50, borderRadius: '50%', background: 'rgba(6,182,212,0.04)',
+              border: '1px solid rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 15px rgba(6,182,212,0.05)', animation: 'float 4s ease-in-out infinite'
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2">
+                <polyline points="16 16 12 12 8 16" />
+                <line x1="12" y1="12" x2="12" y2="21" />
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+              </svg>
             </div>
-            <div className="text-center">
-              <p className="text-[15px] font-bold text-[#f0f0f3]">Drop document image here or click to browse</p>
-              <p className="text-[13px] text-[#8b949e] mt-1.5">Take a photo on mobile • Salary slips, bills, lab reports & more</p>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px' }}>Drag & Drop Document Image</p>
+              <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '0 0 14px', lineHeight: 1.4 }}>Take a photo on mobile or upload high-contrast JPG, PNG, WEBP files</p>
+              <span className="cyber-button-cyan" style={{ fontSize: 11, padding: '6px 14px', borderRadius: 8, fontWeight: 700, display: 'inline-block' }}>
+                Browse Camera / File System
+              </span>
             </div>
           </div>
         ) : (
-          <div className="relative w-full">
-            <img src={preview} alt="document" className="w-full max-h-[300px] object-contain rounded-2xl" />
+          <div style={{ position: 'relative', width: '100%', padding: 12, display: 'flex', justifyContent: 'center' }}>
+            <img src={preview} alt="document preview" style={{ width: '100%', maxHeight: 260, objectFit: 'contain', display: 'block', borderRadius: 12 }} />
+            
+            {/* Visual sweeping laser line during scan */}
             {scanning && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl" style={{ background: 'rgba(13,17,23,0.8)', backdropFilter: 'blur(8px)' }}>
-                <div className="w-12 h-12 rounded-full border-4 border-[#8250df] border-t-transparent animate-spin" />
-                <p className="text-[14px] text-[#f0f0f3] font-bold mt-2">Reading document with AI…</p>
+              <div style={{
+                position: 'absolute',
+                left: 12,
+                right: 12,
+                top: 12,
+                height: '3px',
+                background: 'linear-gradient(90deg, transparent, #06b6d4, transparent)',
+                boxShadow: '0 0 15px #06b6d4, 0 0 5px #06b6d4',
+                animation: 'scanline 2s linear infinite',
+                zIndex: 10
+              }} />
+            )}
+
+            {scanning && (
+              <div style={{ position: 'absolute', inset: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: 'rgba(9,13,22,0.85)', backdropFilter: 'blur(4px)', borderRadius: 12 }}>
+                <div style={{ width: 36, height: 36, border: '3px solid rgba(6,182,212,0.2)', borderTopColor: '#06b6d4', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <div>
+                  <p style={{ fontSize: 13.5, color: '#f1f5f9', fontWeight: 800, margin: '0 0 3px', textAlign: 'center' }}>Scanning Quantum Ingestion Port...</p>
+                  <p style={{ fontSize: 11, color: '#06b6d4', margin: 0, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Extracting key value pairs</p>
+                </div>
               </div>
             )}
+
             {!scanning && (
-              <button onClick={e => { e.stopPropagation(); reset(); }} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#161b22] border border-[#30363d] shadow-lg flex items-center justify-center hover:bg-[#30363d] transition-colors">
-                <X size={14} className="text-white" />
+              <button 
+                onClick={e => { e.stopPropagation(); reset(); }} 
+                style={{ 
+                  position: 'absolute', top: 20, right: 20, width: 30, height: 30, borderRadius: '50%', 
+                  background: 'rgba(9,13,22,0.9)', border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.background = 'rgba(9,13,22,0.9)'; }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             )}
           </div>
@@ -180,60 +307,98 @@ function SmartDocScanner({ onLogData }) {
       </div>
 
       {error && (
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-5 p-4 rounded-xl border border-red-500/20 bg-red-500/[0.04] text-[13px] text-red-400 font-medium">
+        <div style={{ marginTop: 12, padding: 14, borderRadius: 12, background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, color: '#f87171', lineHeight: 1.4 }}>
+          <strong style={{ display: 'block', marginBottom: 2 }}>Extraction Failure</strong>
           {error}
-        </motion.div>
+        </div>
       )}
 
-      {/* Results */}
+      {/* Results View */}
       <AnimatePresence>
         {result && !scanning && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }} className="mt-6 space-y-4">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {isDemo && (
-              <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] flex items-center gap-3">
-                <span className="text-amber-400 text-lg">⚠️</span>
-                <p className="text-[12px] text-amber-300"><span className="font-bold text-[13px]">Demo mode</span> — API quota exceeded. Get a free key at console.groq.com</p>
+              <div style={{ padding: 14, borderRadius: 12, background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', fontSize: 12, color: '#fcd34d', lineHeight: 1.4 }}>
+                <span style={{ fontWeight: 800 }}>⚡ Cybernetic Demo Mode:</span> Groq API key quota reached. Demo sample rendered with mockup data values.
               </div>
             )}
 
-            {/* Doc type header */}
-            <div className="flex items-center justify-between p-5 rounded-2xl border border-[#30363d] bg-[#0d1117]">
-              <div className="flex items-center gap-4">
-                <span className="text-3xl">{meta.icon}</span>
+            {/* Document Header */}
+            <div 
+              className="glass-card"
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16,
+                borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)',
+                position: 'relative'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <span style={{ fontSize: 28, filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.2))' }}>{meta.icon}</span>
                 <div>
-                  <p className="text-[15px] font-bold text-[#f0f0f3]">{meta.label} Detected</p>
-                  <p className="text-[13px] text-[#8b949e] mt-0.5">{result.summary}</p>
+                  <h4 style={{ fontSize: 14.5, fontWeight: 850, color: '#f1f5f9', margin: '0 0 3px' }}>{meta.label} Ingested</h4>
+                  <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, fontWeight: 500 }}>{result.summary}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[12px] px-3 py-1 rounded-lg font-bold border" style={{ color: meta.color, background: `${meta.color}15`, borderColor: `${meta.color}30` }}>
-                  {result.confidence}% confident
-                </span>
-              </div>
+              <span style={{
+                fontSize: 10.5, padding: '4px 10px', borderRadius: 8, fontWeight: 700,
+                background: `${meta.color}15`, color: meta.color, border: `1px solid ${meta.color}35`,
+                textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: `0 0 10px ${meta.color}10`
+              }}>{result.confidence}% confidence</span>
             </div>
 
-            {/* Extracted fields */}
-            <div className="grid sm:grid-cols-2 gap-3">
-              {result.fields?.map((f, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                  className="flex items-center justify-between p-4 rounded-xl border border-[#30363d] bg-[#0d1117]">
-                  <span className="text-[12px] text-[#8b949e] font-semibold">{f.label}</span>
-                  <span className="text-[13px] font-bold tabular-nums" style={{ color: categoryColor(f.category) }}>{f.value}</span>
-                </motion.div>
-              ))}
+            {/* Extracted Fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {result.fields?.map((f, i) => {
+                const cColor = categoryColor(f.category);
+                return (
+                  <div 
+                    key={i} 
+                    className="glass-card" 
+                    style={{
+                      padding: '12px 16px', 
+                      borderRadius: 12, 
+                      border: '1px solid rgba(255,255,255,0.04)', 
+                      background: 'rgba(9, 13, 22, 0.4)',
+                      borderLeft: `3px solid ${cColor}`,
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center'
+                    }}
+                  >
+                    <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>{f.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: cColor, textShadow: `0 0 8px ${cColor}20` }}>{f.value}</span>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Log button */}
+            {/* Actions */}
             {result.logTo !== 'none' && result.autoFill && (
-              <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-[#30363d]">
+              <div style={{ display: 'flex', gap: 12, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <button
                   onClick={() => { onLogData(result); reset(); }}
-                  className="flex-1 px-5 py-3 rounded-xl border text-[14px] font-bold shadow-lg transition-all hover:brightness-110"
-                  style={{ background: `linear-gradient(135deg, ${meta.color}30, ${meta.color}15)`, borderColor: `${meta.color}40`, color: meta.color }}
+                  style={{
+                    flex: 2, padding: '12px 18px', borderRadius: 12, border: `1px solid ${meta.color}50`,
+                    background: `linear-gradient(135deg, ${meta.color}25 0%, ${meta.color}08 100%)`,
+                    color: meta.color, fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: `0 0 15px ${meta.color}20`
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = `linear-gradient(135deg, ${meta.color}35 0%, ${meta.color}15 100%)`; e.currentTarget.style.boxShadow = `0 0 20px ${meta.color}30`; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = `linear-gradient(135deg, ${meta.color}25 0%, ${meta.color}08 100%)`; e.currentTarget.style.boxShadow = `0 0 15px ${meta.color}20`; }}
                 >
-                  {meta.logLabel}
+                  {meta.logLabel} ✓
                 </button>
-                <button onClick={() => fileRef.current?.click()} className="flex-1 px-5 py-3 rounded-xl border border-[#30363d] bg-[#21262d] text-[14px] font-bold text-[#c9d1d9] hover:text-white hover:bg-[#30363d] transition-colors">
+                <button 
+                  onClick={() => fileRef.current?.click()} 
+                  style={{ 
+                    flex: 1, padding: '12px 18px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', 
+                    background: 'rgba(255,255,255,0.03)', color: '#cbd5e1', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                >
                   Scan Another
                 </button>
               </div>
@@ -245,14 +410,16 @@ function SmartDocScanner({ onLogData }) {
   );
 }
 
+/* ─── Main Component ─────────────────────────────────────────────── */
 export default function Upload() {
   const { user, token } = useAuth();
   const { health, finance, career, timeline, goals, setUserData, updateDomain } = useData();
-  const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [importHistory, setImportHistory] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [fileDragOver, setFileDragOver] = useState(false);
 
   const fetchHistory = async () => {
     if (!user || !token) return;
@@ -275,14 +442,9 @@ export default function Upload() {
     
     const formData = new FormData();
     formData.append('file', file);
-    // userId is now extracted securely from the JWT token on the backend
 
     try {
-      const history = await authFetch('/uploads', {
-        method: 'POST',
-        body: formData,
-      });
-      
+      const history = await authFetch('/uploads', { method: 'POST', body: formData });
       const sampleRows = history.sampleData ? JSON.parse(history.sampleData) : [];
       const columns = history.columnHeaders ? JSON.parse(history.columnHeaders) : [];
 
@@ -303,8 +465,6 @@ export default function Upload() {
       setUploading(false);
     }
   };
-
-  const [importing, setImporting] = useState(false);
 
   const confirmImport = async () => {
     if (importing) return;
@@ -331,7 +491,6 @@ export default function Upload() {
           newHealth.stressLevel = Math.max(1, Math.floor(((newHealth.stressLevel || 5) + (totalStress / records.length)) / 2));
           newHealth.workoutsPerWeek = (newHealth.workoutsPerWeek || 0) + totalWorkouts;
         }
-        
         newTimeline.unshift({ type: 'positive', domain: 'health', message: `Imported ${records.length} health logs`, date: new Date().toISOString() });
       } 
       else if (preview.domain === 'finance') {
@@ -340,7 +499,6 @@ export default function Upload() {
           if (r.transactionType && r.transactionType.toLowerCase() === 'debit') expenses += (r.amount || 0);
           else if (r.transactionType && r.transactionType.toLowerCase() === 'credit') income += (r.amount || 0);
         });
-        
         newFinance.expenses = (newFinance.expenses || 0) + expenses;
         newFinance.savings = (newFinance.savings || 0) + income - expenses;
         newTimeline.unshift({ type: expenses > income ? 'negative' : 'positive', domain: 'finance', message: `Imported ${records.length} transactions: -$${expenses}`, date: new Date().toISOString() });
@@ -365,7 +523,6 @@ export default function Upload() {
       }
 
       setUserData({ health: newHealth, finance: newFinance, career: newCareer, timeline: newTimeline, goals: goals }, 'imported');
-      
       setUploadedFile(null);
       setPreview(null);
       showToast('Dashboard successfully updated with live data!', 'success');
@@ -374,7 +531,7 @@ export default function Upload() {
     } finally {
       setImporting(false);
     }
-    fetchHistory(); // Refresh history table
+    fetchHistory();
   };
 
   const handleDocLog = (result) => {
@@ -398,173 +555,497 @@ export default function Upload() {
     showToast(summary, 'success');
   };
 
-  const sCard = CARD;
-
   const FILE_FORMATS = [
-    { type:'csv',  icon:'📊', iconBg:'rgba(16,185,129,0.15)',  label:'CSV Spreadsheet', desc:'Import expense reports, health logs, study hours',         accept:'.csv' },
-    { type:'xlsx', icon:'📗', iconBg:'rgba(16,185,129,0.15)',  label:'Excel Workbook',  desc:'Import financial statements, course records',              accept:'.xlsx,.xls' },
-    { type:'pdf',  icon:'📄', iconBg:'rgba(239,68,68,0.15)',   label:'PDF Document',    desc:'Import bank statements, medical reports, resumes',         accept:'.pdf' },
-    { type:'json', icon:'</>',iconBg:'rgba(99,102,241,0.15)',  label:'JSON Data',        desc:'Import from other fitness/finance apps',                   accept:'.json' },
+    { type:'csv',  icon:'📊', iconBg:'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', label:'CSV Spreadsheet', desc:'Import expense reports, health logs, study hours', accept:'.csv', hoverGlow: 'glass-card-glow-emerald' },
+    { type:'xlsx', icon:'📗', iconBg:'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', label:'Excel Workbook',  desc:'Import financial statements, course records', accept:'.xlsx,.xls', hoverGlow: 'glass-card-glow-emerald' },
+    { type:'pdf',  icon:'📄', iconBg:'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)', label:'PDF Document',    desc:'Import bank statements, medical reports, resumes', accept:'.pdf', hoverGlow: 'glass-card-glow-rose' },
+    { type:'json', icon:'⚙️', iconBg:'rgba(99,102,241,0.08)', border: 'rgba(99,102,241,0.2)', label:'JSON Data',        desc:'Import from other fitness/finance apps', accept:'.json', hoverGlow: 'glass-card-glow-indigo' },
   ];
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto min-h-screen pb-20 pt-6 px-4 sm:px-8 flex flex-col gap-8">
-      {/* ── Header ── */}
-      <div className="flex items-center gap-5">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/20">
-          <UploadIcon size={28} className="text-white" />
+    <div style={{ 
+      padding: '28px 32px 80px', 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #090d16 0%, #06090e 100%)', 
+      fontFamily: 'Inter, sans-serif',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      
+      {/* ── Custom Styled Animation Keyframes ────────────────────── */}
+      <style>{`
+        @keyframes scanline {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(260px); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+          100% { transform: translateY(0px); }
+        }
+        @keyframes pulse-light {
+          0% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.4); opacity: 0.8; }
+          50% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.8); opacity: 1; }
+          100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.4); opacity: 0.8; }
+        }
+        @keyframes pulse-light-orange {
+          0% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); opacity: 0.8; }
+          50% { box-shadow: 0 0 12px rgba(245, 158, 11, 0.8); opacity: 1; }
+          100% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); opacity: 0.8; }
+        }
+        .cyber-grid {
+          background-size: 40px 40px;
+          background-image: 
+            linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        }
+        .glass-card {
+          background: rgba(13, 20, 35, 0.45);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card-glow-cyan:hover {
+          border-color: rgba(6, 182, 212, 0.35) !important;
+          box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.08), 0 0 25px rgba(6, 182, 212, 0.12) !important;
+          transform: translateY(-2px);
+        }
+        .glass-card-glow-indigo:hover {
+          border-color: rgba(99, 102, 241, 0.35) !important;
+          box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.08), 0 0 25px rgba(99, 102, 241, 0.12) !important;
+          transform: translateY(-2px);
+        }
+        .glass-card-glow-emerald:hover {
+          border-color: rgba(16, 185, 129, 0.35) !important;
+          box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.08), 0 0 25px rgba(16, 185, 129, 0.12) !important;
+          transform: translateY(-2px);
+        }
+        .glass-card-glow-rose:hover {
+          border-color: rgba(239, 68, 68, 0.35) !important;
+          box-shadow: 0 8px 32px 0 rgba(239, 68, 68, 0.08), 0 0 25px rgba(239, 68, 68, 0.12) !important;
+          transform: translateY(-2px);
+        }
+        .cyber-button-cyan {
+          background: linear-gradient(135deg, rgba(6, 182, 212, 0.18) 0%, rgba(6, 182, 212, 0.04) 100%);
+          border: 1px solid rgba(6, 182, 212, 0.28);
+          color: #22d3ee;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cyber-button-cyan:hover {
+          background: linear-gradient(135deg, rgba(6, 182, 212, 0.32) 0%, rgba(6, 182, 212, 0.08) 100%);
+          border-color: #22d3ee;
+          box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+          transform: translateY(-1px);
+        }
+        .cyber-button-indigo {
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.04) 100%);
+          border: 1px solid rgba(99, 102, 241, 0.3);
+          color: #818cf8;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cyber-button-indigo:hover {
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.35) 0%, rgba(99, 102, 241, 0.08) 100%);
+          border-color: #818cf8;
+          box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+          transform: translateY(-1px);
+        }
+        .cyber-input {
+          background: rgba(5, 8, 15, 0.6) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          transition: all 0.2s ease;
+        }
+        .cyber-input:focus {
+          border-color: rgba(6, 182, 212, 0.5) !important;
+          box-shadow: 0 0 12px rgba(6, 182, 212, 0.3) !important;
+          outline: none !important;
+        }
+        .preview-table::-webkit-scrollbar {
+          height: 6px;
+          width: 6px;
+        }
+        .preview-table::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 10px;
+        }
+        .preview-table::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .preview-table::-webkit-scrollbar-thumb:hover {
+          background: rgba(99, 102, 241, 0.3);
+        }
+      `}</style>
+
+      {/* Cyber Grid & Glowing Ambient Blurs */}
+      <div className="cyber-grid" style={{ position: 'absolute', inset: 0, opacity: 0.7, pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '15%', left: '10%', width: 280, height: 280, background: 'rgba(99,102,241,0.08)', filter: 'blur(110px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(6,182,212,0.06)', filter: 'blur(130px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28, position: 'relative', zIndex: 1 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)',
+          boxShadow: '0 0 15px rgba(99,102,241,0.1)'
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 4px rgba(99,102,241,0.4))' }}>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
         </div>
         <div>
-          <h1 className="text-[24px] font-bold text-[#f0f0f3] leading-tight">Data Import Center</h1>
-          <p className="text-[14px] text-[#8b949e] mt-1">Upload files or connect apps to feed your Digital Twin with real data.</p>
+          <h1 style={{ fontSize: 22, fontWeight: 850, color: '#f1f5f9', margin: '0 0 2px', letterSpacing: '-0.02em' }}>Data Import Center</h1>
+          <p style={{ fontSize: 12.5, color: '#94a3b8', margin: 0 }}>Sync external profile, finance, carbon and health variables straight into your digital twin</p>
         </div>
       </div>
 
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative', zIndex: 1 }}>
+        
+        {/* Smart Document Scanner Section */}
+        <SmartDocScanner onLogData={handleDocLog} />
 
+        {/* Upload File Card */}
+        <div 
+          className="glass-card" 
+          onDragOver={e => { e.preventDefault(); setFileDragOver(true); }}
+          onDragLeave={() => setFileDragOver(false)}
+          onDrop={e => { e.preventDefault(); setFileDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+          style={{
+            padding: 24, 
+            borderRadius: 20, 
+            border: `1px solid ${fileDragOver ? 'rgba(99,102,241,0.35)' : 'rgba(255,255,255,0.06)'}`,
+            background: fileDragOver ? 'rgba(99,102,241,0.03)' : 'rgba(13, 20, 35, 0.45)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          <CyberCorners color="rgba(99,102,241,0.3)" />
 
-      {/* ── Smart Document Scanner ── */}
-      <SmartDocScanner onLogData={handleDocLog} />
-
-      {/* ── Upload File ── */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[#58a6ff]/10 flex items-center justify-center flex-shrink-0">
-              <FileText size={20} className="text-[#58a6ff]" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(56,166,255,0.06)', border: '1px solid rgba(56,166,255,0.2)'
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+              </div>
+              <div>
+                <h4 style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9', margin: '0 0 2px' }}>Upload Structured File</h4>
+                <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>Drag spreadsheet data here or browse storage</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[16px] font-bold text-[#f0f0f3]">Upload File</p>
-              <p className="text-[13px] text-[#8b949e] mt-0.5">Supports CSV, Excel, PDF, JSON & more</p>
-            </div>
+            <button
+              onClick={() => document.getElementById('file-input-main').click()}
+              className="cyber-button-indigo"
+              style={{
+                fontSize: 11.5, padding: '8px 16px', borderRadius: 10, cursor: 'pointer',
+                fontWeight: 700
+              }}
+            >
+              Browse Storage
+            </button>
+            <input id="file-input-main" type="file" style={{ display: 'none' }} accept=".csv,.xlsx,.xls,.pdf,.json" onChange={e => handleFile(e.target.files[0])} />
           </div>
-          <button onClick={() => document.getElementById('file-input-main').click()}
-            className="px-5 py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] hover:bg-[#30363d] text-[#f0f0f3] text-[13px] font-bold transition-colors">
-            Browse files
-          </button>
-        </div>
-        <input id="file-input-main" type="file" className="hidden" accept=".csv,.xlsx,.xls,.pdf,.json"
-          onChange={e => handleFile(e.target.files[0])} />
 
-        {/* Format cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {FILE_FORMATS.map(ft => (
-            <div key={ft.type}
-              className="flex items-center gap-4 p-4 rounded-xl bg-[#0d1117] border border-[#30363d] hover:border-[#8b949e] cursor-pointer transition-colors group"
-              onClick={() => document.getElementById('file-input-main').click()}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-[20px]" style={{ background: ft.iconBg }}>
-                {ft.type === 'json' ? <span className="text-[#8250df] font-bold text-[15px]">{'</>'}</span> : ft.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold text-[#f0f0f3] mb-0.5 truncate">{ft.label}</p>
-                <p className="text-[12px] text-[#8b949e] leading-snug line-clamp-2">{ft.desc}</p>
-              </div>
-              <ChevronRight size={18} className="text-[#8b949e] group-hover:text-[#f0f0f3] flex-shrink-0 transition-colors" />
-            </div>
-          ))}
-        </div>
-
-        {uploading && (
-          <div className="flex items-center gap-3 mt-5 p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-            <div className="w-5 h-5 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" />
-            <p className="text-[13px] font-medium text-indigo-300">Parsing {uploadedFile?.name}...</p>
-          </div>
-        )}
-      </div>
-
-      {/* ── File Preview ── */}
-      <AnimatePresence>
-        {preview && (
-          <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-16 }}>
-            <div className="bg-[#161b22] p-6 rounded-2xl border border-indigo-500/30">
-              <p className="text-[16px] font-bold text-[#f0f0f3] mb-5">📋 Preview: {preview.name}</p>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                {[['Records Found', preview.records, 'text-blue-400'],['Columns', preview.columns.length, 'text-purple-400'],['File Size', preview.size, 'text-emerald-400']].map(([l,v,c]) => (
-                  <div key={l} className="p-4 rounded-xl bg-[#0d1117] border border-[#30363d] text-center">
-                    <p className={`text-[20px] font-bold mb-1 ${c}`}>{v}</p>
-                    <p className="text-[12px] text-[#8b949e] font-medium">{l}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="overflow-x-auto mb-6 rounded-xl border border-[#30363d]">
-                {preview.sampleRows?.length > 0 ? (
-                  <table className="w-full text-left border-collapse bg-[#0d1117]">
-                    <thead>
-                      <tr className="border-b border-[#30363d]">
-                        {Object.keys(preview.sampleRows[0]).map(col => (
-                          <th key={col} className="p-3 text-[11px] font-bold text-[#8b949e] uppercase tracking-wider">{col}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#30363d]">
-                      {preview.sampleRows.map((row, i) => (
-                        <tr key={i} className="hover:bg-white/[0.02]">
-                          {Object.values(row).map((val, j) => (
-                            <td key={j} className="p-3 text-[13px] text-[#c9d1d9] truncate max-w-[200px]">{val}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : <p className="text-[13px] text-[#8b949e] text-center p-6 bg-[#0d1117]">No readable data found.</p>}
-              </div>
-              <div className="flex gap-4">
-                <button disabled={importing||uploading} onClick={confirmImport}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white text-[14px] font-bold disabled:opacity-50 transition-all">
-                  Import {preview.records} Records ✓
-                </button>
-                <button disabled={importing||uploading} onClick={() => { setPreview(null); setUploadedFile(null); }}
-                  className="px-6 py-3 rounded-xl border border-[#30363d] bg-[#21262d] text-[#c9d1d9] hover:text-white hover:bg-[#30363d] text-[14px] font-bold transition-all">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Import History ── */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-slate-500/10 flex items-center justify-center flex-shrink-0 text-[#8b949e]">
-            <Clock size={20} />
-          </div>
-          <p className="text-[16px] font-bold text-[#f0f0f3]">Import History</p>
-        </div>
-        {importHistory.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-5">
-            <div className="w-16 h-16 opacity-40">
-               <span className="text-[64px]">📦</span>
-            </div>
-            <div className="text-center">
-              <p className="text-[16px] font-bold text-[#f0f0f3]">No data imported yet</p>
-              <p className="text-[14px] text-[#8b949e] mt-1.5">Start importing your data to build your Digital Twin</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {importHistory.map((h, i) => (
-              <motion.div key={h.id || i} initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:i*0.05 }}
-                className="flex items-center gap-4 p-4 rounded-xl bg-[#0d1117] border border-[#30363d]">
-                <span className="text-[24px]">{h.fileType==='csv'?'📊':h.fileType==='xlsx'?'📗':'📄'}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold text-[#f0f0f3] mb-1 truncate">{h.originalFilename||h.file}</p>
-                  <p className="text-[12px] text-[#8b949e] font-medium">
-                    {h.uploadedAt ? new Date(h.uploadedAt).toLocaleDateString() : h.date} • {h.recordCount||h.records} records
-                    {h.detectedDomain && <span className="ml-2 px-2 py-0.5 rounded-md bg-[#21262d] border border-[#30363d] text-[10px] uppercase">{h.detectedDomain}</span>}
-                  </p>
+          {/* Formats Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+            {FILE_FORMATS.map(ft => (
+              <div
+                key={ft.type} 
+                onClick={() => document.getElementById('file-input-main').click()}
+                className={`glass-card ${ft.hoverGlow}`}
+                style={{
+                  padding: 16, 
+                  borderRadius: 14, 
+                  border: '1px solid rgba(255,255,255,0.04)',
+                  background: 'rgba(9, 13, 22, 0.4)', 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 12
+                }}
+              >
+                <div style={{
+                  width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 19, background: ft.iconBg, border: `1px solid ${ft.border}`, flexShrink: 0
+                }}>{ft.icon}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: '#cbd5e1', margin: '0 0 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ft.label}</p>
+                  <p style={{ fontSize: 10.5, color: '#64748b', margin: 0, lineHeight: 1.3 }}>{ft.desc}</p>
                 </div>
-                <span className={`text-[11px] px-3 py-1 rounded-full font-bold flex-shrink-0 ${h.status?.toLowerCase()==='success' ? 'bg-[#56d364]/10 text-[#56d364] border border-[#56d364]/20' : 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20'}`}>
-                  {h.status?.toLowerCase()==='success' ? '✓ Imported' : `⚠ ${h.status}`}
-                </span>
-                <button onClick={async () => { if (h.id) { await authFetch(`/uploads/${h.id}`,{method:'DELETE'}); fetchHistory(); showToast('Import deleted','info'); }}}
-                  className="text-[12px] text-[#f87171] opacity-60 hover:opacity-100 font-medium transition-opacity px-2">
-                  Delete
-                </button>
-              </motion.div>
+              </div>
             ))}
           </div>
-        )}
+
+          {uploading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20, padding: 14, borderRadius: 12, background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.18)' }}>
+              <div style={{ width: 16, height: 16, border: '2px solid rgba(129,140,248,0.2)', borderTopColor: '#818cf8', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <p style={{ fontSize: 12.5, color: '#818cf8', margin: 0, fontWeight: 700 }}>Extracting matrix and scanning column headers for {uploadedFile?.name}...</p>
+            </div>
+          )}
+        </div>
+
+        {/* File Preview */}
+        <AnimatePresence>
+          {preview && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+              <div 
+                className="glass-card"
+                style={{
+                  padding: 24, 
+                  borderRadius: 20, 
+                  border: '1px solid rgba(99,102,241,0.25)',
+                  background: 'rgba(13, 20, 35, 0.45)',
+                  position: 'relative'
+                }}
+              >
+                <CyberCorners color="rgba(99,102,241,0.4)" />
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>📋</span> Schema Diagnostic: {preview.name}
+                  </h3>
+                  <span style={{
+                    fontSize: 10.5, padding: '3px 8px', borderRadius: 6, fontWeight: 700,
+                    background: 'rgba(99,102,241,0.1)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)',
+                    textTransform: 'uppercase', letterSpacing: '0.05em'
+                  }}>{preview.type} Ingested</span>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
+                  {[
+                    { label: 'Ingested Records', val: preview.records, color: '#06b6d4', glow: 'rgba(6,182,212,0.2)' },
+                    { label: 'Mapped Columns', val: preview.columns.length, color: '#818cf8', glow: 'rgba(129,140,248,0.2)' },
+                    { label: 'Payload Weight', val: preview.size, color: '#10b981', glow: 'rgba(16,185,129,0.2)' }
+                  ].map(stat => (
+                    <div key={stat.label} className="glass-card" style={{ padding: '16px 12px', borderRadius: 14, background: 'rgba(9, 13, 22, 0.5)', textAlign: 'center', border: '1px solid rgba(255,255,255,0.04)' }}>
+                      <p style={{ fontSize: 24, fontWeight: 850, color: stat.color, margin: '0 0 3px', lineHeight: 1, textShadow: `0 0 10px ${stat.glow}` }}>{stat.val}</p>
+                      <p style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div 
+                  className="preview-table"
+                  style={{ 
+                    overflowX: 'auto', 
+                    borderRadius: 14, 
+                    border: '1px solid rgba(255,255,255,0.06)', 
+                    marginBottom: 20,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  {preview.sampleRows?.length > 0 ? (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'rgba(9, 13, 22, 0.3)' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+                          {Object.keys(preview.sampleRows[0]).map(col => (
+                            <th key={col} style={{ padding: '12px 14px', fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{col}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {preview.sampleRows.map((row, i) => (
+                          <tr 
+                            key={i} 
+                            style={{ 
+                              borderBottom: '1px solid rgba(255,255,255,0.03)', 
+                              background: i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent',
+                              transition: 'background 0.2s'
+                            }}
+                          >
+                            {Object.values(row).map((val, j) => (
+                              <td key={j} style={{ padding: '12px 14px', fontSize: 12, color: '#cbd5e1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', maxWidth: 180 }}>{String(val)}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p style={{ fontSize: 12, color: '#64748b', padding: '24px 20px', margin: 0, textAlign: 'center' }}>No readable payload matrices found.</p>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button
+                    disabled={importing || uploading} 
+                    onClick={confirmImport}
+                    style={{
+                      flex: 2, padding: 13, borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', color: '#fff',
+                      fontSize: 13, fontWeight: 800, boxShadow: '0 4px 20px rgba(99,102,241,0.25)',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 25px rgba(99,102,241,0.4)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(99,102,241,0.25)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    {importing ? 'Processing Twin Ingestion...' : `Ingest ${preview.records} Records into Profile ✓`}
+                  </button>
+                  <button
+                    disabled={importing || uploading} 
+                    onClick={() => { setPreview(null); setUploadedFile(null); }}
+                    style={{
+                      flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)',
+                      background: 'rgba(255,255,255,0.03)', color: '#cbd5e1', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                  >
+                    Cancel Ingest
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Import History */}
+        <div 
+          className="glass-card"
+          style={{
+            padding: 24, 
+            borderRadius: 20, 
+            border: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(13, 20, 35, 0.45)',
+            position: 'relative'
+          }}
+        >
+          <CyberCorners color="rgba(255,255,255,0.15)" />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: '#cbd5e1'
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div>
+              <h4 style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>Import Ingestion Audit Logs</h4>
+              <p style={{ fontSize: 11.5, color: '#64748b', margin: 0 }}>Historic telemetry sheets pulled into the matrix database</p>
+            </div>
+          </div>
+
+          {importHistory.length === 0 ? (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: '#475569', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 36, filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.05))' }}>📦</span>
+              <div>
+                <p style={{ fontSize: 13, margin: '0 0 4px', fontWeight: 700, color: '#cbd5e1' }}>Telemetry Logs Vacant</p>
+                <p style={{ fontSize: 11.5, margin: 0, color: '#64748b' }}>Upload external sheets to populate past sync audit trail</p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {importHistory.map((h, i) => {
+                const isSuccess = h.status?.toLowerCase() === 'success';
+                return (
+                  <motion.div
+                    key={h.id || i} 
+                    initial={{ opacity: 0, x: -8 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    transition={{ delay: i * 0.04 }}
+                    className="glass-card"
+                    style={{
+                      padding: '14px 18px', 
+                      borderRadius: 14, 
+                      border: '1px solid rgba(255,255,255,0.04)', 
+                      background: 'rgba(9, 13, 22, 0.4)',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between', 
+                      gap: 16
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 10,
+                        background: h.fileType === 'csv' ? 'rgba(16,185,129,0.06)' : 'rgba(99,102,241,0.06)',
+                        border: `1px solid ${h.fileType === 'csv' ? 'rgba(16,185,129,0.2)' : 'rgba(99,102,241,0.2)'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20
+                      }}>
+                        {h.fileType === 'csv' ? '📊' : h.fileType === 'xlsx' ? '📗' : '📄'}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9', margin: '0 0 3px' }}>{h.originalFilename || h.file}</p>
+                        <p style={{ fontSize: 11.5, color: '#94a3b8', margin: 0, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                          <span>{h.uploadedAt ? new Date(h.uploadedAt).toLocaleDateString() : h.date}</span>
+                          <span style={{ color: '#475569' }}>•</span>
+                          <span>{h.recordCount || h.records} rows</span>
+                          {h.detectedDomain && (
+                            <>
+                              <span style={{ color: '#475569' }}>•</span>
+                              <span style={{ 
+                                fontSize: 9.5, padding: '2px 8px', borderRadius: 6, 
+                                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', 
+                                color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.03em', fontWeight: 700 
+                              }}>{h.detectedDomain}</span>
+                            </>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <span style={{
+                        fontSize: 10.5, padding: '4px 10px', borderRadius: 8, fontWeight: 700,
+                        background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)',
+                        color: isSuccess ? '#34d399' : '#fbbf24',
+                        border: `1px solid ${isSuccess ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)'}`,
+                        display: 'flex', alignItems: 'center', gap: 6
+                      }}>
+                        <span style={{
+                          width: 6, height: 6, borderRadius: '50%',
+                          background: isSuccess ? '#10b981' : '#f59e0b',
+                          animation: isSuccess ? 'pulse-light 1.8s infinite' : 'pulse-light-orange 1.8s infinite'
+                        }} />
+                        {isSuccess ? 'Twin Active' : `Suspended: ${h.status}`}
+                      </span>
+                      
+                      <button
+                        onClick={async () => { if (h.id) { await authFetch(`/uploads/${h.id}`, { method: 'DELETE' }); fetchHistory(); showToast('Import record deleted', 'info'); } }}
+                        style={{ 
+                          background: 'rgba(239, 68, 68, 0.06)', 
+                          border: '1px solid rgba(239, 68, 68, 0.2)', 
+                          padding: '6px 14px', 
+                          borderRadius: 8, 
+                          cursor: 'pointer', 
+                          fontSize: 11.5, 
+                          color: '#f87171', 
+                          fontWeight: 700, 
+                          transition: 'all 0.2s' 
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.06)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.2)'; }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
       </div>
+
     </div>
   );
 }
