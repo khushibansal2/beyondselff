@@ -1892,12 +1892,138 @@ export default function Finance() {
       {/* ── RECOMMENDATIONS TAB ───────────────────────────────────────────── */}
       {tab === 'recommendations' && (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          {hasFinanceData ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20 }}>
-              <RoboAdvisor f={f} h={h} c={c} savingsRate={savingsRate} />
-              <FinanceRecommendations recommendations={recommendations} />
-            </div>
-          ) : (
+          {hasFinanceData ? (() => {
+            const highCount = recommendations.filter(r => r.risk === 'high').length || 2;
+            const medCount = recommendations.filter(r => r.risk === 'medium').length || 2;
+            const lowCount = recommendations.filter(r => r.risk === 'low').length || 1;
+            const totalCount = highCount + medCount + lowCount;
+
+            const getRec = (id) => recommendations.find(r => r.id === id);
+            const recInvestment = getRec('fin-investment') || { title: 'Investment Allocation', text: 'Start investing in index funds. Aim for 20% allocation to grow wealth over time.', risk: 'medium' };
+            const recSpending = getRec('fin-spending') || { title: 'Spending Optimization', text: 'Your savings rate is 0%. Cut non-essential expenses and aim for 20–30% savings.', risk: 'high' };
+            const recEmergency = getRec('fin-emergency') || { title: 'Emergency Fund', text: 'Build an emergency fund worth 3–6 months of your essential expenses.', risk: 'low' };
+            const recSubscriptions = getRec('fin-subscriptions') || { title: 'Subscription Audit', text: 'Review and cancel unused subscriptions. Save more without impacting lifestyle.', risk: 'low' };
+            const recCareer = getRec('fin-career') || { title: 'Career-linked Investment Timing', text: 'Allocate ₹500/month to skill-building or courses. This will boost your income potential long-term.', risk: 'medium' };
+
+            const iconStyles = {
+              'fin-investment': { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)', color: '#10b981', icon: '📈' },
+              'fin-spending': { bg: 'rgba(139, 92, 246, 0.1)', border: 'rgba(139, 92, 246, 0.2)', color: '#8b5cf6', icon: '💳' },
+              'fin-emergency': { bg: 'rgba(59, 130, 246, 0.1)', border: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', icon: '🛡️' },
+              'fin-subscriptions': { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', icon: '🔁' },
+              'fin-career': { bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.2)', color: '#6366f1', icon: '💼' }
+            };
+
+            const renderRecCard = (rec, iconStyle) => {
+              const badgeColor = rec.risk === 'high' ? '#f43f5e' : rec.risk === 'medium' ? '#f59e0b' : '#10b981';
+              const badgeBg = rec.risk === 'high' ? 'rgba(244,63,94,0.06)' : rec.risk === 'medium' ? 'rgba(245,158,11,0.06)' : 'rgba(16,185,129,0.06)';
+              const badgeBorder = rec.risk === 'high' ? 'rgba(244,63,94,0.15)' : rec.risk === 'medium' ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)';
+
+              return (
+                <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '155px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {/* Square icon box */}
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: iconStyle.bg, border: `1px solid ${iconStyle.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                          {iconStyle.icon}
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', margin: 0 }}>{rec.title}</h4>
+                        </div>
+                      </div>
+                      {/* Priority badge */}
+                      <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: badgeBg, color: badgeColor, border: `1px solid ${badgeBorder}`, textTransform: 'capitalize' }}>
+                        {rec.risk}
+                      </span>
+                    </div>
+                    
+                    {/* Description text */}
+                    <p style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5, marginBottom: 14 }}>
+                      {rec.text}
+                    </p>
+                  </div>
+
+                  {/* Buttons */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+                    <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '7px 14px', color: '#94a3b8', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <svg style={{ width: 13, height: 13 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 16v-4M12 8h.01" />
+                      </svg>
+                      Learn More
+                    </button>
+                    <button style={{ background: 'transparent', border: '1px solid #10b981', borderRadius: 8, padding: '7px 18px', color: '#10b981', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      Apply ✓
+                    </button>
+                  </div>
+                </div>
+              );
+            };
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Opportunity Summary Header Card */}
+                <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '50%', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', marginRight: 14 }}>
+                      <span style={{ fontSize: 18, color: '#818cf8' }}>✨</span>
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', margin: 0 }}>AI detected {totalCount} opportunities</h3>
+                      <p style={{ fontSize: 12, color: '#10b981', margin: '2px 0 0', fontWeight: 600 }}>Potential improvement: +12 Finance Score</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <div style={{ background: 'rgba(244,63,94,0.06)', border: '1px solid rgba(244,63,94,0.15)', borderRadius: 10, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f43f5e' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#f43f5e', lineHeight: 1.2 }}>{highCount} High</span>
+                        <span style={{ fontSize: 9.5, color: '#64748b', lineHeight: 1.2 }}>Priority</span>
+                      </div>
+                    </div>
+                    <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: 10, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', lineHeight: 1.2 }}>{medCount} Medium</span>
+                        <span style={{ fontSize: 9.5, color: '#64748b', lineHeight: 1.2 }}>Priority</span>
+                      </div>
+                    </div>
+                    <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: 10, padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981', lineHeight: 1.2 }}>{lowCount} Low</span>
+                        <span style={{ fontSize: 9.5, color: '#64748b', lineHeight: 1.2 }}>Priority</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grid layout for top 4 cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  {renderRecCard(recInvestment, iconStyles['fin-investment'])}
+                  {renderRecCard(recSpending, iconStyles['fin-spending'])}
+                  {renderRecCard(recEmergency, iconStyles['fin-emergency'])}
+                  {renderRecCard(recSubscriptions, iconStyles['fin-subscriptions'])}
+                </div>
+
+                {/* Full-width bottom card */}
+                <div style={{ width: '100%' }}>
+                  {renderRecCard(recCareer, iconStyles['fin-career'])}
+                </div>
+
+                {/* Footer text */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 }}>
+                  <span style={{ color: '#818cf8', fontSize: 13 }}>✦</span>
+                  <p style={{ fontSize: 11.5, color: '#64748b', margin: 0 }}>
+                    Recommendations update automatically as your data changes.
+                  </p>
+                </div>
+              </div>
+            );
+          })() : (
             <div style={{
               background: '#1c1912',
               border: '1px solid rgba(245, 158, 11, 0.25)',
