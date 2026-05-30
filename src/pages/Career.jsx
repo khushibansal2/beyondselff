@@ -1638,29 +1638,39 @@ export default function Career() {
         {impactSession && <TwinImpactFeed session={impactSession} onDone={() => { setImpactSession(null); setTab('history'); }} />}
       </AnimatePresence>
 
-      {/* ── Page Header ── */}
-      <div style={{ marginBottom: 10 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth</h1>
-        <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Study smarter — every session builds your digital twin.</p>
+      {/* ── Breadcrumbs ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
+        <span>BeyondSelf</span>
+        <span style={{ color: '#475569' }}>/</span>
+        <span style={{ color: '#ffffff' }}>Career &amp; Growth</span>
       </div>
 
-      {/* ── Tab Bar — Finance style ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, marginTop: 8, flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '4px', background: 'rgba(13,17,28,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
-          {tabs.map(t => (
+      {/* ── Page Header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', flexShrink: 0 }}>
+          <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" />
+            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+          </svg>
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth</h1>
+      </div>
+      <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>Study smarter — every session builds your digital twin.</p>
+
+      {/* ── Tab Bar ── */}
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 24, gap: 24, overflowX: 'auto', paddingBottom: 0 }}>
+        {tabs.map(t => {
+          const isActive = tab === t.id;
+          return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              style={{ padding: '7px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s',
-                background: tab === t.id ? '#6366f1' : 'transparent',
-                color: tab === t.id ? '#fff' : '#64748b', border: 'none', cursor: 'pointer',
-                boxShadow: tab === t.id ? '0 2px 10px rgba(99,102,241,0.3)' : 'none' }}>
+              style={{ padding: '12px 4px', fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none', background: 'none',
+                color: isActive ? '#ffffff' : '#8e929b', position: 'relative', transition: 'color 0.2s ease',
+                borderBottom: isActive ? '2px solid #8b5cf6' : '2px solid transparent',
+                marginBottom: -1, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
               {t.label}
             </button>
-          ))}
-        </div>
-        <button onClick={() => setTab('log')}
-          style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          + Log Session
-        </button>
+          );
+        })}
       </div>
 
       {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
