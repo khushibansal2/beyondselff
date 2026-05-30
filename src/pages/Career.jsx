@@ -1702,157 +1702,155 @@ export default function Career() {
         ];
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
-            {/* ── ROW 1: Score card + Metrics (Finance 1fr 1.8fr) ── */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1.8fr', gap:20}}>
+            {/* ── ROW 1: Score card + Metrics ── */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1.8fr', gap:8}}>
 
-              {/* Score card — Finance style */}
-              <div style={{...bCard, padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-                <div style={{display:'flex', alignItems:'center', gap:16}}>
-                  <div style={{position:'relative', width:110, height:110, flexShrink:0}}>
-                    <svg viewBox="0 0 110 110" width="110" height="110">
-                      <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                      <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
+              {/* Score card */}
+              <div style={{...bCard, padding:'12px 14px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+                <div style={{display:'flex', alignItems:'center', gap:10}}>
+                  <div style={{position:'relative', width:80, height:80, flexShrink:0}}>
+                    <svg viewBox="0 0 80 80" width="80" height="80">
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
                         strokeLinecap="round"
-                        strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
-                        strokeDashoffset={2*Math.PI*44*(1-score/100)}
-                        style={{transform:'rotate(-90deg)', transformOrigin:'55px 55px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                        strokeDasharray={`${2*Math.PI*32} ${2*Math.PI*32}`}
+                        strokeDashoffset={2*Math.PI*32*(1-score/100)}
+                        style={{transform:'rotate(-90deg)', transformOrigin:'40px 40px', transition:'stroke-dashoffset 1.2s ease'}}/>
                     </svg>
                     <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                      <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                      <span style={{fontSize:10, color:'#475569', marginTop:2}}>/ 100</span>
+                      <span style={{fontSize:22, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                      <span style={{fontSize:8, color:'#475569', marginTop:1}}>/ 100</span>
                     </div>
                   </div>
                   <div>
-                    <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:6}}>Career Score</p>
-                    <span style={{display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, marginBottom:8,
+                    <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Career Score</p>
+                    <span style={{display:'inline-block', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, marginBottom:5,
                       background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
                       {score>=70?'Strong':score>=45?'Building':'Needs Work'}
                     </span>
-                    <p style={{fontSize:12, color:'#64748b', lineHeight:1.4, whiteSpace:'pre-line'}}>
+                    <p style={{fontSize:10, color:'#64748b', lineHeight:1.4, whiteSpace:'pre-line'}}>
                       {score>=45?'Keep building your\nskills consistently.':'Focus on DSA and\nproject building.'}
                     </p>
                   </div>
                 </div>
                 <button onClick={()=>setTab('recommendations')}
-                  style={{marginTop:16, padding:'8px 16px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
+                  style={{marginTop:8, padding:'5px 10px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:10, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, alignSelf:'flex-start'}}>
                   View Insights →
                 </button>
               </div>
 
-              {/* Metrics card — Finance style inner 3×2 grid */}
-              <div style={{...bCard, padding:'20px', display:'flex', flexDirection:'column', gap:12}}>
-                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
+              {/* Metrics card — compact 3×2 grid */}
+              <div style={{...bCard, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
                   {STAT_METRICS.map(m => (
-                    <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'12px 14px'}}>
-                      <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:6}}>
-                        <div style={{width:24, height:24, borderRadius:6, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>{m.icon}</div>
-                        <span style={{fontSize:11, color:'#64748b'}}>{m.label}</span>
+                    <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 9px'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:5, marginBottom:3}}>
+                        <div style={{width:18, height:18, borderRadius:5, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, flexShrink:0}}>{m.icon}</div>
+                        <span style={{fontSize:9, color:'#64748b'}}>{m.label}</span>
                       </div>
-                      <p style={{fontSize:17, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:4}}>{m.value}</p>
-                      <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
+                      <p style={{fontSize:13, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:2}}>{m.value}</p>
+                      <p style={{fontSize:8, color:'#475569'}}>{m.sub}</p>
                     </div>
                   ))}
                 </div>
-                {/* Placement Readiness bar — mirrors Finance's Savings Rate bar */}
-                <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'12px 16px', display:'flex', alignItems:'center', gap:12}}>
-                  <div style={{width:30, height:30, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0, fontWeight:700, color:'#818cf8'}}>🎯</div>
-                  <div style={{flexShrink:0, minWidth:80}}>
-                    <p style={{fontSize:10, color:'#64748b'}}>Placement Ready</p>
-                    <p style={{fontSize:18, fontWeight:900, color:scoreColor, lineHeight:1}}>{placementReadiness}%</p>
-                    <p style={{fontSize:9, color:'#475569'}}>readiness score</p>
+                {/* Placement Readiness bar */}
+                <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 10px', display:'flex', alignItems:'center', gap:8}}>
+                  <div style={{width:22, height:22, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, color:'#818cf8'}}>🎯</div>
+                  <div style={{flexShrink:0, minWidth:70}}>
+                    <p style={{fontSize:9, color:'#64748b'}}>Placement Ready</p>
+                    <p style={{fontSize:14, fontWeight:900, color:scoreColor, lineHeight:1}}>{placementReadiness}%</p>
+                    <p style={{fontSize:8, color:'#475569'}}>readiness score</p>
                   </div>
                   <div style={{flex:1}}>
-                    <p style={{fontSize:11, color:'#475569', marginBottom:6}}>Aim for 80%+ to unlock interviews.</p>
-                    <div style={{height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                    <p style={{fontSize:9, color:'#475569', marginBottom:4}}>Aim for 80%+ to unlock interviews.</p>
+                    <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
                       <motion.div initial={{width:0}} animate={{width:`${Math.min(100,placementReadiness)}%`}} transition={{duration:1, ease:'easeOut'}}
                         style={{height:'100%', borderRadius:3, background:scoreColor}}/>
                     </div>
                   </div>
-                  <span style={{fontSize:11.5, fontWeight:700, color:'#475569', flexShrink:0}}>80%</span>
+                  <span style={{fontSize:10, fontWeight:700, color:'#475569', flexShrink:0}}>80%</span>
                 </div>
               </div>
             </div>
 
-            {/* ── ROW 2: Cognitive Load + Skill Radar & Portfolio (Finance 1fr 1.8fr) ── */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1.8fr', gap:20}}>
+            {/* ── ROW 2: Cognitive Load + Skill Radar & Portfolio ── */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1.8fr', gap:8}}>
 
               {/* Cognitive Load Meter */}
-              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{...bCard, padding:'12px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 16 }}>🧠</span>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Cognitive Load Meter</p>
+                  <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:2}}>
+                    <span style={{fontSize:13}}>🧠</span>
+                    <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', margin:0}}>Cognitive Load Meter</p>
                   </div>
-                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>Based on today's study, sleep & stress</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+                  <p style={{fontSize:10, color:'#64748b', marginBottom:6}}>Based on today's study, sleep & stress</p>
+                  <div style={{display:'flex', justifyContent:'center', margin:'4px 0'}}>
                     <CognitiveGauge value={cognitiveLoad} />
                   </div>
                 </div>
                 <div>
-                  {/* Range indicators */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
-                    {[['< 40', '#10b981', 'Optimal'], ['40 - 70', '#f59e0b', 'Moderate'], ['> 70', '#f43f5e', 'Burnout Risk']].map(([v, c, l]) => (
-                      <div key={l} style={{ padding: '8px 6px', borderRadius: 10, background: c + '0c', border: `1px solid ${c}22`, textAlign: 'center' }}>
-                        <p style={{ fontSize: 11, fontWeight: 700, color: c, margin: 0 }}>{v}</p>
-                        <p style={{ fontSize: 10, color: '#64748b', margin: '2px 0 0' }}>{l}</p>
+                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:5, marginBottom:8}}>
+                    {[['< 40','#10b981','Optimal'],['40–70','#f59e0b','Moderate'],['> 70','#f43f5e','Burnout']].map(([v,c,l]) => (
+                      <div key={l} style={{padding:'4px', borderRadius:7, background:c+'0c', border:`1px solid ${c}22`, textAlign:'center'}}>
+                        <p style={{fontSize:9, fontWeight:700, color:c, margin:0}}>{v}</p>
+                        <p style={{fontSize:8, color:'#64748b', margin:'1px 0 0'}}>{l}</p>
                       </div>
                     ))}
                   </div>
-                  {/* Alert box */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 10, background: '#090a0f', border: '1px solid #20222a' }}>
-                    <span style={{ fontSize: 15, color: '#3b82f6' }}>ⓘ</span>
-                    <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
-                      {cognitiveLoad < 40 ? "Great! You're in a good zone to learn deeply." : cognitiveLoad < 70 ? "Manageable load. Take breaks every 45 min." : "High load! Rest before your next session."}
+                  <div style={{display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderRadius:8, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.06)'}}>
+                    <span style={{fontSize:11, color:'#3b82f6'}}>ⓘ</span>
+                    <p style={{fontSize:10, color:'#94a3b8', margin:0, lineHeight:1.4}}>
+                      {cognitiveLoad<40?"Great! Good zone to learn deeply.":cognitiveLoad<70?"Manageable. Take breaks every 45 min.":"High load! Rest before next session."}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Skill Radar + Skills Portfolio combined — right column */}
-              <div style={{...bCard, padding:'24px', display:'flex', flexDirection:'column', gap:0}}>
-                <p style={{fontSize:15, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Skill Radar</p>
-                <p style={{fontSize:12, color:'#64748b', marginBottom:12}}>Your overall skill distribution</p>
-                <div style={{height:210, margin:'12px 0'}}>
+              {/* Skill Radar + Skills Portfolio combined */}
+              <div style={{...bCard, padding:'12px', display:'flex', flexDirection:'column'}}>
+                <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Skill Radar</p>
+                <p style={{fontSize:10, color:'#64748b', marginBottom:4}}>Your overall skill distribution</p>
+                <div style={{height:140, margin:'4px 0'}}>
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={radarWithIdeal}>
                       <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                      <PolarAngleAxis dataKey="subject" tick={{fill:'#94a3b8', fontSize:11}} />
+                      <PolarAngleAxis dataKey="subject" tick={{fill:'#94a3b8', fontSize:9}} />
                       <Radar name="You" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
                       <Radar name="Ideal" dataKey="full" stroke="rgba(255,255,255,0.2)" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{display:'flex', alignItems:'center', gap:14, marginBottom:16}}>
-                  <div style={{display:'flex', alignItems:'center', gap:6}}>
-                    <span style={{width:12, height:2.5, background:'#8b5cf6', display:'inline-block', borderRadius:1}}/>
-                    <span style={{fontSize:11, color:'#94a3b8'}}>You</span>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:8}}>
+                  <div style={{display:'flex', alignItems:'center', gap:4}}>
+                    <span style={{width:10, height:2, background:'#8b5cf6', display:'inline-block', borderRadius:1}}/>
+                    <span style={{fontSize:9, color:'#94a3b8'}}>You</span>
                   </div>
-                  <div style={{display:'flex', alignItems:'center', gap:6}}>
-                    <span style={{width:12, height:1, background:'rgba(255,255,255,0.3)', display:'inline-block', borderTop:'1px dashed rgba(255,255,255,0.3)'}}/>
-                    <span style={{fontSize:11, color:'#94a3b8'}}>Ideal</span>
+                  <div style={{display:'flex', alignItems:'center', gap:4}}>
+                    <span style={{width:10, height:1, background:'rgba(255,255,255,0.3)', display:'inline-block', borderTop:'1px dashed rgba(255,255,255,0.3)'}}/>
+                    <span style={{fontSize:9, color:'#94a3b8'}}>Ideal</span>
                   </div>
                 </div>
-                <div style={{height:1, background:'rgba(255,255,255,0.06)', margin:'4px 0 16px'}}/>
-                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10}}>
-                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:0}}>Skills Portfolio</p>
-                  <button onClick={()=>setTab('log')} style={{padding:'6px 14px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer'}}>
+                <div style={{height:1, background:'rgba(255,255,255,0.06)', margin:'2px 0 8px'}}/>
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6}}>
+                  <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', margin:0}}>Skills Portfolio</p>
+                  <button onClick={()=>setTab('log')} style={{padding:'3px 10px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer'}}>
                     + Add Skill
                   </button>
                 </div>
                 {c.skills.length > 0 ? (
-                  <div style={{display:'flex', flexWrap:'wrap', gap:8}}>
+                  <div style={{display:'flex', flexWrap:'wrap', gap:5}}>
                     {c.skills.map(s => (
-                      <span key={s} style={{padding:'5px 12px', borderRadius:8, background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)', fontSize:12, color:'#93c5fd', fontWeight:500}}>{s}</span>
+                      <span key={s} style={{padding:'3px 8px', borderRadius:6, background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)', fontSize:10, color:'#93c5fd', fontWeight:500}}>{s}</span>
                     ))}
                   </div>
                 ) : (
-                  <div style={{display:'flex', alignItems:'center', gap:10, padding:'14px', borderRadius:10, background:'rgba(255,255,255,0.02)', border:'1px dashed rgba(255,255,255,0.08)'}}>
-                    <span style={{fontSize:18}}>📄</span>
+                  <div style={{display:'flex', alignItems:'center', gap:8, padding:'8px', borderRadius:8, background:'rgba(255,255,255,0.02)', border:'1px dashed rgba(255,255,255,0.08)'}}>
+                    <span style={{fontSize:14}}>📄</span>
                     <div>
-                      <p style={{fontSize:13, fontWeight:600, color:'#f1f5f9', margin:'0 0 2px'}}>No skills logged yet</p>
-                      <p style={{fontSize:12, color:'#64748b', margin:0}}>Add your first skill to get started.</p>
+                      <p style={{fontSize:11, fontWeight:600, color:'#f1f5f9', margin:'0 0 1px'}}>No skills logged yet</p>
+                      <p style={{fontSize:10, color:'#64748b', margin:0}}>Add your first skill to get started.</p>
                     </div>
                   </div>
                 )}
@@ -1860,15 +1858,15 @@ export default function Career() {
 
             </div>
 
-            {/* ── Bottom insight bar — Finance style ── */}
-            <div style={{...bCard, padding:'12px 16px', display:'flex', alignItems:'center', gap:14}}>
-              <div style={{width:32, height:32, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:16}}>💡</div>
+            {/* ── Bottom insight bar ── */}
+            <div style={{...bCard, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
+              <div style={{width:24, height:24, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12}}>💡</div>
               <div style={{flex:1, minWidth:0}}>
-                <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Digital Twin Insight</p>
-                <p style={{fontSize:10, color:'#64748b'}}>Consistent small steps lead to massive growth. Log sessions regularly to track your progress.</p>
+                <p style={{fontSize:11, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Digital Twin Insight</p>
+                <p style={{fontSize:9, color:'#64748b'}}>Consistent small steps lead to massive growth. Log sessions regularly to track your progress.</p>
               </div>
               <button onClick={()=>setTab('recommendations')}
-                style={{padding:'6px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0}}>
+                style={{padding:'4px 8px', borderRadius:6, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:10, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0}}>
                 View Recommendations →
               </button>
             </div>
