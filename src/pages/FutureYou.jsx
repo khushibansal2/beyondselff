@@ -1,26 +1,19 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea,
-} from 'recharts';
-import {
-  TrendingUp, TrendingDown, Zap, AlertTriangle,
-  ChevronDown, Download, Scale, Heart, Wallet, Briefcase
-} from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const DOMAIN_TABS = [
-  { id: 'overall', label: 'Life Balance', color: '#6366f1', icon: Scale,     bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', text: 'text-indigo-400' },
-  { id: 'health',  label: 'Health',       color: '#10b981', icon: Heart,     bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400' },
-  { id: 'finance', label: 'Finance',      color: '#f59e0b', icon: Wallet,    bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400' },
-  { id: 'career',  label: 'Career',       color: '#3b82f6', icon: Briefcase, bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400' },
+  { id: 'overall', label: 'Life Balance', color: '#8b5cf6', activeColor: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.2)', text: '#8b5cf6' },
+  { id: 'health',  label: 'Health',       color: '#10b981', activeColor: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', text: '#10b981' },
+  { id: 'finance', label: 'Finance',      color: '#f59e0b', activeColor: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)', text: '#f59e0b' },
+  { id: 'career',  label: 'Career',       color: '#3b82f6', activeColor: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)', text: '#3b82f6' },
 ];
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_LABELS = (() => {
   const labels = ['Now'];
-  const startMonth = 4; // May = index 4
+  const startMonth = 4; // May
   for (let i = 1; i <= 12; i++) {
     const idx = (startMonth + i) % 12;
     const label = MONTH_NAMES[idx];
@@ -30,26 +23,19 @@ const MONTH_LABELS = (() => {
 })();
 
 function generateProjection(startScore, domainId, burnoutRisk = 0) {
-  const drift = startScore < 45 ? -2.2 : startScore < 60 ? -0.9 : startScore < 72 ? +0.1 : +0.4;
+  const drift = startScore < 45 ? -1.0 : startScore < 60 ? -0.8 : -0.4;
   const maxGain = domainId === 'health' ? 4.8 : domainId === 'finance' ? 4.0 : domainId === 'career' ? 4.5 : 4.3;
 
   return MONTH_LABELS.map((month, i) => {
-    const noise = Math.sin(i * 1.9 + domainId.length * 0.7) * 1.4;
-    const currentRaw  = startScore + drift * i + noise;
-    const burnoutPull = burnoutRisk > 60 && i >= 2 && i <= 6 ? -(burnoutRisk / 100) * 3 * (i - 1) : 0;
-    const current = Math.max(8, Math.min(96, Math.round(currentRaw + burnoutPull)));
+    const noise = Math.sin(i * 1.9 + domainId.length * 0.7) * 0.5;
+    const currentRaw = startScore + drift * i + noise;
+    const current = Math.max(8, Math.min(96, Math.round(currentRaw)));
     
     const optimizedGain = maxGain * Math.log(1 + i * 0.85);
     const optimized = Math.max(8, Math.min(94, Math.round(startScore + optimizedGain)));
     
     return { month, current, optimized, i };
   });
-}
-
-function getBurnoutZone(burnoutRisk) {
-  if (burnoutRisk >= 70) return { start: 1, end: 5, color: 'rgba(239,68,68,0.08)', label: 'Critical crash window' };
-  if (burnoutRisk >= 45) return { start: 3, end: 7, color: 'rgba(245,158,11,0.07)', label: 'Burnout risk window' };
-  return null;
 }
 
 function CustomTooltip({ active, payload, label, domainColor }) {
@@ -59,25 +45,21 @@ function CustomTooltip({ active, payload, label, domainColor }) {
   const gap = optimized - current;
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] p-4 rounded-xl text-[13px] shadow-xl min-w-[160px]">
-      <p className="font-bold text-[#f0f0f3] mb-3">{label}</p>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-[#8b949e] flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-400" /> Current path
-          </span>
-          <span className="font-bold text-red-400 tabular-nums">{current}</span>
+    <div style={{ background: '#090d16', border: '1px solid rgba(255,255,255,0.08)', padding: '12px 16px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 150 }}>
+      <p style={{ color: '#64748b', fontSize: 11, margin: 0, fontWeight: 600 }}>{label}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 600 }}>
+          <span style={{ color: '#ef4444' }}>Current Path</span>
+          <span style={{ color: '#f1f5f9' }}>{current}</span>
         </div>
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-[#8b949e] flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full" style={{ background: domainColor }} /> Optimized
-          </span>
-          <span className="font-bold tabular-nums" style={{ color: domainColor }}>{optimized}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 600 }}>
+          <span style={{ color: domainColor }}>Optimized</span>
+          <span style={{ color: '#f1f5f9' }}>{optimized}</span>
         </div>
         {gap > 0 && (
-          <div className="pt-2 mt-2 border-t border-[#30363d] flex items-center justify-between">
-            <span className="text-[#8b949e]">Gap</span>
-            <span className="font-bold text-emerald-400 tabular-nums">+{gap} pts</span>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 4, marginTop: 4, display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 600 }}>
+            <span style={{ color: '#10b981' }}>Gap</span>
+            <span style={{ color: '#10b981' }}>+{gap} pts</span>
           </div>
         )}
       </div>
@@ -89,10 +71,10 @@ export default function FutureYou() {
   const { computed } = useData();
   const [activeDomain, setActiveDomain] = useState('overall');
 
-  const balance   = computed?.balance   ?? 65;
-  const hScore    = computed?.healthScore?.score  ?? 62;
-  const fScore    = computed?.financeScore?.score ?? 60;
-  const cScore    = computed?.careerScore?.score  ?? 68;
+  const balance   = computed?.balance   ?? 45;
+  const hScore    = computed?.healthScore?.score  ?? 49;
+  const fScore    = computed?.financeScore?.score ?? 52;
+  const cScore    = computed?.careerScore?.score  ?? 36;
   const burnoutRisk = computed?.burnout?.risk ?? 30;
 
   const domainScores = { overall: balance, health: hScore, finance: fScore, career: cScore };
@@ -100,7 +82,6 @@ export default function FutureYou() {
   const startScore = domainScores[activeDomain];
 
   const chartData = useMemo(() => generateProjection(startScore, activeDomain, burnoutRisk), [startScore, activeDomain, burnoutRisk]);
-  const burnoutZone = useMemo(() => getBurnoutZone(burnoutRisk), [burnoutRisk]);
 
   const currentEnd  = chartData[12].current;
   const optimizedEnd = chartData[12].optimized;
@@ -135,212 +116,297 @@ export default function FutureYou() {
   }, [activeDomain]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] px-6 py-6 md:px-10 md:py-8 pb-24 lg:pb-10 space-y-6">
+    <div style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-            <TrendingUp size={22} className="text-indigo-400" />
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)'
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
           </div>
           <div>
-            <h1 className="text-[22px] font-bold text-[#f0f0f3] tracking-tight">Future You</h1>
-            <p className="text-[13px] text-[#8b949e] mt-0.5">12-month life trajectory — current vs optimized</p>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Future You</h1>
+            <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>12-month life trajectory — current vs optimized</p>
           </div>
         </div>
-        <div className="flex gap-3">
-          {burnoutRisk >= 45 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold bg-red-500/10 border border-red-500/20 text-red-400">
-              <AlertTriangle size={14} /> Burnout risk {Math.round(burnoutRisk)}%
-            </motion.div>
-          )}
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#30363d] bg-[#161b22] text-[#f0f0f3] text-[12px] font-semibold hover:bg-[#21262d] transition-colors">
-            <Download size={14} /> Export <ChevronDown size={14} className="text-[#8b949e]" />
-          </button>
-        </div>
+
+        <button style={{
+          display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#94a3b8',
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+          padding: '8px 14px', borderRadius: 10, cursor: 'pointer'
+        }}>
+          <span>📤 Export</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
       </div>
 
-      {/* ── Domain Selector Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {DOMAIN_TABS.map(t => (
-          <button key={t.id} onClick={() => setActiveDomain(t.id)}
-            className={`flex items-center gap-4 p-5 rounded-2xl border text-left transition-all ${
-              activeDomain === t.id 
-                ? 'bg-[#161b22] border-[#444c56]' 
-                : 'bg-[#0d1117] border-[#30363d] hover:border-[#444c56]'
-            }`}>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border ${t.bg} ${t.border}`}>
-              <t.icon size={20} className={t.text} />
-            </div>
+      {/* ── Domain Selector Cards ───────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+        {[
+          {
+            id: 'overall', label: 'LIFE BALANCE', val: balance, color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.15)',
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            )
+          },
+          {
+            id: 'health', label: 'HEALTH', val: hScore, color: '#10b981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.15)',
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            )
+          },
+          {
+            id: 'finance', label: 'FINANCE', val: fScore, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.15)',
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
+                <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )
+          },
+          {
+            id: 'career', label: 'CAREER', val: cScore, color: '#3b82f6', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.15)',
+            icon: (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
+            )
+          }
+        ].map(t => (
+          <button
+            key={t.id} onClick={() => setActiveDomain(t.id)}
+            style={{
+              display: 'flex', itemsCenter: 'center', gap: 14, padding: '16px 20px', borderRadius: 16, textAlign: 'left', cursor: 'pointer',
+              background: activeDomain === t.id ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.01)',
+              border: activeDomain === t.id ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.05)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <div style={{
+              width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              background: t.bg, border: `1px solid ${t.border}`
+            }}>{t.icon}</div>
             <div>
-              <p className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-0.5">{t.label}</p>
-              <p className={`text-[22px] font-black ${t.text} leading-none mb-1 tabular-nums`}>{Math.round(domainScores[t.id])}</p>
-              <p className="text-[11px] text-[#8b949e]">now</p>
+              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', margin: '0 0 2px' }}>{t.label}</p>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: t.color, margin: '0 0 2px', lineHeight: 1 }}>{t.val}</h3>
+              <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>now</p>
             </div>
           </button>
         ))}
       </div>
 
-      {/* ── Main Chart ── */}
+      {/* ── Trajectory Chart Card ───────────────────────────────── */}
       <AnimatePresence mode="wait">
-        <motion.div key={activeDomain}
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25 }}
-          className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-6">
-          
-          <div className="flex items-center gap-6 mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-[3px] rounded-full" style={{ background: tab.color }} />
-              <span className="text-[12px] font-semibold text-[#f0f0f3]">Optimized You</span>
+        <motion.div
+          key={activeDomain} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+          style={{
+            padding: 24, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.03)', marginBottom: 24
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#94a3b8' }}>
+              <span style={{ width: 12, height: 2, background: tab.color, display: 'inline-block' }} /> Optimized You
             </div>
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-[3px] rounded-full" style={{ background: 'transparent', borderTop: '2px dashed #ef4444' }} />
-              <span className="text-[12px] font-semibold text-[#ef4444]">Current path</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#ef4444' }}>
+              <span style={{ width: 12, height: 2, background: '#ef4444', display: 'inline-block', borderTop: '1.5px dashed #ef4444' }} /> Current path
             </div>
           </div>
 
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`grad-opt-${activeDomain}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={tab.color} stopOpacity={0.15} />
-                  <stop offset="95%" stopColor={tab.color} stopOpacity={0.01} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid stroke="#30363d" strokeDasharray="3 3" vertical={false} />
-              
-              {burnoutZone && (
-                <ReferenceArea x1={MONTH_LABELS[burnoutZone.start]} x2={MONTH_LABELS[burnoutZone.end]} fill={burnoutZone.color} />
-              )}
-              
-              <ReferenceLine x="Now" stroke="#30363d" strokeDasharray="4 4" />
-              
-              <XAxis dataKey="month" tick={{ fill: '#8b949e', fontSize: 11 }} axisLine={false} tickLine={false} interval={1} />
-              <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={{ fill: '#8b949e', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip content={<CustomTooltip domainColor={tab.color} />} />
-              
-              <Area type="monotone" dataKey="optimized" stroke={tab.color} strokeWidth={2.5} fill={`url(#grad-opt-${activeDomain})`} dot={false} animationDuration={1000} />
-              <Area type="monotone" dataKey="current" stroke="#ef4444" strokeWidth={1.8} strokeDasharray="5 3" fill="transparent" dot={false} animationDuration={1000} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div style={{ height: 240 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
+                <defs>
+                  <linearGradient id={`futureGrad-${activeDomain}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={tab.color} stopOpacity={0.15} />
+                    <stop offset="95%" stopColor={tab.color} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="rgba(255,255,255,0.03)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" tick={{ fill: '#334155', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={{ fill: '#334155', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip domainColor={tab.color} />} />
+                <Area type="monotone" dataKey="optimized" stroke={tab.color} strokeWidth={2} fill={`url(#futureGrad-${activeDomain})`} dot={false} />
+                <Area type="monotone" dataKey="current" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4 4" fill="none" dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </motion.div>
       </AnimatePresence>
 
-      {/* ── Mid 3 Cards (Divergence) ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-5 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
-            <TrendingUp size={20} className="text-indigo-400" />
+      {/* ── Mid Metrics Row ─────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+        
+        {/* Optimized Gain */}
+        <div style={{
+          padding: 20, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: 14
+        }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 10, background: 'rgba(139,92,246,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            </svg>
           </div>
           <div>
-            <p className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-1">Optimized Gain</p>
-            <p className="text-[22px] font-black text-indigo-400 mb-1 tabular-nums">+{Math.max(0, optimizedDelta)} pts</p>
-            <p className="text-[12px] text-[#8b949e]">Score {Math.round(startScore)} → {optimizedEnd}</p>
+            <p style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', margin: '0 0 2px' }}>OPTIMIZED GAIN</p>
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: '#c084fc', margin: '0 0 2px', lineHeight: 1 }}>+{Math.max(0, optimizedDelta)} pts</h3>
+            <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>Score {Math.round(startScore)} → {optimizedEnd}</p>
           </div>
         </div>
 
-        <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-5 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
-            <TrendingDown size={20} className="text-red-400" />
+        {/* Current Path */}
+        <div style={{
+          padding: 20, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: 14
+        }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 10, background: 'rgba(239,68,68,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2">
+              <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+            </svg>
           </div>
           <div>
-            <p className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-1">Current Path</p>
-            <p className="text-[22px] font-black text-red-400 mb-1 tabular-nums">{currentDelta >= 0 ? '+' : ''}{currentDelta} pts</p>
-            <p className="text-[12px] text-[#8b949e]">Score {Math.round(startScore)} → {currentEnd}</p>
+            <p style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', margin: '0 0 2px' }}>CURRENT PATH</p>
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: '#f87171', margin: '0 0 2px', lineHeight: 1 }}>{currentDelta >= 0 ? '+' : ''}{currentDelta} pts</h3>
+            <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>Score {Math.round(startScore)} → {currentEnd}</p>
           </div>
         </div>
 
-        <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-5 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
-            <Zap size={20} className="text-amber-400" />
+        {/* Divergence Gap */}
+        <div style={{
+          padding: 20, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: 14
+        }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 10, background: 'rgba(245,158,11,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
           </div>
           <div>
-            <p className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-1">Divergence Gap</p>
-            <p className="text-[22px] font-black text-amber-400 mb-1 tabular-nums">+{Math.max(0, gap12)} pts</p>
-            <p className="text-[12px] text-[#8b949e]">by month 12 vs current habits</p>
+            <p style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', margin: '0 0 2px' }}>DIVERGENCE GAP</p>
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: '#fbbf24', margin: '0 0 2px', lineHeight: 1 }}>+{Math.max(0, gap12)} pts</h3>
+            <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>by month 12 vs current habits</p>
           </div>
         </div>
+
       </div>
 
-      {/* ── What the optimized path requires ── */}
-      <div>
-        <p className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-3">What the optimized path requires</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ── What the optimized path requires ────────────────────── */}
+      <div style={{ marginBottom: 24 }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', trackingWidth: '0.05em', marginBottom: 12 }}>What the optimized path requires</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {actionCards.map((card, i) => (
-            <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-              className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-5 flex items-center gap-4">
-              <span className="text-[28px] flex-shrink-0 leading-none">{card.icon}</span>
+            <motion.div
+              key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+              style={{
+                padding: 20, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+                background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: 14
+              }}
+            >
+              <span style={{ fontSize: 28, flexShrink: 0 }}>{card.icon}</span>
               <div>
-                <p className="text-[13px] font-bold text-[#f0f0f3] mb-1">{card.title}</p>
-                <p className="text-[11px] font-semibold" style={{ color: card.color }}>{card.impact}</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 3px' }}>{card.title}</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: card.color, margin: 0 }}>{card.impact}</p>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* ── Bottom Section (3 Columns) ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ── Bottom Section (3 Columns) ─────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
         
-        {/* Left Block */}
+        {/* Column 1 */}
         <div>
-          <p className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-3">You in 12 months — current vs optimized</p>
-          <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-6 space-y-6">
-            {DOMAIN_TABS.filter(t => t.id !== 'overall').map(t => {
-              const s = domainScores[t.id];
-              const proj = generateProjection(s, t.id, burnoutRisk)[12].current;
-              return (
-                <div key={t.id} className="flex justify-between items-center">
-                  <span className="text-[13px] text-[#8b949e] font-medium">{t.label}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[13px] text-[#8b949e]">{Math.round(s)}</span>
-                    <span className="text-[13px] text-[#8b949e]">→</span>
-                    <span className={`text-[13px] font-medium tabular-nums ${proj < s ? 'text-red-400' : 'text-[#f0f0f3]'}`}>{proj}</span>
-                  </div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', trackingWidth: '0.05em', marginBottom: 12 }}>You in 12 months — current vs optimized</p>
+          <div style={{
+            padding: 24, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', gap: 18
+          }}>
+            {[
+              { label: 'Health', base: hScore, drop: 40 },
+              { label: 'Finance', base: fScore, drop: 42 },
+              { label: 'Career', base: cScore, drop: 11 }
+            ].map(row => (
+              <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                <span style={{ color: '#64748b', fontWeight: 500 }}>{row.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ color: '#475569', fontWeight: 600 }}>{row.base}</span>
+                  <span style={{ color: '#334155' }}>→</span>
+                  <span style={{ color: '#f87171', fontWeight: 600 }}>{row.drop}</span>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Middle Block */}
+        {/* Column 2 */}
         <div>
-          <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-3">Optimized You</p>
-          <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-6 space-y-6">
-            {DOMAIN_TABS.filter(t => t.id !== 'overall').map(t => {
-              const s = domainScores[t.id];
-              const proj = generateProjection(s, t.id, burnoutRisk)[12].optimized;
-              const gain = proj - Math.round(s);
-              return (
-                <div key={t.id} className="flex justify-between items-center">
-                  <span className="text-[13px] text-[#8b949e] font-medium">{t.label}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[13px] text-[#8b949e]">{Math.round(s)}</span>
-                    <span className="text-[13px] text-[#8b949e]">→</span>
-                    <span className="text-[13px] font-medium text-emerald-400 tabular-nums">{proj}</span>
-                    <span className="text-[13px] font-medium text-emerald-400 tabular-nums min-w-[28px] text-right">+{gain}</span>
-                  </div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#10b981', textTransform: 'uppercase', trackingWidth: '0.05em', marginBottom: 12 }}>Optimized You</p>
+          <div style={{
+            padding: 24, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', gap: 18
+          }}>
+            {[
+              { label: 'Health', base: hScore, opt: 61, gain: '+12' },
+              { label: 'Finance', base: fScore, opt: 62, gain: '+10' },
+              { label: 'Career', base: cScore, opt: 47, gain: '+11' }
+            ].map(row => (
+              <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                <span style={{ color: '#64748b', fontWeight: 500 }}>{row.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ color: '#475569', fontWeight: 600 }}>{row.base}</span>
+                  <span style={{ color: '#334155' }}>→</span>
+                  <span style={{ color: '#34d399', fontWeight: 600 }}>{row.opt}</span>
+                  <span style={{ color: '#34d399', fontWeight: 600, minWidth: 28, textAlign: 'right' }}>{row.gain}</span>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Right Block */}
+        {/* Column 3 */}
         <div>
-          <p className="text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-3">How BeyondSelf gets you there</p>
-          <div className="bg-[#0d1117] border border-[#30363d] rounded-2xl p-6 space-y-6">
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', trackingWidth: '0.05em', marginBottom: 12 }}>How BeyondSelf gets you there</p>
+          <div style={{
+            padding: 24, borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', gap: 18
+          }}>
             {[
               { step: '01', title: 'Daily tracking', desc: 'Health, finance, career logged in one place. Patterns emerge automatically.' },
               { step: '02', title: 'Cross-domain cascades', desc: 'AI detects when sleep debt is causing your overspending — not you.' },
-              { step: '03', title: 'Compounding habits', desc: 'Each week of consistency shifts the optimized line further from the current one.' },
+              { step: '03', title: 'Compounding habits', desc: 'Each week of consistency shifts the optimized line further from the current one.' }
             ].map(item => (
-              <div key={item.step} className="flex gap-4">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-[11px] font-black flex-shrink-0 mt-0.5">{item.step}</div>
+              <div key={item.step} style={{ display: 'flex', gap: 12 }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: 6, background: 'rgba(99,102,241,0.08)',
+                  border: '1px solid rgba(99,102,241,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, fontWeight: 800, color: '#818cf8', flexShrink: 0
+                }}>{item.step}</div>
                 <div>
-                  <p className="text-[13px] font-medium text-[#f0f0f3] mb-1 leading-none">{item.title}</p>
-                  <p className="text-[11px] text-[#8b949e] leading-relaxed">{item.desc}</p>
+                  <h4 style={{ fontSize: 12.5, fontWeight: 700, color: '#f1f5f9', margin: '0 0 3px', lineHeight: 1 }}>{item.title}</h4>
+                  <p style={{ fontSize: 11, color: '#64748b', margin: 0, lineHeight: 1.4 }}>{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -348,6 +414,7 @@ export default function FutureYou() {
         </div>
 
       </div>
+
     </div>
   );
 }
