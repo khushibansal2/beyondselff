@@ -1153,7 +1153,7 @@ export default function Finance() {
           return (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => { setTab(t.id); document.getElementById('sec-' + t.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
               style={{
                 padding: '12px 4px',
                 fontSize: 14,
@@ -1181,8 +1181,9 @@ export default function Finance() {
         })}
       </div>
 
+      <div id="sec-overview" style={{scrollMarginTop:80}}/>
       {/* ── OVERVIEW TAB ──────────────────────────────────────────────────── */}
-      {tab === 'overview' && (() => {
+      {(() => {
         const netWorth   = (f.savings||0)+(f.investments||0)-(f.debt||0);
         const netSavings = Math.max(0,(f.income||0)-(f.expenses||0));
         const scoreColor = score>=70?'#00d8b6':score>=45?'#f59e0b':'#f43f5e';
@@ -1384,8 +1385,11 @@ export default function Finance() {
         );
       })()}
 
+      
+      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'56px 0 40px'}}/>
+      <div id="sec-parse" style={{scrollMarginTop:80}}/>
       {/* ── SMS PARSER TAB ────────────────────────────────────────────────── */}
-      {tab === 'parse' && (() => {
+      {(() => {
         const pCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'12px 16px', display:'flex', flexDirection:'column'};
         const BRAND_COLORS = { Uber:'#1a1a1a', Ola:'#2b9348', Swiggy:'#fc8019', Zomato:'#cb202d', Netflix:'#e50914', Amazon:'#ff9900', Flipkart:'#2874f0', Dunzo:'#00d25b', BigBasket:'#84c225', Blinkit:'#f8cc1b', Rapido:'#333', PhonePe:'#5f259f', Paytm:'#00b9f5' };
         const hashColor = s => { const c=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#10b981','#06b6d4','#3b82f6']; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffffff; return c[Math.abs(h)%c.length]; };
@@ -1566,8 +1570,11 @@ export default function Finance() {
         );
       })()}
 
+      
+      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'56px 0 40px'}}/>
+      <div id="sec-live" style={{scrollMarginTop:80}}/>
       {/* ── LIVE FEED TAB ─────────────────────────────────────────────────── */}
-      {tab === 'live' && (
+      {(
         <div style={{display:'flex', flexDirection:'column', gap:14}}>
 
           {/* Header row */}
@@ -1659,8 +1666,11 @@ export default function Finance() {
         </div>
       )}
 
+      
+      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'56px 0 40px'}}/>
+      <div id="sec-transactions" style={{scrollMarginTop:80}}/>
       {/* ── TRANSACTIONS TAB ──────────────────────────────────────────────── */}
-      {tab === 'transactions' && (
+      {(
         <div className="space-y-6">
           {/* Summary */}
           {allTxs.length > 0 && (
@@ -1718,8 +1728,11 @@ export default function Finance() {
         </div>
       )}
 
+      
+      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'56px 0 40px'}}/>
+      <div id="sec-log" style={{scrollMarginTop:80}}/>
       {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
-      {tab === 'log' && (
+      {(
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
           
           {/* Form Section Header */}
@@ -1900,8 +1913,11 @@ export default function Finance() {
         </div>
       )}
 
+      
+      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'56px 0 40px'}}/>
+      <div id="sec-recommendations" style={{scrollMarginTop:80}}/>
       {/* ── RECOMMENDATIONS TAB ───────────────────────────────────────────── */}
-      {tab === 'recommendations' && (
+      {(
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           {hasFinanceData ? (
             <RoboAdvisor f={f} h={h} c={c} savingsRate={savingsRate} />
@@ -1933,8 +1949,11 @@ export default function Finance() {
         </div>
       )}
 
+      
+      <div style={{height:1,background:'rgba(255,255,255,0.06)',margin:'56px 0 40px'}}/>
+      <div id="sec-invest" style={{scrollMarginTop:80}}/>
       {/* ── INVEST TAB ────────────────────────────────────────────────────── */}
-      {tab === 'invest' && (
+      {(
         hasFinanceData ? (
           <InvestmentRoboAdvisor f={f} score={score} />
         ) : (
