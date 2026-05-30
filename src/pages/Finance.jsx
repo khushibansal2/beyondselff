@@ -784,7 +784,14 @@ function FinanceRecommendations({ recommendations }) {
         <p style={{ fontSize: 13, color: '#8e929b', margin: 0 }}>Personalized insights to help you spend smarter and grow faster.</p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
+        maxHeight: 'calc(100vh - 380px)',
+        overflowY: 'auto',
+        paddingRight: 6
+      }}>
         {sorted.map((r, i) => <FinanceRecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
       </div>
 
