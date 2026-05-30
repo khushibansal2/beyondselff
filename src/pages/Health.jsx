@@ -1115,60 +1115,55 @@ export default function Health() {
 
 
       {tab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
-          {/* ── Row 1: Health Score (1fr) + Metrics 3×2 (1.8fr) — matches Finance layout ── */}
+          {/* ── Row 1: Health Score (1fr) + Metrics 3×2 (1.8fr) ── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 8 }}>
 
             {/* Health Score Detail */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>Health Score</span>
-                <span style={{ color: '#71717a', cursor: 'pointer', lineHeight: 0 }}><Eye size={12} /></span>
-              </div>
-              {/* Ring + title/badge/desc — identical to Finance score card */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ position: 'relative', width: 110, height: 110, flexShrink: 0 }}>
-                  <svg viewBox="0 0 110 110" width="110" height="110">
-                    <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                    <circle cx="55" cy="55" r="44" fill="none"
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              {/* Ring + title/badge/desc */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
+                  <svg viewBox="0 0 80 80" width="80" height="80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                    <circle cx="40" cy="40" r="32" fill="none"
                       stroke={score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}
-                      strokeWidth="10" strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
-                      strokeDashoffset={2*Math.PI*44*(1-score/100)}
-                      style={{ transform:'rotate(-90deg)', transformOrigin:'55px 55px', transition:'stroke-dashoffset 1.2s ease' }}/>
+                      strokeWidth="7" strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*32} ${2*Math.PI*32}`}
+                      strokeDashoffset={2*Math.PI*32*(1-score/100)}
+                      style={{ transform:'rotate(-90deg)', transformOrigin:'40px 40px', transition:'stroke-dashoffset 1.2s ease' }}/>
                   </svg>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
-                    <span style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>/ 100</span>
+                    <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
+                    <span style={{ fontSize: 8, color: '#475569', marginTop: 1 }}>/ 100</span>
                   </div>
                 </div>
                 <div>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Health Score</p>
-                  <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, marginBottom: 6,
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Health Score</p>
+                  <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, marginBottom: 5,
                     background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'18',
                     color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
                     border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44` }}>
                     {score >= 70 ? 'Good' : score >= 45 ? 'Average' : 'Low'}
                   </span>
-                  <p style={{ fontSize: 11.5, color: '#64748b', lineHeight: 1.4 }}>
+                  <p style={{ fontSize: 10, color: '#64748b', lineHeight: 1.4 }}>
                     {score >= 45 ? 'Keep maintaining your\nhealthy habits.' : 'Focus on sleep and\nreduce stress.'}
                   </p>
                 </div>
               </div>
-              {/* View Insights button — same position as Finance (right after ring/text, before trend) */}
               <button onClick={() => setTab('recommendations')}
-                style={{ marginTop: 10, padding: '7px 0', borderRadius: 8,
+                style={{ marginTop: 8, padding: '5px 10px', borderRadius: 7,
                   border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44`,
                   background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'0f',
                   color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
-                  fontSize: 11.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  fontSize: 10, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
                 View Insights →
               </button>
-              {/* Score Trend — below the button */}
-              <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: '#a1a1aa', display: 'block', marginBottom: 4 }}>Score Trend</span>
-                <div style={{ height: 55 }}>
+              {/* Score Trend */}
+              <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <span style={{ fontSize: 9, fontWeight: 600, color: '#a1a1aa', display: 'block', marginBottom: 3 }}>Score Trend</span>
+                <div style={{ height: 40 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trendData.slice(-7)}>
                       <defs>
@@ -1191,7 +1186,7 @@ export default function Health() {
               </div>
             </div>
 
-            {/* Metrics 3×2 grid — Finance style */}
+            {/* Metrics 3×2 grid */}
             <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
                 {[
@@ -1202,49 +1197,49 @@ export default function Health() {
                   { label: 'Water',     icon: '💧', color: '#3b82f6', value: h.waterIntake || 4, sub: 'glasses/day' },
                   { label: 'Calories',  icon: '🥗', color: '#f97316', value: h.calories ? h.calories.toLocaleString() : '2,800', sub: 'kcal/day' },
                 ].map(m => (
-                  <div key={m.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: 6, background: m.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>{m.icon}</div>
-                      <span style={{ fontSize: 10.5, color: '#64748b' }}>{m.label}</span>
+                  <div key={m.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '7px 9px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, background: m.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>{m.icon}</div>
+                      <span style={{ fontSize: 9, color: '#64748b' }}>{m.label}</span>
                     </div>
-                    <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, marginBottom: 3 }}>{m.value}</p>
-                    <p style={{ fontSize: 9, color: '#475569' }}>{m.sub}</p>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, marginBottom: 2 }}>{m.value}</p>
+                    <p style={{ fontSize: 8, color: '#475569' }}>{m.sub}</p>
                   </div>
                 ))}
               </div>
-              {/* Wellness Rate bar — mirrors Finance's Savings Rate bar */}
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0, fontWeight: 700, color: '#4ade80' }}>⚡</div>
-                <div style={{ flexShrink: 0, minWidth: 80 }}>
-                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Wellness Score</p>
-                  <p style={{ fontSize: 18, fontWeight: 900, color: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e', lineHeight: 1, margin: 0 }}>{score}</p>
-                  <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>out of 100</p>
+              {/* Wellness bar */}
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, color: '#4ade80' }}>⚡</div>
+                <div style={{ flexShrink: 0, minWidth: 70 }}>
+                  <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>Wellness Score</p>
+                  <p style={{ fontSize: 14, fontWeight: 900, color: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e', lineHeight: 1, margin: 0 }}>{score}</p>
+                  <p style={{ fontSize: 8, color: '#475569', margin: 0 }}>out of 100</p>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 10.5, color: '#475569', marginBottom: 4 }}>Aim for 70+ to maintain strong health.</p>
+                  <p style={{ fontSize: 9, color: '#475569', marginBottom: 4 }}>Aim for 70+ to maintain strong health.</p>
                   <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
                     <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, score)}%` }} transition={{ duration: 1, ease: 'easeOut' }}
                       style={{ height: '100%', borderRadius: 3, background: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e' }} />
                   </div>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#475569', flexShrink: 0 }}>100</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', flexShrink: 0 }}>100</span>
               </div>
             </div>
           </div>
 
-          {/* ── Row 2: Today's Plan (1fr) + 7-Day Trends (1.8fr) — mirrors Finance Row 2 ── */}
+          {/* ── Row 2: Today's Plan + 7-Day Trends ── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 8 }}>
 
             {/* Today's Plan */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={13} color="#a1a1aa" />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>Today's Plan</span>
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Calendar size={11} color="#a1a1aa" />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>Today's Plan</span>
                 </div>
-                <span style={{ fontSize: 9, color: '#71717a' }}>3 / 4 completed</span>
+                <span style={{ fontSize: 8, color: '#71717a' }}>3 / 4 completed</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {[
                   { text: 'Drink 8 glasses of water', time: '7:30 AM', done: true },
                   { text: '30 min workout',           time: '8:00 AM', done: true },
@@ -1252,48 +1247,42 @@ export default function Health() {
                   { text: 'Meditate for 10 min',      time: '9:30 PM', done: false },
                 ].map((task, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       {task.done
-                        ? <CheckCircle size={13} color="#22c55e" />
-                        : <div style={{ width: 13, height: 13, borderRadius: '50%', border: '1.5px solid #52525b' }} />}
-                      <span style={{ fontSize: 11, color: task.done ? '#f0f0f3' : '#a1a1aa' }}>{task.text}</span>
+                        ? <CheckCircle size={11} color="#22c55e" />
+                        : <div style={{ width: 11, height: 11, borderRadius: '50%', border: '1.5px solid #52525b' }} />}
+                      <span style={{ fontSize: 10, color: task.done ? '#f0f0f3' : '#a1a1aa' }}>{task.text}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 8.5, color: '#71717a' }}>{task.time}</span>
-                      {task.done
-                        ? <div style={{ width: 13, height: 13, borderRadius: '50%', background: 'rgba(34,197,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={8} color="#22c55e" /></div>
-                        : <div style={{ width: 13, height: 13, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />}
-                    </div>
+                    <span style={{ fontSize: 8, color: '#71717a' }}>{task.time}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
-                <button style={{ fontSize: 10, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, margin: '0 auto' }}>
-                  View full plan <span>→</span>
+              <div style={{ marginTop: 5, paddingTop: 5, borderTop: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
+                <button style={{ fontSize: 9, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
+                  View full plan →
                 </button>
               </div>
             </div>
 
-            {/* 7-Day Health Trends — right column of Row 2 */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>7-Day Health Trends</span>
-                  <span style={{ color: '#71717a', lineHeight: 0, cursor: 'pointer' }}><Eye size={12} /></span>
+            {/* 7-Day Health Trends */}
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>7-Day Health Trends</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 9, color: '#a1a1aa', cursor: 'pointer' }}>
-                  7 Days <span style={{ fontSize: 9 }}>▾</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '2px 6px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 8, color: '#a1a1aa', cursor: 'pointer' }}>
+                  7 Days ▾
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-                {[{ col: '#22c55e', label: 'Health Score' }, { col: '#a78bfa', label: 'Sleep (hrs)' }, { col: '#3b82f6', label: 'Water (glasses)' }].map(l => (
-                  <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: '#a1a1aa' }}>
-                    <span style={{ width: 10, height: 2, background: l.col, borderRadius: 2, display: 'inline-block' }} />
+              <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
+                {[{ col: '#22c55e', label: 'Health Score' }, { col: '#a78bfa', label: 'Sleep (hrs)' }, { col: '#3b82f6', label: 'Water' }].map(l => (
+                  <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#a1a1aa' }}>
+                    <span style={{ width: 8, height: 2, background: l.col, borderRadius: 2, display: 'inline-block' }} />
                     {l.label}
                   </div>
                 ))}
               </div>
-              <div style={{ height: 130 }}>
+              <div style={{ height: 100 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData.slice(-7)} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
@@ -1315,22 +1304,22 @@ export default function Health() {
           </div>
 
           {/* ── Row 3: AI Health Coach ── */}
-          <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 12, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <span style={{ color: '#a78bfa' }}><Brain size={13} /></span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3' }}>AI Health Coach</span>
+          <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '8px 12px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <span style={{ color: '#a78bfa' }}><Brain size={11} /></span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>AI Health Coach</span>
               </div>
               <div style={{ width: '70%', position: 'relative', zIndex: 2 }}>
-                <p style={{ fontSize: 10, color: '#a1a1aa', lineHeight: 1.4, marginBottom: 10 }}>
+                <p style={{ fontSize: 9, color: '#a1a1aa', lineHeight: 1.4, marginBottom: 7 }}>
                   Your stress levels are slightly elevated in the evenings.<br />
                   Try a 10-minute breathing exercise before bed to improve sleep quality and recovery.
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <button style={{ padding: '6px 10px', borderRadius: 10, background: '#2e1065', color: '#d8b4fe', fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    Start Breathing Exercise <span>→</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button style={{ padding: '4px 8px', borderRadius: 8, background: '#2e1065', color: '#d8b4fe', fontSize: 9, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    Start Breathing Exercise →
                   </button>
-                  <button style={{ fontSize: 10, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 12 }}>💡</span> More tips
+                  <button style={{ fontSize: 9, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
+                    💡 More tips
                   </button>
                 </div>
               </div>

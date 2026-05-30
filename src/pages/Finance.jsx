@@ -1238,6 +1238,27 @@ export default function Finance() {
                   <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
                     <span style={{fontSize:26, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
                     <span style={{fontSize:9, color:'#475569', marginTop:1}}>/ 100</span>
+        <div style={{display:'flex', flexDirection:'column', gap:8}}>
+
+          {/* ROW 1 */}
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+
+            {/* Score card */}
+            <div style={{...card, padding:'12px 14px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+              <div style={{display:'flex', alignItems:'center', gap:10}}>
+                {/* Ring */}
+                <div style={{position:'relative', width:80, height:80, flexShrink:0}}>
+                  <svg viewBox="0 0 80 80" width="80" height="80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                    <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*32} ${2*Math.PI*32}`}
+                      strokeDashoffset={2*Math.PI*32*(1-score/100)}
+                      style={{transform:'rotate(-90deg)', transformOrigin:'40px 40px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                  </svg>
+                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                    <span style={{fontSize:22, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                    <span style={{fontSize:8, color:'#475569', marginTop:1}}>/ 100</span>
                   </div>
                 </div>
                 {/* Text beside ring */}
@@ -1248,12 +1269,19 @@ export default function Finance() {
                     {score>=70?'Good':score>=45?'Moderate':'Low'}
                   </span>
                   <p style={{fontSize:11, color:'#64748b', lineHeight:1.35, whiteSpace:'pre-line'}}>
+                  <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Finance Score</p>
+                  <span style={{display:'inline-block', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, marginBottom:5,
+                    background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
+                    {score>=70?'Good':score>=45?'Moderate':'Low'}
+                  </span>
+                  <p style={{fontSize:10, color:'#64748b', lineHeight:1.4, whiteSpace:'pre-line'}}>
                     {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
                   </p>
                 </div>
               </div>
               <button onClick={()=>setTab('recommendations')}
                 style={{marginTop:10, padding:'6px 12px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
+                style={{marginTop:8, padding:'5px 10px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:10, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, alignSelf:'flex-start'}}>
                 View Insights →
               </button>
             </div>
@@ -1269,6 +1297,16 @@ export default function Finance() {
                     </div>
                     <p style={{fontSize:14, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:2}}>{m.value}</p>
                     <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
+            <div style={{...card, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
+                {METRICS.map(m => (
+                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 9px'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:5, marginBottom:3}}>
+                      <div style={{width:18, height:18, borderRadius:5, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, flexShrink:0}}>{m.icon}</div>
+                      <span style={{fontSize:9, color:'#64748b'}}>{m.label}</span>
+                    </div>
+                    <p style={{fontSize:13, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:2}}>{m.value}</p>
+                    <p style={{fontSize:8, color:'#475569'}}>{m.sub}</p>
                   </div>
                 ))}
               </div>
@@ -1283,6 +1321,16 @@ export default function Finance() {
                 <div style={{flex:1}}>
                   <p style={{fontSize:10, color:'#475569', marginBottom:4}}>Aim for 20% to build strong financial health.</p>
                   <div style={{height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 10px', display:'flex', alignItems:'center', gap:8}}>
+                <div style={{width:22, height:22, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
+                <div style={{flexShrink:0, minWidth:70}}>
+                  <p style={{fontSize:9, color:'#64748b'}}>Savings Rate</p>
+                  <p style={{fontSize:14, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
+                  <p style={{fontSize:8, color:'#475569'}}>of income</p>
+                </div>
+                <div style={{flex:1}}>
+                  <p style={{fontSize:9, color:'#475569', marginBottom:4}}>Aim for 20% to build strong financial health.</p>
+                  <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
                     <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
                       style={{height:'100%', borderRadius:3, background:scoreColor}}/>
                   </div>
@@ -1299,6 +1347,12 @@ export default function Finance() {
               <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
                 <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
                 <span style={{fontSize:11, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+            {/* Expense Breakdown */}
+            <div style={{...card, padding:'12px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:8}}>
+                <h3 style={{fontSize:12, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
+                <span style={{fontSize:10, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
               </div>
               {f.expenses>0||categoryTotals.length>0 ? (() => {
                 const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
@@ -1309,9 +1363,14 @@ export default function Finance() {
                       <ResponsiveContainer width={88} height={88}>
                         <PieChart>
                           <Pie data={data} cx="50%" cy="50%" outerRadius={40} innerRadius={26} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
+                  <div style={{display:'flex', alignItems:'center', gap:10}}>
+                    <div style={{position:'relative', flexShrink:0, width:80, height:80}}>
+                      <ResponsiveContainer width={80} height={80}>
+                        <PieChart>
+                          <Pie data={data} cx="50%" cy="50%" outerRadius={36} innerRadius={22} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
                             {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
                           </Pie>
-                          <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:11}}/>
+                          <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:10}}/>
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
@@ -1319,6 +1378,10 @@ export default function Finance() {
                       </div>
                     </div>
                     <div style={{flex:1,display:'flex',flexDirection:'column',gap:6}}>
+                        <span style={{fontSize:9,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
+                      </div>
+                    </div>
+                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
                       {data.slice(0,5).map((e,i)=>{
                         const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
                         return(
@@ -1326,6 +1389,8 @@ export default function Finance() {
                             <span style={{width:5,height:5,borderRadius:'50%',background:color,flexShrink:0}}/>
                             <span style={{fontSize:10,color:'#94a3b8',flex:1}}>{e.name}</span>
                             <span style={{fontSize:10,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
+                            <span style={{fontSize:9,color:'#94a3b8',flex:1}}>{e.name}</span>
+                            <span style={{fontSize:9,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                           </div>
                         );
                       })}
@@ -1354,6 +1419,14 @@ export default function Finance() {
                 <span style={{fontSize:10, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'3px 10px', cursor:'pointer'}}>This Month ▾</span>
               </div>
               <div style={{height:105}}>
+            <div style={{...card, padding:'12px'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6}}>
+                <h3 style={{fontSize:12, fontWeight:700, color:'#f1f5f9'}}>
+                  Spending Trend{!hasFinanceData&&<span style={{fontSize:9, color:'#475569', marginLeft:4}}>(demo)</span>}
+                </h3>
+                <span style={{fontSize:9, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:5, padding:'3px 8px', cursor:'pointer'}}>This Month ▾</span>
+              </div>
+              <div style={{height:100}}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{top:4, right:4, left:-28, bottom:0}}>
                     <defs>
@@ -1386,6 +1459,15 @@ export default function Finance() {
             </div>
             <button onClick={()=>setTab('recommendations')}
               style={{padding:'6px 12px', borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
+          <div style={{...card, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
+            <div style={{width:24, height:24, borderRadius:6, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12}}>🛡️</div>
+            <div style={{flex:1, minWidth:0}}>
+              <p style={{fontSize:11, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Financial Anxiety Detection</p>
+              <p style={{fontSize:10, fontWeight:600, color:flag.color, marginBottom:1}}>{flag.label}</p>
+              <p style={{fontSize:9, color:'#64748b'}}>{action}</p>
+            </div>
+            <button onClick={()=>setTab('recommendations')}
+              style={{padding:'5px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:10, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
               View Recommendations →
             </button>
           </div>

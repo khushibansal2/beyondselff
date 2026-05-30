@@ -75,23 +75,23 @@ function FocusHeatmap({ heatmap }) {
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex gap-[3px] min-w-max">
+      <div style={{ display: 'flex', gap: 5.5, minWidth: 'max-content' }}>
         {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
+          <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: 5.5 }}>
             {week.map((day, di) => (
               <div
                 key={di}
-                className="w-2.5 h-2.5 rounded-sm cursor-pointer transition-transform hover:scale-125"
-                style={{ background: LEVEL_COLORS[day.level] }}
+                className="cursor-pointer transition-transform hover:scale-125"
+                style={{ width: 16.5, height: 16.5, borderRadius: 3.5, background: LEVEL_COLORS[day.level], transition: 'transform 0.15s' }}
                 title={`${day.date}: ${day.minutes} min`}
               />
             ))}
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-500">
+      <div className="flex items-center gap-1.5 mt-3.5 text-[10px] text-slate-500">
         <span>Less</span>
-        {LEVEL_COLORS.map((c, i) => <div key={i} className="w-2.5 h-2.5 rounded-sm" style={{ background: c }} />)}
+        {LEVEL_COLORS.map((c, i) => <div key={i} style={{ width: 16.5, height: 16.5, borderRadius: 3.5, background: c }} />)}
         <span>More</span>
       </div>
     </div>
@@ -205,253 +205,364 @@ function ResumeTab({ career: c, updateDomain }) {
   const skillCats = r?.skillCategories ?? {};
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <GlassCard>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-lg">📄</span>
-            <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Resume AI Intelligence</h3>
-            <span className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border font-semibold ${phase === 'results' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-[#27272a]/50 border-white/[0.06] text-slate-400'}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${phase === 'results' ? 'bg-emerald-400' : 'bg-[#71717a]'}`} />
-              {phase === 'results' ? 'Analyzed' : 'Not Uploaded'}
-            </span>
-          </div>
-          {phase === 'results' && (
-            <button onClick={handleReset} className="text-[11px] px-3 py-1.5 rounded-xl border border-red-500/20 text-red-400/70 hover:text-red-400 transition-all">
-              Upload New
-            </button>
-          )}
-        </div>
-        {phase === 'upload' && (
-          <p className="text-[12px] text-slate-500 mt-2">
-            Upload your resume PDF — AI extracts skills, experience, education, and projects, then generates ATS score, skill gap analysis, and a personalised learning roadmap.
-          </p>
-        )}
-      </GlassCard>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Upload Zone */}
+      {/* ── HERO HEADER CARD ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 50%, #12141a 100%)',
+        border: '1px solid rgba(99,102,241,0.2)',
+        borderRadius: 20,
+        padding: '28px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 20,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Background glow */}
+        <div style={{ position: 'absolute', top: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, zIndex: 1 }}>
+          {/* Icon */}
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg style={{ width: 26, height: 26, color: '#818cf8' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>Resume AI Intelligence</h2>
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                background: phase === 'results' ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${phase === 'results' ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                color: phase === 'results' ? '#10b981' : '#64748b',
+                display: 'flex', alignItems: 'center', gap: 5
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: phase === 'results' ? '#10b981' : '#475569', display: 'inline-block' }} />
+                {phase === 'results' ? 'Analyzed' : 'Not Uploaded'}
+              </span>
+            </div>
+            {phase === 'upload' && (
+              <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                Upload your PDF — AI extracts skills, ATS score, skill gaps &amp; a personalised roadmap.
+              </p>
+            )}
+            {phase === 'results' && (
+              <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+                Resume analyzed · {r?.skills?.length ?? 0} skills detected · {r?.experience?.length ?? 0} roles
+              </p>
+            )}
+          </div>
+        </div>
+
+        {phase === 'results' && (
+          <button onClick={handleReset} style={{
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+            borderRadius: 10, padding: '8px 18px', fontSize: 12, fontWeight: 700,
+            color: '#f87171', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s',
+            zIndex: 1,
+          }}
+          onMouseOver={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; }}
+          onMouseOut={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}>
+            ↺ Upload New
+          </button>
+        )}
+      </div>
+
+      {/* ── UPLOAD ZONE ── */}
       {phase === 'upload' && (
-        <GlassCard>
+        <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 20, padding: 24 }}>
           <div
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); }}
             onClick={() => fileRef.current?.click()}
-            className={`rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-4 p-12 ${
-              dragOver ? 'border-blue-500/50 bg-blue-500/[0.05]' : 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.04]'
-            }`}
+            style={{
+              borderRadius: 16,
+              border: `2px dashed ${dragOver ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.08)'}`,
+              background: dragOver ? 'rgba(99,102,241,0.05)' : 'transparent',
+              cursor: 'pointer',
+              padding: '52px 32px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 20,
+              transition: 'all 0.25s ease',
+            }}
           >
-            <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
+            <input ref={fileRef} type="file" accept=".pdf,application/pdf" style={{ display: 'none' }}
               onChange={e => e.target.files[0] && processFile(e.target.files[0])} />
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-              <span className="text-3xl">📄</span>
+
+            {/* Upload icon */}
+            <div style={{ width: 72, height: 72, borderRadius: 20, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg style={{ width: 32, height: 32, color: '#818cf8' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
             </div>
-            <div className="text-center">
-              <p className="text-[14px] font-semibold text-[#f0f0f3] mb-1">Drop your resume PDF here</p>
-              <p className="text-[12px] text-slate-500">or click to browse · PDF only · text-based (not scanned)</p>
+
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>Drop your resume PDF here</p>
+              <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>or click to browse · PDF only · text-based (not scanned)</p>
             </div>
-            <div className="flex gap-3 text-[11px] text-slate-400">
+
+            {/* Feature chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
               {['Skills Extraction', 'ATS Score', 'Skill Gap Analysis', 'Learning Roadmap'].map(f => (
-                <span key={f} className="flex items-center gap-1"><CheckCircle size={10} className="text-blue-400" />{f}</span>
+                <span key={f} style={{ fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 20, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.18)', color: '#818cf8', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 9 }}>✓</span> {f}
+                </span>
               ))}
             </div>
           </div>
+
           {error && (
-            <div className="mt-4 flex items-start gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2.5">
-              <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {error}
+            <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', fontSize: 12, color: '#f87171' }}>
+              <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              {error}
             </div>
           )}
-        </GlassCard>
+        </div>
       )}
 
-      {/* Parsing Animation */}
+      {/* ── PARSING STATE ── */}
       {phase === 'parsing' && (
-        <GlassCard className="border border-blue-500/15 bg-blue-500/[0.03]">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-9 h-9 rounded-full border-2 border-blue-400/60 border-t-blue-400 animate-spin flex-shrink-0" />
+        <div style={{ background: '#12141a', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 20, padding: '32px 36px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#818cf8', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
             <div>
-              <p className="text-[14px] font-semibold text-[#f0f0f3]">Analyzing your resume…</p>
-              <p className="text-[12px] text-slate-500">{stepText}</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Analyzing your resume…</p>
+              <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>{stepText}</p>
             </div>
           </div>
-          <div className="space-y-2.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {RESUME_PARSE_STEPS.map((step, i) => (
-              <div key={step} className="flex items-center gap-2.5">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                  i < stepIdx ? 'bg-blue-500' : i === stepIdx ? 'border-2 border-blue-400 animate-pulse' : 'border border-white/[0.06]'
-                }`}>
-                  {i < stepIdx && <CheckCircle size={11} className="text-white" />}
+              <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: i < stepIdx ? '#6366f1' : 'transparent',
+                  border: i < stepIdx ? 'none' : i === stepIdx ? '2px solid #818cf8' : '1px solid rgba(255,255,255,0.08)',
+                  animation: i === stepIdx ? 'pulse 1s ease infinite' : 'none',
+                }}>
+                  {i < stepIdx && <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>✓</span>}
                 </div>
-                <span className={`text-[12px] ${i <= stepIdx ? 'text-slate-300' : 'text-slate-600'}`}>{step}</span>
+                <span style={{ fontSize: 13, color: i <= stepIdx ? '#cbd5e1' : '#334155', fontWeight: i === stepIdx ? 600 : 400 }}>{step}</span>
               </div>
             ))}
           </div>
-        </GlassCard>
+        </div>
       )}
 
-      {/* Results Dashboard */}
+      {/* ── RESULTS ── */}
       {phase === 'results' && r && (
-        <motion.div ref={resultRef} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+        <motion.div ref={resultRef} initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
           {/* Identity card */}
-          <GlassCard>
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-2xl flex-shrink-0">
-                {r.personalInfo?.name ? r.personalInfo.name.charAt(0).toUpperCase() : '👤'}
+          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 20, padding: '24px 28px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, flexWrap: 'wrap' }}>
+              {/* Avatar */}
+              <div style={{ width: 62, height: 62, borderRadius: 18, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 900, color: '#818cf8', flexShrink: 0 }}>
+                {r.personalInfo?.name ? r.personalInfo.name.charAt(0).toUpperCase() : '?'}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-[16px] font-bold text-[#f0f0f3]">{r.personalInfo?.name || 'Your Profile'}</h2>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 font-semibold">{r.overallLevel}</span>
-                  {r.totalExperienceYears > 0 && <span className="text-[11px] text-slate-500">{r.totalExperienceYears}yr exp</span>}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>{r.personalInfo?.name || 'Your Profile'}</h3>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', color: '#a5b4fc' }}>{r.overallLevel}</span>
+                  {r.totalExperienceYears > 0 && <span style={{ fontSize: 12, color: '#475569' }}>{r.totalExperienceYears}yr exp</span>}
                 </div>
-                {r.personalInfo?.email && <p className="text-[12px] text-slate-500 mt-0.5">{r.personalInfo.email}{r.personalInfo.location ? ` · ${r.personalInfo.location}` : ''}</p>}
-                <p className="text-[12px] text-slate-400 mt-2 leading-relaxed italic">"{r.summary}"</p>
+                {r.personalInfo?.email && (
+                  <p style={{ fontSize: 12, color: '#475569', margin: '0 0 8px' }}>
+                    {r.personalInfo.email}{r.personalInfo.location ? ` · ${r.personalInfo.location}` : ''}
+                  </p>
+                )}
+                <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>"{r.summary}"</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/[0.05]">
-              <button onClick={handleSyncSkills} disabled={synced}
-                className="flex items-center gap-2 text-[12px] px-4 py-2.5 rounded-xl border font-semibold transition-all disabled:cursor-default"
-                style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(59,130,246,0.1)', borderColor: synced ? 'rgba(16,185,129,0.25)' : 'rgba(59,130,246,0.25)', color: synced ? '#10b981' : '#93c5fd' }}>
-                {synced ? <><CheckCircle size={13} /> Synced to Career</> : <><Plus size={13} /> Sync Skills to Career</>}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 20, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <button onClick={handleSyncSkills} disabled={synced} style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: synced ? 'default' : 'pointer', border: 'none', transition: 'all 0.2s',
+                background: synced ? 'rgba(16,185,129,0.1)' : 'rgba(99,102,241,0.15)',
+                color: synced ? '#10b981' : '#a5b4fc',
+              }}>
+                {synced ? <>✓ Synced to Career</> : <>⚡ Sync Skills to Career</>}
               </button>
               {r.personalInfo?.linkedin && (
-                <a href={r.personalInfo.linkedin} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-1.5 text-[12px] px-3.5 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 hover:text-slate-300 transition-all">
-                  <ExternalLink size={12} /> LinkedIn
+                <a href={r.personalInfo.linkedin} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: '#64748b', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.06)', background: 'transparent', transition: 'all 0.2s' }}>
+                  ↗ LinkedIn
                 </a>
               )}
             </div>
-          </GlassCard>
-
-          {/* Scores */}
-          <div className="grid grid-cols-3 gap-3">
-            <ResumeScoreCard label="ATS Score"        value={r.atsScore}        color="#f59e0b" />
-            <ResumeScoreCard label="Profile Strength" value={r.profileStrength} color="#6366f1" />
-            <ResumeScoreCard label="Hirability"       value={r.hirability}      color="#10b981" unit="%" />
           </div>
 
-          {/* Section tabs */}
-          <div className="flex gap-1.5 flex-wrap">
+          {/* Score Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
             {[
-              { id: 'overview',   label: 'Overview'    },
-              { id: 'skills',     label: 'Skills'      },
-              { id: 'experience', label: 'Experience'  },
-              { id: 'projects',   label: 'Projects'    },
-              { id: 'insights',   label: 'AI Insights' },
-              { id: 'roadmap',    label: 'Roadmap'     },
+              { label: 'ATS Score', value: r.atsScore, color: '#f59e0b', accent: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)' },
+              { label: 'Profile Strength', value: r.profileStrength, color: '#6366f1', accent: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.2)' },
+              { label: 'Hirability', value: r.hirability, color: '#10b981', accent: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', unit: '%' },
             ].map(s => (
-              <button key={s.id} onClick={() => setActiveSection(s.id)}
-                className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
-                  activeSection === s.id
-                    ? 'bg-blue-500/15 border-blue-500/30 text-blue-300'
-                    : 'border-white/[0.06] text-slate-500 hover:text-slate-300'
-                }`}>
-                {s.label}
+              <div key={s.label} style={{ background: '#12141a', border: `1px solid ${s.border}`, borderRadius: 16, padding: '20px 22px' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569', marginBottom: 8 }}>{s.label}</p>
+                <p style={{ fontSize: 30, fontWeight: 900, color: s.color, lineHeight: 1, margin: '0 0 12px' }}>
+                  {s.value}<span style={{ fontSize: 13, fontWeight: 500, color: '#475569' }}>{s.unit || '/100'}</span>
+                </p>
+                <div style={{ height: 4, borderRadius: 4, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${s.value}%` }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ height: '100%', borderRadius: 4, background: s.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Section Navigation */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { id: 'overview',   label: 'Overview',    emoji: '📊' },
+              { id: 'skills',     label: 'Skills',      emoji: '⚡' },
+              { id: 'experience', label: 'Experience',  emoji: '💼' },
+              { id: 'projects',   label: 'Projects',    emoji: '🚀' },
+              { id: 'insights',   label: 'AI Insights', emoji: '🤖' },
+              { id: 'roadmap',    label: 'Roadmap',     emoji: '🗺️' },
+            ].map(s => (
+              <button key={s.id} onClick={() => setActiveSection(s.id)} style={{
+                padding: '7px 16px', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                background: activeSection === s.id ? 'rgba(99,102,241,0.15)' : 'transparent',
+                border: activeSection === s.id ? '1px solid rgba(99,102,241,0.35)' : '1px solid rgba(255,255,255,0.06)',
+                color: activeSection === s.id ? '#a5b4fc' : '#475569',
+              }}>
+                {s.emoji} {s.label}
               </button>
             ))}
           </div>
 
           <AnimatePresence mode="wait">
             <motion.div key={activeSection} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+
               {/* OVERVIEW */}
               {activeSection === 'overview' && (
-                <div className="space-y-4">
-                  <div className="grid sm:grid-cols-3 gap-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
                     {[
-                      { title: 'Strengths',  items: r.strengths,  color: 'text-emerald-400', bg: 'bg-emerald-500/[0.04] border-emerald-500/15', dot: 'bg-emerald-500/60' },
-                      { title: 'Weaknesses', items: r.weaknesses, color: 'text-red-400',     bg: 'bg-red-500/[0.04] border-red-500/15',         dot: 'bg-red-500/60'     },
-                      { title: 'Skill Gaps', items: r.skillGaps,  color: 'text-amber-400',   bg: 'bg-amber-500/[0.04] border-amber-500/15',     dot: 'bg-amber-500/60'   },
+                      { title: 'Strengths',  items: r.strengths,  color: '#10b981', bg: 'rgba(16,185,129,0.04)', border: 'rgba(16,185,129,0.15)', dot: '#10b981' },
+                      { title: 'Weaknesses', items: r.weaknesses, color: '#f43f5e', bg: 'rgba(244,63,94,0.04)',  border: 'rgba(244,63,94,0.15)',  dot: '#f43f5e' },
+                      { title: 'Skill Gaps', items: r.skillGaps,  color: '#f59e0b', bg: 'rgba(245,158,11,0.04)', border: 'rgba(245,158,11,0.15)', dot: '#f59e0b' },
                     ].map(s => (
-                      <GlassCard key={s.title} className={`border ${s.bg}`}>
-                        <p className={`text-[11px] font-bold uppercase tracking-wider mb-2.5 ${s.color}`}>{s.title}</p>
-                        <ul className="space-y-1.5">
+                      <div key={s.title} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 16, padding: '18px 20px' }}>
+                        <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: s.color, marginBottom: 12 }}>{s.title}</p>
+                        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {(s.items ?? []).map((item, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-[11px] text-slate-400 leading-relaxed">
-                              <span className={`mt-1.5 w-1.5 h-1.5 rounded-full ${s.dot} flex-shrink-0`} />{item}
+                            <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
+                              <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.dot, flexShrink: 0, marginTop: 5 }} />
+                              {item}
                             </li>
                           ))}
                         </ul>
-                      </GlassCard>
+                      </div>
                     ))}
                   </div>
+
                   {r.salaryRange && (
-                    <GlassCard className="border border-emerald-500/15">
-                      <p className="text-[11px] text-slate-500 mb-1">Estimated Salary Range</p>
-                      <p className="text-[16px] font-bold text-emerald-400">{r.salaryRange}</p>
-                    </GlassCard>
+                    <div style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.18)', borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>💰</div>
+                      <div>
+                        <p style={{ fontSize: 11, color: '#475569', margin: '0 0 3px' }}>Estimated Salary Range</p>
+                        <p style={{ fontSize: 17, fontWeight: 800, color: '#10b981', margin: 0 }}>{r.salaryRange}</p>
+                      </div>
+                    </div>
                   )}
+
                   {r.targetRoles?.length > 0 && (
-                    <GlassCard>
-                      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Best-Fit Roles</p>
-                      <div className="flex flex-wrap gap-2">
+                    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 14, padding: '18px 20px' }}>
+                      <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569', marginBottom: 12 }}>Best-Fit Roles</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {r.targetRoles.map((role, i) => (
-                          <span key={i} className="text-[11px] px-3 py-1.5 rounded-xl border border-purple-500/20 bg-purple-500/10 text-purple-300 font-medium">{role}</span>
+                          <span key={i} style={{ fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 20, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.22)', color: '#c4b5fd' }}>{role}</span>
                         ))}
                       </div>
-                    </GlassCard>
+                    </div>
                   )}
                 </div>
               )}
 
               {/* SKILLS */}
               {activeSection === 'skills' && (
-                <GlassCard>
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Detected Skills ({r.skills?.length ?? 0})</h3>
+                <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 18, padding: '22px 26px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>⚡</div>
+                    <div>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Detected Skills</h3>
+                      <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{r.skills?.length ?? 0} skills extracted from your resume</p>
+                    </div>
+                  </div>
                   {Object.entries(skillCats).filter(([, v]) => v?.length > 0).map(([cat, skills]) => (
-                    <div key={cat} className="mb-4">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 capitalize">{cat}</p>
-                      <div className="flex flex-wrap gap-1.5">
+                    <div key={cat} style={{ marginBottom: 18 }}>
+                      <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#475569', marginBottom: 8 }}>{cat}</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {skills.map(s => (
-                          <span key={s} className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/15 text-blue-300 font-medium">{s}</span>
+                          <span key={s} style={{ fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.18)', color: '#a5b4fc' }}>{s}</span>
                         ))}
                       </div>
                     </div>
                   ))}
-                  {(!Object.values(skillCats).some(v => v?.length > 0)) && (
-                    <div className="flex flex-wrap gap-1.5">
+                  {!Object.values(skillCats).some(v => v?.length > 0) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {(r.skills ?? []).map(s => (
-                        <span key={s} className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/15 text-blue-300 font-medium">{s}</span>
+                        <span key={s} style={{ fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.18)', color: '#a5b4fc' }}>{s}</span>
                       ))}
                     </div>
                   )}
-                </GlassCard>
+                </div>
               )}
 
               {/* EXPERIENCE */}
               {activeSection === 'experience' && (
-                <div className="space-y-3">
-                  {(r.experience ?? []).length === 0 && <GlassCard><p className="text-[12px] text-slate-500 text-center py-6">No work experience detected in the resume.</p></GlassCard>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {(r.experience ?? []).length === 0 && (
+                    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '40px 24px', textAlign: 'center', color: '#475569', fontSize: 13 }}>
+                      No work experience detected in the resume.
+                    </div>
+                  )}
                   {(r.experience ?? []).map((exp, i) => (
-                    <GlassCard key={i}>
-                      <div className="flex items-start justify-between gap-3 mb-3">
+                    <div key={i} style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '20px 24px', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: 3, height: '100%', background: 'linear-gradient(to bottom, #6366f1, #8b5cf6)', borderRadius: '16px 0 0 16px' }} />
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12, paddingLeft: 8 }}>
                         <div>
-                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{exp.role}</p>
-                          <p className="text-[12px] text-slate-500">{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
+                          <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 3 }}>{exp.role}</p>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>{exp.company}{exp.location ? ` · ${exp.location}` : ''}</p>
                         </div>
-                        <span className="text-[10px] text-slate-500 whitespace-nowrap bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.05]">{exp.duration}</span>
+                        <span style={{ fontSize: 11, color: '#475569', whiteSpace: 'nowrap', background: 'rgba(255,255,255,0.04)', padding: '4px 10px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.06)' }}>{exp.duration}</span>
                       </div>
-                      <ul className="space-y-1.5">
+                      <ul style={{ margin: 0, padding: '0 0 0 8px', listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {(exp.highlights ?? []).map((h, j) => (
-                          <li key={j} className="flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed">
-                            <ChevronRight size={11} className="mt-0.5 text-blue-500 flex-shrink-0" />{h}
+                          <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+                            <span style={{ color: '#6366f1', fontWeight: 700, marginTop: 1 }}>›</span>{h}
                           </li>
                         ))}
                       </ul>
-                    </GlassCard>
+                    </div>
                   ))}
                   {(r.education ?? []).length > 0 && (
                     <>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1 mt-2">Education</p>
+                      <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#475569', padding: '6px 0 0' }}>Education</p>
                       {r.education.map((edu, i) => (
-                        <GlassCard key={i}>
-                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{edu.degree}</p>
-                          <p className="text-[12px] text-slate-500">{edu.institution}</p>
-                          <div className="flex gap-3 mt-1">
-                            <span className="text-[11px] text-slate-500">{edu.year}</span>
-                            {edu.gpa && <span className="text-[11px] text-slate-500">GPA: {edu.gpa}</span>}
+                        <div key={i} style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 14, padding: '16px 20px' }}>
+                          <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 3 }}>{edu.degree}</p>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 6px' }}>{edu.institution}</p>
+                          <div style={{ display: 'flex', gap: 12 }}>
+                            <span style={{ fontSize: 11, color: '#475569' }}>{edu.year}</span>
+                            {edu.gpa && <span style={{ fontSize: 11, color: '#475569' }}>GPA: {edu.gpa}</span>}
                           </div>
-                        </GlassCard>
+                        </div>
                       ))}
                     </>
                   )}
@@ -460,88 +571,103 @@ function ResumeTab({ career: c, updateDomain }) {
 
               {/* PROJECTS */}
               {activeSection === 'projects' && (
-                <div className="space-y-3">
-                  {(r.projects ?? []).length === 0 && <GlassCard><p className="text-[12px] text-slate-500 text-center py-6">No projects detected in the resume.</p></GlassCard>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {(r.projects ?? []).length === 0 && (
+                    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '40px 24px', textAlign: 'center', color: '#475569', fontSize: 13 }}>No projects detected.</div>
+                  )}
                   {(r.projects ?? []).map((proj, i) => (
-                    <GlassCard key={i}>
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <p className="text-[13px] font-semibold text-[#f0f0f3]">{proj.name}</p>
+                    <div key={i} style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '20px 24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>🚀</div>
+                          <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{proj.name}</p>
+                        </div>
                         {proj.link && (
-                          <a href={proj.link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[11px] text-blue-400 hover:underline flex-shrink-0">
-                            <ExternalLink size={10} /> View
-                          </a>
+                          <a href={proj.link} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#818cf8', textDecoration: 'none', fontWeight: 600, flexShrink: 0 }}>↗ View</a>
                         )}
                       </div>
-                      <p className="text-[12px] text-slate-500 leading-relaxed mb-2">{proj.description}</p>
-                      <div className="flex flex-wrap gap-1.5">
+                      <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, margin: '0 0 12px' }}>{proj.description}</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                         {(proj.technologies ?? []).map(t => (
-                          <span key={t} className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-slate-500 font-medium">{t}</span>
+                          <span key={t} style={{ fontSize: 10, fontWeight: 600, padding: '3px 9px', borderRadius: 6, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: '#475569' }}>{t}</span>
                         ))}
                       </div>
-                    </GlassCard>
+                    </div>
                   ))}
                   {(r.certifications ?? []).length > 0 && (
-                    <GlassCard>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">Certifications</p>
-                      <div className="flex flex-wrap gap-2">
+                    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 14, padding: '18px 22px' }}>
+                      <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#475569', marginBottom: 12 }}>Certifications</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {r.certifications.map((cert, i) => (
-                          <span key={i} className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-300 font-medium">
-                            <CheckCircle size={10} /> {cert}
+                          <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: '6px 14px', borderRadius: 20, background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            ✓ {cert}
                           </span>
                         ))}
                       </div>
-                    </GlassCard>
+                    </div>
                   )}
                 </div>
               )}
 
               {/* AI INSIGHTS */}
               {activeSection === 'insights' && (
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {(r.recommendations ?? []).length > 0 && (
-                    <GlassCard className="border border-blue-500/15 bg-blue-500/[0.02]">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Brain size={14} className="text-blue-400" />
-                        <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI Recommendations</h3>
+                    <div style={{ background: '#12141a', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 18, padding: '22px 26px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🤖</div>
+                        <div>
+                          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>AI Recommendations</h3>
+                          <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>Personalized career coaching based on your resume</p>
+                        </div>
                       </div>
-                      <div className="space-y-2.5">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {r.recommendations.map((rec, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-blue-500/[0.04] border border-blue-500/[0.08]">
-                            <span className="text-[11px] font-bold text-blue-400/70 mt-0.5 font-mono flex-shrink-0">{String(i + 1).padStart(2, '0')}</span>
-                            <p className="text-[12px] text-slate-400 leading-relaxed">{rec}</p>
+                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 16px', borderRadius: 12, background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.1)' }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(129,140,248,0.5)', fontFamily: 'monospace', flexShrink: 0, minWidth: 24, marginTop: 1 }}>{String(i + 1).padStart(2, '0')}</span>
+                            <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.65, margin: 0 }}>{rec}</p>
                           </div>
                         ))}
                       </div>
-                    </GlassCard>
+                    </div>
                   )}
                 </div>
               )}
 
               {/* ROADMAP */}
               {activeSection === 'roadmap' && (
-                <GlassCard>
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp size={14} className="text-amber-400" />
-                    <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Personalised Learning Roadmap</h3>
+                <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 18, padding: '22px 26px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🗺️</div>
+                    <div>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Personalised Learning Roadmap</h3>
+                      <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>Skills to learn based on your current profile</p>
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    {(r.learningRoadmap ?? []).map((item, i) => (
-                      <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-                        className={`p-3.5 rounded-xl border ${PRIORITY_COLOR[item.priority] ?? PRIORITY_COLOR.low}`}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <p className="text-[12px] font-semibold text-[#f0f0f3]">{item.skill}</p>
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${PRIORITY_COLOR[item.priority]}`}>{item.priority}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mb-1 leading-relaxed">{item.reason}</p>
-                        {item.resource && <p className="text-[10px] text-blue-400">📚 {item.resource}</p>}
-                      </motion.div>
-                    ))}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {(r.learningRoadmap ?? []).map((item, i) => {
+                      const pColor = item.priority === 'high' ? '#f43f5e' : item.priority === 'medium' ? '#f59e0b' : '#64748b';
+                      const pBg = item.priority === 'high' ? 'rgba(244,63,94,0.06)' : item.priority === 'medium' ? 'rgba(245,158,11,0.06)' : 'rgba(255,255,255,0.02)';
+                      const pBorder = item.priority === 'high' ? 'rgba(244,63,94,0.18)' : item.priority === 'medium' ? 'rgba(245,158,11,0.18)' : 'rgba(255,255,255,0.06)';
+                      return (
+                        <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                          style={{ padding: '14px 18px', borderRadius: 12, background: pBg, border: `1px solid ${pBorder}` }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{item.skill}</p>
+                            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', padding: '3px 8px', borderRadius: 20, border: `1px solid ${pBorder}`, color: pColor }}>{item.priority}</span>
+                          </div>
+                          <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 6px', lineHeight: 1.5 }}>{item.reason}</p>
+                          {item.resource && <p style={{ fontSize: 10, color: '#818cf8', margin: 0 }}>📚 {item.resource}</p>}
+                        </motion.div>
+                      );
+                    })}
                     {(r.learningRoadmap ?? []).length === 0 && (
-                      <p className="text-[12px] text-slate-500 text-center py-6">Roadmap data not available for this resume.</p>
+                      <p style={{ fontSize: 13, color: '#475569', textAlign: 'center', padding: '32px 0' }}>Roadmap data not available for this resume.</p>
                     )}
                   </div>
-                </GlassCard>
+                </div>
               )}
+
             </motion.div>
           </AnimatePresence>
         </motion.div>
@@ -1477,7 +1603,53 @@ export default function Career() {
 
   // Log form state
   const TOPICS = ['Data Structures', 'Algorithms', 'System Design', 'Frontend', 'Backend', 'Machine Learning', 'DevOps', 'Database', 'Math', 'Physics', 'Chemistry', 'Biology', 'English', 'Economics', 'Other'];
-  const ENVS = [{ id: 'HOME', icon: '🏠', label: 'Home' }, { id: 'LIBRARY', icon: '📚', label: 'Library' }, { id: 'CAFE', icon: '☕', label: 'Café' }, { id: 'GROUP', icon: '👥', label: 'Group' }];
+  const ENVS = [
+    { 
+      id: 'HOME', 
+      icon: (active) => (
+        <svg style={{ width: 18, height: 18, marginBottom: 4, color: active ? '#a5b4fc' : '#94a3b8' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      ), 
+      label: 'Home' 
+    },
+    { 
+      id: 'LIBRARY', 
+      icon: (active) => (
+        <svg style={{ width: 18, height: 18, marginBottom: 4, color: active ? '#a5b4fc' : '#94a3b8' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+      ), 
+      label: 'Library' 
+    },
+    { 
+      id: 'CAFE', 
+      icon: (active) => (
+        <svg style={{ width: 18, height: 18, marginBottom: 4, color: active ? '#a5b4fc' : '#94a3b8' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+          <line x1="6" y1="2" x2="6" y2="4" />
+          <line x1="10" y1="2" x2="10" y2="4" />
+          <line x1="14" y1="2" x2="14" y2="4" />
+        </svg>
+      ), 
+      label: 'Café' 
+    },
+    { 
+      id: 'GROUP', 
+      icon: (active) => (
+        <svg style={{ width: 18, height: 18, marginBottom: 4, color: active ? '#a5b4fc' : '#94a3b8' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ), 
+      label: 'Group' 
+    }
+  ];
   const [logForm, setLogForm] = useState({ durationMinutes: 30, topic: 'Data Structures', category: '', focusQuality: 3, mentalFatigue: 3, environment: 'HOME' });
   const [logging, setLogging] = useState(false);
 
@@ -1613,7 +1785,6 @@ export default function Career() {
   const tabs = [
     { id: 'brain',           label: 'Brain Twin' },
     { id: 'jobs',            label: 'Job Market' },
-    { id: 'intelligence',    label: 'Intelligence' },
     { id: 'log',             label: 'Log Session' },
     { id: 'history',         label: 'History' },
     { id: 'recommendations', label: 'AI Tips' },
@@ -1687,7 +1858,7 @@ export default function Career() {
 
       {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
       {tab === 'brain' && (() => {
-        const bCard = { background: '#12141a', border: '1px solid #20222a', borderRadius: 16 };
+        const bCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16};
         const scoreColor = score >= 70 ? '#10b981' : score >= 45 ? '#8b5cf6' : '#f43f5e';
         const radarWithIdeal = skillRadar.map(d => ({ ...d, full: 100 }));
         const loadColor = cognitiveLoad < 40 ? '#10b981' : cognitiveLoad < 70 ? '#f59e0b' : '#f43f5e';
@@ -1702,159 +1873,173 @@ export default function Career() {
         ];
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
-            {/* ── ROW 1: Score card + 5 Metrics ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1fr 1fr', gap: 20 }}>
+            {/* ── ROW 1: Score card + Metrics ── */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1.8fr', gap:8}}>
 
-              {/* Career Score card */}
-              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ position: 'relative', width: 110, height: 110, flexShrink: 0, marginBottom: 12 }}>
-                  <svg viewBox="0 0 110 110" width="110" height="110">
-                    <circle cx="55" cy="55" r="44" fill="none" stroke="#20222a" strokeWidth="10" />
-                    <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 44} ${2 * Math.PI * 44}`}
-                      strokeDashoffset={2 * Math.PI * 44 * (1 - score / 100)}
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: '55px 55px', transition: 'stroke-dashoffset 1.2s ease' }} />
-                  </svg>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
-                    <span style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>/ 100</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: '4px 0 2px' }}>Career Score</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10b981', fontSize: 12, fontWeight: 600 }}>
-                  <span>↑</span>
-                  <span>4 this week</span>
-                </div>
-              </div>
-
-              {/* 5 Metric cards */}
-              {STAT_METRICS.map(m => (
-                <div key={m.label} style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: m.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, marginBottom: 12, color: m.color, border: `1px solid ${m.color}22` }}>
-                    {m.icon}
+              {/* Score card */}
+              <div style={{...bCard, padding:'12px 14px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+                <div style={{display:'flex', alignItems:'center', gap:10}}>
+                  <div style={{position:'relative', width:80, height:80, flexShrink:0}}>
+                    <svg viewBox="0 0 80 80" width="80" height="80">
+                      <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
+                      <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2*Math.PI*32} ${2*Math.PI*32}`}
+                        strokeDashoffset={2*Math.PI*32*(1-score/100)}
+                        style={{transform:'rotate(-90deg)', transformOrigin:'40px 40px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                    </svg>
+                    <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+                      <span style={{fontSize:22, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                      <span style={{fontSize:8, color:'#475569', marginTop:1}}>/ 100</span>
+                    </div>
                   </div>
                   <div>
-                    <p style={{ fontSize: 10, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', marginBottom: 4 }}>{m.label}</p>
-                    <p style={{ fontSize: 24, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, marginBottom: 4 }}>{m.value}</p>
-                    <p style={{ fontSize: 11, color: '#475569' }}>{m.sub}</p>
+                    <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Career Score</p>
+                    <span style={{display:'inline-block', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, marginBottom:5,
+                      background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
+                      {score>=70?'Strong':score>=45?'Building':'Needs Work'}
+                    </span>
+                    <p style={{fontSize:10, color:'#64748b', lineHeight:1.4, whiteSpace:'pre-line'}}>
+                      {score>=45?'Keep building your\nskills consistently.':'Focus on DSA and\nproject building.'}
+                    </p>
                   </div>
                 </div>
-              ))}
+                <button onClick={()=>setTab('recommendations')}
+                  style={{marginTop:8, padding:'5px 10px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:10, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, alignSelf:'flex-start'}}>
+                  View Insights →
+                </button>
+              </div>
 
+              {/* Metrics card — compact 3×2 grid */}
+              <div style={{...bCard, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
+                  {STAT_METRICS.map(m => (
+                    <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 9px'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:5, marginBottom:3}}>
+                        <div style={{width:18, height:18, borderRadius:5, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, flexShrink:0}}>{m.icon}</div>
+                        <span style={{fontSize:9, color:'#64748b'}}>{m.label}</span>
+                      </div>
+                      <p style={{fontSize:13, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:2}}>{m.value}</p>
+                      <p style={{fontSize:8, color:'#475569'}}>{m.sub}</p>
+                    </div>
+                  ))}
+                </div>
+                {/* Placement Readiness bar */}
+                <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 10px', display:'flex', alignItems:'center', gap:8}}>
+                  <div style={{width:22, height:22, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, color:'#818cf8'}}>🎯</div>
+                  <div style={{flexShrink:0, minWidth:70}}>
+                    <p style={{fontSize:9, color:'#64748b'}}>Placement Ready</p>
+                    <p style={{fontSize:14, fontWeight:900, color:scoreColor, lineHeight:1}}>{placementReadiness}%</p>
+                    <p style={{fontSize:8, color:'#475569'}}>readiness score</p>
+                  </div>
+                  <div style={{flex:1}}>
+                    <p style={{fontSize:9, color:'#475569', marginBottom:4}}>Aim for 80%+ to unlock interviews.</p>
+                    <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                      <motion.div initial={{width:0}} animate={{width:`${Math.min(100,placementReadiness)}%`}} transition={{duration:1, ease:'easeOut'}}
+                        style={{height:'100%', borderRadius:3, background:scoreColor}}/>
+                    </div>
+                  </div>
+                  <span style={{fontSize:10, fontWeight:700, color:'#475569', flexShrink:0}}>80%</span>
+                </div>
+              </div>
             </div>
 
-            {/* ── ROW 2: Cognitive Load Meter, Skill Radar, Skills Portfolio ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+            {/* ── ROW 2: Cognitive Load + Skill Radar & Portfolio ── */}
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1.8fr', gap:8}}>
 
               {/* Cognitive Load Meter */}
-              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{...bCard, padding:'12px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 16 }}>🧠</span>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Cognitive Load Meter</p>
+                  <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:2}}>
+                    <span style={{fontSize:13}}>🧠</span>
+                    <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', margin:0}}>Cognitive Load Meter</p>
                   </div>
-                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>Based on today's study, sleep & stress</p>
-                  <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+                  <p style={{fontSize:10, color:'#64748b', marginBottom:6}}>Based on today's study, sleep & stress</p>
+                  <div style={{display:'flex', justifyContent:'center', margin:'4px 0'}}>
                     <CognitiveGauge value={cognitiveLoad} />
                   </div>
                 </div>
                 <div>
-                  {/* Range indicators */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
-                    {[['< 40', '#10b981', 'Optimal'], ['40 - 70', '#f59e0b', 'Moderate'], ['> 70', '#f43f5e', 'Burnout Risk']].map(([v, c, l]) => (
-                      <div key={l} style={{ padding: '8px 6px', borderRadius: 10, background: c + '0c', border: `1px solid ${c}22`, textAlign: 'center' }}>
-                        <p style={{ fontSize: 11, fontWeight: 700, color: c, margin: 0 }}>{v}</p>
-                        <p style={{ fontSize: 10, color: '#64748b', margin: '2px 0 0' }}>{l}</p>
+                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:5, marginBottom:8}}>
+                    {[['< 40','#10b981','Optimal'],['40–70','#f59e0b','Moderate'],['> 70','#f43f5e','Burnout']].map(([v,c,l]) => (
+                      <div key={l} style={{padding:'4px', borderRadius:7, background:c+'0c', border:`1px solid ${c}22`, textAlign:'center'}}>
+                        <p style={{fontSize:9, fontWeight:700, color:c, margin:0}}>{v}</p>
+                        <p style={{fontSize:8, color:'#64748b', margin:'1px 0 0'}}>{l}</p>
                       </div>
                     ))}
                   </div>
-                  {/* Alert box */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 10, background: '#090a0f', border: '1px solid #20222a' }}>
-                    <span style={{ fontSize: 15, color: '#3b82f6' }}>ⓘ</span>
-                    <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
-                      {cognitiveLoad < 40 ? "Great! You're in a good zone to learn deeply." : cognitiveLoad < 70 ? "Manageable load. Take breaks every 45 min." : "High load! Rest before your next session."}
+                  <div style={{display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderRadius:8, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.06)'}}>
+                    <span style={{fontSize:11, color:'#3b82f6'}}>ⓘ</span>
+                    <p style={{fontSize:10, color:'#94a3b8', margin:0, lineHeight:1.4}}>
+                      {cognitiveLoad<40?"Great! Good zone to learn deeply.":cognitiveLoad<70?"Manageable. Take breaks every 45 min.":"High load! Rest before next session."}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Skill Radar */}
-              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Skill Radar</p>
-                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Your overall skill distribution</p>
-                  <div style={{ height: 210, margin: '12px 0' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={radarWithIdeal}>
-                        <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                        <Radar name="You" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
-                        <Radar name="Ideal" dataKey="full" stroke="rgba(255,255,255,0.2)" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
-                      </RadarChart>
-                    </ResponsiveContainer>
+              {/* Skill Radar + Skills Portfolio combined */}
+              <div style={{...bCard, padding:'12px', display:'flex', flexDirection:'column'}}>
+                <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Skill Radar</p>
+                <p style={{fontSize:10, color:'#64748b', marginBottom:4}}>Your overall skill distribution</p>
+                <div style={{height:140, margin:'4px 0'}}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarWithIdeal}>
+                      <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                      <PolarAngleAxis dataKey="subject" tick={{fill:'#94a3b8', fontSize:9}} />
+                      <Radar name="You" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
+                      <Radar name="Ideal" dataKey="full" stroke="rgba(255,255,255,0.2)" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:8}}>
+                  <div style={{display:'flex', alignItems:'center', gap:4}}>
+                    <span style={{width:10, height:2, background:'#8b5cf6', display:'inline-block', borderRadius:1}}/>
+                    <span style={{fontSize:9, color:'#94a3b8'}}>You</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ width: 12, height: 2.5, background: '#8b5cf6', display: 'inline-block', borderRadius: 1 }} />
-                      <span style={{ fontSize: 11, color: '#94a3b8' }}>You</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ width: 12, height: 1, background: 'rgba(255,255,255,0.3)', display: 'inline-block', borderTop: '1px dashed rgba(255,255,255,0.3)' }} />
-                      <span style={{ fontSize: 11, color: '#94a3b8' }}>Ideal</span>
-                    </div>
+                  <div style={{display:'flex', alignItems:'center', gap:4}}>
+                    <span style={{width:10, height:1, background:'rgba(255,255,255,0.3)', display:'inline-block', borderTop:'1px dashed rgba(255,255,255,0.3)'}}/>
+                    <span style={{fontSize:9, color:'#94a3b8'}}>Ideal</span>
                   </div>
                 </div>
-                <button onClick={() => setTab('roadmap')} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #20222a', background: 'transparent', color: '#cbd5e1', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
-                  View all skills <span style={{ fontSize: 13 }}>›</span>
-                </button>
-              </div>
-
-              {/* Skills Portfolio */}
-              <div style={{ ...bCard, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 16 }}>📁</span>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Skills Portfolio</p>
-                  </div>
-                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>Showcase your skills and progress</p>
-                  
-                  {c.skills.length > 0 ? (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0' }}>
-                      {c.skills.map(s => (
-                        <span key={s} style={{ padding: '6px 12px', borderRadius: 8, background: '#1e293b', border: '1px solid #334155', fontSize: 12, color: '#e2e8f0', fontWeight: 500 }}>
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '32px 20px', borderRadius: 10, border: '1px dashed #20222a', margin: '12px 0', textAlign: 'center' }}>
-                      <div style={{ width: 44, height: 44, borderRadius: 10, border: '1px dashed #20222a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#64748b' }}>
-                        📄
-                      </div>
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', margin: '0 0 4px' }}>0 Skills Logged</p>
-                        <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Add your first skill to get started.</p>
-                      </div>
-                    </div>
-                  )}
+                <div style={{height:1, background:'rgba(255,255,255,0.06)', margin:'2px 0 8px'}}/>
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6}}>
+                  <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', margin:0}}>Skills Portfolio</p>
+                  <button onClick={()=>setTab('log')} style={{padding:'3px 10px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:10, fontWeight:700, cursor:'pointer'}}>
+                    + Add Skill
+                  </button>
                 </div>
-                <button onClick={() => setTab('log')} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #4f46e5', background: 'transparent', color: '#a5b4fc', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
-                  + Add Skill
-                </button>
+                {c.skills.length > 0 ? (
+                  <div style={{display:'flex', flexWrap:'wrap', gap:5}}>
+                    {c.skills.map(s => (
+                      <span key={s} style={{padding:'3px 8px', borderRadius:6, background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)', fontSize:10, color:'#93c5fd', fontWeight:500}}>{s}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{display:'flex', alignItems:'center', gap:8, padding:'8px', borderRadius:8, background:'rgba(255,255,255,0.02)', border:'1px dashed rgba(255,255,255,0.08)'}}>
+                    <span style={{fontSize:14}}>📄</span>
+                    <div>
+                      <p style={{fontSize:11, fontWeight:600, color:'#f1f5f9', margin:'0 0 1px'}}>No skills logged yet</p>
+                      <p style={{fontSize:10, color:'#64748b', margin:0}}>Add your first skill to get started.</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>
 
-            {/* ── Bottom Tip Bar ── */}
-            <div style={{ ...bCard, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>💡</span>
-              <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
-                <span style={{ color: '#f1f5f9', fontWeight: 600 }}>Tip: </span>
-                Consistent small steps lead to massive growth. Log sessions regularly to track your progress.
-              </p>
+            {/* ── Bottom insight bar ── */}
+            <div style={{...bCard, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
+              <div style={{width:24, height:24, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12}}>💡</div>
+              <div style={{flex:1, minWidth:0}}>
+                <p style={{fontSize:11, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Digital Twin Insight</p>
+                <p style={{fontSize:9, color:'#64748b'}}>Consistent small steps lead to massive growth. Log sessions regularly to track your progress.</p>
+              </div>
+              <button onClick={()=>setTab('recommendations')}
+                style={{padding:'4px 8px', borderRadius:6, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:10, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0}}>
+                View Recommendations →
+              </button>
             </div>
 
             {/* Forgetting Curve (conditional) */}
@@ -1882,168 +2067,252 @@ export default function Career() {
       })()}
 
       {/* ── LOG SESSION TAB ─────────────────────────────────────────────────── */}
-      {tab === 'log' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      {tab === 'log' && (() => {
+        const metricRows = [
+          { 
+            key: 'studyHours', 
+            label: 'Study Hours Today', 
+            placeholder: '4', 
+            type: 'number', 
+            step: '0.5',
+            iconColor: '#818cf8',
+            iconBg: 'rgba(99, 102, 241, 0.08)',
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            )
+          },
+          { 
+            key: 'codingHours', 
+            label: 'Coding Hours Today', 
+            placeholder: '3', 
+            type: 'number', 
+            step: '0.5',
+            iconColor: '#818cf8',
+            iconBg: 'rgba(99, 102, 241, 0.08)',
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            )
+          },
+          { 
+            key: 'dsa', 
+            label: 'DSA Problems Solved', 
+            placeholder: '3', 
+            type: 'number', 
+            step: '1',
+            iconColor: '#a78bfa',
+            iconBg: 'rgba(139, 92, 246, 0.08)',
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-2-2h-3.5a1.5 1.5 0 0 1-3 0H9a2 2 0 0 0-2 2v3.5a1.5 1.5 0 0 1 0 3V16a2 2 0 0 0 2 2h3.5a1.5 1.5 0 0 1 3 0H19a2 2 0 0 0 2-2z" />
+              </svg>
+            )
+          },
+          { 
+            key: 'projects', 
+            label: 'Projects Completed', 
+            placeholder: String(career?.projectsCompleted || '2'), 
+            type: 'number', 
+            step: '1',
+            iconColor: '#818cf8',
+            iconBg: 'rgba(99, 102, 241, 0.08)',
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
+            )
+          }
+        ];
 
-          {/* ── Smart Study Logger ── */}
-          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '16px 20px 16px' }}>
-            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Smart Study Logger</h3>
-            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Track focused sessions and stay consistent.</p>
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Duration slider */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <label style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>Duration</label>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#a5b4fc', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', borderRadius: 6, padding: '2px 8px' }}>
-                    {logForm.durationMinutes >= 60 ? `${Math.floor(logForm.durationMinutes/60)}h${logForm.durationMinutes%60>0?` ${logForm.durationMinutes%60}m`:''}` : `${logForm.durationMinutes} min`}
-                  </span>
+            {/* ── Smart Study Logger ── */}
+            <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px 28px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Smart Study Logger</h3>
+                  <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0' }}>Log a focused session — saved to your digital twin's database.</p>
                 </div>
-                <div style={{ position: 'relative', height: 16, display: 'flex', alignItems: 'center' }}>
-                  {/* Track background */}
-                  <div style={{ position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }} />
-                  {/* Filled portion */}
-                  <div style={{ position: 'absolute', left: 0, height: 4, borderRadius: 2, background: 'linear-gradient(90deg,#6366f1,#8b5cf6)', width: `${((logForm.durationMinutes - 5) / (240 - 5)) * 100}%`, transition: 'width 0.1s' }} />
-                  <input type="range" min="5" max="240" step="5" value={logForm.durationMinutes}
-                    onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
-                    style={{ position: 'relative', width: '100%', accentColor: '#6366f1', cursor: 'pointer', background: 'transparent', zIndex: 1, margin: 0 }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-                  {['5 min', '1 hr', '2 hr', '4 hr'].map(l => (
-                    <span key={l} style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{l}</span>
-                  ))}
+                {/* Duration dropdown selector */}
+                <div style={{ position: 'relative' }}>
+                  <select value={logForm.durationMinutes} onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '6px 28px 6px 12px', fontSize: 13, color: '#f1f5f9', cursor: 'pointer', outline: 'none', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2364748b\' stroke-width=\'2.5\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M19 9l-7 7-7-7\' /%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', backgroundSize: '12px' }}>
+                    <option value="15" style={{ background: '#1a1f2e' }}>15 min</option>
+                    <option value="30" style={{ background: '#1a1f2e' }}>30 min</option>
+                    <option value="45" style={{ background: '#1a1f2e' }}>45 min</option>
+                    <option value="60" style={{ background: '#1a1f2e' }}>60 min</option>
+                    <option value="90" style={{ background: '#1a1f2e' }}>90 min</option>
+                    <option value="120" style={{ background: '#1a1f2e' }}>120 min</option>
+                    <option value="180" style={{ background: '#1a1f2e' }}>180 min</option>
+                    <option value="240" style={{ background: '#1a1f2e' }}>240 min</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Topic */}
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Topic</label>
-                <select value={logForm.topic} onChange={e => setLogForm(p => ({ ...p, topic: e.target.value }))}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 10px', color: '#f1f5f9', fontSize: 13, outline: 'none' }}>
-                  {TOPICS.map(t => <option key={t} value={t} style={{ background: '#1a1f2e' }}>{t}</option>)}
-                </select>
-              </div>
-
-              {/* Where did you study */}
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Where did you study?</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4 }}>
-                  {ENVS.map(env => (
-                    <button key={env.id} onClick={() => setLogForm(p => ({ ...p, environment: env.id }))}
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '6px 4px', borderRadius: 8, border: logForm.environment===env.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.environment===env.id ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'all 0.15s' }}>
-                      <span style={{ fontSize: 14 }}>{env.icon}</span>
-                      <span style={{ fontSize: 10, color: logForm.environment===env.id ? '#a5b4fc' : '#64748b', fontWeight: 500 }}>{env.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Focus Quality */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Focus Quality</label>
-                  <span style={{ fontSize: 12, color: '#94a3b8' }}>{['','😴 Distracted','😐 Low','🙂 Moderate','😊 High','🔥 Peak'][logForm.focusQuality]}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {[1,2,3,4,5].map(v => (
-                    <button key={v} onClick={() => setLogForm(p => ({ ...p, focusQuality: v }))}
-                      style={{ flex: 1, padding: '4px', borderRadius: 6, border: logForm.focusQuality===v ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.focusQuality===v ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)', color: logForm.focusQuality===v ? '#a5b4fc' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, fontSize: 10, color: '#334155' }}>
-                  <span>Low</span><span>Moderate</span><span>High</span>
-                </div>
-              </div>
-
-              {/* Mental Fatigue */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Mental Fatigue</label>
-                  <span style={{ fontSize: 12, color: '#94a3b8' }}>{['','😊 Fresh','🙂 Light','😐 Moderate','😓 Tired','🤯 Exhausted'][logForm.mentalFatigue]}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {[1,2,3,4,5].map(v => (
-                    <button key={v} onClick={() => setLogForm(p => ({ ...p, mentalFatigue: v }))}
-                      style={{ flex: 1, padding: '4px', borderRadius: 6, border: logForm.mentalFatigue===v ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.08)', background: logForm.mentalFatigue===v ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.03)', color: logForm.mentalFatigue===v ? '#fca5a5' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, fontSize: 10, color: '#334155' }}>
-                  <span>Low</span><span>Moderate</span><span>High</span>
-                </div>
-              </div>
-
-              <button onClick={handleLogSession} disabled={logging}
-                style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: logging ? 'not-allowed' : 'pointer', opacity: logging ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                ⚡ {logging ? 'Logging...' : 'Log Session'}
-              </button>
-            </div>
-          </div>
-
-          {/* ── Career Metrics Logger ── */}
-          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '16px 20px 16px' }}>
-            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Career Metrics Logger</h3>
-            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Update your progress and build your career profile.</p>
-
-            <form onSubmit={handleCareerLog} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {[
-                { icon: '🕐', label: 'Study Hours Today',  key: 'studyHours',  unit: 'hrs',      type: 'number', placeholder: '4',   step: '0.5' },
-                { icon: '💻', label: 'Coding Hours Today', key: 'codingHours', unit: 'hrs',      type: 'number', placeholder: '3',   step: '0.5' },
-                { icon: '{}', label: 'DSA Problems Solved',key: 'dsa',         unit: 'problems', type: 'number', placeholder: '3',   step: '1'   },
-                { icon: '🏆', label: 'Projects Completed', key: 'projects',    unit: 'projects', type: 'number', placeholder: c.projectsCompleted||'2', step: '1' },
-              ].map(row => (
-                <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 6, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{row.icon}</div>
-                  <span style={{ flex: 1, fontSize: 13, color: '#94a3b8', fontWeight: 500 }}>{row.label}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, overflow: 'hidden' }}>
-                    <input type={row.type} value={careerForm[row.key]} placeholder={row.placeholder}
-                      onChange={e => setCareerForm(p => ({ ...p, [row.key]: e.target.value }))}
-                      step={row.step} min="0"
-                      style={{ width: 60, padding: '4px 6px', background: 'none', border: 'none', color: '#f1f5f9', fontSize: 13, fontWeight: 700, outline: 'none', textAlign: 'right' }} />
-                    <span style={{ padding: '4px 6px 4px 2px', fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>{row.unit}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                {/* Duration Slider */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Duration</label>
+                  </div>
+                  <div style={{ position: 'relative', height: 16, display: 'flex', alignItems: 'center' }}>
+                    {/* Track background */}
+                    <div style={{ position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.1)' }} />
+                    {/* Filled portion */}
+                    <div style={{ position: 'absolute', left: 0, height: 4, borderRadius: 2, background: '#4f46e5', width: `${((logForm.durationMinutes - 5) / (240 - 5)) * 100}%`, transition: 'width 0.1s' }} />
+                    <input type="range" min="5" max="240" step="5" value={logForm.durationMinutes}
+                      onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
+                      style={{ position: 'relative', width: '100%', accentColor: '#ffffff', cursor: 'pointer', background: 'transparent', zIndex: 1, margin: 0 }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                    {['5 min', '1 hr', '2 hr', '4 hr'].map(l => (
+                      <span key={l} style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>{l}</span>
+                    ))}
                   </div>
                 </div>
-              ))}
 
-              {/* Add Skill */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ width: 32, height: 32, borderRadius: 6, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>+</div>
-                <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 500, flexShrink: 0 }}>Add New Skill</span>
-                <input type="text" value={careerForm.skill} placeholder="e.g. Docker, Kubernetes"
-                  onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))}
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', color: '#f1f5f9', fontSize: 13, outline: 'none' }} />
-                <span style={{ fontSize: 16, color: '#475569' }}>›</span>
-              </div>
+                {/* Topic dropdown */}
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 6 }}>Topic</label>
+                  <div style={{ position: 'relative' }}>
+                    <select value={logForm.topic} onChange={e => setLogForm(p => ({ ...p, topic: e.target.value }))}
+                      style={{ width: '100%', background: '#0f121e', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '12px 14px', color: '#f1f5f9', fontSize: 13, outline: 'none', appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2364748b\' stroke-width=\'2.5\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M19 9l-7 7-7-7\' /%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', backgroundSize: '14px', cursor: 'pointer' }}>
+                      {TOPICS.map(t => <option key={t} value={t} style={{ background: '#1a1f2e' }}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
 
-              <button type="submit" style={{ width: '100%', marginTop: 10, padding: '8px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                Save Career Data ✓
-              </button>
-            </form>
+                {/* Where did you study? */}
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 6 }}>Where did you study?</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+                    {ENVS.map(env => {
+                      const isSelected = logForm.environment === env.id;
+                      return (
+                        <button key={env.id} onClick={() => setLogForm(p => ({ ...p, environment: env.id }))}
+                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '12px 10px', borderRadius: 10, border: isSelected ? '1px solid #4f46e5' : '1px solid rgba(255,255,255,0.06)', background: isSelected ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.02)', cursor: 'pointer', transition: 'all 0.15s', flex: 1 }}>
+                          {env.icon(isSelected)}
+                          <span style={{ fontSize: 12, color: isSelected ? '#ffffff' : '#94a3b8', fontWeight: 600 }}>{env.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            {recentLogs.length > 0 && (
-              <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <p style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Recent Logs</p>
-                {recentLogs.slice(0, 3).map((entry, i) => {
-                  const parts = [];
-                  if (entry.studyHours != null) parts.push(`📚 ${entry.studyHours}h`);
-                  if (entry.codingHours != null) parts.push(`💻 ${entry.codingHours}h`);
-                  if (entry.dsa != null) parts.push(`🧩 ${entry.dsa} DSA`);
-                  if (entry.skillAdded) parts.push(`+${entry.skillAdded}`);
-                  return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <span style={{ fontSize: 11, color: '#334155', fontFamily: 'monospace' }}>{new Date(entry.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</span>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{parts.map((p,j) => <span key={j} style={{ fontSize: 12, color: '#64748b' }}>{p}</span>)}</div>
+                {/* Focus Quality */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Focus Quality</label>
+                      <span style={{ fontSize: 12, color: '#475569', cursor: 'help' }} title="How well were you able to concentrate?">ⓘ</span>
                     </div>
-                  );
-                })}
+                    <span style={{ fontSize: 12, color: '#eab308', fontWeight: 600 }}>
+                      {['','😴 Distracted','😐 Moderate','🙂 Good','😊 High','🔥 Peak'][logForm.focusQuality]}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[1,2,3,4,5].map(v => (
+                      <button key={v} onClick={() => setLogForm(p => ({ ...p, focusQuality: v }))}
+                        style={{ flex: 1, padding: '10px', borderRadius: 8, border: logForm.focusQuality===v ? '1px solid #4f46e5' : '1px solid rgba(255,255,255,0.06)', background: logForm.focusQuality===v ? '#4f46e5' : 'rgba(255,255,255,0.02)', color: logForm.focusQuality===v ? '#ffffff' : '#94a3b8', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mental Fatigue */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Mental Fatigue</label>
+                      <span style={{ fontSize: 12, color: '#eab308', cursor: 'help' }} title="How exhausted do you feel?">ⓘ</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: '#eab308', fontWeight: 600 }}>
+                      {['','😊 Fresh','😐 Moderate','🙂 Light','😓 Tired','🤯 Exhausted'][logForm.mentalFatigue]}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[1,2,3,4,5].map(v => (
+                      <button key={v} onClick={() => setLogForm(p => ({ ...p, mentalFatigue: v }))}
+                        style={{ flex: 1, padding: '10px', borderRadius: 8, border: logForm.mentalFatigue===v ? '1px solid #b91c1c' : '1px solid rgba(255,255,255,0.06)', background: logForm.mentalFatigue===v ? '#b91c1c' : 'rgba(255,255,255,0.02)', color: logForm.mentalFatigue===v ? '#ffffff' : '#94a3b8', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <button onClick={handleLogSession} disabled={logging}
+                  style={{ width: '100%', padding: '12px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontSize: 14, fontWeight: 700, cursor: logging ? 'not-allowed' : 'pointer', opacity: logging ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background-color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#4338ca'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#4f46e5'}>
+                  <svg style={{ width: 14, height: 14 }} fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  {logging ? 'Logging...' : 'Log Session'}
+                </button>
               </div>
-            )}
+            </div>
+
+            {/* ── Career Metrics Logger ── */}
+            <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px 28px 24px' }}>
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Career Metrics Logger</h3>
+                <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0' }}>Update your overall career profile data.</p>
+              </div>
+
+              <form onSubmit={handleCareerLog} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {metricRows.map(row => (
+                  <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: '50%', background: row.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: row.iconColor, flexShrink: 0 }}>
+                      {row.icon}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, letterSpacing: '0.02em' }}>{row.label}</span>
+                      <input type={row.type} value={careerForm[row.key]} placeholder={row.placeholder}
+                        onChange={e => setCareerForm(p => ({ ...p, [row.key]: e.target.value }))}
+                        step={row.step} min="0"
+                        style={{ width: '100%', background: 'transparent', border: 'none', color: '#ffffff', fontSize: 14, fontWeight: 700, outline: 'none', padding: '4px 0 0', margin: 0 }} />
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Skill Row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(168, 85, 247, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c084fc', flexShrink: 0 }}>
+                    <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    </svg>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, letterSpacing: '0.02em' }}>Add New Skill</span>
+                    <input type="text" value={careerForm.skill} placeholder="e.g. Docker, Kubernetes"
+                      onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))}
+                      style={{ width: '100%', background: 'transparent', border: 'none', color: '#ffffff', fontSize: 14, fontWeight: 700, outline: 'none', padding: '4px 0 0', margin: 0 }} />
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <button type="submit"
+                  style={{ width: '100%', marginTop: 8, padding: '12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#f1f5f9', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}>
+                  <svg style={{ width: 15, height: 15 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  Save Career Data
+                </button>
+              </form>
+            </div>
+
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── HISTORY TAB ─────────────────────────────────────────────────────── */}
       {tab === 'history' && (() => {
@@ -2054,13 +2323,54 @@ export default function Career() {
           (statsData.totalSessions > 0 ? Math.min(40, statsData.totalSessions * 2) : 0) +
           (totalStudyH > 0 ? Math.min(20, totalStudyH) : 0)
         ));
-        const circ = 2 * Math.PI * 54;
 
         const INSIGHTS = [
-          { icon: '📅', label: 'Most Productive Day', value: heatmapData.bestDay || 'Tuesday',   bg: 'rgba(59,130,246,0.15)',  ic: '#60a5fa' },
-          { icon: '🌙', label: 'Peak Study Time',     value: '8 PM – 10 PM',                      bg: 'rgba(99,102,241,0.15)',  ic: '#818cf8' },
-          { icon: '🔥', label: 'Best Streak',          value: `${statsData.streak || 0} Days`,    bg: 'rgba(249,115,22,0.15)', ic: '#fb923c' },
-          { icon: '📈', label: 'Avg Daily Focus',      value: `${avgDailyH} hrs`,                  bg: 'rgba(16,185,129,0.15)', ic: '#34d399' },
+          { 
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            ), 
+            label: 'Most Productive Day', 
+            value: heatmapData.bestDay || 'Tuesday',   
+            bg: 'rgba(99,102,241,0.12)',  
+            ic: '#818cf8' 
+          },
+          { 
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            ), 
+            label: 'Peak Study Time',     
+            value: '8 PM – 10 PM',                      
+            bg: 'rgba(99,102,241,0.12)',  
+            ic: '#818cf8' 
+          },
+          { 
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            ), 
+            label: 'Best Streak',          
+            value: `${statsData.streak || 0} Days`,    
+            bg: 'rgba(249,115,22,0.12)', 
+            ic: '#f97316' 
+          },
+          { 
+            icon: (
+              <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
+              </svg>
+            ), 
+            label: 'Avg Daily Focus',      
+            value: `${avgDailyH} hrs`,                  
+            bg: 'rgba(16,185,129,0.12)', 
+            ic: '#10b981' 
+          },
         ];
 
         // Build 6-month study hours trend from sessions
@@ -2076,80 +2386,117 @@ export default function Career() {
           return { month: months[d.getMonth()], hours: Math.round(hrs) };
         });
 
-        const card = (children, extra={}) => ({
-          background:'rgba(15,18,30,0.95)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, ...extra, children
-        });
-
         return (
-          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
             {/* ── STAT CARDS ── */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
               {[
-                {icon:'⚡',label:'Total XP',         value:(heatmapData.totalXP||0).toLocaleString(), sub:'+180 this month', color:'#f59e0b'},
-                {icon:'🔥',label:'Current Streak',   value:`${statsData.streak||0} Days`,              sub:`Best: ${statsData.streak||0} Days`, color:'#f43f5e'},
-                {icon:'🕐',label:'Total Study Time', value:`${totalStudyH}h`,                          sub:'+24h this month', color:'#6366f1'},
-                {icon:'📖',label:'Sessions Completed',value:statsData.totalSessions||0,                sub:'+9 this month', color:'#8b5cf6'},
+                {
+                  icon: <svg style={{ width: 20, height: 20 }} fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
+                  label: 'Total XP',         
+                  value: (heatmapData.totalXP||0).toLocaleString(), 
+                  sub: '+180 this month', 
+                  color: '#818cf8',
+                  bg: 'rgba(99, 102, 241, 0.12)',
+                  border: 'rgba(99, 102, 241, 0.25)',
+                  subColor: '#10b981'
+                },
+                {
+                  icon: <svg style={{ width: 20, height: 20 }} fill="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
+                  label: 'Current Streak',   
+                  value: `${statsData.streak||0} Days`,              
+                  sub: `Best: ${statsData.streak||0} Days`, 
+                  color: '#f97316',
+                  bg: 'rgba(249, 115, 22, 0.12)',
+                  border: 'rgba(249, 115, 22, 0.25)',
+                  subColor: '#64748b'
+                },
+                {
+                  icon: <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+                  label: 'Total Study Time', 
+                  value: `${totalStudyH}h`,                          
+                  sub: '+24h this month', 
+                  color: '#3b82f6',
+                  bg: 'rgba(59, 130, 246, 0.12)',
+                  border: 'rgba(59, 130, 246, 0.25)',
+                  subColor: '#10b981'
+                },
+                {
+                  icon: <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>,
+                  label: 'Sessions Completed',
+                  value: statsData.totalSessions||0,                
+                  sub: '+9 this month', 
+                  color: '#a855f7',
+                  bg: 'rgba(168, 85, 247, 0.12)',
+                  border: 'rgba(168, 85, 247, 0.25)',
+                  subColor: '#10b981'
+                },
               ].map(s=>(
-                <div key={s.label} style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}}>
-                  <div style={{width:36,height:36,borderRadius:10,background:s.color+'20',border:`1px solid ${s.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>{s.icon}</div>
+                <div key={s.label} style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: s.bg, border: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, flexShrink: 0 }}>
+                    {s.icon}
+                  </div>
                   <div>
-                    <p style={{fontSize:9,color:'#475569',fontWeight:700,letterSpacing:'0.09em',textTransform:'uppercase',marginBottom:2}}>{s.label}</p>
-                    <p style={{fontSize:20,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{s.value}</p>
-                    <p style={{fontSize:10,color:'#10b981',marginTop:2}}>{s.sub}</p>
+                    <p style={{ fontSize: 10, color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>{s.label}</p>
+                    <p style={{ fontSize: 24, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, margin: 0 }}>{s.value}</p>
+                    <p style={{ fontSize: 11, color: s.subColor, marginTop: 4, fontWeight: 600, margin: '4px 0 0' }}>{s.sub}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* ── HEATMAP + INSIGHTS ROW ── */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 240px',gap:8}}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20 }}>
 
-              {/* Heatmap card — heatmap left, ring fills remaining space */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px',display:'flex',flexDirection:'column'}}>
-                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                  <span style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Focus Heatmap</span>
-                  <span style={{fontSize:13,color:'#475569'}}>(Last 90 Days)</span>
-                  <span title="Each square = one day. Darker = more study time." style={{fontSize:12,color:'#334155',cursor:'help'}}>ⓘ</span>
+              {/* Heatmap card */}
+              <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9' }}>Focus Heatmap</span>
+                  <span style={{ fontSize: 12, color: '#64748b' }}>(Last 90 Days)</span>
+                  <span title="Each square = one day. Darker = more study time." style={{ fontSize: 12, color: '#475569', cursor: 'help' }}>ⓘ</span>
                 </div>
-                {/* Row: heatmap + ring side by side */}
-                <div style={{display:'flex',alignItems:'center',gap:0,flex:1}}>
-                  {/* Heatmap — natural size */}
-                  <div style={{flexShrink:0}}>
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 64, flex: 1 }}>
+                  {/* Heatmap */}
+                  <div style={{ flexShrink: 0 }}>
                     {loading
-                      ? <div style={{height:100,width:220,display:'flex',alignItems:'center',justifyContent:'center',color:'#475569',fontSize:13}}>Loading…</div>
+                      ? <div style={{ height: 100, width: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: 13 }}>Loading…</div>
                       : <FocusHeatmap heatmap={heatmapData.heatmap} />
                     }
                   </div>
-                  {/* Ring — fills remaining space, centered */}
-                  <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:6}}>
-                    <div style={{position:'relative',width:100,height:100}}>
-                      <svg width="100" height="100" viewBox="0 0 100 100" style={{transform:'rotate(-90deg)'}}>
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8"/>
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#6366f1" strokeWidth="8"
-                          strokeDasharray={`${(consistencyScore/100)*(2*Math.PI*42)} ${2*Math.PI*42}`} strokeLinecap="round"
-                          style={{transition:'stroke-dasharray 1s ease'}}/>
+                  
+                  {/* Consistency Score ring */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, flexShrink: 0, width: 160 }}>
+                    <div style={{ position: 'relative', width: 120, height: 120 }}>
+                      <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx="60" cy="60" r="51" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="8"/>
+                        <circle cx="60" cy="60" r="51" fill="none" stroke="#6366f1" strokeWidth="8"
+                          strokeDasharray={`${(consistencyScore/100)*(2*Math.PI*51)} ${2*Math.PI*51}`} strokeLinecap="round"
+                          style={{ transition: 'stroke-dasharray 1s ease' }}/>
                       </svg>
-                      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                        <span style={{fontSize:24,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{consistencyScore}%</span>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: 28, fontWeight: 900, color: '#f1f5f9', lineHeight: 1 }}>{consistencyScore}%</span>
                       </div>
                     </div>
-                    <p style={{fontSize:13,fontWeight:600,color:'#94a3b8'}}>Consistency Score</p>
-                    <p style={{fontSize:11,color:'#10b981',marginTop:0}}>↑ +12% this month</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', margin: '4px 0 0', textAlign: 'center' }}>Consistency Score</p>
+                    <p style={{ fontSize: 11, color: '#10b981', margin: '2px 0 0', fontWeight: 600, textAlign: 'center' }}>↑ +12% this month</p>
                   </div>
                 </div>
               </div>
 
               {/* Learning Insights */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px',marginLeft:-16}}>
-                <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9',marginBottom:12}}>Learning Insights</p>
-                <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px 28px' }}>
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: '0 0 16px' }}>Learning Insights</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {INSIGHTS.map((ins,i)=>(
-                    <div key={i} style={{display:'flex',alignItems:'center',gap:12}}>
-                      <div style={{width:32,height:32,borderRadius:8,background:ins.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,flexShrink:0}}>{ins.icon}</div>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: ins.bg, border: `1px solid rgba(255,255,255,0.03)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: ins.ic, flexShrink: 0 }}>
+                        {ins.icon}
+                      </div>
                       <div>
-                        <p style={{fontSize:11,color:'#64748b',marginBottom:1}}>{ins.label}</p>
-                        <p style={{fontSize:14,fontWeight:700,color:'#f1f5f9'}}>{ins.value}</p>
+                        <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 2px' }}>{ins.label}</p>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{ins.value}</p>
                       </div>
                     </div>
                   ))}
@@ -2158,31 +2505,31 @@ export default function Career() {
             </div>
 
             {/* ── ACTIVITY + TREND ROW ── */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20 }}>
 
               {/* Recent Learning Activity */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-                  <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Recent Learning Activity</p>
-                  {sessions.length>4&&<button style={{fontSize:12,color:'#6366f1',background:'none',border:'none',cursor:'pointer',fontWeight:600}}>View all sessions →</button>}
+              <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Recent Learning Activity</p>
+                  {sessions.length>4&&<button style={{ fontSize: 13, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View all sessions →</button>}
                 </div>
                 {sessions.length===0
-                  ? <div style={{padding:'32px 0',textAlign:'center',color:'#334155',fontSize:13}}>No sessions yet — log your first session.</div>
-                  : <div style={{position:'relative'}}>
+                  ? <div style={{ padding: '32px 0', textAlign: 'center', color: '#475569', fontSize: 13 }}>No sessions yet — log your first session.</div>
+                  : <div style={{ position: 'relative' }}>
                       {/* Vertical timeline line */}
-                      <div style={{position:'absolute',left:4,top:8,bottom:8,width:2,background:'rgba(99,102,241,0.2)',borderRadius:1}}/>
+                      <div style={{ position: 'absolute', left: 5, top: 12, bottom: 12, width: 2, background: 'rgba(99,102,241,0.15)', borderRadius: 1 }}/>
                       {sessions.slice(0,4).map((s,i)=>(
-                        <div key={s.id||i} style={{display:'flex',alignItems:'center',gap:14,padding:'8px 0',borderBottom:i<3?'1px solid rgba(255,255,255,0.04)':'none',paddingLeft:4}}>
-                          <div style={{width:10,height:10,borderRadius:'50%',background:'#6366f1',flexShrink:0,zIndex:1,marginLeft:0}}/>
-                          <div style={{flex:1,minWidth:0}}>
-                            <p style={{fontSize:11,color:'#475569',marginBottom:2}}>{new Date(s.createdAt||s.sessionDate||Date.now()).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'})}</p>
-                            <p style={{fontSize:14,fontWeight:600,color:'#e2e8f0'}}>{s.topic}</p>
+                        <div key={s.id||i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '10px 0', borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.04)' : 'none', paddingLeft: 0 }}>
+                          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#6366f1', border: '3px solid #12141a', flexShrink: 0, zIndex: 1, marginLeft: 0 }}/>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 2px' }}>{new Date(s.createdAt||s.sessionDate||Date.now()).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'})}</p>
+                            <p style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>{s.topic}</p>
                           </div>
-                          <span style={{fontSize:13,fontWeight:700,color:'#818cf8',flexShrink:0}}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#818cf8', flexShrink: 0, marginRight: 8 }}>
                             {s.durationMinutes>=60?`${Math.floor(s.durationMinutes/60)} hr${s.durationMinutes%60>0?' '+s.durationMinutes%60+'m':''}`:s.durationMinutes+' min'}
                           </span>
-                          <div style={{width:24,height:24,borderRadius:'50%',border:'1.5px solid #10b981',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                          <div style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>
                           </div>
                         </div>
                       ))}
@@ -2191,32 +2538,32 @@ export default function Career() {
               </div>
 
               {/* Study Hours Trend */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-                  <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Study Hours Trend</p>
-                    <span title="Monthly study hours" style={{fontSize:12,color:'#334155',cursor:'help'}}>ⓘ</span>
+              <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justify: 'space-between', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Study Hours Trend</p>
+                    <span title="Monthly study hours" style={{ fontSize: 12, color: '#475569', cursor: 'help' }}>ⓘ</span>
                   </div>
-                  <span style={{fontSize:12,color:'#475569',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,padding:'4px 10px'}}>This Year ▾</span>
+                  <span style={{ fontSize: 12, color: '#94a3b8', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer' }}>This Year ▾</span>
                 </div>
-                <div style={{height:120}}>
+                <div style={{ height: 130 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={trendData} margin={{top:8,right:8,left:-20,bottom:0}}>
+                    <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
                       <defs>
                         <linearGradient id="studyGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.3}/>
+                          <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.35}/>
                           <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
-                      <XAxis dataKey="month" tick={{fill:'#475569',fontSize:11}} axisLine={false} tickLine={false}/>
-                      <YAxis tick={{fill:'#475569',fontSize:10}} axisLine={false} tickLine={false}/>
-                      <Tooltip formatter={v=>`${v}h`} contentStyle={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:12}} labelStyle={{color:'#94a3b8'}}/>
-                      <Area type="monotone" dataKey="hours" stroke="#6366f1" strokeWidth={2.5} fill="url(#studyGrad)" dot={{r:4,fill:'#6366f1',strokeWidth:0}} activeDot={{r:5}}/>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false}/>
+                      <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false}/>
+                      <Tooltip formatter={v => `${v}h`} contentStyle={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} labelStyle={{ color: '#94a3b8' }}/>
+                      <Area type="monotone" dataKey="hours" stroke="#6366f1" strokeWidth={2.5} fill="url(#studyGrad)" dot={{ r: 4, fill: '#6366f1', strokeWidth: 0 }} activeDot={{ r: 5 }}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <p style={{fontSize:12,color:'#10b981',marginTop:10}}>↑ 34% more study hours compared to last 5 months</p>
+                <p style={{ fontSize: 12, color: '#10b981', marginTop: 12, fontWeight: 600, margin: '12px 0 0' }}>↑ 34% more study hours compared to last 5 months</p>
               </div>
             </div>
           </div>
@@ -2421,37 +2768,6 @@ export default function Career() {
           )}
           <JobsTab userSkills={userSkills} />
         </div>
-      )}
-
-      {/* ── CAREER INTELLIGENCE TAB ──────────────────────────────────────────── */}
-      {tab === 'intelligence' && (
-        userSkills.length === 0 ? (
-          <GlassCard className="text-center py-16 border border-white/[0.06]">
-            <div className="text-5xl mb-4">🎯</div>
-            <h3 className="text-[15px] font-semibold text-slate-200 mb-2">Connect Your Skills First</h3>
-            <p className="text-[13px] text-slate-400 mb-6 max-w-sm mx-auto leading-relaxed">
-              Upload your resume or log career skills to unlock job-market matching, salary benchmarks, skill-gap analysis, and personalised AI career coaching.
-            </p>
-            <div className="flex gap-3 justify-center flex-wrap">
-              <button onClick={() => setTab('resume')} className="btn-primary px-5 py-2.5 text-sm">
-                Upload Resume →
-              </button>
-              <button onClick={() => setTab('log')} className="btn-secondary px-5 py-2.5 text-sm">
-                Log Skills Manually
-              </button>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-5">
-              Resume skills auto-populate job match scores and skill-gap analysis.
-            </p>
-          </GlassCard>
-        ) : (
-          <CareerIntelligenceTab
-            userSkills={userSkills}
-            targetRole={c.targetRole || ''}
-            health={health}
-            computed={computed}
-          />
-        )
       )}
 
       {/* ── RESUME AI TAB ─────────────────────────────────────────────────────── */}
