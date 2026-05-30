@@ -121,80 +121,47 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
   const syncMin = Math.floor(Math.random() * 5) + 1;
 
   return (
-    <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden', fontFamily: 'Inter, sans-serif' }}>
-      {/* Main body: left strategy + right actions */}
-      <div style={{ display: 'flex', gap: 0 }}>
-
-        {/* ── LEFT PANEL ── */}
-        <div style={{ flex: 1, padding: '28px 28px 24px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
-              </div>
-              <div>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
-                <p style={{ fontSize: 20, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{p.label}</p>
-              </div>
+    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, overflow: 'hidden', fontFamily: 'Inter, sans-serif', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      
+      {/* ── LEFT PANEL ── */}
+      <div style={{ flex: 1, padding: '32px 32px 28px' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
             </div>
-            <span style={{ padding: '5px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: p.riskColor + '20', color: p.riskColor, border: `1px solid ${p.riskColor}40`, whiteSpace: 'nowrap', marginTop: 4 }}>
-              {p.riskLabel}
-            </span>
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
+              <p style={{ fontSize: 20, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{p.label}</p>
+            </div>
           </div>
-
-          {/* Description */}
-          <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.7, marginBottom: 28 }}>{p.desc}</p>
-
-          {/* Allocation bars */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {p.assets.map((a, i) => (
-              <motion.div key={a.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-                  <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{a.name}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{a.amount.toLocaleString()}</span>
-                    <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600, minWidth: 32, textAlign: 'right' }}>{a.pct}%</span>
-                  </div>
-                </div>
-                <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${a.pct}%` }}
-                    transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                    style={{ height: '100%', background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : 'rgba(255,255,255,0.15)', borderRadius: 3 }}
-                  />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <span style={{ padding: '5px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: p.riskColor + '20', color: p.riskColor, border: `1px solid ${p.riskColor}40`, whiteSpace: 'nowrap', marginTop: 4 }}>
+            {p.riskLabel}
+          </span>
         </div>
 
-        {/* ── RIGHT PANEL ── */}
-        <div style={{ width: 320, flexShrink: 0, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', maxHeight: 420 }}>
-          <p style={{ fontSize: 9, color: '#475569', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 2 }}>Spending Optimization</p>
-          {actionCards.length === 0 && (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24 }}>
-              <span style={{ fontSize: 28 }}>✅</span>
-              <p style={{ fontSize: 12, color: '#475569', textAlign: 'center' }}>All optimisations applied. Portfolio is healthy.</p>
-            </div>
-          )}
-          {actionCards.map((card, i) => (
-            <motion.div key={card.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-              style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px 16px 14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>{card.icon}</div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>{card.title}</p>
+        {/* Description */}
+        <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.7, marginBottom: 28 }}>{p.desc}</p>
+
+        {/* Allocation bars */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {p.assets.map((a, i) => (
+            <motion.div key={a.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{a.name}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{a.amount.toLocaleString()}</span>
+                  <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600, minWidth: 32, textAlign: 'right' }}>{a.pct}%</span>
+                </div>
               </div>
-              <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, marginBottom: 14 }}>{card.desc}</p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button style={{ flex: 1, padding: '9px 0', borderRadius: 8, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  {card.primary}
-                </button>
-                <button onClick={() => setDismissed(d => ({ ...d, [card.id]: true }))}
-                  style={{ padding: '9px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                  {card.secondary}
-                </button>
+              <div style={{ height: 6, background: '#090a0f', borderRadius: 3, overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${a.pct}%` }}
+                  transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
+                  style={{ height: '100%', background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : 'rgba(255,255,255,0.15)', borderRadius: 3 }}
+                />
               </div>
             </motion.div>
           ))}
@@ -202,7 +169,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
       </div>
 
       {/* ── BOTTOM STATUS BAR ── */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '10px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)' }}>
+      <div style={{ borderTop: '1px solid #20222a', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
@@ -213,6 +180,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
         </div>
         <span style={{ fontSize: 10, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>SESSION ID: {sessionId}</span>
       </div>
+
     </div>
   );
 }
@@ -347,50 +315,52 @@ function InvestmentRoboAdvisor({ f, score }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-
-      {/* ── TOP PANEL: Strategy + Action Cards ── */}
-      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
-        <div style={{ display: 'flex' }}>
-
-          {/* LEFT: Allocation Strategy */}
-          <div style={{ flex: 1, padding: '16px 20px 14px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      
+      {/* ── 2-COLUMN DASHBOARD GRID ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20 }}>
+        
+        {/* ── LEFT COLUMN: Strategy & Funds ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          
+          {/* Strategy & Allocation Card */}
+          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 8px #6366f1' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 9, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Active Strategy</p>
-                  <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{strategyNames[riskProfile]}</p>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
+                  <p style={{ fontSize: 17, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{strategyNames[riskProfile]}</p>
                 </div>
               </div>
-              <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: risk.color + '20', color: risk.color, border: `1px solid ${risk.color}40`, whiteSpace: 'nowrap', marginTop: 2 }}>
+              <span style={{ padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: risk.color + '20', color: risk.color, border: `1px solid ${risk.color}40`, whiteSpace: 'nowrap' }}>
                 {risk.label}
               </span>
             </div>
 
-            <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5, marginBottom: 12 }}>{strategyDesc[riskProfile]}</p>
+            <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 24 }}>{strategyDesc[riskProfile]}</p>
 
             {/* Allocation bars */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {ALLOC_META.map((a, i) => {
                 const pct = risk[a.key];
                 const amount = Math.round(Math.max(0, (f.income || 0) - (f.expenses || 0)) * pct / 100);
                 return (
                   <motion.div key={a.key} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 500 }}>{a.icon} {a.label}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{amount.toLocaleString()}</span>
-                        <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600, minWidth: 28, textAlign: 'right' }}>{pct}%</span>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{a.icon} {a.label}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{amount.toLocaleString()}</span>
+                        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600, minWidth: 32, textAlign: 'right' }}>{pct}%</span>
                       </div>
                     </div>
-                    <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: 6, background: '#090a0f', borderRadius: 3, overflow: 'hidden' }}>
                       <motion.div
                         initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                        style={{ height: '100%', borderRadius: 3, background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : a.color === '#f43f5e' ? '#f43f5e' : '#3b82f6' }}
+                        style={{ height: '100%', borderRadius: 3, background: a.color }}
                       />
                     </div>
                   </motion.div>
@@ -399,119 +369,136 @@ function InvestmentRoboAdvisor({ f, score }) {
             </div>
           </div>
 
-          {/* RIGHT: Tax + SIP action cards */}
-          <div style={{ width: 280, flexShrink: 0, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <p style={{ fontSize: 9, color: '#475569', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', paddingLeft: 4, marginBottom: 1 }}>Investment Actions</p>
-
-            {/* Tax Optimizer card */}
-            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>💸</div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>Tax Savings Optimizer</p>
+          {/* Curated Recommendations Card */}
+          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, borderBottom: '1px solid #20222a', paddingBottom: 12 }}>
+              <div>
+                <p style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Curated Portfolio</p>
+                <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
               </div>
-              <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.5, marginBottom: 7 }}>
+              <span style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+              {FUND_RECS[riskProfile].map((fund, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: '#090a0f', border: '1px solid #20222a', borderRadius: 10 }}>
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{fund.name}</p>
+                      {fund.tag && <span style={{ fontSize: 8, padding: '2px 6px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
+                    </div>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{fund.type} · Risk: {fund.risk}</p>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: '#10b981', margin: 0 }}>{fund.ret}</p>
+                    <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>Expected CAGR</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            <div style={{ padding: '10px 16px', background: '#090a0f', border: '1px solid #20222a', borderRadius: 10 }}>
+              <p style={{ fontSize: 10, color: '#64748b', margin: 0, fontFamily: 'monospace', textAlign: 'center' }}>
+                ⚠️ NOT FINANCIAL ADVICE · Consult a SEBI-registered advisor before investing
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── RIGHT COLUMN: Tax & SIP Action Cards ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          
+          {/* Tax Savings Optimizer Card */}
+          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', boxSizing: 'border-box' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>💸</div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Tax Savings Optimizer</p>
+              </div>
+              <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 20 }}>
                 ₹{totalTaxSaving.toLocaleString()} in deductions available this FY under 80C, 80CCD(1B) & 80D. Assuming 30% bracket.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
                 {taxRows.map(row => (
-                  <div key={row.section} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'JetBrains Mono, monospace' }}>§ {row.section}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981' }}>₹{row.saving.toLocaleString()}</span>
+                  <div key={row.section} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#090a0f', border: '1px solid #20222a', borderRadius: 8 }}>
+                    <span style={{ fontSize: 12, color: '#64748b', fontFamily: 'monospace' }}>§ {row.section}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>₹{row.saving.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button style={{ flex: 1, padding: '6px 0', borderRadius: 7, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                  Claim Deductions
-                </button>
-                <button style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.04)', color: '#94a3b8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                  Later
-                </button>
-              </div>
             </div>
-
-            {/* SIP card */}
-            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>📅</div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>SIP Wealth Planner</p>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 7 }}>
-                <div>
-                  <label style={{ fontSize: 9, color: '#64748b', display: 'block', marginBottom: 3 }}>Monthly SIP (₹)</label>
-                  <input type="number" value={sipAmt} min={100}
-                    onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))}
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 7, padding: '5px 8px', color: '#f1f5f9', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 9, color: '#64748b', display: 'block', marginBottom: 2 }}>Period: <span style={{ color: '#f1f5f9', fontWeight: 700 }}>{sipYrs} yrs</span></label>
-                  <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)}
-                    style={{ width: '100%', accentColor: '#f59e0b' }} />
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 7, padding: '5px 8px' }}>
-                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 1 }}>Invested</p>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
-                  </div>
-                  <div style={{ flex: 1, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 7, padding: '5px 8px' }}>
-                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 1 }}>Value</p>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: '#10b981' }}>₹{(sipFV / 100000).toFixed(1)}L</p>
-                  </div>
-                </div>
-              </div>
-              <button style={{ width: '100%', padding: '6px 0', borderRadius: 7, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                Set Up SIP
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button style={{ flex: 1, padding: '12px 0', borderRadius: 8, border: 'none', background: '#4f46e5', color: '#ffffff', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = 0.9} onMouseLeave={e => e.currentTarget.style.opacity = 1}>
+                Claim Deductions
+              </button>
+              <button style={{ padding: '12px 20px', borderRadius: 8, border: '1px solid #20222a', background: 'transparent', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Later
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Status bar */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '10px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-              ENGINE CONNECTED
-            </span>
-            <span style={{ color: '#334155' }}>|</span>
-            <span>LAST SYNC: {syncMin}M AGO</span>
-          </div>
-          <span style={{ fontSize: 10, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>SESSION ID: {sessionId}</span>
-        </div>
-      </div>
-
-      {/* ── FUND RECOMMENDATIONS ── */}
-      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <p style={{ fontSize: 9, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Curated Portfolio</p>
-            <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
-          </div>
-          <span style={{ fontSize: 10, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
-        </div>
-        <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {FUND_RECS[riskProfile].map((fund, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8 }}>
-              <span style={{ fontSize: 15, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>{fund.name}</p>
-                  {fund.tag && <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
+          {/* SIP Wealth Planner Card */}
+          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', boxSizing: 'border-box' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>📅</div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>SIP Wealth Planner</p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Monthly SIP (₹)</label>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b' }}>₹{sipAmt.toLocaleString()}</span>
+                  </div>
+                  <input type="number" value={sipAmt} min={100} step={500}
+                    onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))}
+                    style={{ width: '100%', background: '#090a0f', border: '1px solid #20222a', borderRadius: 8, padding: '12px 14px', color: '#f1f5f9', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
-                <p style={{ fontSize: 10, color: '#475569' }}>{fund.type} · Risk: {fund.risk}</p>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Investment Period</label>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{sipYrs} Years</span>
+                  </div>
+                  <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)}
+                    style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }} />
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+                  <div style={{ flex: 1, background: '#090a0f', border: '1px solid #20222a', borderRadius: 8, padding: '12px 14px' }}>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Total Invested</p>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: '#cbd5e1', margin: 0 }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
+                  </div>
+                  <div style={{ flex: 1, background: '#090a0f', border: '1px solid #20222a', borderRadius: 8, padding: '12px 14px' }}>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Future Value</p>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: '#10b981', margin: 0 }}>₹{(sipFV / 100000).toFixed(1)}L</p>
+                  </div>
+                </div>
               </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: 800, color: '#00d8b6' }}>{fund.ret}</p>
-                <p style={{ fontSize: 9, color: '#475569' }}>Expected CAGR</p>
-              </div>
-            </motion.div>
-          ))}
+            </div>
+            <button style={{ width: '100%', padding: '12px 0', borderRadius: 8, border: 'none', background: '#4f46e5', color: '#ffffff', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = 0.9} onMouseLeave={e => e.currentTarget.style.opacity = 1}>
+              Set Up SIP
+            </button>
+          </div>
+
         </div>
-        <div style={{ padding: '10px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
-          <p style={{ fontSize: 10, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>⚠ NOT FINANCIAL ADVICE · Consult a SEBI-registered advisor before investing</p>
-        </div>
+
       </div>
+
+      {/* ── Status bar at the very bottom ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#12141a', border: '1px solid #20222a', borderRadius: 8, padding: '12px 20px', marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+            ENGINE CONNECTED
+          </span>
+          <span style={{ color: '#20222a' }}>|</span>
+          <span>LAST SYNC: {syncMin}M AGO</span>
+        </div>
+        <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>SESSION ID: {sessionId}</span>
+      </div>
+
     </div>
   );
 }
@@ -626,7 +613,7 @@ function FinanceRecommendationCard({ rec, index = 0, feedback = {}, onFeedback }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 }}
       style={{
-        background: '#12141a',
+        background: '#090a0f',
         border: '1px solid #20222a',
         borderRadius: 12,
         padding: '20px 24px',
@@ -774,25 +761,27 @@ function FinanceRecommendations({ recommendations }) {
   const feedback = loadFeedback();
   const sorted = sortByFeedback(recommendations, feedback);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Header & Subtitle */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12, marginTop: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: '#8b5cf6', fontSize: 16 }}>✦</span>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', margin: 0 }}>AI Spending Optimizations</h3>
+    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+      <div>
+        {/* Header & Subtitle */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#8b5cf6', fontSize: 16 }}>✦</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', margin: 0 }}>AI Spending Optimizations</h3>
+          </div>
+          <p style={{ fontSize: 13, color: '#8e929b', margin: 0 }}>Personalized insights to help you spend smarter and grow faster.</p>
         </div>
-        <p style={{ fontSize: 13, color: '#8e929b', margin: 0 }}>Personalized insights to help you spend smarter and grow faster.</p>
-      </div>
 
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 16,
-        maxHeight: 'calc(100vh - 380px)',
-        overflowY: 'auto',
-        paddingRight: 6
-      }}>
-        {sorted.map((r, i) => <FinanceRecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          maxHeight: '300px',
+          overflowY: 'auto',
+          paddingRight: 6
+        }}>
+          {sorted.map((r, i) => <FinanceRecommendationCard key={r.id} rec={r} index={i} feedback={feedback} onFeedback={forceUpdate} />)}
+        </div>
       </div>
 
       {/* Bottom info bar */}
@@ -801,16 +790,16 @@ function FinanceRecommendations({ recommendations }) {
         alignItems: 'center',
         gap: 10,
         padding: '12px 16px',
-        background: '#12141a',
+        background: '#090a0f',
         border: '1px solid #20222a',
         borderRadius: 8,
-        marginTop: 20
+        marginTop: 16
       }}>
         <svg style={{ width: 16, height: 16, color: '#8b5cf6', flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 16v-4M12 8h.01" />
         </svg>
-        <span style={{ fontSize: 12, color: '#8e929b' }}>
+        <span style={{ fontSize: 11, color: '#8e929b' }}>
           AI recommendations are based on your financial data and market insights. Always review before taking action.
         </span>
       </div>
@@ -1207,14 +1196,14 @@ export default function Finance() {
           : 'Review subscriptions and reduce impulse spending.';
 
         return (
-        <div style={{display:'flex', flexDirection:'column', gap:8}}>
+        <div style={{display:'flex', flexDirection:'column', gap:20}}>
 
           {/* ROW 1 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:20}}>
 
             {/* Score card */}
-            <div style={{...card, padding:'14px 16px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-              <div style={{display:'flex', alignItems:'center', gap:12}}>
+            <div style={{...card, padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+              <div style={{display:'flex', alignItems:'center', gap:16}}>
                 {/* Ring */}
                 <div style={{position:'relative', width:110, height:110, flexShrink:0}}>
                   <svg viewBox="0 0 110 110" width="110" height="110">
@@ -1232,90 +1221,90 @@ export default function Finance() {
                 </div>
                 {/* Text beside ring */}
                 <div>
-                  <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Finance Score</p>
-                  <span style={{display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, marginBottom:6,
+                  <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:6}}>Finance Score</p>
+                  <span style={{display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, marginBottom:8,
                     background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
                     {score>=70?'Good':score>=45?'Moderate':'Low'}
                   </span>
-                  <p style={{fontSize:11.5, color:'#64748b', lineHeight:1.4}}>
+                  <p style={{fontSize:12, color:'#64748b', lineHeight:1.4, whiteSpace:'pre-line'}}>
                     {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
                   </p>
                 </div>
               </div>
               <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:10, padding:'7px 14px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11.5, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
+                style={{marginTop:16, padding:'8px 16px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
                 View Insights →
               </button>
             </div>
 
             {/* Metrics card */}
-            <div style={{...card, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
+            <div style={{...card, padding:'20px', display:'flex', flexDirection:'column', gap:12}}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
                 {METRICS.map(m => (
-                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 10px'}}>
-                    <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:4}}>
+                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'12px 14px'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:6}}>
                       <div style={{width:24, height:24, borderRadius:6, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>{m.icon}</div>
-                      <span style={{fontSize:10.5, color:'#64748b'}}>{m.label}</span>
+                      <span style={{fontSize:11, color:'#64748b'}}>{m.label}</span>
                     </div>
-                    <p style={{fontSize:16, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:3}}>{m.value}</p>
+                    <p style={{fontSize:17, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:4}}>{m.value}</p>
                     <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
                   </div>
                 ))}
               </div>
               {/* Savings Rate */}
-              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
-                <div style={{width:30, height:30, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
+              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'12px 16px', display:'flex', alignItems:'center', gap:12}}>
+                <div style={{width:30, height:30, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
                 <div style={{flexShrink:0, minWidth:80}}>
                   <p style={{fontSize:10, color:'#64748b'}}>Savings Rate</p>
                   <p style={{fontSize:18, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
                   <p style={{fontSize:9, color:'#475569'}}>of income</p>
                 </div>
                 <div style={{flex:1}}>
-                  <p style={{fontSize:10.5, color:'#475569', marginBottom:4}}>Aim for 20% to build strong financial health.</p>
-                  <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                  <p style={{fontSize:11, color:'#475569', marginBottom:6}}>Aim for 20% to build strong financial health.</p>
+                  <div style={{height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
                     <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
                       style={{height:'100%', borderRadius:3, background:scoreColor}}/>
                   </div>
                 </div>
-                <span style={{fontSize:11, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
+                <span style={{fontSize:11.5, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
               </div>
             </div>
           </div>
 
           {/* ROW 2 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:20}}>
             {/* Expense Breakdown */}
-            <div style={{...card, padding:'12px 16px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
-                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
+            <div style={{...card, padding:'24px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:16}}>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
                 <span style={{fontSize:11, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
               </div>
               {f.expenses>0||categoryTotals.length>0 ? (() => {
                 const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
                 const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
                 return (
-                  <div style={{display:'flex', alignItems:'center', gap:16}}>
-                    <div style={{position:'relative', flexShrink:0, width:100, height:100}}>
-                      <ResponsiveContainer width={100} height={100}>
+                  <div style={{display:'flex', alignItems:'center', gap:20}}>
+                    <div style={{position:'relative', flexShrink:0, width:110, height:110}}>
+                      <ResponsiveContainer width={110} height={110}>
                         <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={45} innerRadius={28} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
+                          <Pie data={data} cx="50%" cy="50%" outerRadius={50} innerRadius={32} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
                             {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
                           </Pie>
                           <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:11}}/>
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                        <span style={{fontSize:10,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
+                        <span style={{fontSize:11,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
                       </div>
                     </div>
-                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
+                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
                       {data.slice(0,5).map((e,i)=>{
                         const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
                         return(
-                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:6}}>
+                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:8}}>
                             <span style={{width:6,height:6,borderRadius:'50%',background:color,flexShrink:0}}/>
-                            <span style={{fontSize:10.5,color:'#94a3b8',flex:1}}>{e.name}</span>
-                            <span style={{fontSize:10,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
+                            <span style={{fontSize:11,color:'#94a3b8',flex:1}}>{e.name}</span>
+                            <span style={{fontSize:11,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                           </div>
                         );
                       })}
@@ -1336,14 +1325,14 @@ export default function Finance() {
             </div>
 
             {/* Spending Trend */}
-            <div style={{...card, padding:'12px 16px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
-                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>
-                  Spending Trend{!hasFinanceData&&<span style={{fontSize:10.5, color:'#475569', marginLeft:6}}>(demo)</span>}
+            <div style={{...card, padding:'24px'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12}}>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>
+                  Spending Trend{!hasFinanceData&&<span style={{fontSize:11, color:'#475569', marginLeft:6}}>(demo)</span>}
                 </h3>
-                <span style={{fontSize:10, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'3px 10px', cursor:'pointer'}}>This Month ▾</span>
+                <span style={{fontSize:11, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'4px 12px', cursor:'pointer'}}>This Month ▾</span>
               </div>
-              <div style={{height:120}}>
+              <div style={{height:130}}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{top:4, right:4, left:-28, bottom:0}}>
                     <defs>
@@ -1359,23 +1348,23 @@ export default function Finance() {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{display:'flex', alignItems:'center', gap:5, marginTop:6}}>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginTop:8}}>
                 <span style={{width:6,height:6,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
-                <span style={{fontSize:10,color:'#64748b'}}>Expenses</span>
+                <span style={{fontSize:11,color:'#64748b'}}>Expenses</span>
               </div>
             </div>
           </div>
 
           {/* Financial Anxiety Detection */}
-          <div style={{...card, padding:'10px 14px', display:'flex', alignItems:'center', gap:14}}>
-            <div style={{width:32, height:32, borderRadius:8, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:16}}>🛡️</div>
+          <div style={{...card, padding:'16px 20px', display:'flex', alignItems:'center', gap:18}}>
+            <div style={{width:36, height:36, borderRadius:8, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:18}}>🛡️</div>
             <div style={{flex:1, minWidth:0}}>
-              <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Financial Anxiety Detection</p>
-              <p style={{fontSize:11, fontWeight:600, color:flag.color, marginBottom:2}}>{flag.label}</p>
-              <p style={{fontSize:10, color:'#64748b'}}>{action}</p>
+              <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Financial Anxiety Detection</p>
+              <p style={{fontSize:12, fontWeight:600, color:flag.color, marginBottom:2}}>{flag.label}</p>
+              <p style={{fontSize:11, color:'#64748b'}}>{action}</p>
             </div>
             <button onClick={()=>setTab('recommendations')}
-              style={{padding:'6px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
+              style={{padding:'8px 16px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
               View Recommendations →
             </button>
           </div>
@@ -1386,44 +1375,44 @@ export default function Finance() {
 
       {/* ── SMS PARSER TAB ────────────────────────────────────────────────── */}
       {tab === 'parse' && (() => {
-        const pCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'12px 16px', display:'flex', flexDirection:'column'};
+        const pCard = {background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px', display:'flex', flexDirection:'column'};
         const BRAND_COLORS = { Uber:'#1a1a1a', Ola:'#2b9348', Swiggy:'#fc8019', Zomato:'#cb202d', Netflix:'#e50914', Amazon:'#ff9900', Flipkart:'#2874f0', Dunzo:'#00d25b', BigBasket:'#84c225', Blinkit:'#f8cc1b', Rapido:'#333', PhonePe:'#5f259f', Paytm:'#00b9f5' };
         const hashColor = s => { const c=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#10b981','#06b6d4','#3b82f6']; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffffff; return c[Math.abs(h)%c.length]; };
         const merchantBg = m => BRAND_COLORS[m] || hashColor(m||'X');
         const inputStyle = {width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'5px 8px', color:'#f1f5f9', fontSize:11, outline:'none', boxSizing:'border-box'};
         return (
-          <div style={{display:'flex', flexDirection:'column', gap:8}}>
+          <div style={{display:'flex', flexDirection:'column', gap:20}}>
 
             {/* ── Two parser cards ── */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:20}}>
 
               {/* LEFT: Paste SMS */}
               <div style={pCard}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Paste SMS</h3>
-                <p style={{fontSize:11, color:'#64748b', marginBottom:8}}>Paste a single SMS to parse the transaction.</p>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Paste SMS</h3>
+                <p style={{fontSize:11, color:'#64748b', marginBottom:12}}>Paste a single SMS to parse the transaction.</p>
 
-                <div style={{display:'flex', flexWrap:'wrap', gap:4, marginBottom:6}}>
+                <div style={{display:'flex', flexWrap:'wrap', gap:6, marginBottom:10}}>
                   {SAMPLE_MESSAGES.map(s => (
                     <button key={s.label} onClick={() => { setSmsInput(s.msg); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
-                      style={{fontSize:10, padding:'2px 8px', borderRadius:999, background:'rgba(139,92,246,0.1)', border:'1px solid rgba(139,92,246,0.25)', color:'#a78bfa', cursor:'pointer'}}>
+                      style={{fontSize:10, padding:'3px 10px', borderRadius:999, background:'rgba(139,92,246,0.1)', border:'1px solid rgba(139,92,246,0.25)', color:'#a78bfa', cursor:'pointer'}}>
                       {s.label}
                     </button>
                   ))}
                 </div>
 
-                <div style={{position:'relative', marginBottom:6, flex:1, display:'flex', flexDirection:'column'}}>
+                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
                   <textarea
                     value={smsInput}
                     onChange={e => { setSmsInput(e.target.value.slice(0,500)); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
                     maxLength={500}
                     placeholder='e.g. "Rs. 450 spent on Swiggy using HDFC Credit Card."'
-                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'8px 10px', paddingBottom:20, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:70}}
+                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'10px 12px', paddingBottom:24, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:80}}
                   />
-                  <span style={{position:'absolute', bottom:4, right:10, fontSize:10, color:'#475569', pointerEvents:'none'}}>{smsInput.length} / 500</span>
+                  <span style={{position:'absolute', bottom:6, right:12, fontSize:10, color:'#475569', pointerEvents:'none'}}>{smsInput.length} / 500</span>
                 </div>
 
                 {otpDetected && (
-                  <div style={{marginBottom:6, padding:'6px 10px', borderRadius:6, background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)', display:'flex', alignItems:'center', gap:6}}>
+                  <div style={{marginBottom:10, padding:'8px 12px', borderRadius:6, background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)', display:'flex', alignItems:'center', gap:8}}>
                     <span style={{fontSize:12}}>🔐</span>
                     <div>
                       <p style={{fontSize:11, fontWeight:600, color:'#f43f5e'}}>OTP detected — will not be parsed</p>
@@ -1432,16 +1421,16 @@ export default function Finance() {
                 )}
 
                 <button onClick={handleParse}
-                  style={{width:'100%', padding:'7px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                  style={{width:'100%', padding:'10px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
                   <span>⚡</span> Parse Transaction
                 </button>
 
                 <AnimatePresence>
                   {parseResult && editResult && (
-                    <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} style={{marginTop:16}}>
-                      <div style={{padding:'16px', borderRadius:12, border:'1px solid rgba(16,185,129,0.3)', background:'rgba(16,185,129,0.05)', marginBottom:12}}>
+                    <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} style={{marginTop:20}}>
+                      <div style={{padding:'16px', borderRadius:12, border:'1px solid rgba(16,185,129,0.3)', background:'rgba(16,185,129,0.05)', marginBottom:16}}>
                         <p style={{fontSize:10, fontWeight:700, color:'#10b981', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:12}}>Parsed Result — Edit if needed</p>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
+                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
                           {[{label:'Amount (₹)',key:'amount',type:'number'},{label:'Merchant',key:'merchant',type:'text'},{label:'Bank',key:'bank',type:'text'},{label:'Payment Mode',key:'paymentMode',type:'text'}].map(field => (
                             <div key={field.key}>
                               <label style={{fontSize:10,color:'#64748b',display:'block',marginBottom:4}}>{field.label}</label>
@@ -1462,8 +1451,8 @@ export default function Finance() {
                             </select>
                           </div>
                         </div>
-                        <div style={{display:'flex',alignItems:'center',gap:8,marginTop:12}}>
-                          <span style={{fontSize:18}}>{CATEGORY_META[editResult.category]?.icon}</span>
+                        <div style={{display:'flex',alignItems:'center',gap:10,marginTop:16}}>
+                          <span style={{fontSize:20}}>{CATEGORY_META[editResult.category]?.icon}</span>
                           <span style={{fontSize:13,fontWeight:600,color:'#e2e8f0'}}>{editResult.merchant}</span>
                           <span style={{fontSize:14,fontWeight:700,color:'#f43f5e',marginLeft:'auto'}}>₹{editResult.amount?.toLocaleString()}</span>
                         </div>
@@ -1478,27 +1467,27 @@ export default function Finance() {
 
               {/* RIGHT: Bulk Import */}
               <div style={pCard}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Bulk Import</h3>
-                <p style={{fontSize:11, color:'#64748b', marginBottom:8}}>Paste multiple SMS messages (one per line).</p>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Bulk Import</h3>
+                <p style={{fontSize:11, color:'#64748b', marginBottom:12}}>Paste multiple SMS messages (one per line).</p>
 
-                <div style={{position:'relative', marginBottom:6, flex:1, display:'flex', flexDirection:'column'}}>
+                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
                   <textarea
                     value={multiInput}
                     onChange={e => setMultiInput(e.target.value.slice(0,500))}
                     maxLength={500}
                     placeholder={'Rs. 450 spent on Swiggy using HDFC\nINR 320 debited from SBI for Uber ride\nRs. 649 charged to Axis for Netflix'}
-                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'8px 10px', paddingBottom:20, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:70}}
+                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'10px 12px', paddingBottom:24, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:80}}
                   />
-                  <span style={{position:'absolute', bottom:4, right:10, fontSize:10, color:'#475569', pointerEvents:'none'}}>{multiInput.length} / 500</span>
+                  <span style={{position:'absolute', bottom:6, right:12, fontSize:10, color:'#475569', pointerEvents:'none'}}>{multiInput.length} / 500</span>
                 </div>
 
                 <button onClick={handleBulkParse}
-                  style={{width:'100%', padding:'7px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                  style={{width:'100%', padding:'10px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
                   <span>⊞</span> Parse All Lines
                 </button>
 
                 {multiResults.length > 0 && (
-                  <div style={{marginTop:16, display:'flex', flexDirection:'column', gap:8, maxHeight:280, overflowY:'auto'}}>
+                  <div style={{marginTop:20, display:'flex', flexDirection:'column', gap:10, maxHeight:280, overflowY:'auto'}}>
                     {multiResults.map((r,i) => (
                       <div key={i} style={{padding:'10px 12px', borderRadius:10, border:r.result?'1px solid rgba(16,185,129,0.2)':'1px solid rgba(244,63,94,0.2)', background:r.result?'rgba(16,185,129,0.05)':'rgba(244,63,94,0.05)'}}>
                         {r.result ? (
@@ -1511,7 +1500,7 @@ export default function Finance() {
                         )}
                       </div>
                     ))}
-                    <button onClick={handleBulkConfirm} style={{width:'100%',padding:'12px 0',borderRadius:10,border:'none',background:'#10b981',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',marginTop:4}}>
+                    <button onClick={handleBulkConfirm} style={{width:'100%',padding:'12px 0',borderRadius:10,border:'none',background:'#10b981',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',marginTop:8}}>
                       Add {multiResults.filter(r=>r.result).length} Valid Transactions ✓
                     </button>
                   </div>
@@ -1529,8 +1518,8 @@ export default function Finance() {
               const rows = allTxs.length > 0 ? allTxs.slice(0,5) : DEMO_TXS;
               const isDemo = allTxs.length === 0;
               return (
-                <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'12px 16px'}}>
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+                <div style={{background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px'}}>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16}}>
                     <div style={{display:'flex', alignItems:'center', gap:8}}>
                       <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Recent Activity</h3>
                       {isDemo && <span style={{fontSize:10, padding:'1px 8px', borderRadius:999, background:'rgba(99,102,241,0.1)', color:'#818cf8', fontWeight:600}}>demo</span>}
@@ -1540,7 +1529,7 @@ export default function Finance() {
                     </button>
                   </div>
                   {rows.map((tx,i) => (
-                    <div key={tx.id} style={{display:'flex', alignItems:'center', gap:12, padding:'8px 0', borderBottom:i<rows.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
+                    <div key={tx.id} style={{display:'flex', alignItems:'center', gap:12, padding:'12px 0', borderBottom:i<rows.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
                       <div style={{width:32, height:32, borderRadius:8, background:merchantBg(tx.merchant), display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:'#fff', flexShrink:0, letterSpacing:'-0.5px'}}>
                         {tx.merchant?.slice(0,2).toUpperCase()||'?'}
                       </div>
@@ -1568,7 +1557,7 @@ export default function Finance() {
 
       {/* ── LIVE FEED TAB ─────────────────────────────────────────────────── */}
       {tab === 'live' && (
-        <div style={{display:'flex', flexDirection:'column', gap:14}}>
+        <div style={{display:'flex', flexDirection:'column', gap:20}}>
 
           {/* Header row */}
           <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10}}>
@@ -1603,20 +1592,20 @@ export default function Finance() {
           )}
 
           {/* Two-column grid */}
-          <div style={{display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:14}}>
+          <div style={{display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:20}}>
 
             {/* Left: Incoming Transactions */}
-            <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px'}}>
-              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:14}}>Incoming Transactions</p>
+            <div style={{background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px'}}>
+              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:16}}>Incoming Transactions</p>
               {liveTxs.length === 0 ? (
-                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12, padding:'60px 0', border:'1.5px dashed rgba(255,255,255,0.08)', borderRadius:12}}>
+                <div style={{display:'flex', flexDirection:'column', gap:12, padding:'60px 0', border:'1.5px dashed rgba(255,255,255,0.08)', borderRadius:12, alignItems:'center', justifyContent:'center'}}>
                   <div style={{width:52, height:52, borderRadius:'50%', border:'2px solid rgba(99,102,241,0.4)', display:'flex', alignItems:'center', justifyContent:'center'}}>
                     <span style={{fontSize:20, color:'#6366f1'}}>▶</span>
                   </div>
                   <p style={{fontSize:13, color:'#475569'}}>Press Start to begin the live simulation</p>
                 </div>
               ) : (
-                <div style={{display:'flex', flexDirection:'column', gap:8, maxHeight:460, overflowY:'auto'}}>
+                <div style={{display:'flex', flexDirection:'column', gap:10, maxHeight:460, overflowY:'auto'}}>
                   <AnimatePresence initial={false}>
                     {liveTxs.map(tx => <TxCard key={tx.id} tx={tx} />)}
                   </AnimatePresence>
@@ -1625,8 +1614,8 @@ export default function Finance() {
             </div>
 
             {/* Right: Live Category Breakdown */}
-            <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
+            <div style={{background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16}}>
                 <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Live Category Breakdown</p>
                 <span style={{fontSize:14, color:'#475569', cursor:'help'}} title="Updates as transactions stream in">ⓘ</span>
               </div>
@@ -1635,14 +1624,14 @@ export default function Finance() {
                   Stats will appear here
                 </div>
               ) : (
-                <div style={{display:'flex', flexDirection:'column', gap:8}}>
+                <div style={{display:'flex', flexDirection:'column', gap:10}}>
                   {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).map((cat, i) => {
                     const meta = CATEGORY_META[cat.name] || CATEGORY_META.Others;
                     const max = categoryTotals[0]?.value || 1;
                     return (
                       <motion.div key={cat.name} initial={{opacity:0,x:10}} animate={{opacity:1,x:0}} transition={{delay:i*0.05}}
-                        style={{padding:'10px 12px', borderRadius:10, border:'1px solid rgba(255,255,255,0.06)', background:'rgba(255,255,255,0.02)'}}>
-                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:6}}>
+                        style={{padding:'12px 16px', borderRadius:10, border:'1px solid #20222a', background:'rgba(255,255,255,0.02)'}}>
+                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:8}}>
                           <span style={{fontSize:12, color:'#cbd5e1', fontWeight:500}}>{meta.icon} {cat.name}</span>
                           <span style={{fontSize:12, fontWeight:700, color:meta.color}}>₹{cat.value.toLocaleString()}</span>
                         </div>
@@ -1904,7 +1893,10 @@ export default function Finance() {
       {tab === 'recommendations' && (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           {hasFinanceData ? (
-            <RoboAdvisor f={f} h={h} c={c} savingsRate={savingsRate} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20 }}>
+              <RoboAdvisor f={f} h={h} c={c} savingsRate={savingsRate} />
+              <FinanceRecommendations recommendations={recommendations} />
+            </div>
           ) : (
             <div style={{
               background: '#1c1912',
@@ -1929,7 +1921,6 @@ export default function Finance() {
               </div>
             </div>
           )}
-          <FinanceRecommendations recommendations={recommendations} />
         </div>
       )}
 
