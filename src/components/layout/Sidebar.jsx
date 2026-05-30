@@ -44,7 +44,7 @@ const navSections = [
     ],
   },
   {
-    label: 'Tools',
+    label: 'Integrations',
     items: [
       { path: '/sustainability', label: 'Sustainability', icon: Leaf,     color: '#10b981' },
       { path: '/upload',         label: 'Data Import',   icon: Upload,   color: '#06b6d4' },

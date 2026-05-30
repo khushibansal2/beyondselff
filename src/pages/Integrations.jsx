@@ -117,13 +117,23 @@ function GitHubPanel() {
     <div className="space-y-5">
       {/* Search */}
       <GlassCard>
-        <div className="flex items-center gap-2 mb-4">
-          <GitBranch size={16} className="text-[#a1a1aa]" />
-          <h3 className="text-[14px] font-semibold text-[#f0f0f3]">GitHub Developer Analytics</h3>
-          <StatusBadge status={profile ? 'live' : 'none'} />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(36,41,46,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <GitBranch size={18} className="text-[#f0f0f3]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-[14px] font-semibold text-[#f0f0f3]">GitHub Developer Analytics</h3>
+                <StatusBadge status={profile ? 'live' : 'none'} />
+              </div>
+              <p className="text-[12px] text-[#71717a] mt-0.5">Enter any GitHub username to analyze their coding profile, tech stack, and get AI-powered career insights.</p>
+            </div>
+          </div>
         </div>
-        <p className="text-[12px] text-[#71717a] mb-4">Enter any GitHub username to analyze their coding profile, tech stack, and get AI-powered career insights.</p>
-        <div className="flex gap-2">
+
+        <div className="flex gap-2 mt-4">
           <input
             value={username}
             onChange={e => setUsername(e.target.value)}
@@ -134,15 +144,27 @@ function GitHubPanel() {
           <button
             onClick={handleFetch}
             disabled={!username.trim() || loading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-            style={{ background: 'linear-gradient(135deg, #24292e, #57606a)', boxShadow: '0 0 16px rgba(0,0,0,0.4)' }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-[13px] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 0 20px rgba(99,102,241,0.35)' }}
           >
             {loading
               ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <Search size={14} />}
+              : <Zap size={14} />}
             {loading ? 'Fetching…' : 'Analyze'}
           </button>
         </div>
+
+        {/* Examples */}
+        <div className="flex items-center flex-wrap gap-1.5 mt-3">
+          <span className="text-[11px] text-[#71717a] mr-1">Try examples:</span>
+          {['torvalds', 'gvanrossum', 'sindresorhus', 'yyx990803'].map(u => (
+            <button key={u} onClick={() => setUsername(u)}
+              className="text-[11px] px-2.5 py-1 rounded-lg border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all font-mono">
+              {u}
+            </button>
+          ))}
+        </div>
+
         {error && (
           <div className="mt-3 flex items-center gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2">
             <AlertTriangle size={13} /> {error}
@@ -345,18 +367,13 @@ function GitHubPanel() {
 
       {/* Empty state */}
       {!profile && !loading && !error && (
-        <GlassCard className="text-center py-12">
-          <GitBranch size={32} className="mx-auto mb-3 text-[#71717a]" />
-          <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">Analyze any GitHub profile</p>
-          <p className="text-[12px] text-[#71717a]">No authentication required · Works with any public profile</p>
-          <div className="flex justify-center gap-2 mt-4 flex-wrap">
-            {['torvalds', 'gvanrossum', 'sindresorhus', 'yyx990803'].map(u => (
-              <button key={u} onClick={() => { setUsername(u); }}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all font-mono">
-                {u}
-              </button>
-            ))}
+        <GlassCard className="text-center py-10">
+          <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+            style={{ background: 'rgba(36,41,46,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <GitBranch size={24} className="text-[#a1a1aa]" />
           </div>
+          <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">Analyze any GitHub profile</p>
+          <p className="text-[12px] text-[#71717a]">No authentication required • Works with any public profile</p>
         </GlassCard>
       )}
     </div>
