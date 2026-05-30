@@ -14,6 +14,7 @@ import {
   Search, Sparkles, CheckCircle, AlertTriangle, ExternalLink,
   Star, GitFork, Code2, Users, Key, Plus,
   Zap, Brain, ChevronRight, Loader2, Heart, Moon, Footprints, X,
+  Trash2, MapPin, ShieldCheck,
 } from 'lucide-react';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -392,6 +393,36 @@ const MOCK_PROFILE = {
   ],
 };
 
+const MOCK_TOP_MATCHES = [
+  {
+    name: 'Priya Sharma', degree: '2nd',
+    avatar: 'https://i.pravatar.cc/150?u=priya',
+    role: 'Software Engineer @ Google', logo: 'G', logoColor: '#4285F4',
+    location: 'Bengaluru, India',
+    experience: '6+ yrs', followers: '12K+',
+    skills: 'AI/ML, Product Strategy, Leadership',
+    score: 82, scoreLabel: 'Excellent', scoreColor: '#10b981'
+  },
+  {
+    name: 'Arjun Mehta', degree: '2nd',
+    avatar: 'https://i.pravatar.cc/150?u=arjun',
+    role: 'Product Manager @ Microsoft', logo: 'M', logoColor: '#00A4EF',
+    location: 'Mumbai, India',
+    experience: '8+ yrs', followers: '8K+',
+    skills: 'Product Strategy, Growth, Analytics',
+    score: 76, scoreLabel: 'Good', scoreColor: '#10b981'
+  },
+  {
+    name: 'Rahul Gupta', degree: '3rd+',
+    avatar: 'https://i.pravatar.cc/150?u=rahul',
+    role: 'Data Scientist @ Amazon', logo: 'a', logoColor: '#FF9900',
+    location: 'Hyderabad, India',
+    experience: '5+ yrs', followers: '6K+',
+    skills: 'Data Science, ML, Python',
+    score: 68, scoreLabel: 'Good', scoreColor: '#10b981'
+  }
+];
+
 
 function LinkedInPanel() {
   const [searchInput, setSearchInput]  = useState('');
@@ -483,66 +514,147 @@ function LinkedInPanel() {
     : 'text-amber-400 bg-amber-500/10 border-amber-500/25';
 
   return (
-    <div className="space-y-5">
-      {/* API Notice */}
-      <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.05]">
-        <AlertTriangle size={15} className="text-amber-400 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-[12px] font-semibold text-amber-300">Mock LinkedIn Data</p>
-          <p className="text-[11px] text-[#71717a] mt-0.5">
-            LinkedIn's API requires partner-level approval and is not available to third-party apps without review. This panel uses realistic mock data. In production, integrate via <span className="text-amber-400 font-mono text-[10px]">LinkedIn OAuth 2.0</span> after partner approval.
-          </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-2">
+        <div className="w-8 h-8 rounded-md bg-[#0077b5] flex items-center justify-center text-white font-bold text-lg">in</div>
+        <h2 className="text-[18px] font-bold text-[#f0f0f3]">LinkedIn Profile Intelligence</h2>
+        <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Mock Data</span>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative mb-6">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search size={16} className="text-[#71717a]" />
+        </div>
+        <input
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSearch()}
+          placeholder="Search by name, headline, company or skill..."
+          className="w-full bg-[#161b22]/50 border border-white/[0.05] rounded-xl pl-11 pr-36 py-3.5 text-[14px] text-[#f0f0f3] placeholder-[#71717a] focus:outline-none focus:border-indigo-500/50 transition-colors"
+        />
+        <div className="absolute inset-y-0 right-2 flex items-center">
+          <button 
+            onClick={handleSearch}
+            disabled={loading || !searchInput.trim()}
+            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-colors disabled:opacity-50">
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            Analyze Profile
+          </button>
         </div>
       </div>
 
-      {/* Search */}
-      <GlassCard>
-        <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider mb-2.5">Search LinkedIn Profile</p>
-        <div className="flex gap-2">
-          <input
-            value={searchInput}
-            onChange={e => setSearchInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            placeholder="Enter a name (e.g. Priya Sharma)"
-            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2 text-[12px] text-[#f0f0f3] placeholder-[#6b7280] outline-none focus:border-[#0077b5]/40 transition-colors"
-          />
-          <button
-            onClick={handleSearch}
-            disabled={loading || !searchInput.trim()}
-            className="px-4 py-2 rounded-xl bg-[#0077b5] text-white text-[12px] font-semibold hover:bg-[#006097] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 flex-shrink-0"
-          >
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
-            {loading ? 'Searching…' : 'Search'}
-          </button>
+      {/* Suggested Row */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-[13px] text-[#f0f0f3] font-medium">Suggested</span>
+          {['Priya Sharma', 'Arjun Mehta', 'Rahul Gupta', 'Ananya Singh'].map(n => (
+            <button key={n} onClick={() => setSearchInput(n)} className="text-[12px] px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.05] text-[#a1a1aa] hover:text-[#f0f0f3] hover:bg-white/[0.06] transition-colors">
+              {n}
+            </button>
+          ))}
         </div>
-        {!profile && !loading && (
-          <div className="flex gap-2 mt-3 flex-wrap">
-            {['Arjun Mehta', 'Priya Sharma', 'Rahul Gupta', 'Ananya Singh'].map(n => (
-              <button key={n} onClick={() => setSearchInput(n)}
-                className="text-[11px] px-3 py-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[#71717a] hover:text-[#a1a1aa] transition-all">
-                {n}
-              </button>
-            ))}
-          </div>
-        )}
-      </GlassCard>
+        <button onClick={() => setSearchInput('')} className="flex items-center gap-1.5 text-[12px] text-[#71717a] hover:text-[#f0f0f3] transition-colors">
+          <Trash2 size={14} /> Clear
+        </button>
+      </div>
 
-      {/* Loading */}
+      {/* Loading State */}
       {loading && (
-        <GlassCard className="text-center py-10">
-          <Loader2 size={28} className="mx-auto mb-3 text-[#0077b5] animate-spin" />
-          <p className="text-[13px] font-semibold text-[#a1a1aa]">Fetching profile for "{searchInput}"…</p>
-          <p className="text-[11px] text-[#71717a] mt-1">Connecting to LinkedIn Mock API</p>
+        <GlassCard className="text-center py-10 border-white/[0.05] !bg-[#161b22]/40">
+          <Loader2 size={28} className="mx-auto mb-3 text-indigo-400 animate-spin" />
+          <p className="text-[13px] font-semibold text-[#a1a1aa]">Analyzing profile for "{searchInput}"…</p>
         </GlassCard>
       )}
 
-      {/* Empty state */}
+      {/* Empty State / Top Matches */}
       {!profile && !loading && (
-        <GlassCard className="text-center py-12">
-          <Users size={32} className="mx-auto mb-3 text-[#71717a]" />
-          <p className="text-[13px] font-semibold text-[#a1a1aa] mb-1">Search any LinkedIn profile</p>
-          <p className="text-[12px] text-[#71717a]">Enter a name above · Try a quick name suggestion to get started</p>
-        </GlassCard>
+        <>
+          <GlassCard className="!bg-[#161b22]/40 border-white/[0.05] p-0 overflow-hidden mb-6">
+            <div className="flex items-center justify-between p-5 border-b border-white/[0.05]">
+              <h3 className="text-[14px] font-semibold text-[#f0f0f3]">Top Matches</h3>
+              <button className="text-[13px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors">
+                View all <ChevronRight size={14} />
+              </button>
+            </div>
+            <div className="divide-y divide-white/[0.05]">
+              {MOCK_TOP_MATCHES.map(match => (
+                <div key={match.name} className="flex items-center p-5 hover:bg-white/[0.02] transition-colors cursor-pointer group" onClick={() => { setSearchInput(match.name); handleSearch(); }}>
+                  {/* Avatar & Info */}
+                  <div className="flex items-center gap-4 w-[35%]">
+                    <div className="relative">
+                      <img src={match.avatar} className="w-12 h-12 rounded-full border border-white/[0.1]" alt={match.name} />
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#161b22] rounded-full"></div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-[14px] font-bold text-[#f0f0f3]">{match.name}</h4>
+                        <span className="text-[10px] text-[#a1a1aa] bg-white/[0.05] px-1.5 py-0.5 rounded">{match.degree}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="w-3.5 h-3.5 rounded flex items-center justify-center text-[8px] font-bold text-white" style={{ backgroundColor: match.logoColor }}>
+                          {match.logo}
+                        </div>
+                        <p className="text-[12px] text-[#a1a1aa] truncate">{match.role}</p>
+                      </div>
+                      <div className="flex items-center gap-1 mt-1 text-[#71717a]">
+                        <MapPin size={10} />
+                        <span className="text-[11px]">{match.location}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Experience */}
+                  <div className="w-[12%]">
+                    <p className="text-[11px] text-[#71717a] mb-0.5">Experience</p>
+                    <p className="text-[13px] font-semibold text-[#f0f0f3]">{match.experience}</p>
+                  </div>
+
+                  {/* Followers */}
+                  <div className="w-[12%]">
+                    <p className="text-[11px] text-[#71717a] mb-0.5">Followers</p>
+                    <p className="text-[13px] font-semibold text-[#f0f0f3]">{match.followers}</p>
+                  </div>
+
+                  {/* Skills */}
+                  <div className="w-[25%] pr-4">
+                    <p className="text-[11px] text-[#71717a] mb-0.5">Skills</p>
+                    <p className="text-[12px] text-[#a1a1aa] truncate">{match.skills}</p>
+                  </div>
+
+                  {/* Activity Score */}
+                  <div className="w-[12%] flex flex-col items-center">
+                    <p className="text-[11px] text-[#71717a] mb-1">Activity Score</p>
+                    <div className="relative w-10 h-10 flex items-center justify-center mt-0.5">
+                      <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                        <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2.5" />
+                        <circle cx="20" cy="20" r="16" fill="none" stroke={match.scoreColor} strokeWidth="2.5" strokeDasharray={2 * Math.PI * 16} strokeDashoffset={(2 * Math.PI * 16) * (1 - match.score / 100)} strokeLinecap="round" />
+                      </svg>
+                      <span className="text-[13px] font-bold text-[#f0f0f3]">{match.score}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold mt-1" style={{ color: match.scoreColor }}>{match.scoreLabel}</span>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="w-[4%] flex justify-end">
+                    <ChevronRight size={16} className="text-[#71717a] group-hover:text-[#f0f0f3] transition-colors" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+
+          <div className="flex items-center justify-between text-[#71717a] text-[12px] mt-4 pb-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} />
+              <span>We use OAuth 2.0 for secure authentication. Your data is private and never stored.</span>
+            </div>
+            <a href="#" className="flex items-center gap-1.5 hover:text-[#f0f0f3] transition-colors">
+              Learn more about LinkedIn Integration <ExternalLink size={14} />
+            </a>
+          </div>
+        </>
       )}
 
       {profile && !loading && (
