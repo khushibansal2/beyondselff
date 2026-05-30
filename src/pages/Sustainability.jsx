@@ -88,15 +88,15 @@ export default function Sustainability() {
       </div>
 
       {tab === 'dashboard' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-6">
           
           {/* Top Cards Row */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-6">
             {/* Monthly Footprint */}
             <GlassCard className="col-span-1 p-5 relative border-white/[0.05] !bg-[#161b22]">
               <div className="flex justify-between items-start mb-5">
-                <h3 className="text-[12px] text-[#94a3b8] flex items-center gap-1.5 font-medium">
-                  Monthly Footprint <Info size={13} className="opacity-70" />
+                <h3 className="text-[13px] text-[#94a3b8] flex items-center gap-1.5 font-medium">
+                  Monthly Footprint <Info size={14} className="opacity-70" />
                 </h3>
                 <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Leaf size={12} strokeWidth={2.5} />
@@ -123,14 +123,14 @@ export default function Sustainability() {
             {/* Transport */}
             <GlassCard className="col-span-1 p-5 flex items-center justify-between border-white/[0.05] cursor-pointer group !bg-[#161b22]">
               <div className="flex items-center gap-4">
-                <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-rose-500 bg-rose-500/10 border border-rose-500/10">
-                  <Car size={22} />
+                <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-rose-500 bg-rose-500/10 border border-rose-500/10">
+                  <Car size={24} />
                 </div>
                 <div>
-                  <h3 className="text-[12px] text-[#94a3b8] mb-1 font-medium">Transport</h3>
+                  <h3 className="text-[13px] text-[#94a3b8] mb-1 font-medium">Transport</h3>
                   <div className="flex items-baseline gap-1.5 mb-0.5">
-                    <span className="text-[24px] font-bold text-[#f0f0f3] leading-none">100</span>
-                    <span className="text-[13px] font-bold text-[#f0f0f3]">kg</span>
+                    <span className="text-[26px] font-bold text-[#f0f0f3] leading-none">100</span>
+                    <span className="text-[14px] font-bold text-[#f0f0f3]">kg</span>
                   </div>
                   <div className="text-[11px] text-[#64748b] font-medium mt-0.5">CO₂e</div>
                 </div>
@@ -141,14 +141,14 @@ export default function Sustainability() {
             {/* Home Energy */}
             <GlassCard className="col-span-1 p-5 flex items-center justify-between border-white/[0.05] cursor-pointer group !bg-[#161b22]">
               <div className="flex items-center gap-4">
-                <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-amber-500 bg-amber-500/10 border border-amber-500/10">
-                  <Zap size={22} />
+                <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-amber-500 bg-amber-500/10 border border-amber-500/10">
+                  <Zap size={24} />
                 </div>
                 <div>
-                  <h3 className="text-[12px] text-[#94a3b8] mb-1 font-medium">Home Energy</h3>
+                  <h3 className="text-[13px] text-[#94a3b8] mb-1 font-medium">Home Energy</h3>
                   <div className="flex items-baseline gap-1.5 mb-0.5">
-                    <span className="text-[24px] font-bold text-[#f0f0f3] leading-none">100</span>
-                    <span className="text-[13px] font-bold text-[#f0f0f3]">kg</span>
+                    <span className="text-[26px] font-bold text-[#f0f0f3] leading-none">100</span>
+                    <span className="text-[14px] font-bold text-[#f0f0f3]">kg</span>
                   </div>
                   <div className="text-[11px] text-[#64748b] font-medium mt-0.5">CO₂e</div>
                 </div>
@@ -159,16 +159,16 @@ export default function Sustainability() {
             {/* Food / Diet */}
             <GlassCard className="col-span-1 p-5 flex items-center justify-between border-white/[0.05] cursor-pointer group !bg-[#161b22]">
               <div className="flex items-center gap-4">
-                <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center bg-emerald-500/10 border border-emerald-500/10">
+                <div className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center bg-emerald-500/10 border border-emerald-500/10">
                   <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-lg">
                     🥗
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-[12px] text-[#94a3b8] mb-1 font-medium">Food / Diet</h3>
+                  <h3 className="text-[13px] text-[#94a3b8] mb-1 font-medium">Food / Diet</h3>
                   <div className="flex items-baseline gap-1.5 mb-0.5">
-                    <span className="text-[24px] font-bold text-[#f0f0f3] leading-none">80</span>
-                    <span className="text-[13px] font-bold text-[#f0f0f3]">kg</span>
+                    <span className="text-[26px] font-bold text-[#f0f0f3] leading-none">80</span>
+                    <span className="text-[14px] font-bold text-[#f0f0f3]">kg</span>
                   </div>
                   <div className="text-[11px] text-[#64748b] font-medium mt-0.5">CO₂e</div>
                 </div>
@@ -177,11 +177,11 @@ export default function Sustainability() {
             </GlassCard>
           </div>
 
-          {/* Middle Charts Row - Taller Layout */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Middle Charts Row */}
+          <div className="grid grid-cols-2 gap-6">
             {/* Breakdown Pie Chart */}
-            <GlassCard className="p-7 border-white/[0.05] !bg-[#161b22] flex flex-col justify-between min-h-[380px]">
-              <h3 className="text-[14px] font-semibold text-[#f0f0f3] mb-6">Carbon Footprint Breakdown</h3>
+            <GlassCard className="p-7 border-white/[0.05] !bg-[#161b22] flex flex-col justify-between min-h-[360px]">
+              <h3 className="text-[15px] font-semibold text-[#f0f0f3] mb-6">Carbon Footprint Breakdown</h3>
               <div className="flex items-center justify-between px-2 flex-1">
                 <div className="relative w-56 h-56 flex-shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -222,9 +222,9 @@ export default function Sustainability() {
             </GlassCard>
 
             {/* Trend Line Chart */}
-            <GlassCard className="p-7 flex flex-col border-white/[0.05] !bg-[#161b22] min-h-[380px]">
+            <GlassCard className="p-7 flex flex-col border-white/[0.05] !bg-[#161b22] min-h-[360px]">
               <div className="flex justify-between items-center mb-8">
-                <h3 className="text-[14px] font-semibold text-[#f0f0f3]">30-Day Carbon Trend</h3>
+                <h3 className="text-[15px] font-semibold text-[#f0f0f3]">30-Day Carbon Trend</h3>
                 <div className="bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-white/[0.08]">
                   <span className="text-[11px] font-medium text-[#94a3b8]">kg CO₂e</span>
                   <ChevronDown size={14} className="text-[#94a3b8]" />
@@ -252,54 +252,54 @@ export default function Sustainability() {
             </GlassCard>
           </div>
 
-          {/* Insights Section - Separated GlassCards instead of one big wrapper */}
-          <div className="mt-6">
-            <h3 className="text-[15px] font-semibold text-[#f0f0f3] flex items-center gap-2 mb-4">
+          {/* Insights Section */}
+          <GlassCard className="p-6 border-white/[0.05] !bg-[#161b22]">
+            <h3 className="text-[15px] font-semibold text-[#f0f0f3] flex items-center gap-2 mb-6">
               <span className="text-emerald-500"><Leaf size={18} /></span> Insights & Recommendations
             </h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-6">
               
-              <GlassCard className="p-6 border-white/[0.04] !bg-[#141b18] flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
+              <div className="border border-white/[0.04] bg-[#141b18] rounded-2xl p-5 flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-[44px] h-[44px] rounded-[12px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <div className="w-[46px] h-[46px] rounded-[14px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Leaf size={22} />
                   </div>
                   <div>
-                    <h4 className="text-[13px] font-medium text-emerald-400 mb-1">Great! You're making progress.</h4>
-                    <p className="text-[11px] text-[#94a3b8] leading-tight">Your footprint is 18% lower<br/>than last month.</p>
+                    <h4 className="text-[14px] font-medium text-emerald-400 mb-1">Great! You're making progress.</h4>
+                    <p className="text-[12px] text-[#94a3b8] leading-tight">Your footprint is 18% lower<br/>than last month.</p>
                   </div>
                 </div>
-                <ChevronRight size={16} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
-              </GlassCard>
+                <ChevronRight size={18} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
+              </div>
 
-              <GlassCard className="p-6 border-white/[0.04] !bg-[#1a1811] flex items-center justify-between cursor-pointer group hover:bg-[#201d14] transition-colors">
+              <div className="border border-white/[0.04] bg-[#1a1811] rounded-2xl p-5 flex items-center justify-between cursor-pointer group hover:bg-[#201d14] transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-[44px] h-[44px] rounded-[12px] bg-amber-500/10 flex items-center justify-center text-amber-500">
+                  <div className="w-[46px] h-[46px] rounded-[14px] bg-amber-500/10 flex items-center justify-center text-amber-500">
                     <Zap size={22} />
                   </div>
                   <div>
-                    <h4 className="text-[13px] font-medium text-amber-400 mb-1">Reduce energy usage</h4>
-                    <p className="text-[11px] text-[#94a3b8] leading-tight">Switch to LED lights and<br/>unplug idle devices.</p>
+                    <h4 className="text-[14px] font-medium text-amber-400 mb-1">Reduce energy usage</h4>
+                    <p className="text-[12px] text-[#94a3b8] leading-tight">Switch to LED lights and<br/>unplug idle devices.</p>
                   </div>
                 </div>
-                <ChevronRight size={16} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
-              </GlassCard>
+                <ChevronRight size={18} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
+              </div>
 
-              <GlassCard className="p-6 border-white/[0.04] !bg-[#141b18] flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
+              <div className="border border-white/[0.04] bg-[#141b18] rounded-2xl p-5 flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-[44px] h-[44px] rounded-[12px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <div className="w-[46px] h-[46px] rounded-[14px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Utensils size={22} />
                   </div>
                   <div>
-                    <h4 className="text-[13px] font-medium text-emerald-400 mb-1">Eat more plant-based</h4>
-                    <p className="text-[11px] text-[#94a3b8] leading-tight">Try 3 more plant-based meals<br/>this week.</p>
+                    <h4 className="text-[14px] font-medium text-emerald-400 mb-1">Eat more plant-based</h4>
+                    <p className="text-[12px] text-[#94a3b8] leading-tight">Try 3 more plant-based meals<br/>this week.</p>
                   </div>
                 </div>
-                <ChevronRight size={16} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
-              </GlassCard>
+                <ChevronRight size={18} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
+              </div>
 
             </div>
-          </div>
+          </GlassCard>
 
         </motion.div>
       )}
