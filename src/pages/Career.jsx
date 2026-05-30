@@ -63,13 +63,13 @@ function FocusHeatmap({ heatmap }) {
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex gap-1 min-w-max">
+      <div className="flex gap-[3px] min-w-max">
         {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-1">
+          <div key={wi} className="flex flex-col gap-[3px]">
             {week.map((day, di) => (
               <div
                 key={di}
-                className="w-3.5 h-3.5 rounded-sm cursor-pointer transition-transform hover:scale-125"
+                className="w-2.5 h-2.5 rounded-sm cursor-pointer transition-transform hover:scale-125"
                 style={{ background: LEVEL_COLORS[day.level] }}
                 title={`${day.date}: ${day.minutes} min`}
               />
@@ -77,9 +77,9 @@ function FocusHeatmap({ heatmap }) {
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-1.5 mt-3 text-[10px] text-slate-500">
+      <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-500">
         <span>Less</span>
-        {LEVEL_COLORS.map((c, i) => <div key={i} className="w-3 h-3 rounded-sm" style={{ background: c }} />)}
+        {LEVEL_COLORS.map((c, i) => <div key={i} className="w-2.5 h-2.5 rounded-sm" style={{ background: c }} />)}
         <span>More</span>
       </div>
     </div>
@@ -1385,7 +1385,7 @@ function CareerRecommendations({ recommendations }) {
       </div>
 
       {/* Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {visible.map((r, i) => {
           const rm   = riskMeta(r.risk);
           const ic   = REC_ICONS[r.icon] || REC_ICONS['🧩'];
@@ -1393,30 +1393,30 @@ function CareerRecommendations({ recommendations }) {
           const acc  = status[r.id] === 'accepted';
           return (
             <motion.div key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 24px', background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, opacity: done ? 0.6 : 1, transition: 'opacity 0.2s' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, opacity: done ? 0.6 : 1, transition: 'opacity 0.2s' }}>
 
               {/* Icon box */}
-              <div style={{ width: 56, height: 56, borderRadius: 14, background: ic.bg, border: `1px solid ${ic.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>{r.icon}</div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: ic.bg, border: `1px solid ${ic.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{r.icon}</div>
 
               {/* Content */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 16, fontWeight: 700, color: done ? '#64748b' : '#f1f5f9', marginBottom: 5, textDecoration: done ? 'line-through' : 'none' }}>{r.title}</p>
-                <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5, marginBottom: 12 }}>{r.text}</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: done ? '#64748b' : '#f1f5f9', marginBottom: 2, textDecoration: done ? 'line-through' : 'none' }}>{r.title}</p>
+                <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.4, marginBottom: 6 }}>{r.text}</p>
                 {/* Action buttons */}
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 6 }}>
                   <button onClick={() => setStatus(s => ({ ...s, [r.id]: acc ? undefined : 'accepted' }))}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: acc ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.08)', border: `1px solid ${acc ? 'rgba(16,185,129,0.4)' : 'rgba(16,185,129,0.2)'}`, color: '#34d399' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: acc ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.08)', border: `1px solid ${acc ? 'rgba(16,185,129,0.4)' : 'rgba(16,185,129,0.2)'}`, color: '#34d399' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                     Accept
                   </button>
                   <button onClick={() => setStatus(s => ({ ...s, [r.id]: done ? undefined : 'done' }))}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: done ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${done ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.1)'}`, color: done ? '#818cf8' : '#64748b' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/>{done && <polyline points="9 11 12 14 20 6"/>}</svg>
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: done ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${done ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.1)'}`, color: done ? '#818cf8' : '#64748b' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/>{done && <polyline points="9 11 12 14 20 6"/>}</svg>
                     Mark Done
                   </button>
                   <button onClick={() => setStatus(s => ({ ...s, [r.id]: 'hidden' }))}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#64748b' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 15l-3-3m0 0l3-3m-3 3h10"/></svg>
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#64748b' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10 15l-3-3m0 0l3-3m-3 3h10"/></svg>
                     Not helpful
                   </button>
                 </div>
@@ -1841,20 +1841,20 @@ export default function Career() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
           {/* ── Smart Study Logger ── */}
-          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '28px 28px 24px' }}>
-            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Smart Study Logger</h3>
-            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 28 }}>Track focused sessions and stay consistent.</p>
+          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '16px 20px 16px' }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Smart Study Logger</h3>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Track focused sessions and stay consistent.</p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {/* Duration slider */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                   <label style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>Duration</label>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: '#a5b4fc', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', borderRadius: 8, padding: '4px 14px' }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#a5b4fc', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', borderRadius: 6, padding: '2px 8px' }}>
                     {logForm.durationMinutes >= 60 ? `${Math.floor(logForm.durationMinutes/60)}h${logForm.durationMinutes%60>0?` ${logForm.durationMinutes%60}m`:''}` : `${logForm.durationMinutes} min`}
                   </span>
                 </div>
-                <div style={{ position: 'relative', height: 28, display: 'flex', alignItems: 'center' }}>
+                <div style={{ position: 'relative', height: 16, display: 'flex', alignItems: 'center' }}>
                   {/* Track background */}
                   <div style={{ position: 'absolute', left: 0, right: 0, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }} />
                   {/* Filled portion */}
@@ -1863,31 +1863,31 @@ export default function Career() {
                     onChange={e => setLogForm(p => ({ ...p, durationMinutes: +e.target.value }))}
                     style={{ position: 'relative', width: '100%', accentColor: '#6366f1', cursor: 'pointer', background: 'transparent', zIndex: 1, margin: 0 }} />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
                   {['5 min', '1 hr', '2 hr', '4 hr'].map(l => (
-                    <span key={l} style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{l}</span>
+                    <span key={l} style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{l}</span>
                   ))}
                 </div>
               </div>
 
               {/* Topic */}
               <div>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 8 }}>Topic</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Topic</label>
                 <select value={logForm.topic} onChange={e => setLogForm(p => ({ ...p, topic: e.target.value }))}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '10px 14px', color: '#f1f5f9', fontSize: 13, outline: 'none' }}>
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 10px', color: '#f1f5f9', fontSize: 13, outline: 'none' }}>
                   {TOPICS.map(t => <option key={t} value={t} style={{ background: '#1a1f2e' }}>{t}</option>)}
                 </select>
               </div>
 
               {/* Where did you study */}
               <div>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 10 }}>Where did you study?</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Where did you study?</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4 }}>
                   {ENVS.map(env => (
                     <button key={env.id} onClick={() => setLogForm(p => ({ ...p, environment: env.id }))}
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '12px 6px', borderRadius: 10, border: logForm.environment===env.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.environment===env.id ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'all 0.15s' }}>
-                      <span style={{ fontSize: 18 }}>{env.icon}</span>
-                      <span style={{ fontSize: 11, color: logForm.environment===env.id ? '#a5b4fc' : '#64748b', fontWeight: 500 }}>{env.label}</span>
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '6px 4px', borderRadius: 8, border: logForm.environment===env.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.environment===env.id ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'all 0.15s' }}>
+                      <span style={{ fontSize: 14 }}>{env.icon}</span>
+                      <span style={{ fontSize: 10, color: logForm.environment===env.id ? '#a5b4fc' : '#64748b', fontWeight: 500 }}>{env.label}</span>
                     </button>
                   ))}
                 </div>
@@ -1895,92 +1895,92 @@ export default function Career() {
 
               {/* Focus Quality */}
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                   <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Focus Quality</label>
                   <span style={{ fontSize: 12, color: '#94a3b8' }}>{['','😴 Distracted','😐 Low','🙂 Moderate','😊 High','🔥 Peak'][logForm.focusQuality]}</span>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 4 }}>
                   {[1,2,3,4,5].map(v => (
                     <button key={v} onClick={() => setLogForm(p => ({ ...p, focusQuality: v }))}
-                      style={{ flex: 1, padding: '9px', borderRadius: 8, border: logForm.focusQuality===v ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.focusQuality===v ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)', color: logForm.focusQuality===v ? '#a5b4fc' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                      style={{ flex: 1, padding: '4px', borderRadius: 6, border: logForm.focusQuality===v ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)', background: logForm.focusQuality===v ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)', color: logForm.focusQuality===v ? '#a5b4fc' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
                       {v}
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 10, color: '#334155' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, fontSize: 10, color: '#334155' }}>
                   <span>Low</span><span>Moderate</span><span>High</span>
                 </div>
               </div>
 
               {/* Mental Fatigue */}
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                   <label style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>Mental Fatigue</label>
                   <span style={{ fontSize: 12, color: '#94a3b8' }}>{['','😊 Fresh','🙂 Light','😐 Moderate','😓 Tired','🤯 Exhausted'][logForm.mentalFatigue]}</span>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 4 }}>
                   {[1,2,3,4,5].map(v => (
                     <button key={v} onClick={() => setLogForm(p => ({ ...p, mentalFatigue: v }))}
-                      style={{ flex: 1, padding: '9px', borderRadius: 8, border: logForm.mentalFatigue===v ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.08)', background: logForm.mentalFatigue===v ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.03)', color: logForm.mentalFatigue===v ? '#fca5a5' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                      style={{ flex: 1, padding: '4px', borderRadius: 6, border: logForm.mentalFatigue===v ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.08)', background: logForm.mentalFatigue===v ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.03)', color: logForm.mentalFatigue===v ? '#fca5a5' : '#64748b', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
                       {v}
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 10, color: '#334155' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, fontSize: 10, color: '#334155' }}>
                   <span>Low</span><span>Moderate</span><span>High</span>
                 </div>
               </div>
 
               <button onClick={handleLogSession} disabled={logging}
-                style={{ width: '100%', padding: '13px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: logging ? 'not-allowed' : 'pointer', opacity: logging ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: logging ? 'not-allowed' : 'pointer', opacity: logging ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 ⚡ {logging ? 'Logging...' : 'Log Session'}
               </button>
             </div>
           </div>
 
           {/* ── Career Metrics Logger ── */}
-          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '28px 28px 24px' }}>
-            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Career Metrics Logger</h3>
-            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 24 }}>Update your progress and build your career profile.</p>
+          <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '16px 20px 16px' }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Career Metrics Logger</h3>
+            <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Update your progress and build your career profile.</p>
 
-            <form onSubmit={handleCareerLog} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <form onSubmit={handleCareerLog} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {[
                 { icon: '🕐', label: 'Study Hours Today',  key: 'studyHours',  unit: 'hrs',      type: 'number', placeholder: '4',   step: '0.5' },
                 { icon: '💻', label: 'Coding Hours Today', key: 'codingHours', unit: 'hrs',      type: 'number', placeholder: '3',   step: '0.5' },
                 { icon: '{}', label: 'DSA Problems Solved',key: 'dsa',         unit: 'problems', type: 'number', placeholder: '3',   step: '1'   },
                 { icon: '🏆', label: 'Projects Completed', key: 'projects',    unit: 'projects', type: 'number', placeholder: c.projectsCompleted||'2', step: '1' },
               ].map(row => (
-                <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{row.icon}</div>
+                <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 6, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{row.icon}</div>
                   <span style={{ flex: 1, fontSize: 13, color: '#94a3b8', fontWeight: 500 }}>{row.label}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, overflow: 'hidden' }}>
                     <input type={row.type} value={careerForm[row.key]} placeholder={row.placeholder}
                       onChange={e => setCareerForm(p => ({ ...p, [row.key]: e.target.value }))}
                       step={row.step} min="0"
-                      style={{ width: 60, padding: '8px 10px', background: 'none', border: 'none', color: '#f1f5f9', fontSize: 14, fontWeight: 700, outline: 'none', textAlign: 'right' }} />
-                    <span style={{ padding: '8px 10px 8px 4px', fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>{row.unit}</span>
+                      style={{ width: 60, padding: '4px 6px', background: 'none', border: 'none', color: '#f1f5f9', fontSize: 13, fontWeight: 700, outline: 'none', textAlign: 'right' }} />
+                    <span style={{ padding: '4px 6px 4px 2px', fontSize: 11, color: '#475569', whiteSpace: 'nowrap' }}>{row.unit}</span>
                   </div>
                 </div>
               ))}
 
               {/* Add Skill */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>+</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 6, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>+</div>
                 <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 500, flexShrink: 0 }}>Add New Skill</span>
                 <input type="text" value={careerForm.skill} placeholder="e.g. Docker, Kubernetes"
                   onChange={e => setCareerForm(p => ({ ...p, skill: e.target.value }))}
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', color: '#f1f5f9', fontSize: 13, outline: 'none' }} />
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', color: '#f1f5f9', fontSize: 13, outline: 'none' }} />
                 <span style={{ fontSize: 16, color: '#475569' }}>›</span>
               </div>
 
-              <button type="submit" style={{ width: '100%', marginTop: 20, padding: '13px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <button type="submit" style={{ width: '100%', marginTop: 10, padding: '8px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 Save Career Data ✓
               </button>
             </form>
 
             {recentLogs.length > 0 && (
-              <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <p style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Recent Logs</p>
+              <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <p style={{ fontSize: 11, color: '#475569', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Recent Logs</p>
                 {recentLogs.slice(0, 3).map((entry, i) => {
                   const parts = [];
                   if (entry.studyHours != null) parts.push(`📚 ${entry.studyHours}h`);
@@ -1988,7 +1988,7 @@ export default function Career() {
                   if (entry.dsa != null) parts.push(`🧩 ${entry.dsa} DSA`);
                   if (entry.skillAdded) parts.push(`+${entry.skillAdded}`);
                   return (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <span style={{ fontSize: 11, color: '#334155', fontFamily: 'monospace' }}>{new Date(entry.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</span>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{parts.map((p,j) => <span key={j} style={{ fontSize: 12, color: '#64748b' }}>{p}</span>)}</div>
                     </div>
@@ -2036,7 +2036,7 @@ export default function Career() {
         });
 
         return (
-          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
 
             {/* ── STAT CARDS ── */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
@@ -2046,12 +2046,12 @@ export default function Career() {
                 {icon:'🕐',label:'Total Study Time', value:`${totalStudyH}h`,                          sub:'+24h this month', color:'#6366f1'},
                 {icon:'📖',label:'Sessions Completed',value:statsData.totalSessions||0,                sub:'+9 this month', color:'#8b5cf6'},
               ].map(s=>(
-                <div key={s.label} style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'20px 22px',display:'flex',alignItems:'center',gap:16}}>
-                  <div style={{width:46,height:46,borderRadius:12,background:s.color+'20',border:`1px solid ${s.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{s.icon}</div>
+                <div key={s.label} style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}}>
+                  <div style={{width:36,height:36,borderRadius:10,background:s.color+'20',border:`1px solid ${s.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>{s.icon}</div>
                   <div>
-                    <p style={{fontSize:10,color:'#475569',fontWeight:700,letterSpacing:'0.09em',textTransform:'uppercase',marginBottom:4}}>{s.label}</p>
-                    <p style={{fontSize:26,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{s.value}</p>
-                    <p style={{fontSize:11,color:'#10b981',marginTop:4}}>{s.sub}</p>
+                    <p style={{fontSize:9,color:'#475569',fontWeight:700,letterSpacing:'0.09em',textTransform:'uppercase',marginBottom:2}}>{s.label}</p>
+                    <p style={{fontSize:20,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{s.value}</p>
+                    <p style={{fontSize:10,color:'#10b981',marginTop:2}}>{s.sub}</p>
                   </div>
                 </div>
               ))}
@@ -2061,8 +2061,8 @@ export default function Career() {
             <div style={{display:'grid',gridTemplateColumns:'1fr 240px',gap:8}}>
 
               {/* Heatmap card — heatmap left, ring fills remaining space */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 24px',display:'flex',flexDirection:'column'}}>
-                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:18}}>
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px',display:'flex',flexDirection:'column'}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                   <span style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Focus Heatmap</span>
                   <span style={{fontSize:13,color:'#475569'}}>(Last 90 Days)</span>
                   <span title="Each square = one day. Darker = more study time." style={{fontSize:12,color:'#334155',cursor:'help'}}>ⓘ</span>
@@ -2077,34 +2077,34 @@ export default function Career() {
                     }
                   </div>
                   {/* Ring — fills remaining space, centered */}
-                  <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10}}>
-                    <div style={{position:'relative',width:140,height:140}}>
-                      <svg width="140" height="140" viewBox="0 0 140 140" style={{transform:'rotate(-90deg)'}}>
-                        <circle cx="70" cy="70" r="58" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10"/>
-                        <circle cx="70" cy="70" r="58" fill="none" stroke="#6366f1" strokeWidth="10"
-                          strokeDasharray={`${(consistencyScore/100)*(2*Math.PI*58)} ${2*Math.PI*58}`} strokeLinecap="round"
+                  <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:6}}>
+                    <div style={{position:'relative',width:100,height:100}}>
+                      <svg width="100" height="100" viewBox="0 0 100 100" style={{transform:'rotate(-90deg)'}}>
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8"/>
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#6366f1" strokeWidth="8"
+                          strokeDasharray={`${(consistencyScore/100)*(2*Math.PI*42)} ${2*Math.PI*42}`} strokeLinecap="round"
                           style={{transition:'stroke-dasharray 1s ease'}}/>
                       </svg>
                       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-                        <span style={{fontSize:32,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{consistencyScore}%</span>
+                        <span style={{fontSize:24,fontWeight:900,color:'#f1f5f9',lineHeight:1}}>{consistencyScore}%</span>
                       </div>
                     </div>
-                    <p style={{fontSize:14,fontWeight:600,color:'#94a3b8'}}>Consistency Score</p>
-                    <p style={{fontSize:12,color:'#10b981'}}>↑ +12% this month</p>
+                    <p style={{fontSize:13,fontWeight:600,color:'#94a3b8'}}>Consistency Score</p>
+                    <p style={{fontSize:11,color:'#10b981',marginTop:0}}>↑ +12% this month</p>
                   </div>
                 </div>
               </div>
 
               {/* Learning Insights */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 20px',marginLeft:-16}}>
-                <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9',marginBottom:20}}>Learning Insights</p>
-                <div style={{display:'flex',flexDirection:'column',gap:16}}>
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px',marginLeft:-16}}>
+                <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9',marginBottom:12}}>Learning Insights</p>
+                <div style={{display:'flex',flexDirection:'column',gap:12}}>
                   {INSIGHTS.map((ins,i)=>(
-                    <div key={i} style={{display:'flex',alignItems:'center',gap:14}}>
-                      <div style={{width:40,height:40,borderRadius:10,background:ins.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{ins.icon}</div>
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{width:32,height:32,borderRadius:8,background:ins.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,flexShrink:0}}>{ins.icon}</div>
                       <div>
-                        <p style={{fontSize:11,color:'#64748b',marginBottom:3}}>{ins.label}</p>
-                        <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>{ins.value}</p>
+                        <p style={{fontSize:11,color:'#64748b',marginBottom:1}}>{ins.label}</p>
+                        <p style={{fontSize:14,fontWeight:700,color:'#f1f5f9'}}>{ins.value}</p>
                       </div>
                     </div>
                   ))}
@@ -2116,8 +2116,8 @@ export default function Career() {
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
 
               {/* Recent Learning Activity */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 24px'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
                   <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Recent Learning Activity</p>
                   {sessions.length>4&&<button style={{fontSize:12,color:'#6366f1',background:'none',border:'none',cursor:'pointer',fontWeight:600}}>View all sessions →</button>}
                 </div>
@@ -2127,7 +2127,7 @@ export default function Career() {
                       {/* Vertical timeline line */}
                       <div style={{position:'absolute',left:4,top:8,bottom:8,width:2,background:'rgba(99,102,241,0.2)',borderRadius:1}}/>
                       {sessions.slice(0,4).map((s,i)=>(
-                        <div key={s.id||i} style={{display:'flex',alignItems:'center',gap:14,padding:'13px 0',borderBottom:i<3?'1px solid rgba(255,255,255,0.04)':'none',paddingLeft:4}}>
+                        <div key={s.id||i} style={{display:'flex',alignItems:'center',gap:14,padding:'8px 0',borderBottom:i<3?'1px solid rgba(255,255,255,0.04)':'none',paddingLeft:4}}>
                           <div style={{width:10,height:10,borderRadius:'50%',background:'#6366f1',flexShrink:0,zIndex:1,marginLeft:0}}/>
                           <div style={{flex:1,minWidth:0}}>
                             <p style={{fontSize:11,color:'#475569',marginBottom:2}}>{new Date(s.createdAt||s.sessionDate||Date.now()).toLocaleDateString('en-IN',{month:'short',day:'numeric',year:'numeric'})}</p>
@@ -2146,15 +2146,15 @@ export default function Career() {
               </div>
 
               {/* Study Hours Trend */}
-              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'22px 24px'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
+              <div style={{background:'rgba(15,18,30,0.95)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:16,padding:'16px 20px'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     <p style={{fontSize:15,fontWeight:700,color:'#f1f5f9'}}>Study Hours Trend</p>
                     <span title="Monthly study hours" style={{fontSize:12,color:'#334155',cursor:'help'}}>ⓘ</span>
                   </div>
                   <span style={{fontSize:12,color:'#475569',background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:8,padding:'4px 10px'}}>This Year ▾</span>
                 </div>
-                <div style={{height:180}}>
+                <div style={{height:120}}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trendData} margin={{top:8,right:8,left:-20,bottom:0}}>
                       <defs>
@@ -2197,31 +2197,31 @@ export default function Career() {
           : { label: 'Locked', color: '#64748b', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' };
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
             {/* ── Generator card ── */}
-            <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px 28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎯</div>
+            <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '16px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🎯</div>
                 <div>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>AI Learning Path Generator</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>AI Learning Path Generator</p>
                   <p style={{ fontSize: 12, color: '#64748b' }}>Enter your current and target roles for a personalized roadmap.</p>
                 </div>
               </div>
               <form onSubmit={handleGenerateLearningPath} style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 200 }}>
-                  <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 6 }}>Current Role</label>
+                  <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>Current Role</label>
                   <input type="text" value={lpCurrentRole} onChange={e => setLpCurrentRole(e.target.value)} placeholder="e.g. Software Engineer"
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 16px', color: '#f1f5f9', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', color: '#f1f5f9', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 200 }}>
-                  <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 6 }}>Target Role</label>
+                  <label style={{ fontSize: 12, color: '#64748b', display: 'block', marginBottom: 4 }}>Target Role</label>
                   <input type="text" value={lpTargetRole} onChange={e => setLpTargetRole(e.target.value)} placeholder="e.g. Machine Learning Engineer"
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 16px', color: '#f1f5f9', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', color: '#f1f5f9', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <button type="submit" disabled={lpLoading}
-                    style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: lpLoading ? 'not-allowed' : 'pointer', opacity: lpLoading ? 0.6 : 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: lpLoading ? 'not-allowed' : 'pointer', opacity: lpLoading ? 0.6 : 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
                     {lpLoading ? <><div style={{ width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} className="animate-spin" /> Building…</> : 'Generate Path 🚀'}
                   </button>
                 </div>
@@ -2229,9 +2229,9 @@ export default function Career() {
             </div>
 
             {/* ── Roadmap header ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9' }}>Your Personalized Roadmap</h3>
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.25)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0px' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9' }}>Your Personalized Roadmap</h3>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.25)' }}>
                 {lpResult ? 'AI Generated' : 'General'}
               </span>
               {lpResult && !lpLoading && (
@@ -2259,7 +2259,7 @@ export default function Career() {
             {/* ── Phase cards with timeline ── */}
             <div style={{ position: 'relative' }}>
               {/* Vertical dashed line */}
-              <div style={{ position: 'absolute', left: 27, top: 40, bottom: 40, width: 2, borderLeft: '2px dashed rgba(255,255,255,0.1)' }} />
+              <div style={{ position: 'absolute', left: 15, top: 20, bottom: 20, width: 2, borderLeft: '2px dashed rgba(255,255,255,0.1)' }} />
 
               {/* When AI result exists, show its phases; otherwise show static roadmap */}
               {(lpResult?.phases || roadmap).map((phase, i) => {
@@ -2272,19 +2272,19 @@ export default function Career() {
 
                 return (
                   <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-                    style={{ display: 'flex', gap: 16, marginBottom: 10, opacity: isLocked ? 0.65 : 1 }}>
+                    style={{ display: 'flex', gap: 14, marginBottom: 8, opacity: isLocked ? 0.65 : 1 }}>
                     {/* Number circle */}
                     <div style={{ flexShrink: 0 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: isLocked ? 'rgba(15,18,30,0.95)' : 'rgba(99,102,241,0.2)', border: `2px solid ${isLocked ? 'rgba(255,255,255,0.1)' : 'rgba(99,102,241,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: isLocked ? '#475569' : '#818cf8', zIndex: 1 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: isLocked ? 'rgba(15,18,30,0.95)' : 'rgba(99,102,241,0.2)', border: `2px solid ${isLocked ? 'rgba(255,255,255,0.1)' : 'rgba(99,102,241,0.5)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: isLocked ? '#475569' : '#818cf8', zIndex: 1 }}>
                         {i + 1}
                       </div>
                     </div>
 
                     {/* Card */}
-                    <div style={{ flex: 1, background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '18px 22px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                    <div style={{ flex: 1, background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                         {/* Icon */}
-                        <div style={{ width: 48, height: 48, borderRadius: 12, background: meta.bg, border: `1px solid ${meta.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: meta.icon === '</>' ? 14 : 22, fontWeight: 800, color: '#f1f5f9', flexShrink: 0, fontFamily: 'monospace' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: meta.bg, border: `1px solid ${meta.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: meta.icon === '</>' ? 14 : 18, fontWeight: 800, color: '#f1f5f9', flexShrink: 0, fontFamily: 'monospace' }}>
                           {meta.icon}
                         </div>
                         {/* Title + desc */}
@@ -2293,7 +2293,7 @@ export default function Career() {
                             <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9' }}>{phaseName}</p>
                             <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: sm.bg, color: sm.color, border: `1px solid ${sm.border}` }}>{sm.label}</span>
                           </div>
-                          <p style={{ fontSize: 13, color: '#64748b', marginBottom: isAI && aiCourses.length ? 0 : 8 }}>{meta.desc}</p>
+                          <p style={{ fontSize: 12, color: '#64748b', marginBottom: isAI && aiCourses.length ? 0 : 4 }}>{meta.desc}</p>
                           {!isAI && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                               {meta.subs.map((sub, si) => (
@@ -2324,15 +2324,15 @@ export default function Career() {
 
                       {/* AI course list inline — same card, no layout shift */}
                       {isAI && aiCourses.length > 0 && (
-                        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {aiCourses.map((course, ci) => (
-                            <div key={ci} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                            <div key={ci} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                               <div>
                                 <p style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0', marginBottom: 2 }}>{course.title}</p>
                                 <p style={{ fontSize: 11, color: '#475569' }}>⏱ {course.hours} hrs · {course.cost}</p>
                               </div>
                               <a href={course.url} target="_blank" rel="noopener noreferrer"
-                                style={{ padding: '5px 14px', borderRadius: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8', fontSize: 12, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8', fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                 Open →
                               </a>
                             </div>
@@ -2346,13 +2346,13 @@ export default function Career() {
             </div>
 
             {/* ── How it works ── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 24px', background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(234,179,8,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>💡</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(234,179,8,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>💡</div>
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 3 }}>How it works</p>
-                <p style={{ fontSize: 13, color: '#64748b' }}>Our AI analyzes your goals, role, and progress to create a roadmap tailored for you.</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', marginBottom: 1 }}>How it works</p>
+                <p style={{ fontSize: 12, color: '#64748b' }}>Our AI analyzes your goals, role, and progress to create a roadmap tailored for you.</p>
               </div>
-              <button style={{ fontSize: 13, color: '#6366f1', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button style={{ fontSize: 12, color: '#6366f1', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
                 Learn more →
               </button>
             </div>
