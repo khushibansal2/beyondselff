@@ -57,52 +57,41 @@ function TabBar({ tabs, active, onChange }) {
     <div style={{
       display: 'flex',
       width: '100%',
-      background: 'rgba(10, 15, 30, 0.3)',
-      border: '1px solid rgba(255, 255, 255, 0.06)',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      marginBottom: '32px',
+      alignItems: 'center',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      marginBottom: '12px',
+      gap: 20,
       position: 'relative',
-      zIndex: 2
-    }}>
-      {tabs.map((t, idx) => {
+      zIndex: 2,
+      overflowX: 'auto',
+      paddingBottom: 0
+    }} className="custom-scrollbar">
+      {tabs.map((t) => {
         const isActive = active === t.id;
-        const brandColor = isActive ? (activeColor[t.id] || '#ffffff') : '#64748b';
+        const brandColor = isActive ? (activeColor[t.id] || '#ffffff') : '#8e929b';
         return (
           <button
             key={t.id}
             onClick={() => onChange(t.id)}
             style={{
-              flex: 1,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              padding: '16px 12px',
-              background: isActive ? 'rgba(255, 255, 255, 0.01)' : 'transparent',
+              gap: 6,
+              padding: '8px 4px',
+              background: 'none',
               border: 'none',
-              borderRight: idx < tabs.length - 1 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
-              color: isActive ? '#ffffff' : '#8b949e',
-              fontSize: '14px',
-              fontWeight: 600,
+              color: isActive ? '#ffffff' : '#8e929b',
+              fontSize: '13px',
+              fontWeight: 500,
               cursor: 'pointer',
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-              position: 'relative'
+              transition: 'color 0.2s',
+              borderBottom: isActive ? `2px solid ${activeColor[t.id] || '#8b5cf6'}` : '2px solid transparent',
+              marginBottom: -1,
+              whiteSpace: 'nowrap'
             }}
           >
-            <t.icon size={16} style={{ color: brandColor }} />
+            <t.icon size={15} style={{ color: brandColor }} />
             {t.label}
-            {isActive && (
-              <motion.div
-                layoutId="activeTabUnderline"
-                style={{
-                  position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
-                  background: '#818cf8', borderRadius: '2px 2px 0 0',
-                  boxShadow: '0 0 8px rgba(129, 140, 248, 0.6)'
-                }}
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-              />
-            )}
           </button>
         );
       })}
@@ -921,10 +910,10 @@ function LinkedInPanel() {
     : 'text-amber-400 bg-amber-500/10 border-amber-500/25';
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       {/* Search */}
-      <GlassCard>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <GlassCard className="!p-5">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div className="w-6 h-6 rounded-md bg-[#0077b5] flex items-center justify-center text-white font-sans font-bold text-[13px] select-none">in</div>
@@ -938,14 +927,14 @@ function LinkedInPanel() {
           Analyze any LinkedIn profile or search for professional connections to enrich your career analytics and job matches.
         </p>
 
-        <div style={{ display: 'flex', gap: 12, marginTop: 20, width: '100%' }}>
+        <div style={{ display: 'flex', gap: 12, marginTop: 12, width: '100%' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Linkedin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#6e7681' }} />
             <input
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder="e.g. Arjun Mehta"
+              placeholder="e.g. Arjun Mehta, Priya Sharma"
               className="input-premium w-full text-[13.5px]"
               style={{ paddingLeft: 38 }}
             />
@@ -967,7 +956,7 @@ function LinkedInPanel() {
         </div>
 
         {/* Suggested row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: '#8b949e', fontWeight: 600 }}>Suggested:</span>
             {['Priya Sharma', 'Arjun Mehta', 'Rahul Gupta', 'Ananya Singh'].map(n => (
@@ -996,33 +985,6 @@ function LinkedInPanel() {
           </button>
         </div>
 
-        {!profile && !loading && (
-          <div style={{
-            marginTop: 24,
-            padding: '48px 24px',
-            borderRadius: 16,
-            border: '1px dashed rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(255, 255, 255, 0.005)'
-          }}>
-            <div style={{
-              width: 48, height: 48, borderRadius: '50%',
-              background: 'rgba(0, 119, 181, 0.1)',
-              border: '1px solid rgba(0, 119, 181, 0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 16
-            }}>
-              <Linkedin size={20} style={{ color: '#0077b5' }} />
-            </div>
-            <h4 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px 0' }}>Analyze any LinkedIn profile</h4>
-            <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 20px 0', textAlign: 'center' }}>
-              No authentication required • Works with any public profile
-            </p>
-          </div>
-        )}
       </GlassCard>
 
       {/* Loading State */}
@@ -1035,17 +997,34 @@ function LinkedInPanel() {
 
       {/* Empty State / Top Matches */}
       {!profile && !loading && (
-        <>
-          <GlassCard className="p-0 overflow-hidden animate-fadeIn">
-            <div className="flex items-center justify-between py-5 px-8 border-b border-white/[0.06]">
-              <h3 className="text-[16px] font-semibold text-[#f0f0f3]">Top Matches</h3>
-              <button className="text-[14px] text-[#58a6ff] hover:underline flex items-center gap-1 transition-colors font-medium">
-                View all <ChevronRight size={16} />
-              </button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: 16 }}>
+          <GlassCard style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', textAlign: 'center', border: '1px dashed rgba(255, 255, 255, 0.08)', background: 'rgba(255, 255, 255, 0.005)' }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'rgba(0, 119, 181, 0.1)',
+              border: '1px solid rgba(0, 119, 181, 0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 20
+            }}>
+              <Linkedin size={28} style={{ color: '#0077b5' }} />
             </div>
-            <div className="divide-y divide-white/[0.06]">
-              {MOCK_TOP_MATCHES.map(match => (
-                <div key={match.name} className="flex items-center py-6 px-8 hover:bg-white/[0.01] transition-colors cursor-pointer group" onClick={() => { setSearchInput(match.name); handleSearch(); }}>
+            <h4 style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: '0 0 8px 0' }}>Analyze any LinkedIn profile</h4>
+            <p style={{ fontSize: 13, color: '#64748b', margin: 0, textAlign: 'center', lineHeight: 1.5 }}>
+              No authentication required • Works with any public profile
+            </p>
+          </GlassCard>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <GlassCard className="p-0 overflow-hidden animate-fadeIn">
+              <div className="flex items-center justify-between py-3 px-6 border-b border-white/[0.06]">
+                <h3 className="text-[16px] font-semibold text-[#f0f0f3]">Top Matches</h3>
+                <button className="text-[14px] text-[#58a6ff] hover:underline flex items-center gap-1 transition-colors font-medium">
+                  View all <ChevronRight size={16} />
+                </button>
+              </div>
+              <div className="divide-y divide-white/[0.06]">
+                {MOCK_TOP_MATCHES.map(match => (
+                  <div key={match.name} className="flex items-center py-3 px-6 hover:bg-white/[0.01] transition-colors cursor-pointer group" onClick={() => { setSearchInput(match.name); handleSearch(); }}>
                   {/* Avatar & Info */}
                   <div className="flex items-center gap-5 w-[38%]">
                     <div className="relative flex-shrink-0">
@@ -1083,14 +1062,14 @@ function LinkedInPanel() {
                   </div>
 
                   {/* Skills */}
-                  <div className="w-[23%] pr-6">
+                  <div className="w-[19%] pr-4">
                     <p className="text-[12px] text-[#8b949e] uppercase tracking-wider font-semibold">Skills</p>
                     <p className="text-[14px] text-[#8b949e] mt-1.5 truncate leading-relaxed">{match.skills}</p>
                   </div>
 
                   {/* Activity Score */}
-                  <div className="w-[10%] flex flex-col items-center">
-                    <p className="text-[12px] text-[#8b949e] uppercase tracking-wider font-semibold mb-1.5">Activity Score</p>
+                  <div className="w-[14%] flex flex-col items-center">
+                    <p className="text-[12px] text-[#8b949e] uppercase tracking-wider font-semibold mb-1.5 whitespace-nowrap">Activity Score</p>
                     <div className="relative w-12 h-12 flex items-center justify-center mt-1">
                       <svg className="absolute inset-0 w-full h-full transform -rotate-90">
                         <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4" />
@@ -1108,18 +1087,19 @@ function LinkedInPanel() {
                 </div>
               ))}
             </div>
-          </GlassCard>
+            </GlassCard>
 
-          <div className="flex items-center justify-between text-[#8b949e] text-[13px] px-1 py-2">
-            <div className="flex items-center gap-2">
-              <ShieldCheck size={18} className="text-[#8b949e]" />
-              <span>We use OAuth 2.0 for secure authentication. Your data is private and never stored.</span>
+            <div className="flex items-center justify-between text-[#8b949e] text-[13px] px-2 py-1">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-[#8b949e]" />
+                <span>We use OAuth 2.0 for secure authentication. Your data is private and never stored.</span>
+              </div>
+              <a href="#" className="flex items-center gap-1.5 hover:text-white transition-colors font-medium">
+                Learn more about LinkedIn Integration <ExternalLink size={15} />
+              </a>
             </div>
-            <a href="#" className="flex items-center gap-1.5 hover:text-white transition-colors font-medium">
-              Learn more about LinkedIn Integration <ExternalLink size={15} />
-            </a>
           </div>
-        </>
+        </div>
       )}
 
       {profile && !loading && (
@@ -1621,19 +1601,19 @@ const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
 function FitbitPanel() {
   return (
-    <div className="flex flex-col gap-5" style={{ minHeight: 'calc(100vh - 180px)' }}>
+    <div className="flex flex-col gap-2">
 
       {/* ── Header ── */}
-      <GlassCard>
-        <div className="flex items-center justify-between flex-wrap gap-6">
-          <div className="flex items-center gap-5">
+      <GlassCard className="!p-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
             <div style={{
-              width: 56, height: 56, borderRadius: 16,
+              width: 42, height: 42, borderRadius: 12,
               background: 'rgba(0, 176, 185, 0.1)',
               border: '1px solid rgba(0, 176, 185, 0.25)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
             }}>
-              <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+              <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
                 <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
                 <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
                 <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
@@ -1644,18 +1624,17 @@ function FitbitPanel() {
               </svg>
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-[17px] font-bold text-[#f0f0f3]">Fitbit Health Sync</h3>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="text-[15px] font-bold text-[#f0f0f3]">Fitbit Health Sync</h3>
                 <StatusBadge status="none" />
               </div>
-              <p className="text-[13px] text-[#8b949e] leading-relaxed">Click Connect Fitbit to authorize via OAuth.</p>
-              <p className="text-[13px] text-[#8b949e] leading-relaxed">We fetch sleep, steps, heart rate, and calories — no password stored.</p>
+              <p className="text-[13px] text-[#8b949e] leading-relaxed">Click Connect Fitbit to authorize via OAuth. We fetch sleep, steps, heart rate, and calories — no password stored.</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
             <button
               style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 12, 
+                display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 10, 
                 fontWeight: 600, fontSize: 13, color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.25)',
                 background: 'rgba(99, 102, 241, 0.12)', cursor: 'pointer', transition: 'all 0.2s'
               }}
@@ -1681,21 +1660,21 @@ function FitbitPanel() {
         ].map((m, idx) => (
           <div
             key={m.label}
-            className={`flex items-center gap-4 px-6 py-5 bg-white/[0.01] ${
+            className={`flex items-center gap-3 px-4 py-3 bg-white/[0.01] ${
               idx < 3 ? 'border-r border-white/[0.06]' : ''
             }`}
           >
             <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: m.bg }}
             >
-              <m.Icon size={26} className={m.iconCls} />
+              <m.Icon size={18} className={m.iconCls} />
             </div>
             <div className="min-w-0">
-              <p className="text-[13px] text-[#8b949e] mb-1">{m.label}</p>
+              <p className="text-[11px] text-[#8b949e] mb-0.5">{m.label}</p>
               <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-[28px] font-bold text-[#f0f0f3] leading-none">{m.value}</span>
-                {m.suffix && <span className="text-[14px] text-[#8b949e] font-normal">{m.suffix}</span>}
+                <span className="text-[20px] font-bold text-[#f0f0f3] leading-none">{m.value}</span>
+                {m.suffix && <span className="text-[11px] text-[#8b949e] font-normal">{m.suffix}</span>}
               </div>
               <p className={`text-[12px] font-medium ${m.up ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {m.up ? '▲' : '▼'} {m.trend.replace('+','').replace('-','')} <span className="text-[#8b949e] font-normal">vs last 7 days</span>
@@ -1708,7 +1687,7 @@ function FitbitPanel() {
       {/* ── All Activities Table ── */}
       <div className="glass-card overflow-hidden flex flex-col flex-1">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
             <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[#8b949e] text-[12px] font-medium border border-white/[0.06]">10</span>
@@ -1725,8 +1704,8 @@ function FitbitPanel() {
 
         {/* Column header row */}
         <div
-          className="grid px-6 py-3 border-b border-white/[0.06] text-[11px] font-semibold text-[#8b949e] uppercase tracking-wider"
-          style={{ gridTemplateColumns: '160px 1fr 120px 130px 130px 44px' }}
+          className="grid px-5 py-2 border-b border-white/[0.06] text-[11px] font-semibold text-[#8b949e] uppercase tracking-wider"
+          style={{ gridTemplateColumns: '150px 1fr 110px 120px 120px 40px' }}
         >
           <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
           <div>Activity</div>
@@ -1747,8 +1726,8 @@ function FitbitPanel() {
         ].map((row, i) => (
           <div
             key={i}
-            className="grid flex-1 min-h-[72px] px-6 hover:bg-white/[0.02] transition-colors items-center group"
-            style={{ gridTemplateColumns: '160px 1fr 120px 130px 130px 44px' }}
+            className="grid px-5 py-2 hover:bg-white/[0.02] transition-colors items-center group"
+            style={{ gridTemplateColumns: '150px 1fr 110px 120px 120px 40px', minHeight: '48px' }}
           >
             <div>
               <p className="text-[13px] text-[#f0f0f3] font-medium">{row.date}</p>
@@ -1770,8 +1749,14 @@ function FitbitPanel() {
             </div>
             <div className="text-[13px] text-[#f0f0f3] font-medium">{row.val}</div>
             <div className="flex items-center gap-2 text-[13px] text-[#f0f0f3]">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-[#00b0b9]">
-                <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
+                <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
+                <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
+                <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+                <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
+                <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+                <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
               </svg>
               Fitbit
             </div>
@@ -1783,7 +1768,7 @@ function FitbitPanel() {
         </div>
 
         {/* Pagination footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-2 border-t border-white/[0.06]">
           <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
           <div className="flex items-center gap-1">
             <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
@@ -1983,13 +1968,25 @@ function IndiaBankingPanel() {
     <div className="space-y-4">
 
       {/* ── HEADER CARD ── */}
-      <GlassCard>
+      <GlassCard className="!p-5">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Landmark size={18} className="text-white" />
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>India Banking Intelligence</h3>
-              <StatusBadge status={isResults ? 'live' : isDemo ? 'demo' : 'none'} />
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'rgba(16,185,129,0.1)',
+              border: '1px solid rgba(16,185,129,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <Landmark size={18} style={{ color: '#34d399' }} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>India Banking Intelligence</h3>
+                <StatusBadge status={isResults ? 'live' : isDemo ? 'demo' : 'none'} />
+              </div>
+              <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0 }}>
+                Consent-based secure open banking powered by India's RBI-regulated Account Aggregator (AA) framework.
+              </p>
             </div>
           </div>
 
@@ -1999,15 +1996,18 @@ function IndiaBankingPanel() {
                 <button
                   onClick={() => setPhase('demo')}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 12, 
-                    fontWeight: 600, fontSize: 13, color: '#34d399', border: '1px solid rgba(16,185,129,0.25)',
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderRadius: 10, 
+                    fontWeight: 600, fontSize: 13, color: '#34d399', border: '1px solid rgba(16,185,129,0.3)',
                     background: 'rgba(16, 185, 129, 0.12)', cursor: 'pointer', transition: 'all 0.2s'
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.2)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.45)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.12)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.25)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.2)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.12)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; }}
                 >
                   Connect Banking <ExternalLink size={13} />
                 </button>
+                <div className="flex items-center gap-1 text-[11px] text-[#8b949e]">
+                  <ShieldCheck size={12} /> Secure OAuth 2.0
+                </div>
               </>
             ) : (
               <div className="flex items-center gap-2">
@@ -2024,40 +2024,51 @@ function IndiaBankingPanel() {
             )}
           </div>
         </div>
-        <p style={{ fontSize: 12.5, color: '#8b949e', margin: '8px 0 0' }}>
-          Consent-based secure open banking powered by India's RBI-regulated Account Aggregator (AA) framework.
-        </p>
       </GlassCard>
 
       {/* ── Landing Phase ── */}
       {phase === 'landing' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
-          {/* 3-column provider cards — individual bordered cards */}
+          {/* 3-column provider cards */}
           <div className="grid grid-cols-3 gap-4">
             {AA_PROVIDERS.map(p => (
               <button key={p.id} onClick={() => handleProviderClick(p)}
-                className="text-left p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all group flex flex-col">
-                {/* Name + badge row */}
-                <div className="flex items-start justify-between mb-2">
-                  <span className="text-[15px] font-bold text-[#f0f0f3]">{p.name}</span>
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border flex-shrink-0 ml-2"
-                    style={{ color: p.color, borderColor: p.color + '50', background: p.color + '18' }}>
-                    {p.badge}
-                  </span>
-                </div>
-                {/* Subtitle */}
-                <p className="text-[12px] font-semibold mb-3" style={{ color: p.color }}>{p.subtitle}</p>
-                {/* Description */}
-                <p className="text-[12px] text-[#71717a] leading-relaxed flex-1 mb-5">{p.desc}</p>
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-                  <span className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
-                    <Landmark size={13} />{p.banks}+ banks
-                  </span>
-                  <span className="text-[12px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>
-                    Connect →
-                  </span>
+                className="text-left rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all group flex flex-col overflow-hidden"
+                style={{ padding: 0 }}>
+                {/* Color accent top bar */}
+                <div style={{ height: 3, background: p.color, opacity: 0.7, width: '100%' }} />
+                <div style={{ padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  {/* Logo icon + badge row */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      background: p.color + '1a',
+                      border: `1px solid ${p.color}40`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                    }}>
+                      <Landmark size={18} style={{ color: p.color }} />
+                    </div>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border flex-shrink-0"
+                      style={{ color: p.id === 'setu' ? '#34d399' : p.color, borderColor: (p.id === 'setu' ? '#10b981' : p.color) + '50', background: (p.id === 'setu' ? '#10b981' : p.color) + '18' }}>
+                      {p.badge}
+                    </span>
+                  </div>
+                  {/* Name */}
+                  <span className="text-[15px] font-bold text-[#f0f0f3] mb-1">{p.name}</span>
+                  {/* Subtitle */}
+                  <p className="text-[12px] font-semibold mb-3" style={{ color: p.color }}>{p.subtitle}</p>
+                  {/* Description */}
+                  <p className="text-[12px] text-[#71717a] leading-relaxed flex-1 mb-4">{p.desc}</p>
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
+                    <span className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
+                      <Landmark size={13} />{p.banks}+ banks
+                    </span>
+                    <span className="text-[12px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>
+                      Connect →
+                    </span>
+                  </div>
                 </div>
               </button>
             ))}
@@ -2536,7 +2547,7 @@ export default function Integrations() {
   const [tab, setTab] = useState('github');
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto min-h-screen pb-20 pt-6 px-4 sm:px-8 relative" style={{ zIndex: 1 }}>
+    <div className="page-container min-h-screen pb-2 relative pt-6" style={{ zIndex: 1 }}>
       
       {/* ── Cybernetic CSS Keyframes & Overrides ── */}
       <style>{`
@@ -2621,11 +2632,11 @@ export default function Integrations() {
       <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(6,182,212,0.05)', filter: 'blur(120px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
 
       {/* ── Glowing Brand Header ── */}
-      <div className="mb-8 flex flex-col gap-1.5" style={{ position: 'relative', zIndex: 2 }}>
+      <div className="mb-4 pt-2 flex flex-col gap-1" style={{ position: 'relative', zIndex: 2 }}>
         {/* Title block */}
-        <div className="flex items-center gap-4 mt-2">
+        <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/5">
-            <PlugIcon size={20} className="text-[#818cf8]" />
+            <Link size={20} className="text-[#818cf8]" />
           </div>
           <div>
             <h1 className="text-[26px] font-black text-white leading-tight tracking-tight">API Integrations</h1>
