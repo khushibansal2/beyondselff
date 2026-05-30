@@ -1217,27 +1217,6 @@ export default function Finance() {
           : 'Review subscriptions and reduce impulse spending.';
 
         return (
-        <div style={{display:'flex', flexDirection:'column', gap:12}}>
-
-          {/* ROW 1 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:14}}>
-
-            {/* Score card */}
-            <div style={{...card, padding:'14px 18px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-              <div style={{display:'flex', alignItems:'center', gap:12}}>
-                {/* Ring */}
-                <div style={{position:'relative', width:88, height:88, flexShrink:0}}>
-                  <svg viewBox="0 0 88 88" width="88" height="88">
-                    <circle cx="44" cy="44" r="36" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="8"/>
-                    <circle cx="44" cy="44" r="36" fill="none" stroke={scoreColor} strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*36} ${2*Math.PI*36}`}
-                      strokeDashoffset={2*Math.PI*36*(1-score/100)}
-                      style={{transform:'rotate(-90deg)', transformOrigin:'44px 44px', transition:'stroke-dashoffset 1.2s ease'}}/>
-                  </svg>
-                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:26, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                    <span style={{fontSize:9, color:'#475569', marginTop:1}}>/ 100</span>
         <div style={{display:'flex', flexDirection:'column', gap:8}}>
 
           {/* ROW 1 */}
@@ -1263,12 +1242,6 @@ export default function Finance() {
                 </div>
                 {/* Text beside ring */}
                 <div>
-                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Finance Score</p>
-                  <span style={{display:'inline-block', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, marginBottom:6,
-                    background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
-                    {score>=70?'Good':score>=45?'Moderate':'Low'}
-                  </span>
-                  <p style={{fontSize:11, color:'#64748b', lineHeight:1.35, whiteSpace:'pre-line'}}>
                   <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Finance Score</p>
                   <span style={{display:'inline-block', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, marginBottom:5,
                     background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
@@ -1280,23 +1253,12 @@ export default function Finance() {
                 </div>
               </div>
               <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:10, padding:'6px 12px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
                 style={{marginTop:8, padding:'5px 10px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:10, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, alignSelf:'flex-start'}}>
                 View Insights →
               </button>
             </div>
 
             {/* Metrics card */}
-            <div style={{...card, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8}}>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8}}>
-                {METRICS.map(m => (
-                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:9, padding:'8px 10px'}}>
-                    <div style={{display:'flex', alignItems:'center', gap:5, marginBottom:4}}>
-                      <div style={{width:20, height:20, borderRadius:5, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0}}>{m.icon}</div>
-                      <span style={{fontSize:10, color:'#64748b'}}>{m.label}</span>
-                    </div>
-                    <p style={{fontSize:14, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:2}}>{m.value}</p>
-                    <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
             <div style={{...card, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
               <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
                 {METRICS.map(m => (
@@ -1311,16 +1273,6 @@ export default function Finance() {
                 ))}
               </div>
               {/* Savings Rate */}
-              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:9, padding:'7px 10px', display:'flex', alignItems:'center', gap:10}}>
-                <div style={{width:24, height:24, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
-                <div style={{flexShrink:0, minWidth:64}}>
-                  <p style={{fontSize:9, color:'#64748b'}}>Savings Rate</p>
-                  <p style={{fontSize:15, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
-                  <p style={{fontSize:9, color:'#475569'}}>of income</p>
-                </div>
-                <div style={{flex:1}}>
-                  <p style={{fontSize:10, color:'#475569', marginBottom:4}}>Aim for 20% to build strong financial health.</p>
-                  <div style={{height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
               <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 10px', display:'flex', alignItems:'center', gap:8}}>
                 <div style={{width:22, height:22, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
                 <div style={{flexShrink:0, minWidth:70}}>
@@ -1341,12 +1293,6 @@ export default function Finance() {
           </div>
 
           {/* ROW 2 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:14}}>
-            {/* Expense Breakdown */}
-            <div style={{...card, padding:'14px 16px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
-                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
-                <span style={{fontSize:11, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
           <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
             {/* Expense Breakdown */}
             <div style={{...card, padding:'12px'}}>
@@ -1358,11 +1304,6 @@ export default function Finance() {
                 const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
                 const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
                 return (
-                  <div style={{display:'flex', alignItems:'center', gap:14}}>
-                    <div style={{position:'relative', flexShrink:0, width:88, height:88}}>
-                      <ResponsiveContainer width={88} height={88}>
-                        <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={40} innerRadius={26} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
                   <div style={{display:'flex', alignItems:'center', gap:10}}>
                     <div style={{position:'relative', flexShrink:0, width:80, height:80}}>
                       <ResponsiveContainer width={80} height={80}>
@@ -1374,10 +1315,6 @@ export default function Finance() {
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                        <span style={{fontSize:10,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
-                      </div>
-                    </div>
-                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:6}}>
                         <span style={{fontSize:9,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
                       </div>
                     </div>
@@ -1387,8 +1324,6 @@ export default function Finance() {
                         return(
                           <div key={e.name} style={{display:'flex',alignItems:'center',gap:6}}>
                             <span style={{width:5,height:5,borderRadius:'50%',background:color,flexShrink:0}}/>
-                            <span style={{fontSize:10,color:'#94a3b8',flex:1}}>{e.name}</span>
-                            <span style={{fontSize:10,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                             <span style={{fontSize:9,color:'#94a3b8',flex:1}}>{e.name}</span>
                             <span style={{fontSize:9,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                           </div>
@@ -1411,14 +1346,6 @@ export default function Finance() {
             </div>
 
             {/* Spending Trend */}
-            <div style={{...card, padding:'14px 16px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
-                <h3 style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>
-                  Spending Trend{!hasFinanceData&&<span style={{fontSize:10, color:'#475569', marginLeft:6}}>(demo)</span>}
-                </h3>
-                <span style={{fontSize:10, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'3px 10px', cursor:'pointer'}}>This Month ▾</span>
-              </div>
-              <div style={{height:105}}>
             <div style={{...card, padding:'12px'}}>
               <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6}}>
                 <h3 style={{fontSize:12, fontWeight:700, color:'#f1f5f9'}}>
@@ -1450,15 +1377,6 @@ export default function Finance() {
           </div>
 
           {/* Financial Anxiety Detection */}
-          <div style={{...card, padding:'9px 14px', display:'flex', alignItems:'center', gap:12}}>
-            <div style={{width:28, height:28, borderRadius:7, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:15}}>🛡️</div>
-            <div style={{flex:1, minWidth:0}}>
-              <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Financial Anxiety Detection</p>
-              <p style={{fontSize:11, fontWeight:600, color:flag.color, marginBottom:1}}>{flag.label}</p>
-              <p style={{fontSize:10, color:'#64748b'}}>{action}</p>
-            </div>
-            <button onClick={()=>setTab('recommendations')}
-              style={{padding:'6px 12px', borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
           <div style={{...card, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
             <div style={{width:24, height:24, borderRadius:6, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12}}>🛡️</div>
             <div style={{flex:1, minWidth:0}}>
