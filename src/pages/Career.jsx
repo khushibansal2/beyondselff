@@ -22,33 +22,45 @@ import {
 // ── Cognitive Load Gauge ─────────────────────────────────────────────────────
 function CognitiveGauge({ value }) {
   const pct = Math.min(100, Math.max(0, value));
-  const angle = -135 + (pct / 100) * 270;
-  const rad = (angle * Math.PI) / 180;
-  const cx = 80, cy = 80, r = 60;
-  const nx = cx + r * Math.cos(rad);
-  const ny = cy + r * Math.sin(rad);
-  const color = pct < 40 ? '#10b981' : pct < 70 ? '#f59e0b' : '#f43f5e';
-  const label = pct < 40 ? 'Low' : pct < 70 ? 'Moderate' : 'High';
-
-  const arcPath = (startAngle, endAngle) => {
-    const s = ((startAngle - 90) * Math.PI) / 180;
-    const e = ((endAngle - 90) * Math.PI) / 180;
-    const x1 = cx + r * Math.cos(s), y1 = cy + r * Math.sin(s);
-    const x2 = cx + r * Math.cos(e), y2 = cy + r * Math.sin(e);
-    const large = endAngle - startAngle > 180 ? 1 : 0;
-    return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+  const cx = 100, cy = 110, r = 80;
+  
+  const getPoint = (angle) => {
+    const rad = (angle * Math.PI) / 180;
+    return {
+      x: cx + r * Math.cos(rad),
+      y: cy - r * Math.sin(rad)
+    };
   };
+
+  const p1 = getPoint(180);
+  const p2 = getPoint(108);
+  const p3 = getPoint(54);
+  const p4 = getPoint(0);
+
+  const needleAngle = 180 - (pct / 100) * 180;
+  const needleRad = (needleAngle * Math.PI) / 180;
+  const nx = cx + (r - 15) * Math.cos(needleRad);
+  const ny = cy - (r - 15) * Math.sin(needleRad);
+
+  const color = pct < 40 ? '#10b981' : pct < 70 ? '#f59e0b' : '#f43f5e';
+  const label = pct < 40 ? 'Low Load' : pct < 70 ? 'Moderate' : 'High Load';
 
   return (
     <div className="flex flex-col items-center">
-      <svg width="120" height="97" viewBox="0 0 160 130">
-        <path d={arcPath(-45, 45, '#10b981')} stroke="#10b981" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
-        <path d={arcPath(45, 90, '#f59e0b')} stroke="#f59e0b" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
-        <path d={arcPath(90, 135, '#f43f5e')} stroke="#f43f5e" strokeWidth="8" fill="none" strokeLinecap="round" opacity="0.3" />
+      <svg width="200" height="135" viewBox="0 0 200 135">
+        {/* Track segments */}
+        <path d={`M ${p1.x} ${p1.y} A ${r} ${r} 0 0 1 ${p2.x} ${p2.y}`} stroke="#10b981" strokeWidth="8" fill="none" opacity="0.9" />
+        <path d={`M ${p2.x} ${p2.y} A ${r} ${r} 0 0 1 ${p3.x} ${p3.y}`} stroke="#f59e0b" strokeWidth="8" fill="none" opacity="0.9" />
+        <path d={`M ${p3.x} ${p3.y} A ${r} ${r} 0 0 1 ${p4.x} ${p4.y}`} stroke="#f43f5e" strokeWidth="8" fill="none" opacity="0.9" />
+
+        {/* Needle */}
         <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={color} strokeWidth="3" strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r="5" fill={color} />
-        <text x={cx} y={cy + 28} textAnchor="middle" fill={color} fontSize="16" fontWeight="bold">{Math.round(pct)}</text>
-        <text x={cx} y={cy + 42} textAnchor="middle" fill="#9B9B9B" fontSize="9">{label} Load</text>
+        <circle cx={cx} cy={cy} r="6" fill={color} />
+
+        {/* Texts */}
+        <text x={cx} y={cy - 24} textAnchor="middle" fill="#ffffff" fontSize="24" fontWeight="900">{Math.round(pct)}</text>
+        <text x={cx} y={cy - 8} textAnchor="middle" fill="#64748b" fontSize="10" fontWeight="500">/ 100</text>
+        <text x={cx} y={cy + 12} textAnchor="middle" fill={color} fontSize="12" fontWeight="700">{label}</text>
       </svg>
     </div>
   );
@@ -1633,41 +1645,59 @@ export default function Career() {
   const platformColor = (p) => p === 'Coursera' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' : p === 'Udemy' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20';
 
   return (
-    <div className="page-container min-h-screen pb-2 bg-mesh">
+    <div className={`page-container min-h-screen pb-2 ${tab === 'brain' ? '' : 'bg-mesh'}`} style={tab === 'brain' ? { backgroundColor: '#090a0f' } : {}}>
       <AnimatePresence>
         {impactSession && <TwinImpactFeed session={impactSession} onDone={() => { setImpactSession(null); setTab('history'); }} />}
       </AnimatePresence>
 
       {/* ── Breadcrumbs ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b', marginBottom: 4 }}>
         <span>BeyondSelf</span>
-        <span style={{ color: '#475569' }}>/</span>
-        <span style={{ color: '#ffffff' }}>Career &amp; Growth</span>
+        <span>/</span>
+        <span style={{ color: '#94a3b8' }}>Career &amp; Growth</span>
       </div>
 
       {/* ── Page Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', flexShrink: 0 }}>
-          <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="7" width="20" height="14" rx="2" />
-            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-          </svg>
-        </div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Career &amp; Growth</h1>
+      <div style={{ marginBottom: 10 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#f0f0f3', margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 6 }}>
+          Career &amp; Growth 📈
+        </h1>
+        <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>Study smarter — every session builds your digital twin.</p>
       </div>
-      <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>Study smarter — every session builds your digital twin.</p>
 
-      {/* ── Tab Bar ── */}
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 24, gap: 24, overflowX: 'auto', paddingBottom: 0 }}>
+      {/* ── Tab Bar — Flat UI style ── */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12, marginTop: 8 }}>
         {tabs.map(t => {
+          const tabIcons = {
+            brain: '🧠',
+            jobs: '💼',
+            intelligence: '🌀',
+            log: '⚡',
+            history: '📖',
+            recommendations: '🤖',
+            roadmap: '🎓',
+            resume: '📄'
+          };
+          const icon = tabIcons[t.id] || '';
           const isActive = tab === t.id;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              style={{ padding: '12px 4px', fontSize: 14, fontWeight: 500, cursor: 'pointer', border: 'none', background: 'none',
-                color: isActive ? '#ffffff' : '#8e929b', position: 'relative', transition: 'color 0.2s ease',
-                borderBottom: isActive ? '2px solid #8b5cf6' : '2px solid transparent',
-                marginBottom: -1, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-              {t.label}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.15s',
+                background: isActive ? '#4f46e5' : '#12141a',
+                color: isActive ? '#ffffff' : '#94a3b8',
+                border: isActive ? '1px solid #4f46e5' : '1px solid #20222a',
+                cursor: 'pointer'
+              }}>
+              <span>{icon}</span>
+              <span>{t.label}</span>
             </button>
           );
         })}
@@ -1675,202 +1705,191 @@ export default function Career() {
 
       {/* ── BRAIN TWIN TAB ─────────────────────────────────────────────────── */}
       {tab === 'brain' && (() => {
-        const bCard = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16};
-        const scoreColor = score>=70?'#10b981':score>=45?'#8b5cf6':'#f43f5e';
-        const radarWithIdeal = skillRadar.map(d => ({...d, full:100}));
-        const loadColor = cognitiveLoad<40?'#10b981':cognitiveLoad<70?'#f59e0b':'#f43f5e';
-        const loadLabel = cognitiveLoad<40?'Low Load':cognitiveLoad<70?'Moderate':'High Load';
-        const col = 'gridTemplateColumns';
+        const bCard = { background: '#12141a', border: '1px solid #20222a', borderRadius: 12 };
+        const scoreColor = score >= 70 ? '#10b981' : score >= 45 ? '#8b5cf6' : '#f43f5e';
+        const radarWithIdeal = skillRadar.map(d => ({ ...d, full: 100 }));
+        const loadColor = cognitiveLoad < 40 ? '#10b981' : cognitiveLoad < 70 ? '#f59e0b' : '#f43f5e';
+        const loadLabel = cognitiveLoad < 40 ? 'Low Load' : cognitiveLoad < 70 ? 'Moderate' : 'High Load';
+        
         const STAT_METRICS = [
-          {label:'Total XP',     icon:'⚡', color:'#f59e0b', value:statsData.totalXP.toLocaleString(),              sub:'Level 1'},
-          {label:'Study Streak', icon:'🔥', color:'#f43f5e', value:`${statsData.streak}d`,                          sub:'Keep going!'},
-          {label:'Total Study',  icon:'🕐', color:'#6366f1', value:`${Math.round(statsData.totalMinutes/60)}h`,     sub:'This week'},
-          {label:'Sessions',     icon:'📅', color:'#8b5cf6', value:String(statsData.totalSessions),                 sub:'This week'},
-          {label:'Best Topic',   icon:'🏆', color:'#10b981', value:statsData.bestTopic||'—',                        sub:statsData.bestTopic?'Top performer':'Not enough data'},
-          {label:'Cog. Load',    icon:'🧠', color:loadColor,  value:`${Math.round(cognitiveLoad)}%`,                sub:loadLabel},
+          { label: 'TOTAL XP',     icon: '⚡', color: '#f59e0b', value: statsData.totalXP.toLocaleString(),              sub: 'Level 1' },
+          { label: 'STREAK',       icon: '🔥', color: '#f43f5e', value: `${statsData.streak}d`,                          sub: 'Keep it going!' },
+          { label: 'TOTAL STUDY',  icon: '🕐', color: '#6366f1', value: `${Math.round(statsData.totalMinutes/60)}h`,     sub: 'This week' },
+          { label: 'SESSIONS',     icon: '📅', color: '#8b5cf6', value: String(statsData.totalSessions),                 sub: 'This week' },
+          { label: 'BEST TOPIC',   icon: '🏆', color: '#10b981', value: statsData.bestTopic || '—',                        sub: statsData.bestTopic ? 'Top performer' : 'Not enough data' },
         ];
+
         return (
-          <div style={{display:'flex', flexDirection:'column', gap:8}}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 
-            {/* ── ROW 1: Score card + Metrics ── */}
-            <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+            {/* ── ROW 1: Score card + 5 Metrics ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1fr 1fr', gap: 8 }}>
 
-              {/* Score card */}
-              <div style={{...bCard, padding:'14px 16px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-                <div style={{display:'flex', alignItems:'center', gap:12}}>
-                  <div style={{position:'relative', width:110, height:110, flexShrink:0}}>
-                    <svg viewBox="0 0 110 110" width="110" height="110">
-                      <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                      <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
-                        strokeDashoffset={2*Math.PI*44*(1-score/100)}
-                        style={{transform:'rotate(-90deg)', transformOrigin:'55px 55px', transition:'stroke-dashoffset 1.2s ease'}}/>
-                    </svg>
-                    <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                      <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                      <span style={{fontSize:10, color:'#475569', marginTop:2}}>/ 100</span>
-                    </div>
+              {/* Career Score card */}
+              <div style={{ ...bCard, padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ position: 'relative', width: 110, height: 110, flexShrink: 0, marginBottom: 8 }}>
+                  <svg viewBox="0 0 110 110" width="110" height="110">
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="#20222a" strokeWidth="10" />
+                    <circle cx="55" cy="55" r="44" fill="none" stroke={scoreColor} strokeWidth="10"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 44} ${2 * Math.PI * 44}`}
+                      strokeDashoffset={2 * Math.PI * 44 * (1 - score / 100)}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: '55px 55px', transition: 'stroke-dashoffset 1.2s ease' }} />
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
+                    <span style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>/ 100</span>
+                  </div>
+                </div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: '4px 0 2px' }}>Career Score</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10b981', fontSize: 12, fontWeight: 600 }}>
+                  <span>↑</span>
+                  <span>4 this week</span>
+                </div>
+              </div>
+
+              {/* 5 Metric cards */}
+              {STAT_METRICS.map(m => (
+                <div key={m.label} style={{ ...bCard, padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: m.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, marginBottom: 12, color: m.color }}>
+                    {m.icon}
                   </div>
                   <div>
-                    <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Career Score</p>
-                    <span style={{display:'inline-block', fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, marginBottom:6,
-                      background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
-                      {score>=70?'Strong':score>=45?'Building':'Needs Work'}
-                    </span>
-                    <p style={{fontSize:11.5, color:'#64748b', lineHeight:1.4}}>
-                      {score>=45?'Keep building your\nskills consistently.':'Focus on DSA and\nproject building.'}
+                    <p style={{ fontSize: 10, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', marginBottom: 4 }}>{m.label}</p>
+                    <p style={{ fontSize: 24, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, marginBottom: 4 }}>{m.value}</p>
+                    <p style={{ fontSize: 11, color: '#475569' }}>{m.sub}</p>
+                  </div>
+                </div>
+              ))}
+
+            </div>
+
+            {/* ── ROW 2: Cognitive Load Meter, Skill Radar, Skills Portfolio ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+
+              {/* Cognitive Load Meter */}
+              <div style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontSize: 14 }}>🧠</span>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Cognitive Load Meter</p>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>Based on today's study, sleep & stress</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+                    <CognitiveGauge value={cognitiveLoad} />
+                  </div>
+                </div>
+                <div>
+                  {/* Range indicators */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 12 }}>
+                    {[['< 40', '#10b981', 'Optimal'], ['40 - 70', '#f59e0b', 'Moderate'], ['> 70', '#f43f5e', 'Burnout Risk']].map(([v, c, l]) => (
+                      <div key={l} style={{ padding: '6px 4px', borderRadius: 8, background: c + '0c', border: `1px solid ${c}22`, textAlign: 'center' }}>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: c, margin: 0 }}>{v}</p>
+                        <p style={{ fontSize: 9, color: '#64748b', margin: '2px 0 0' }}>{l}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Alert box */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 8, background: '#090a0f', border: '1px solid #20222a' }}>
+                    <span style={{ fontSize: 14, color: '#3b82f6' }}>ⓘ</span>
+                    <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+                      {cognitiveLoad < 40 ? "Great! You're in a good zone to learn deeply." : cognitiveLoad < 70 ? "Manageable load. Take breaks every 45 min." : "High load! Rest before your next session."}
                     </p>
                   </div>
                 </div>
-                <button onClick={()=>setTab('recommendations')}
-                  style={{marginTop:10, padding:'7px 14px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:11.5, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
-                  View Insights →
+              </div>
+
+              {/* Skill Radar */}
+              <div style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 2 }}>Skill Radar</p>
+                  <p style={{ fontSize: 11, color: '#64748b', marginBottom: 8 }}>Your overall skill distribution</p>
+                  <div style={{ height: 180, margin: '8px 0' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={radarWithIdeal}>
+                        <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                        <Radar name="You" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
+                        <Radar name="Ideal" dataKey="full" stroke="rgba(255,255,255,0.2)" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 12, height: 2, background: '#8b5cf6', display: 'inline-block', borderRadius: 1 }} />
+                      <span style={{ fontSize: 10, color: '#94a3b8' }}>You</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 12, height: 1, background: 'rgba(255,255,255,0.3)', display: 'inline-block', borderTop: '1px dashed rgba(255,255,255,0.3)' }} />
+                      <span style={{ fontSize: 10, color: '#94a3b8' }}>Ideal</span>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => setTab('roadmap')} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #20222a', background: 'transparent', color: '#cbd5e1', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
+                  View all skills <span style={{ fontSize: 12 }}>›</span>
                 </button>
               </div>
 
-              {/* Metrics card */}
-              <div style={{...bCard, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
-                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
-                  {STAT_METRICS.map(m => (
-                    <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 10px'}}>
-                      <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:4}}>
-                        <div style={{width:24, height:24, borderRadius:6, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>{m.icon}</div>
-                        <span style={{fontSize:10.5, color:'#64748b'}}>{m.label}</span>
+              {/* Skills Portfolio */}
+              <div style={{ ...bCard, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontSize: 14 }}>📁</span>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Skills Portfolio</p>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>Showcase your skills and progress</p>
+                  
+                  {c.skills.length > 0 ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '8px 0' }}>
+                      {c.skills.map(s => (
+                        <span key={s} style={{ padding: '4px 10px', borderRadius: 6, background: '#1e293b', border: '1px solid #334155', fontSize: 11, color: '#e2e8f0', fontWeight: 500 }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '24px 16px', borderRadius: 8, border: '1px dashed #20222a', margin: '8px 0', textAlign: 'center' }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 8, border: '1px dashed #20222a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: '#64748b' }}>
+                        📄
                       </div>
-                      <p style={{fontSize:16, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:3}}>{m.value}</p>
-                      <p style={{fontSize:9, color:'#475569'}}>{m.sub}</p>
+                      <div>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: '#f1f5f9', margin: '0 0 2px' }}>0 Skills Logged</p>
+                        <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Add your first skill to get started.</p>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-                <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:10, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
-                  <div style={{width:30, height:30, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0, fontWeight:700, color:'#818cf8'}}>🎯</div>
-                  <div style={{flexShrink:0, minWidth:80}}>
-                    <p style={{fontSize:10, color:'#64748b'}}>Placement Ready</p>
-                    <p style={{fontSize:18, fontWeight:900, color:scoreColor, lineHeight:1}}>{placementReadiness}%</p>
-                    <p style={{fontSize:9, color:'#475569'}}>readiness score</p>
-                  </div>
-                  <div style={{flex:1}}>
-                    <p style={{fontSize:10.5, color:'#475569', marginBottom:4}}>Aim for 80%+ to unlock interviews.</p>
-                    <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
-                      <motion.div initial={{width:0}} animate={{width:`${Math.min(100,placementReadiness)}%`}} transition={{duration:1, ease:'easeOut'}}
-                        style={{height:'100%', borderRadius:3, background:scoreColor}}/>
-                    </div>
-                  </div>
-                  <span style={{fontSize:11, fontWeight:700, color:'#475569', flexShrink:0}}>80%</span>
-                </div>
+                <button onClick={() => setTab('log')} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #4f46e5', background: 'transparent', color: '#a5b4fc', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
+                  + Add Skill
+                </button>
               </div>
+
             </div>
 
-            {/* ── ROW 2: Cognitive Load + Skill Radar & Portfolio ── */}
-            <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
-
-              {/* Cognitive Load Meter */}
-              <div style={{...bCard, padding:'14px'}}>
-                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Cognitive Load Meter</p>
-                <p style={{fontSize:11, color:'#64748b', marginBottom:6}}>Based on today's study, sleep & stress</p>
-                <div style={{display:'flex', justifyContent:'center'}}>
-                  <CognitiveGauge value={cognitiveLoad} />
-                </div>
-                <div style={{textAlign:'center', marginBottom:10}}>
-                  <p style={{fontSize:22, fontWeight:800, color:'#f1f5f9', lineHeight:1}}>{Math.round(cognitiveLoad)}</p>
-                  <p style={{fontSize:10, color:'#475569'}}>/ 100</p>
-                  <p style={{fontSize:11, fontWeight:600, color:loadColor, marginTop:3}}>{loadLabel}</p>
-                </div>
-                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:5, marginBottom:10}}>
-                  {[['< 40','#10b981','Optimal'],['40 – 70','#f59e0b','Moderate'],['> 70','#f43f5e','Burnout Risk']].map(([v,c,l]) => (
-                    <div key={l} style={{padding:'5px 4px', borderRadius:7, background:c+'12', textAlign:'center'}}>
-                      <p style={{fontSize:10, fontWeight:700, color:c}}>{v}</p>
-                      <p style={{fontSize:9, color:'#64748b'}}>{l}</p>
-                    </div>
-                  ))}
-                </div>
-                <div style={{display:'flex', alignItems:'center', gap:7, padding:'8px 10px', borderRadius:7, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)'}}>
-                  <span style={{fontSize:12, flexShrink:0}}>✨</span>
-                  <p style={{fontSize:11, color:'#94a3b8', lineHeight:1.4}}>
-                    {cognitiveLoad<40?"Great! You're in a good zone to learn deeply.":cognitiveLoad<70?"Manageable load. Take breaks every 45 min.":"High load! Rest before your next session."}
-                  </p>
-                </div>
-              </div>
-
-              {/* Skill Radar + Skills Portfolio combined */}
-              <div style={{...bCard, padding:'14px', display:'flex', flexDirection:'column'}}>
-                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Skill Radar</p>
-                <p style={{fontSize:11, color:'#64748b', marginBottom:8}}>Your overall skill distribution</p>
-                <div style={{flex:1, minHeight:180}}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={radarWithIdeal}>
-                      <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                      <PolarAngleAxis dataKey="subject" tick={{fill:'#94a3b8', fontSize:10}} />
-                      <Radar name="You" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
-                      <Radar name="Ideal" dataKey="full" stroke="rgba(255,255,255,0.2)" fill="none" strokeWidth={1.5} strokeDasharray="4 3" />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{display:'flex', alignItems:'center', gap:14, marginBottom:10}}>
-                  <div style={{display:'flex', alignItems:'center', gap:5}}>
-                    <span style={{width:12, height:2, background:'#8b5cf6', display:'inline-block', borderRadius:1}}/>
-                    <span style={{fontSize:10, color:'#94a3b8'}}>You</span>
-                  </div>
-                  <div style={{display:'flex', alignItems:'center', gap:5}}>
-                    <span style={{width:12, height:1, background:'rgba(255,255,255,0.3)', display:'inline-block', borderTop:'1px dashed rgba(255,255,255,0.3)'}}/>
-                    <span style={{fontSize:10, color:'#94a3b8'}}>Ideal</span>
-                  </div>
-                </div>
-                <div style={{height:1, background:'rgba(255,255,255,0.05)', margin:'4px 0 10px'}}/>
-                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
-                  <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Skills Portfolio</p>
-                  <button onClick={()=>setTab('log')} style={{padding:'4px 12px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer'}}>
-                    + Add Skill
-                  </button>
-                </div>
-                {c.skills.length > 0 ? (
-                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
-                    {c.skills.map(s => (
-                      <span key={s} style={{padding:'3px 10px', borderRadius:999, background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)', fontSize:11, color:'#93c5fd', fontWeight:500}}>{s}</span>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{display:'flex', alignItems:'center', gap:10, padding:'12px', borderRadius:8, background:'rgba(255,255,255,0.02)', border:'1px dashed rgba(255,255,255,0.08)'}}>
-                    <span style={{fontSize:18}}>📄</span>
-                    <div>
-                      <p style={{fontSize:12, fontWeight:600, color:'#f1f5f9'}}>No skills logged yet</p>
-                      <p style={{fontSize:11, color:'#64748b'}}>Add your first skill to get started.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── Digital Twin insight bar ── */}
-            <div style={{...bCard, padding:'10px 14px', display:'flex', alignItems:'center', gap:14}}>
-              <div style={{width:32, height:32, borderRadius:8, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:16}}>💡</div>
-              <div style={{flex:1, minWidth:0}}>
-                <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', marginBottom:2}}>Digital Twin Insight</p>
-                <p style={{fontSize:11, fontWeight:600, color:loadColor, marginBottom:2}}>{loadLabel} — Cognitive Load {Math.round(cognitiveLoad)}%</p>
-                <p style={{fontSize:10, color:'#64748b'}}>Consistent small steps lead to massive growth. Log sessions regularly to track your progress.</p>
-              </div>
-              <button onClick={()=>setTab('recommendations')}
-                style={{padding:'6px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:11, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
-                View Recommendations →
-              </button>
+            {/* ── Bottom Tip Bar ── */}
+            <div style={{ ...bCard, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+              <span style={{ fontSize: 16 }}>💡</span>
+              <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>
+                <span style={{ color: '#f1f5f9', fontWeight: 600 }}>Tip: </span>
+                Consistent small steps lead to massive growth. Log sessions regularly to track your progress.
+              </p>
             </div>
 
             {/* Forgetting Curve (conditional) */}
             {heatmapData.forgettingCurve?.length > 0 && (
-              <div style={{...bCard, padding:'20px'}}>
-                <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:3}}>Forgetting Curve — Topic Retention</p>
-                <p style={{fontSize:12, color:'#64748b', marginBottom:14}}>Topics lose ~20% retention per day without review</p>
-                <div style={{display:'flex', flexDirection:'column', gap:10}}>
+              <div style={{ ...bCard, padding: '20px', marginTop: 4 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 3 }}>Forgetting Curve — Topic Retention</p>
+                <p style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>Topics lose ~20% retention per day without review</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {heatmapData.forgettingCurve.map((t, i) => (
-                    <div key={i} style={{display:'flex', alignItems:'center', gap:10}}>
-                      <span style={{fontSize:12, color:'#cbd5e1', width:120, flexShrink:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{t.topic}</span>
-                      <div style={{flex:1, height:6, borderRadius:3, background:'rgba(255,255,255,0.05)', overflow:'hidden'}}>
-                        <motion.div initial={{width:0}} animate={{width:`${t.retention}%`}} transition={{delay:i*0.05, duration:0.8}}
-                          style={{height:'100%', borderRadius:3, background:t.retention>60?'#10b981':t.retention>30?'#f59e0b':'#f43f5e'}}/>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 12, color: '#cbd5e1', width: 120, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.topic}</span>
+                      <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${t.retention}%` }} transition={{ delay: i * 0.05, duration: 0.8 }}
+                          style={{ height: '100%', borderRadius: 3, background: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }} />
                       </div>
-                      <span style={{fontSize:11, fontFamily:'monospace', width:36, textAlign:'right', color:t.retention>60?'#10b981':t.retention>30?'#f59e0b':'#f43f5e'}}>{t.retention}%</span>
-                      <span style={{fontSize:10, color:'#475569', width:40}}>{t.daysSince}d ago</span>
+                      <span style={{ fontSize: 11, fontFamily: 'monospace', width: 36, textAlign: 'right', color: t.retention > 60 ? '#10b981' : t.retention > 30 ? '#f59e0b' : '#f43f5e' }}>{t.retention}%</span>
+                      <span style={{ fontSize: 10, color: '#475569', width: 40 }}>{t.daysSince}d ago</span>
                     </div>
                   ))}
                 </div>
