@@ -3,17 +3,13 @@ import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motio
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
-import {
-  Cpu, Heart, Wallet, Target, GitBranch, TrendingUp,
-  Zap, ChevronRight, RefreshCw, Eye, Layers
-} from 'lucide-react';
 
 // ─── Birth sequence (plays once per session) ──────────────────────────────────
 const BIRTH_KEY = 'dt_twin_born';
 
 function BirthSequence({ onDone }) {
   const [phase, setPhase] = useState(0);
-  // phase 0 = scan rings, 1 = text, 2 = fade out
+
   useEffect(() => {
     const t1 = setTimeout(() => setPhase(1), 1200);
     const t2 = setTimeout(() => setPhase(2), 2600);
@@ -25,50 +21,55 @@ function BirthSequence({ onDone }) {
     <motion.div
       initial={{ opacity: 1 }} animate={{ opacity: phase === 2 ? 0 : 1 }}
       transition={{ duration: 0.6 }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
-      style={{ background: '#03030a' }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', background: '#090d16'
+      }}
     >
-      {/* Scan rings */}
       {[1, 2, 3].map(i => (
         <motion.div key={i}
           initial={{ scale: 0, opacity: 0.7 }}
           animate={{ scale: 4 + i * 1.5, opacity: 0 }}
           transition={{ duration: 2, delay: i * 0.18, ease: 'easeOut' }}
-          className="absolute w-32 h-32 rounded-full border"
-          style={{ borderColor: `rgba(99,102,241,${0.6 - i * 0.15})` }}
+          style={{
+            position: 'absolute', width: 128, height: 128, borderRadius: '50%',
+            border: '1px solid', borderColor: `rgba(99,102,241,${0.6 - i * 0.15})`
+          }}
         />
       ))}
 
-      {/* Center glow */}
       <motion.div
         animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-        className="w-20 h-20 rounded-full flex items-center justify-center mb-8"
-        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.5) 0%, rgba(139,92,246,0.1) 70%)' }}
+        style={{
+          width: 80, height: 80, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.5) 0%, rgba(139,92,246,0.1) 70%)', marginBottom: 32
+        }}
       >
-        <Cpu size={32} className="text-indigo-400" />
+        <span style={{ fontSize: 32 }}>🧬</span>
       </motion.div>
 
       <AnimatePresence>
         {phase >= 1 && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-            <p className="text-xs font-mono text-indigo-400 tracking-[0.3em] uppercase mb-2">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 11, fontFamily: 'monospace', color: '#818cf8', letterSpacing: '0.3em', textTransform: 'uppercase', margin: '0 0 8px' }}>
               Initializing Digital Twin
             </p>
-            <motion.div className="flex gap-1 justify-center">
+            <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
               {[0, 1, 2].map(i => (
-                <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-indigo-500"
+                <motion.div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: '#6366f1' }}
                   animate={{ opacity: [0.2, 1, 0.2] }}
                   transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }} />
               ))}
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Skip */}
-      <button onClick={onDone}
-        className="absolute bottom-8 right-8 text-xs text-slate-600 hover:text-slate-400 transition-colors">
+      <button onClick={onDone} style={{
+        position: 'absolute', bottom: 32, right: 32, fontSize: 12, color: '#475569',
+        background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s'
+      }}>
         Skip →
       </button>
     </motion.div>
@@ -88,11 +89,13 @@ function ParticleField({ stateColor }) {
     })), []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
       {particles.map(p => (
         <motion.div key={p.id}
-          className="absolute rounded-full"
-          style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size, background: stateColor, opacity: 0.3 }}
+          style={{
+            position: 'absolute', borderRadius: '50%', left: `${p.x}%`, top: `${p.y}%`,
+            width: p.size, height: p.size, background: stateColor, opacity: 0.3
+          }}
           animate={{ y: [0, -24, 0], opacity: [0.1, 0.5, 0.1] }}
           transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
         />
@@ -102,24 +105,20 @@ function ParticleField({ stateColor }) {
 }
 
 // ─── Score orbit ring ─────────────────────────────────────────────────────────
-function OrbitRing({ score, label, color, icon: Icon, radius, angleOffset }) {
+function OrbitRing({ score, label, color, iconEmoji, radius, angleOffset }) {
   const pct = score / 100;
   const size = radius * 2 + 48;
   const cx = size / 2, cy = size / 2;
   const circumference = 2 * Math.PI * radius;
 
-  // Icon position on ring
   const angle = (angleOffset - 90) * (Math.PI / 180);
   const iconX = cx + radius * Math.cos(angle);
   const iconY = cy + radius * Math.sin(angle);
 
   return (
-    <div className="absolute" style={{ width: size, height: size, left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none' }}>
+    <div style={{ position: 'absolute', width: size, height: size, left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none' }}>
       <svg width={size} height={size}>
-        {/* Track */}
-        <circle cx={cx} cy={cy} r={radius} fill="none"
-          stroke="rgba(255,255,255,0.06)" strokeWidth="2" />
-        {/* Progress */}
+        <circle cx={cx} cy={cy} r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1.5" />
         <motion.circle cx={cx} cy={cy} r={radius} fill="none"
           stroke={color} strokeWidth="2.5" strokeLinecap="round"
           strokeDasharray={circumference}
@@ -128,18 +127,18 @@ function OrbitRing({ score, label, color, icon: Icon, radius, angleOffset }) {
           transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
           style={{ transformOrigin: 'center', transform: 'rotate(-90deg)' }}
         />
-        {/* Icon bubble */}
         <foreignObject x={iconX - 14} y={iconY - 14} width={28} height={28}>
-          <div className="w-7 h-7 rounded-full flex items-center justify-center"
-            style={{ background: color + '22', border: `1px solid ${color}55` }}>
-            <Icon size={13} style={{ color }} />
+          <div style={{
+            width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: color + '15', border: `1px solid ${color}35`, fontSize: 13
+          }}>
+            {iconEmoji}
           </div>
         </foreignObject>
-        {/* Score label */}
-        <text x={iconX} y={iconY + 22} textAnchor="middle" fontSize="8" fill={color} fontWeight="bold">
+        <text x={iconX} y={iconY + 22} textAnchor="middle" fontSize="9" fill={color} fontWeight="700" fontFamily="Inter, sans-serif">
           {Math.round(score)}
         </text>
-        <text x={iconX} y={iconY + 31} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)">
+        <text x={iconX} y={iconY + 31} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.3)" fontFamily="Inter, sans-serif">
           {label}
         </text>
       </svg>
@@ -149,12 +148,12 @@ function OrbitRing({ score, label, color, icon: Icon, radius, angleOffset }) {
 
 // ─── State color/label map ────────────────────────────────────────────────────
 const STATE_META = {
-  thriving:   { color: '#10b981', bg: 'rgba(16,185,129,0.08)',  label: 'THRIVING',   glow: '0 0 60px rgba(16,185,129,0.25)' },
-  normal:     { color: '#6366f1', bg: 'rgba(99,102,241,0.06)',  label: 'BALANCED',   glow: '0 0 50px rgba(99,102,241,0.2)'  },
-  tired:      { color: '#8b5cf6', bg: 'rgba(139,92,246,0.06)',  label: 'FATIGUED',   glow: 'none' },
-  overworked: { color: '#f59e0b', bg: 'rgba(245,158,11,0.07)',  label: 'OVERLOADED', glow: 'none' },
-  broke:      { color: '#f43f5e', bg: 'rgba(244,63,94,0.06)',   label: 'STRUGGLING', glow: 'none' },
-  burnout:    { color: '#ef4444', bg: 'rgba(239,68,68,0.08)',   label: 'BURNED OUT', glow: '0 0 80px rgba(239,68,68,0.2)'  },
+  thriving:   { color: '#10b981', bg: 'rgba(16,185,129,0.04)',  label: 'THRIVING',   glow: '0 0 60px rgba(16,185,129,0.15)' },
+  normal:     { color: '#3b82f6', bg: 'rgba(59,130,246,0.04)',  label: 'BALANCED',   glow: '0 0 50px rgba(59,130,246,0.12)'  },
+  tired:      { color: '#8b5cf6', bg: 'rgba(139,92,246,0.04)',  label: 'FATIGUED',   glow: 'none' },
+  overworked: { color: '#f59e0b', bg: 'rgba(245,158,11,0.04)',  label: 'OVERLOADED', glow: 'none' },
+  broke:      { color: '#f43f5e', bg: 'rgba(244,63,94,0.04)',   label: 'STRUGGLING', glow: 'none' },
+  burnout:    { color: '#ef4444', bg: 'rgba(239,68,68,0.04)',   label: 'BURNED OUT', glow: '0 0 80px rgba(239,68,68,0.15)'  },
 };
 
 function computeStateName(h, f, c, burn) {
@@ -169,21 +168,22 @@ function computeStateName(h, f, c, burn) {
 
 // ─── What-If Lab slider ───────────────────────────────────────────────────────
 function DomainSlider({ label, color, value, onChange }) {
-  const inputRef = useRef(null);
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold" style={{ color }}>{label}</span>
-        <span className="text-xs font-bold tabular-nums" style={{ color }}>{value}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', itemsCenter: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color }}>{value}</span>
       </div>
-      <div className="relative h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
-        <motion.div className="absolute inset-y-0 left-0 rounded-full"
-          style={{ width: `${value}%`, background: `linear-gradient(90deg, ${color}88, ${color})` }}
+      <div style={{ position: 'relative', height: 8, borderRadius: 99, background: 'rgba(255,255,255,0.06)' }}>
+        <motion.div
+          style={{ position: 'absolute', insetY: 0, left: 0, height: '100%', borderRadius: 99, width: `${value}%`, background: `linear-gradient(90deg, ${color}88, ${color})` }}
           layout transition={{ duration: 0.15 }}
         />
-        <input ref={inputRef} type="range" min={0} max={100} value={value}
+        <input type="range" min={0} max={100} value={value}
           onChange={e => onChange(Number(e.target.value))}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'
+          }} />
       </div>
     </div>
   );
@@ -203,18 +203,21 @@ function GalleryCard({ entry, index }) {
   const meta = STATE_META[entry.key];
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.4, delay: index * 0.07 }}
-      whileHover={{ y: -4, boxShadow: `0 12px 32px ${meta.color}22` }}
-      className="rounded-2xl p-4 flex flex-col items-center gap-2 transition-shadow"
-      style={{ background: meta.bg, border: `1px solid ${meta.color}25` }}
+      initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      whileHover={{ y: -4 }}
+      style={{
+        borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+        background: 'rgba(255,255,255,0.01)', border: `1px solid ${meta.color}25`, transition: 'all 0.2s',
+        boxShadow: `0 4px 12px rgba(0,0,0,0.1)`
+      }}
     >
-      <div className="scale-75 origin-top" style={{ height: 170 }}>
+      <div style={{ height: 130, transform: 'scale(0.72)', transformOrigin: 'top' }}>
         <LifeAvatar healthScore={entry.h} financeScore={entry.f} careerScore={entry.c} burnoutRisk={entry.burn} />
       </div>
-      <span className="text-[10px] font-bold tracking-widest" style={{ color: meta.color }}>{meta.label}</span>
-      <div className="flex gap-2 text-[9px] text-slate-500">
+      <span style={{ fontSize: 10, fontWeight: 700, trackingWidth: '0.05em', color: meta.color }}>{meta.label}</span>
+      <div style={{ display: 'flex', gap: 6, fontSize: 9, color: '#475569' }}>
         <span>H:{entry.h}</span>
         <span>F:{entry.f}</span>
         <span>C:{entry.c}</span>
@@ -223,7 +226,7 @@ function GalleryCard({ entry, index }) {
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Main Component ─────────────────────────────────────────────── */
 export default function DigitalTwin() {
   const { computed } = useData();
 
@@ -249,7 +252,7 @@ export default function DigitalTwin() {
   const whatIfState = useMemo(() => computeStateName(whatIfH, whatIfF, whatIfC, 20), [whatIfH, whatIfF, whatIfC]);
   const whatIfMeta  = STATE_META[whatIfState];
 
-  // Spring for life score display
+  // Spring display for life score
   const springScore = useMotionValue(balance);
   const displayScore = useSpring(springScore, { stiffness: 80, damping: 18 });
   useEffect(() => { springScore.set(balance); }, [balance, springScore]);
@@ -262,259 +265,270 @@ export default function DigitalTwin() {
 
       <AnimatePresence>
         {born && (
-          <motion.div key="content"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}
-            className="min-h-screen pb-24" style={{ background: '#080810' }}
+          <motion.div
+            key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}
+            style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'Inter, sans-serif' }}
           >
-            {/* ── Header ── */}
-            <div className="px-6 pt-8 pb-6 max-w-5xl mx-auto">
-              <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: `${meta.color}18`, border: `1px solid ${meta.color}40` }}>
-                  <Cpu size={18} style={{ color: meta.color }} />
+            
+            {/* ── Page Header ─────────────────────────────────────────── */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.18)'
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2" />
+                    <rect x="9" y="9" width="6" height="6" />
+                    <line x1="9" y1="1" x2="9" y2="4" />
+                    <line x1="15" y1="1" x2="15" y2="4" />
+                    <line x1="9" y1="20" x2="9" y2="23" />
+                    <line x1="15" y1="20" x2="15" y2="23" />
+                  </svg>
                 </div>
                 <div>
-                  <h1 className="text-lg font-black text-white tracking-tight">Digital Twin</h1>
-                  <p className="text-xs text-slate-500">Your living life model — evolves with every data point</p>
+                  <h1 style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Digital Twin</h1>
+                  <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Your living life model — evolves with every data point</p>
                 </div>
-                <motion.div className="ml-auto px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest"
-                  key={stateName}
-                  initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                  style={{ background: meta.color + '18', color: meta.color, border: `1px solid ${meta.color}40` }}>
-                  {meta.label}
-                </motion.div>
-              </motion.div>
+              </div>
+
+              <div style={{
+                fontSize: 10, padding: '4px 12px', borderRadius: 99, fontWeight: 700, letterSpacing: '0.05em',
+                background: `${meta.color}15`, color: meta.color, border: `1px solid ${meta.color}35`
+              }}>
+                {meta.label}
+              </div>
             </div>
 
-            {/* ── Twin Chamber ── */}
-            <div className="max-w-5xl mx-auto px-6 mb-10">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.35, duration: 0.6 }}
-                className="relative rounded-3xl overflow-hidden"
-                style={{
-                  background: `radial-gradient(ellipse at 50% 30%, ${meta.color}12 0%, #0a0a14 65%)`,
-                  border: `1px solid ${meta.color}25`,
-                  boxShadow: meta.glow,
-                  minHeight: 420,
-                }}
-              >
-                <ParticleField stateColor={meta.color} />
+            {/* ── Main Twin Chamber ──────────────────────────────────── */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }}
+              style={{
+                borderRadius: 24, overflow: 'hidden', padding: '24px 32px', marginBottom: 24,
+                background: `radial-gradient(ellipse at 50% 30%, ${meta.color}0c 0%, rgba(15,23,42,0.95) 75%)`,
+                border: '1px solid rgba(255,255,255,0.06)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                position: 'relative', minHeight: 400
+              }}
+            >
+              <ParticleField stateColor={meta.color} />
+              
+              {/* Mesh scanner lines */}
+              <div style={{
+                position: 'absolute', inset: 0, opacity: 0.02, pointerEvents: 'none',
+                backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+                backgroundSize: '32px 32px'
+              }} />
 
-                {/* Scan grid overlay */}
-                <div className="absolute inset-0 opacity-[0.03]"
-                  style={{
-                    backgroundImage: 'linear-gradient(rgba(99,102,241,1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)',
-                    backgroundSize: '40px 40px',
-                  }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32, alignItems: 'center', position: 'relative', zIndex: 2 }}>
+                
+                {/* Left Side: Interactive Avatar Orbit Chamber */}
+                <div style={{ position: 'relative', width: 340, height: 340, margin: '0 auto' }}>
+                  <OrbitRing score={hScore} label="Health"  color="#10b981" iconEmoji="💚" radius={100} angleOffset={210} />
+                  <OrbitRing score={fScore} label="Finance" color="#f59e0b" iconEmoji="🪙" radius={120} angleOffset={330} />
+                  <OrbitRing score={cScore} label="Career"  color="#3b82f6" iconEmoji="💼" radius={140} angleOffset={90}  />
 
-                <div className="relative flex flex-col lg:flex-row items-center gap-8 p-8">
-                  {/* Avatar + orbit rings */}
-                  <div className="relative flex-shrink-0" style={{ width: 320, height: 320 }}>
-                    {/* Orbit rings */}
-                    <OrbitRing score={hScore} label="Health"  color="#10b981" icon={Heart}  radius={110} angleOffset={210} />
-                    <OrbitRing score={fScore} label="Finance" color="#f59e0b" icon={Wallet} radius={130} angleOffset={330} />
-                    <OrbitRing score={cScore} label="Career"  color="#3b82f6" icon={Target} radius={150} angleOffset={90}  />
+                  {/* Centered Avatar */}
+                  <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%) scale(1.1)' }}>
+                    <LifeAvatar healthScore={hScore} financeScore={fScore} careerScore={cScore} burnoutRisk={burnout} />
+                  </div>
+                </div>
 
-                    {/* Avatar centered */}
-                    <div className="absolute" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%) scale(1.15)', transformOrigin: 'center' }}>
-                      <LifeAvatar healthScore={hScore} financeScore={fScore} careerScore={cScore} burnoutRisk={burnout} />
+                {/* Right Side: Core Stats Overview */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  
+                  {/* Overall Balance Display */}
+                  <div>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', margin: '0 0 4px' }}>Life Balance Score</p>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: 44, fontWeight: 800, color: meta.color, lineHeight: 1 }}>{Math.round(balance)}</span>
+                      <span style={{ fontSize: 13, color: '#475569' }}>/ 100</span>
+                    </div>
+                    {/* Balanced Score Progress Bar */}
+                    <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', marginTop: 8 }}>
+                      <motion.div
+                        style={{ height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${meta.color}88, ${meta.color})` }}
+                        initial={{ width: 0 }} animate={{ width: `${balance}%` }} transition={{ duration: 1 }}
+                      />
                     </div>
                   </div>
 
-                  {/* Stats panel */}
-                  <div className="flex-1 space-y-6">
-                    {/* Life score */}
-                    <div>
-                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Life Balance Score</p>
-                      <div className="flex items-end gap-2">
-                        <motion.span className="text-6xl font-black tabular-nums" style={{ color: meta.color }}>
-                          {Math.round(balance)}
-                        </motion.span>
-                        <span className="text-slate-600 text-sm mb-2">/ 100</span>
-                      </div>
-                      {/* Score bar */}
-                      <div className="h-2 rounded-full mt-2" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                        <motion.div className="h-full rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${balance}%` }}
-                          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-                          style={{ background: `linear-gradient(90deg, ${meta.color}88, ${meta.color})` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Domain bars */}
-                    <div className="space-y-3">
-                      {[
-                        { label: 'Health',  score: hScore, color: '#10b981' },
-                        { label: 'Finance', score: fScore, color: '#f59e0b' },
-                        { label: 'Career',  score: cScore, color: '#3b82f6' },
-                      ].map(d => (
-                        <div key={d.label}>
-                          <div className="flex justify-between mb-1">
-                            <span className="text-xs text-slate-400">{d.label}</span>
-                            <span className="text-xs font-bold tabular-nums" style={{ color: d.color }}>{Math.round(d.score)}</span>
-                          </div>
-                          <div className="h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                            <motion.div className="h-full rounded-full"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${d.score}%` }}
-                              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
-                              style={{ background: d.color }}
-                            />
-                          </div>
+                  {/* Individual Domain Bars */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[
+                      { label: 'Health Domain', score: hScore, color: '#10b981' },
+                      { label: 'Finance Domain', score: fScore, color: '#f59e0b' },
+                      { label: 'Career Domain', score: cScore, color: '#3b82f6' }
+                    ].map(item => (
+                      <div key={item.label}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                          <span style={{ fontSize: 11.5, color: '#64748b', fontWeight: 500 }}>{item.label}</span>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: item.color }}>{Math.round(item.score)}</span>
                         </div>
-                      ))}
-                    </div>
-
-                    {/* Quick links */}
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {[
-                        { to: '/future-you', icon: TrendingUp, label: 'Projection',  color: '#6366f1' },
-                        { to: '/cascade-map',icon: GitBranch,  label: 'Cascade Map', color: '#10b981' },
-                        { to: '/insights',   icon: Eye,        label: 'Insights',    color: '#8b5cf6' },
-                      ].map(l => (
-                        <Link key={l.to} to={l.to}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all hover:scale-105"
-                          style={{ background: l.color + '15', color: l.color, border: `1px solid ${l.color}30` }}>
-                          <l.icon size={12} />
-                          {l.label}
-                          <ChevronRight size={10} />
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* ── What-If Lab ── */}
-            <div className="max-w-5xl mx-auto px-6 mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.5 }}
-                className="rounded-2xl p-6"
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}
-              >
-                <div className="flex items-center gap-2 mb-5">
-                  <Zap size={15} className="text-amber-400" />
-                  <h2 className="text-sm font-bold text-white">What-If Lab</h2>
-                  <span className="text-xs text-slate-500 ml-1">— drag sliders to preview your twin's evolution</span>
-                  <button
-                    onClick={() => { setWhatIfH(hScore); setWhatIfF(fScore); setWhatIfC(cScore); }}
-                    className="ml-auto text-xs text-slate-600 hover:text-slate-400 flex items-center gap-1 transition-colors"
-                  >
-                    <RefreshCw size={11} /> Reset
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                  {/* Sliders */}
-                  <div className="space-y-5">
-                    <DomainSlider label="Health Score"  color="#10b981" value={whatIfH} onChange={setWhatIfH} />
-                    <DomainSlider label="Finance Score" color="#f59e0b" value={whatIfF} onChange={setWhatIfF} />
-                    <DomainSlider label="Career Score"  color="#3b82f6" value={whatIfC} onChange={setWhatIfC} />
-
-                    {/* Cascade prediction */}
-                    <div className="pt-3 border-t border-white/[0.05]">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Cascade Effect</p>
-                      <div className="space-y-1.5 text-xs text-slate-400">
-                        {whatIfH < 45 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-red-400">↓</span>
-                            Poor sleep → emotional spending risk +{Math.round((50 - whatIfH) * 0.4)}%
-                          </div>
-                        )}
-                        {whatIfF < 40 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-amber-400">↓</span>
-                            Financial stress → career focus −{Math.round((45 - whatIfF) * 0.3)} pts
-                          </div>
-                        )}
-                        {whatIfH > 70 && whatIfC > 70 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-emerald-400">↑</span>
-                            High vitality × strong career → compounding momentum
-                          </div>
-                        )}
-                        {whatIfH >= 45 && whatIfF >= 40 && !(whatIfH > 70 && whatIfC > 70) && (
-                          <div className="text-slate-600">No critical cascades at these levels</div>
-                        )}
+                        <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)' }}>
+                          <motion.div
+                            style={{ height: '100%', borderRadius: 99, background: item.color }}
+                            initial={{ width: 0 }} animate={{ width: `${item.score}%` }} transition={{ duration: 1 }}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
 
-                  {/* Preview avatar */}
-                  <div className="flex flex-col items-center gap-3">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Twin Preview</p>
-                    <div className="relative">
-                      {/* Glow */}
-                      <div className="absolute inset-0 rounded-full blur-2xl opacity-30"
-                        style={{ background: whatIfMeta.color, transform: 'scale(0.7) translateY(20%)' }} />
+                  {/* Chamber Links / Shortcuts */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                    {[
+                      { to: '/future-you', label: '12m Projection', color: '#818cf8' },
+                      { to: '/cascade-map', label: 'Cascade Map', color: '#34d399' },
+                      { to: '/insights', label: 'Domain Insights', color: '#c084fc' }
+                    ].map(link => (
+                      <Link
+                        key={link.to} to={link.to}
+                        style={{
+                          fontSize: 11, padding: '8px 14px', borderRadius: 10, textDecoration: 'none', fontWeight: 600,
+                          background: `${link.color}15`, border: `1px solid ${link.color}25`, color: link.color,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = `${link.color}25`; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = `${link.color}15`; }}
+                      >
+                        {link.label} →
+                      </Link>
+                    ))}
+                  </div>
+
+                </div>
+
+              </div>
+            </motion.div>
+
+            {/* ── What-If Simulator Lab ──────────────────────────────── */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              style={{
+                borderRadius: 20, padding: 24, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                marginBottom: 24
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>⚡</span>
+                  <h2 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>What-If Simulation Lab</h2>
+                  <span style={{ fontSize: 11, color: '#475569' }}>— drag sliders to preview your twin's evolution</span>
+                </div>
+                <button
+                  onClick={() => { setWhatIfH(hScore); setWhatIfF(fScore); setWhatIfC(cScore); }}
+                  style={{
+                    background: 'none', border: 'none', fontSize: 11, color: '#475569', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 4
+                  }}
+                >
+                  🔄 Reset Lab
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'center' }}>
+                
+                {/* Interactive Sliders */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <DomainSlider label="Health Score"  color="#10b981" value={whatIfH} onChange={setWhatIfH} />
+                  <DomainSlider label="Finance Score" color="#f59e0b" value={whatIfF} onChange={setWhatIfF} />
+                  <DomainSlider label="Career Score"  color="#3b82f6" value={whatIfC} onChange={setWhatIfC} />
+
+                  {/* Live Cascade Warning messages */}
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 8, paddingTop: 12 }}>
+                    <p style={{ fontSize: 9.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', margin: '0 0 6px' }}>Projected Cascade Effect</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11.5, color: '#94a3b8' }}>
+                      {whatIfH < 45 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: '#f87171' }}>↓</span>
+                          Poor sleep → emotional spending risk +{Math.round((50 - whatIfH) * 0.4)}%
+                        </div>
+                      )}
+                      {whatIfF < 40 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: '#fbbf24' }}>↓</span>
+                          Financial stress → career focus −{Math.round((45 - whatIfF) * 0.3)} pts
+                        </div>
+                      )}
+                      {whatIfH > 70 && whatIfC > 70 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: '#34d399' }}>↑</span>
+                          High vitality × strong career → compounding momentum
+                        </div>
+                      )}
+                      {whatIfH >= 45 && whatIfF >= 40 && !(whatIfH > 70 && whatIfC > 70) && (
+                        <div style={{ color: '#334155' }}>No critical cascades simulated at these levels</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview Avatar Chamber */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', margin: 0 }}>Twin Preview</p>
+                  <div style={{ position: 'relative', width: 220, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{
+                      position: 'absolute', width: 140, height: 140, borderRadius: '50%', filter: 'blur(20px)', opacity: 0.15,
+                      background: whatIfMeta.color, transform: 'scale(1.2)'
+                    }} />
+                    <div style={{ transform: 'scale(0.85)' }}>
                       <LifeAvatar healthScore={whatIfH} financeScore={whatIfF} careerScore={whatIfC} burnoutRisk={20} />
                     </div>
-                    <motion.div key={whatIfState}
-                      initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                      className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest"
-                      style={{ background: whatIfMeta.color + '18', color: whatIfMeta.color, border: `1px solid ${whatIfMeta.color}40` }}>
-                      {whatIfMeta.label}
-                    </motion.div>
-                    {/* Avg score */}
-                    <p className="text-xs text-slate-600">
-                      Avg: <span className="font-bold tabular-nums" style={{ color: whatIfMeta.color }}>
-                        {Math.round((whatIfH + whatIfF + whatIfC) / 3)}
-                      </span>
-                    </p>
                   </div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* ── Evolution Gallery ── */}
-            <div className="max-w-5xl mx-auto px-6">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.5 }}
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Layers size={14} className="text-indigo-400" />
-                  <h2 className="text-sm font-bold text-white">Evolution States</h2>
-                  <span className="text-xs text-slate-500 ml-1">— all possible forms your twin can take</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                  {GALLERY_STATES.map((entry, i) => (
-                    <GalleryCard key={entry.key} entry={entry} index={i} />
-                  ))}
+                  <div style={{
+                    fontSize: 10, padding: '3px 10px', borderRadius: 99, fontWeight: 700,
+                    background: `${whatIfMeta.color}15`, color: whatIfMeta.color, border: `1px solid ${whatIfMeta.color}35`
+                  }}>{whatIfMeta.label}</div>
+                  <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>
+                    Avg: <span style={{ fontWeight: 700, color: whatIfMeta.color }}>{Math.round((whatIfH + whatIfF + whatIfC) / 3)}</span>
+                  </p>
                 </div>
 
-                {/* Current state callout */}
-                <motion.div
-                  initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-                  transition={{ delay: 0.4 }}
-                  className="mt-4 p-4 rounded-xl flex items-center gap-3"
-                  style={{ background: meta.color + '10', border: `1px solid ${meta.color}25` }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: meta.color + '20' }}>
-                    <Cpu size={14} style={{ color: meta.color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold" style={{ color: meta.color }}>
-                      Your twin is currently in <span className="font-black">{meta.label}</span> state
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Based on H:{Math.round(hScore)} · F:{Math.round(fScore)} · C:{Math.round(cScore)} · Burnout:{Math.round(burnout)}%
-                    </p>
-                  </div>
-                  <Link to="/future-you"
-                    className="text-xs font-semibold flex items-center gap-1 flex-shrink-0 transition-opacity hover:opacity-70"
-                    style={{ color: meta.color }}>
-                    See trajectory <ChevronRight size={12} />
-                  </Link>
-                </motion.div>
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
+
+            {/* ── Evolution States Gallery ──────────────────────────── */}
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                <span style={{ fontSize: 15 }}>🎴</span>
+                <h2 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Evolution States</h2>
+                <span style={{ fontSize: 11, color: '#475569' }}>— all possible forms your twin can take</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 20 }}>
+                {GALLERY_STATES.map((entry, i) => (
+                  <GalleryCard key={entry.key} entry={entry} index={i} />
+                ))}
+              </div>
+
+              {/* Current state highlight banner */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: 16, borderRadius: 16,
+                background: `${meta.color}08`, border: `1px solid ${meta.color}25`
+              }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8, background: `${meta.color}15`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                }}>
+                  <span style={{ fontSize: 14 }}>🤖</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: meta.color, margin: 0 }}>
+                    Your twin is currently in the <span style={{ fontWeight: 800 }}>{meta.label}</span> state
+                  </p>
+                  <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0' }}>
+                    Based on baseline metrics H:{Math.round(hScore)} · F:{Math.round(fScore)} · C:{Math.round(cScore)} · Burnout:{Math.round(burnout)}%
+                  </p>
+                </div>
+                <Link
+                  to="/future-you"
+                  style={{ fontSize: 11.5, fontWeight: 700, color: meta.color, textDecoration: 'none' }}
+                >
+                  See trajectory →
+                </Link>
+              </div>
+            </motion.div>
+
           </motion.div>
         )}
       </AnimatePresence>
