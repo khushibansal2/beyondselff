@@ -98,7 +98,7 @@ export default function Sustainability() {
                 <h3 className="text-[12px] text-[#94a3b8] flex items-center gap-1.5 font-medium">
                   Monthly Footprint <Info size={13} className="opacity-70" />
                 </h3>
-                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-black">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Leaf size={12} strokeWidth={2.5} />
                 </div>
               </div>
@@ -106,7 +106,7 @@ export default function Sustainability() {
                 <div className="relative w-[86px] h-[86px] flex-shrink-0">
                   <svg width="86" height="86" viewBox="0 0 86 86" className="transform -rotate-90">
                     <circle cx="43" cy="43" r="37" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
-                    <circle cx="43" cy="43" r="37" fill="none" stroke="#f43f5e" strokeWidth="6" strokeDasharray={2 * Math.PI * 37} strokeDashoffset={0} strokeLinecap="round" />
+                    <circle cx="43" cy="43" r="37" fill="none" stroke="#f43f5e" strokeWidth="8" strokeDasharray={2 * Math.PI * 37} strokeDashoffset={0} strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center mt-0.5">
                     <span className="text-[26px] font-bold text-[#f43f5e] leading-none mb-1">{Math.round(totalCarbon)}</span>
@@ -177,123 +177,129 @@ export default function Sustainability() {
             </GlassCard>
           </div>
 
-          {/* Middle Charts Row */}
+          {/* Middle Charts Row - Taller Layout */}
           <div className="grid grid-cols-2 gap-4">
             {/* Breakdown Pie Chart */}
-            <GlassCard className="p-6 border-white/[0.05] !bg-[#161b22]">
+            <GlassCard className="p-7 border-white/[0.05] !bg-[#161b22] flex flex-col justify-between min-h-[380px]">
               <h3 className="text-[14px] font-semibold text-[#f0f0f3] mb-6">Carbon Footprint Breakdown</h3>
-              <div className="flex items-center">
-                <div className="relative w-48 h-48 flex-shrink-0">
+              <div className="flex items-center justify-between px-2 flex-1">
+                <div className="relative w-56 h-56 flex-shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value" stroke="none" cornerRadius={4}>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={75} outerRadius={105} paddingAngle={4} dataKey="value" stroke="none" cornerRadius={4}>
                         {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                     <span className="text-[28px] font-bold text-[#f0f0f3] leading-none mb-1">{Math.round(totalCarbon)}</span>
-                     <span className="text-[11px] text-[#94a3b8] font-medium">Total</span>
+                     <span className="text-[32px] font-bold text-[#f0f0f3] leading-none mb-1">{Math.round(totalCarbon)}</span>
+                     <span className="text-[12px] text-[#94a3b8] font-medium">Total</span>
                   </div>
                 </div>
                 
-                <div className="flex-1 ml-10 space-y-5">
+                <div className="flex-1 ml-10 space-y-6">
                   {pieData.map((p, i) => {
                     const pct = Math.round((p.value/totalCarbon)*100);
                     return (
                       <div key={p.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }}></span>
-                          <span className="text-[13px] text-[#94a3b8] font-medium">{p.name}</span>
+                          <span className="w-3 h-3 rounded-full" style={{ background: p.color }}></span>
+                          <span className="text-[14px] text-[#94a3b8] font-medium">{p.name}</span>
                         </div>
                         <div className="flex items-center gap-8">
-                          <span className="text-[13px] text-[#94a3b8] w-8 text-right font-medium">{pct}%</span>
-                          <span className="text-[13px] text-[#f0f0f3] w-12 text-right font-medium">{Math.round(p.value)} kg</span>
+                          <span className="text-[14px] text-[#94a3b8] w-8 text-right font-medium">{pct}%</span>
+                          <span className="text-[14px] text-[#f0f0f3] w-12 text-right font-medium">{Math.round(p.value)} kg</span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-              <div className="mt-8 pt-4 border-t border-white/[0.06] flex items-center justify-between">
-                <span className="text-[13px] text-[#94a3b8] font-medium">Total Carbon Footprint</span>
-                <span className="text-[13px] font-bold text-[#f0f0f3]">{Math.round(totalCarbon)} kg CO₂e</span>
+              <div className="mt-8 pt-5 border-t border-white/[0.06] flex items-center justify-between">
+                <span className="text-[14px] text-[#94a3b8] font-medium">Total Carbon Footprint</span>
+                <span className="text-[14px] font-bold text-[#f0f0f3]">{Math.round(totalCarbon)} kg CO₂e</span>
               </div>
             </GlassCard>
 
             {/* Trend Line Chart */}
-            <GlassCard className="p-6 flex flex-col border-white/[0.05] !bg-[#161b22]">
-              <div className="flex justify-between items-center mb-6">
+            <GlassCard className="p-7 flex flex-col border-white/[0.05] !bg-[#161b22] min-h-[380px]">
+              <div className="flex justify-between items-center mb-8">
                 <h3 className="text-[14px] font-semibold text-[#f0f0f3]">30-Day Carbon Trend</h3>
                 <div className="bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 rounded-lg flex items-center gap-2 cursor-pointer hover:bg-white/[0.08]">
                   <span className="text-[11px] font-medium text-[#94a3b8]">kg CO₂e</span>
                   <ChevronDown size={14} className="text-[#94a3b8]" />
                 </div>
               </div>
-              <div className="flex-1 min-h-[220px]">
+              <div className="flex-1 min-h-[260px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
                     <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} interval={1} />
                     <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 400]} />
                     <Tooltip content={<CustomTooltip />} />
                     <ReferenceLine y={targetCarbon} stroke="#64748b" strokeDasharray="4 4" 
-                      label={{ position: 'top', value: `Target: ${targetCarbon} kg`, fill: '#64748b', fontSize: 10, offset: 8 }} />
-                    <Area type="monotone" dataKey="carbon" stroke="#10b981" fill="none" strokeWidth={2} activeDot={{ r: 4 }} dot={{ r: 2.5, fill: '#10b981', strokeWidth: 0 }} />
+                      label={{ position: 'right', value: `Target: ${targetCarbon} kg`, fill: '#64748b', fontSize: 10, offset: -80 }} />
+                    <Area type="monotone" dataKey="carbon" stroke="#10b981" fill="url(#trendGradient)" strokeWidth={2} activeDot={{ r: 4 }} dot={{ r: 2.5, fill: '#10b981', strokeWidth: 0 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </GlassCard>
           </div>
 
-          {/* Insights Section */}
-          <GlassCard className="p-5 border-white/[0.05] !bg-[#161b22]">
-            <h3 className="text-[14px] font-semibold text-[#f0f0f3] flex items-center gap-2 mb-4">
-              <span className="text-emerald-500"><Leaf size={16} /></span> Insights & Recommendations
+          {/* Insights Section - Separated GlassCards instead of one big wrapper */}
+          <div className="mt-6">
+            <h3 className="text-[15px] font-semibold text-[#f0f0f3] flex items-center gap-2 mb-4">
+              <span className="text-emerald-500"><Leaf size={18} /></span> Insights & Recommendations
             </h3>
             <div className="grid grid-cols-3 gap-4">
               
-              <div className="border border-white/[0.04] bg-[#141b18] rounded-xl p-4 flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
+              <GlassCard className="p-6 border-white/[0.04] !bg-[#141b18] flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-[42px] h-[42px] rounded-[12px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                    <Leaf size={20} />
+                  <div className="w-[44px] h-[44px] rounded-[12px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <Leaf size={22} />
                   </div>
                   <div>
-                    <h4 className="text-[13px] font-medium text-emerald-400 mb-0.5">Great! You're making progress.</h4>
-                    <p className="text-[11px] text-[#94a3b8]">Your footprint is 18% lower<br/>than last month.</p>
+                    <h4 className="text-[13px] font-medium text-emerald-400 mb-1">Great! You're making progress.</h4>
+                    <p className="text-[11px] text-[#94a3b8] leading-tight">Your footprint is 18% lower<br/>than last month.</p>
                   </div>
                 </div>
                 <ChevronRight size={16} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
-              </div>
+              </GlassCard>
 
-              <div className="border border-white/[0.04] bg-[#1a1811] rounded-xl p-4 flex items-center justify-between cursor-pointer group hover:bg-[#201d14] transition-colors">
+              <GlassCard className="p-6 border-white/[0.04] !bg-[#1a1811] flex items-center justify-between cursor-pointer group hover:bg-[#201d14] transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-[42px] h-[42px] rounded-[12px] bg-amber-500/10 flex items-center justify-center text-amber-500">
-                    <Zap size={20} />
+                  <div className="w-[44px] h-[44px] rounded-[12px] bg-amber-500/10 flex items-center justify-center text-amber-500">
+                    <Zap size={22} />
                   </div>
                   <div>
-                    <h4 className="text-[13px] font-medium text-amber-400 mb-0.5">Reduce energy usage</h4>
-                    <p className="text-[11px] text-[#94a3b8]">Switch to LED lights and<br/>unplug idle devices.</p>
+                    <h4 className="text-[13px] font-medium text-amber-400 mb-1">Reduce energy usage</h4>
+                    <p className="text-[11px] text-[#94a3b8] leading-tight">Switch to LED lights and<br/>unplug idle devices.</p>
                   </div>
                 </div>
                 <ChevronRight size={16} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
-              </div>
+              </GlassCard>
 
-              <div className="border border-white/[0.04] bg-[#141b18] rounded-xl p-4 flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
+              <GlassCard className="p-6 border-white/[0.04] !bg-[#141b18] flex items-center justify-between cursor-pointer group hover:bg-[#18211d] transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="w-[42px] h-[42px] rounded-[12px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                    <Utensils size={20} />
+                  <div className="w-[44px] h-[44px] rounded-[12px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <Utensils size={22} />
                   </div>
                   <div>
-                    <h4 className="text-[13px] font-medium text-emerald-400 mb-0.5">Eat more plant-based</h4>
-                    <p className="text-[11px] text-[#94a3b8]">Try 3 more plant-based meals<br/>this week.</p>
+                    <h4 className="text-[13px] font-medium text-emerald-400 mb-1">Eat more plant-based</h4>
+                    <p className="text-[11px] text-[#94a3b8] leading-tight">Try 3 more plant-based meals<br/>this week.</p>
                   </div>
                 </div>
                 <ChevronRight size={16} className="text-[#64748b] group-hover:text-[#f0f0f3] transition-colors" />
-              </div>
+              </GlassCard>
 
             </div>
-          </GlassCard>
+          </div>
 
         </motion.div>
       )}
