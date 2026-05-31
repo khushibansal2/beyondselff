@@ -129,29 +129,35 @@ function StatBar({ meta, value, prevValue }) {
   const Icon = meta.icon;
   const delta = value - (prevValue ?? value);
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Icon size={12} style={{ color: meta.color }} />
-          <span className="text-[11px] text-[#a1a1aa] font-medium">{meta.label}</span>
+        <div className="flex items-center gap-2">
+          <div className="p-1 rounded bg-white/[0.03] border border-white/[0.05]">
+            <Icon size={14} style={{ color: meta.color, filter: `drop-shadow(0 0 4px ${meta.color}80)` }} />
+          </div>
+          <span className="text-[12px] text-slate-300 font-semibold tracking-wide">{meta.label}</span>
         </div>
         <div className="flex items-center gap-2">
           {prevValue !== undefined && delta !== 0 && (
-            <span className={`text-[10px] font-bold ${delta > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 ${delta > 0 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-amber-400 bg-amber-500/10 border border-amber-500/20'}`}>
               {delta > 0 ? '+' : ''}{delta}
             </span>
           )}
-          <span className="text-[12px] font-bold text-[#f0f0f3]">{value}</span>
+          <span className="text-[13px] font-black text-white">{value}</span>
         </div>
       </div>
-      <div className="relative h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
+      <div className="relative h-2 rounded-full bg-slate-950 border border-white/5 overflow-hidden">
         {prevValue !== undefined && (
-          <div className="absolute h-full rounded-full opacity-25" style={{ width: `${prevValue}%`, background: meta.color }} />
+          <div className="absolute h-full rounded-full opacity-20" style={{ width: `${prevValue}%`, background: meta.color }} />
         )}
         <motion.div
           initial={{ width: 0 }} animate={{ width: `${value}%` }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="h-full rounded-full" style={{ background: meta.color, boxShadow: `0 0 8px ${meta.color}60` }}
+          className="h-full rounded-full relative" 
+          style={{ 
+            background: `linear-gradient(90deg, ${meta.color}dd, ${meta.color})`, 
+            boxShadow: `0 0 12px ${meta.color}ee` 
+          }}
         />
       </div>
     </div>
@@ -173,137 +179,206 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
   const harmonyColor = harmony >= 70 ? '#10b981' : harmony >= 50 ? '#f59e0b' : '#ef4444';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontFamily: 'Inter, sans-serif' }}>
+    <div className="flex flex-col gap-6" style={{ fontFamily: 'Inter, sans-serif' }}>
       
       {/* ── Hologram Avatar & Tier Progress Card ────────────────── */}
-      <div style={{
-        padding: 24, borderRadius: 20, border: '1px solid rgba(255,255,255,0.07)',
-        background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap'
-      }}>
+      <div 
+        className="flex items-center gap-6 flex-wrap relative overflow-hidden"
+        style={{
+          padding: 24, 
+          borderRadius: 24, 
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'linear-gradient(135deg, rgba(13, 20, 38, 0.5) 0%, rgba(8, 12, 24, 0.75) 100%)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05)',
+          backdropFilter: 'blur(20px)'
+        }}
+      >
         
         {/* Cyber Hologram Avatar */}
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <div style={{
-            width: 84, height: 84, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: `radial-gradient(circle at 30% 30%, ${tier.color}25, #090d16)`,
-            border: `2px solid ${tier.color}50`, boxShadow: `0 0 30px ${tier.color}35`,
+            width: 84, height: 84, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: `radial-gradient(circle at 30% 30%, ${tier.color}30, #090d16)`,
+            border: `2.5px solid ${tier.color}`, 
+            boxShadow: `0 0 30px ${tier.color}50, inset 0 0 15px ${tier.color}30`,
             position: 'relative', overflow: 'hidden'
           }}>
             {/* Pulsing hologram beam */}
             <div style={{
-              position: 'absolute', inset: 0, opacity: 0.12,
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+              position: 'absolute', inset: 0, opacity: 0.15,
+              backgroundImage: 'linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)',
               backgroundSize: '8px 8px'
             }} />
-            <span style={{ fontSize: 34, filter: `drop-shadow(0 0 8px ${tier.color}aa)` }}>🧬</span>
+            
+            {/* Holographic scanner laser line */}
+            <motion.div
+              animate={{ y: [-10, 94, -10] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+              style={{
+                position: 'absolute', left: 0, right: 0, height: '2px',
+                background: `linear-gradient(90deg, transparent, ${tier.color}, transparent)`,
+                boxShadow: `0 0 10px ${tier.color}, 0 0 20px ${tier.color}`, 
+                zIndex: 2
+              }}
+            />
+            
+            <span style={{ fontSize: 34, filter: `drop-shadow(0 0 12px ${tier.color})`, zIndex: 1 }}>🧬</span>
           </div>
           <div style={{
-            position: 'absolute', bottom: -6, right: -6, fontSize: 9, fontWeight: 800, padding: '2px 8px',
-            borderRadius: 99, background: '#090d16', border: `1px solid ${tier.color}50`, color: tier.color,
-            boxShadow: `0 2px 10px ${tier.color}30`, textTransform: 'uppercase'
+            position: 'absolute', bottom: -4, right: -4, fontSize: 9, fontWeight: 900, padding: '2.5px 10px',
+            borderRadius: 99, background: '#090d16', border: `1.5px solid ${tier.color}`, color: tier.color,
+            boxShadow: `0 4px 12px ${tier.color}40`, textTransform: 'uppercase', trackingWidth: '0.05em'
           }}>
             {tier.name}
           </div>
         </div>
 
         {/* Identity & XP Details */}
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: 0, trackingWidth: '-0.02em' }}>{codename}</h2>
+        <div style={{ flex: 1, minWidth: 240 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#ffffff', margin: 0, letterSpacing: '-0.02em', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{codename}</h2>
             {isRecovery && (
-              <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24', fontWeight: 700 }}>
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 font-extrabold tracking-wider animate-pulse">
                 RECOVERY ARC
               </span>
             )}
           </div>
-          <p style={{ fontSize: 11.5, color: '#64748b', margin: '0 0 14px' }}>Anonymous Identity · {tier.name} Tier</p>
+          <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: '0 0 16px' }}>Anonymous Identity · <span style={{ color: tier.color, fontWeight: 700 }}>{tier.name} Tier</span></p>
 
           {/* XP progress bar */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, fontWeight: 600, color: '#475569' }}>
-              <span>{currentTier.name} → {nextTier.name}</span>
-              <span>{xp.toLocaleString()} / {nextTier.min.toLocaleString()} XP</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: '#64748b' }}>
+              <span className="text-slate-400">{currentTier.name} <span className="text-slate-600">→</span> <span style={{ color: nextTier.color }}>{nextTier.name}</span></span>
+              <span className="text-slate-200">{xp.toLocaleString()} <span className="text-slate-600">/</span> {nextTier.min.toLocaleString()} XP</span>
             </div>
-            <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+            <div style={{ height: 8, borderRadius: 99, background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
               <motion.div
-                initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1.2 }}
-                style={{ height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${tier.color}, ${nextTier.color})`, boxShadow: `0 0 8px ${tier.color}80` }}
+                initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                style={{ height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${tier.color}, ${nextTier.color})`, boxShadow: `0 0 10px ${tier.color}80` }}
               />
             </div>
-            <p style={{ fontSize: 10, color: '#334155', margin: 0 }}>{pct}% completed towards your next rank</p>
+            <p style={{ fontSize: 10.5, color: '#475569', fontWeight: 500, margin: 0 }}>{pct}% completed towards your next rank</p>
           </div>
         </div>
 
         {/* Harmony Diagnostic Dial */}
-        <div style={{ textAlign: 'center', flexShrink: 0 }}>
+        <div style={{ textAlign: 'center', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{
-            width: 60, height: 60, borderRadius: 16, border: `2px solid ${harmonyColor}50`,
-            background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `0 0 16px ${harmonyColor}15`, marginBottom: 4
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            border: `3px solid ${harmonyColor}`,
+            background: 'rgba(9, 13, 22, 0.6)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: `0 0 20px ${harmonyColor}40, inset 0 0 15px ${harmonyColor}20`,
+            position: 'relative',
+            marginBottom: 6
           }}>
-            <span style={{ fontSize: 18, fontWeight: 800, color: harmonyColor }}>{Math.max(0, harmony)}</span>
+            <span style={{ fontSize: 24, fontWeight: 900, color: '#ffffff', textShadow: `0 0 8px ${harmonyColor}` }}>
+              {Math.max(0, harmony)}
+            </span>
+            <span style={{ fontSize: 8, fontWeight: 800, color: '#94a3b8', trackingWidth: '0.05em', textTransform: 'uppercase', marginTop: -2 }}>
+              HARMONY
+            </span>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#475569', trackingWidth: '0.05em' }}>HARMONY</span>
         </div>
 
       </div>
 
       {isRecovery && (
-        <div style={{ padding: 14, borderRadius: 14, background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.15)', fontSize: 12, color: '#fbbf24', lineHeight: 1.5 }}>
-          <strong>Recovery Arc Active:</strong> Standard quests are balanced. Complete daily items to restore streak multiplier benefits.
+        <div style={{ 
+          padding: 16, 
+          borderRadius: 16, 
+          background: 'rgba(245,158,11,0.05)', 
+          border: '1px solid rgba(245,158,11,0.15)', 
+          fontSize: 12.5, 
+          color: '#fbbf24', 
+          lineHeight: 1.5,
+          boxShadow: '0 4px 15px rgba(245,158,11,0.05)'
+        }}>
+          <strong style={{ color: '#f59e0b' }}>Recovery Arc Active:</strong> Standard quests are balanced. Complete daily items to restore streak multiplier benefits.
         </div>
       )}
 
       {/* ── Present Self vs Shadow Self ─────────────────────────── */}
       <div style={{
-        padding: 24, borderRadius: 20, border: '1px solid rgba(255,255,255,0.07)',
-        background: 'rgba(255,255,255,0.03)'
+        padding: 24, 
+        borderRadius: 24, 
+        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'linear-gradient(135deg, rgba(13, 20, 38, 0.4) 0%, rgba(8, 12, 24, 0.6) 100%)',
+        boxShadow: '0 12px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.03)',
+        backdropFilter: 'blur(20px)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 14 }}>⚔️</span>
-            <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Present Self vs Shadow Self</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 16, filter: 'drop-shadow(0 0 6px rgba(129,140,248,0.6))' }}>⚔️</span>
+            <h3 style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9', margin: 0, letterSpacing: '-0.01em' }}>Present Self vs Shadow Self</h3>
           </div>
-          <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 99, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: '#818cf8', fontWeight: 600 }}>
+          <span className="text-[10px] px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold tracking-wide">
             30 days ago
           </span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           {STAT_META.map(m => (
             <StatBar key={m.key} meta={m} value={stats[m.key]} prevValue={prevStats[m.key]} />
           ))}
         </div>
 
-        <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontSize: 11.5, color: '#64748b', margin: 0 }}>Overall improvement vs Shadow Self</p>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981' }}>
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0 }}>Overall improvement vs Shadow Self</p>
+          <span style={{ fontSize: 14, fontWeight: 900, color: '#10b981', textShadow: '0 0 8px rgba(16,185,129,0.3)' }}>
             +{Math.round(STAT_META.reduce((a, m) => a + (stats[m.key] - prevStats[m.key]), 0) / STAT_META.length)} avg points
           </span>
         </div>
       </div>
 
       {/* ── 8 Life Stats Node Grid ──────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {STAT_META.map(m => {
           const Icon = m.icon;
           return (
             <motion.div
-              key={m.key} whileHover={{ y: -2 }}
+              key={m.key} 
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="flex items-center gap-3.5"
               style={{
-                padding: '16px 12px', borderRadius: 16, border: `1px solid ${m.color}25`,
-                background: `linear-gradient(135deg, ${m.color}08 0%, rgba(255,255,255,0.01) 100%)`,
-                textAlign: 'center', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                padding: '16px 18px',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.005) 100%)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
               }}
             >
+              {/* Left color-coded icon background */}
               <div style={{
-                width: 32, height: 32, borderRadius: 10, background: `${m.color}15`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px'
+                width: 44,
+                height: 44,
+                borderRadius: '12px',
+                background: `${m.color}15`,
+                border: `1.5px solid ${m.color}25`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: `0 0 12px ${m.color}10`
               }}>
-                <Icon size={15} style={{ color: m.color }} />
+                <Icon size={20} style={{ color: m.color, filter: `drop-shadow(0 0 4px ${m.color})` }} />
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1 }}>{stats[m.key]}</h3>
-              <p style={{ fontSize: 10, color: '#64748b', fontWeight: 600, margin: 0, textTransform: 'uppercase' }}>{m.label}</p>
+              {/* Right vertical texts */}
+              <div className="flex flex-col items-start min-w-0">
+                <span style={{ fontSize: 22, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>
+                  {stats[m.key]}
+                </span>
+                <span className="truncate" style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', trackingWidth: '0.05em', marginTop: 2 }}>
+                  {m.label}
+                </span>
+              </div>
             </motion.div>
           );
         })}
