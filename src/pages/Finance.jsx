@@ -2490,20 +2490,35 @@ export default function Finance() {
               <motion.div 
                 whileHover={{ y: -3, scale: 1.015 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.65) 0%, rgba(10,12,20,0.65) 100%)',
                   border: '1px solid rgba(255,255,255,0.06)',
-                  minHeight: 114
+                  padding: '24px',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px',
+                  boxSizing: 'border-box'
                 }}
-                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
+                className="backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-violet-500/5 blur-xl pointer-events-none" />
-                <div className="w-12 h-12 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.15)]">
-                  <CreditCard size={20} />
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(139, 92, 246, 0.15)',
+                  color: '#8b5cf6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <CreditCard size={22} />
                 </div>
                 <div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans">Total Spent</p>
-                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">₹{Math.round(totalSpent).toLocaleString('en-IN')}</p>
-                  <p className="text-[12px] text-emerald-400 font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
+                  <p className="text-[25px] font-bold text-slate-100 mt-1 font-sans leading-none tracking-tight">₹{Math.round(totalSpent).toLocaleString('en-IN')}</p>
+                  <p className="text-[11.5px] text-[#10b981] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
                     <span>↓ 8.3%</span>
                     <span className="text-slate-500 font-normal">vs last 30 days</span>
                   </p>
@@ -2514,20 +2529,35 @@ export default function Finance() {
               <motion.div 
                 whileHover={{ y: -3, scale: 1.015 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.65) 0%, rgba(10,12,20,0.65) 100%)',
                   border: '1px solid rgba(255,255,255,0.06)',
-                  minHeight: 114
+                  padding: '24px',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px',
+                  boxSizing: 'border-box'
                 }}
-                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
+                className="backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
-                <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
-                  <Download size={20} />
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  color: '#10b981',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Download size={22} />
                 </div>
                 <div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans">Total Income</p>
-                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">₹{Math.round(totalIncome).toLocaleString('en-IN')}</p>
-                  <p className="text-[12px] text-emerald-400 font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
+                  <p className="text-[25px] font-bold text-slate-100 mt-1 font-sans leading-none tracking-tight">₹{Math.round(totalIncome).toLocaleString('en-IN')}</p>
+                  <p className="text-[11.5px] text-[#10b981] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
                     <span>↑ 12.6%</span>
                     <span className="text-slate-500 font-normal">vs last 30 days</span>
                   </p>
@@ -2538,20 +2568,35 @@ export default function Finance() {
               <motion.div 
                 whileHover={{ y: -3, scale: 1.015 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.65) 0%, rgba(10,12,20,0.65) 100%)',
                   border: '1px solid rgba(255,255,255,0.06)',
-                  minHeight: 114
+                  padding: '24px',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px',
+                  boxSizing: 'border-box'
                 }}
-                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
+                className="backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-blue-500/5 blur-xl pointer-events-none" />
-                <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
-                  <Wallet size={20} />
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(59, 130, 246, 0.15)',
+                  color: '#3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Wallet size={22} />
                 </div>
                 <div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans">Net Savings</p>
-                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">₹{Math.round(netSavings).toLocaleString('en-IN')}</p>
-                  <p className="text-[12px] text-emerald-400 font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
+                  <p className="text-[25px] font-bold text-slate-100 mt-1 font-sans leading-none tracking-tight">₹{Math.round(netSavings).toLocaleString('en-IN')}</p>
+                  <p className="text-[11.5px] text-[#10b981] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
                     <span>↑ 18.9%</span>
                     <span className="text-slate-500 font-normal">vs last 30 days</span>
                   </p>
@@ -2562,20 +2607,35 @@ export default function Finance() {
               <motion.div 
                 whileHover={{ y: -3, scale: 1.015 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.65) 0%, rgba(10,12,20,0.65) 100%)',
                   border: '1px solid rgba(255,255,255,0.06)',
-                  minHeight: 114
+                  padding: '24px',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px',
+                  boxSizing: 'border-box'
                 }}
-                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
+                className="backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-amber-500/5 blur-xl pointer-events-none" />
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
-                  <ArrowLeftRight size={20} />
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  color: '#f59e0b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <ArrowLeftRight size={22} />
                 </div>
                 <div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans">Transactions</p>
-                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">{totalCount}</p>
-                  <p className="text-[12px] text-slate-500 font-medium mt-1.5 font-sans leading-none">
+                  <p className="text-[25px] font-bold text-slate-100 mt-1 font-sans leading-none tracking-tight">{totalCount}</p>
+                  <p className="text-[11.5px] text-slate-500 font-medium mt-1.5 font-sans leading-none">
                     <span>vs last 30 days</span>
                   </p>
                 </div>
