@@ -881,7 +881,7 @@ export default function Dashboard() {
   return (
     <div
       className={`${doomMode ? 'doom-active' : ''} ${doomShake ? 'doom-shake' : ''}`}
-      style={{ height: '100%', overflow: 'hidden', display: 'flex', background: doomMode ? C.doomBg : C.bg, color: C.text, fontFamily: 'Inter, sans-serif' }}
+      style={{ height: '100%', overflow: 'hidden', display: 'flex', background: doomMode ? C.doomBg : C.bg, color: C.text, fontFamily: 'var(--font-primary)' }}
     >
       {showOnboarding && (
         <OnboardingWizard user={user} updateDomain={updateDomain} career={career} onComplete={handleOnboardingComplete} />

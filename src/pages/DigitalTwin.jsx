@@ -267,7 +267,7 @@ export default function DigitalTwin() {
         {born && (
           <motion.div
             key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}
-            style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'Inter, sans-serif' }}
+            style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'var(--font-primary)' }}
           >
             
             {/* ── Page Header ─────────────────────────────────────────── */}

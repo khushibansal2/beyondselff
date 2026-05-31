@@ -116,7 +116,7 @@ export default function Goals() {
   ];
 
   return (
-    <div className="page-container min-h-screen pb-2 bg-mesh" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="page-container min-h-screen pb-2 bg-mesh" style={{ fontFamily: 'var(--font-primary)' }}>
 
       {/* ── Breadcrumbs ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>

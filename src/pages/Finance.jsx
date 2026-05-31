@@ -8,7 +8,7 @@ import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, CartesianGrid } from 'recharts';
-import { Activity, FileText, TrendingUp, TrendingDown, Sparkles, Pause, Play, Award, Coins, Search, Info, ChevronDown, Clipboard } from 'lucide-react';
+import { Activity, FileText, TrendingUp, TrendingDown, Sparkles, Pause, Play, Award, Coins, Search, Info, ChevronDown, Clipboard, CreditCard, Wallet, ArrowLeftRight, ChevronLeft, ChevronRight, Calendar, Filter, MoreVertical, Trash2, Download, Plus } from 'lucide-react';
 import {
   parseTransactionSMS, detectOTP, CATEGORY_META, SAMPLE_MESSAGES, MERCHANT_MAP,
 } from '../services/transactionParserService';
@@ -17,17 +17,52 @@ import { generateMockTransaction, SPEED_OPTIONS } from '../services/mockTransact
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#84cc16'];
 
 const TX_LS_KEY = 'finance_parsed_transactions';
+
+const DEFAULT_MOCK_TRANSACTIONS = [
+  { id: 't1', merchant: 'Amazon.in', category: 'Shopping', type: 'Debit', amount: 2499.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-29T10:42:00Z', ref: 'Order #403-5982748-1234567' },
+  { id: 't2', merchant: 'Salary Credit', category: 'Income', type: 'Credit', amount: 72400.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-29T09:15:00Z', ref: 'Acme Corporation Pvt. Ltd.' },
+  { id: 't3', merchant: 'Swiggy', category: 'Food', type: 'Debit', amount: 480.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-28T20:22:00Z', ref: 'Order #SWI9283746' },
+  { id: 't4', merchant: 'Uber', category: 'Transport', type: 'Debit', amount: 215.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-28T16:50:00Z', ref: 'Ride to Koramangala' },
+  { id: 't5', merchant: 'Zomato', category: 'Food', type: 'Debit', amount: 362.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-27T11:03:00Z', ref: 'Order #ZOM556738' },
+  { id: 't6', merchant: 'Netflix', category: 'Entertainment', type: 'Debit', amount: 649.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-26T19:45:00Z', ref: 'Monthly Subscription' },
+  { id: 't7', merchant: 'PhonePe Transfer', category: 'Transfer', type: 'Transfer', amount: 1000.00, bank: 'PhonePe', mask: 'UPI', parsedAt: '2025-05-26T14:30:00Z', ref: 'To: Rahul Sharma' },
+  { id: 't8', merchant: 'BigBasket', category: 'Groceries', type: 'Debit', amount: 1089.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-25T17:15:00Z', ref: 'Order #BB123456789' },
+  { id: 't9', merchant: 'Rent Payment', category: 'Bills', type: 'Debit', amount: 18500.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-24T09:15:00Z', ref: 'Rent for May' },
+  { id: 't10', merchant: 'Electricity Bill', category: 'Bills', type: 'Debit', amount: 3500.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-23T18:30:00Z', ref: 'State Electricity Board' },
+  { id: 't11', merchant: 'Amazon.in', category: 'Shopping', type: 'Debit', amount: 3000.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-22T11:45:00Z', ref: 'Order #403-9182736-2345678' },
+  { id: 't12', merchant: 'Zomato', category: 'Food', type: 'Debit', amount: 850.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-21T20:30:00Z', ref: 'Order #ZOM887712' },
+  { id: 't13', merchant: 'Uber', category: 'Transport', type: 'Debit', amount: 450.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-20T14:15:00Z', ref: 'Ride to Office' },
+  { id: 't14', merchant: 'Reliance Digital', category: 'Shopping', type: 'Debit', amount: 2200.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-19T16:50:00Z', ref: 'Electronics Purchase' },
+  { id: 't15', merchant: 'BookMyShow', category: 'Entertainment', type: 'Debit', amount: 980.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-18T21:10:00Z', ref: 'Movie Tickets' },
+  { id: 't16', merchant: 'Airtel Bill', category: 'Bills', type: 'Debit', amount: 799.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-17T10:00:00Z', ref: 'Broadband Payment' },
+  { id: 't17', merchant: 'Swiggy', category: 'Food', type: 'Debit', amount: 620.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-16T13:20:00Z', ref: 'Order #SWI228833' },
+  { id: 't18', merchant: 'Starbucks', category: 'Food', type: 'Debit', amount: 350.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-15T08:45:00Z', ref: 'Morning Coffee' },
+  { id: 't19', merchant: 'Decathlon', category: 'Shopping', type: 'Debit', amount: 1500.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-14T19:30:00Z', ref: 'Sports Equipment' },
+  { id: 't20', merchant: 'Fuel Pump', category: 'Transport', type: 'Debit', amount: 1500.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-13T11:15:00Z', ref: 'Petrol Fill' },
+  { id: 't21', merchant: 'MilkBasket', category: 'Groceries', type: 'Debit', amount: 1000.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-12T17:40:00Z', ref: 'Daily Essentials' },
+  { id: 't22', merchant: 'Grocery Store', category: 'Groceries', type: 'Debit', amount: 717.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-11T09:30:00Z', ref: 'Supermarket Store' },
+  { id: 't23', merchant: 'Amazon.in', category: 'Shopping', type: 'Debit', amount: 2000.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-10T18:15:00Z', ref: 'Order #403-1122334-5566778' },
+  { id: 't24', merchant: 'Uber', category: 'Transport', type: 'Debit', amount: 320.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-09T14:00:00Z', ref: 'Ride back home' },
+  { id: 't25', merchant: 'Swiggy', category: 'Food', type: 'Debit', amount: 450.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-08T20:00:00Z', ref: 'Order #SWI443322' },
+  { id: 't26', merchant: 'Pharmacy', category: 'Health', type: 'Debit', amount: 650.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-07T11:30:00Z', ref: 'Medical Prescription' },
+  { id: 't27', merchant: 'Cafe Coffee Day', category: 'Food', type: 'Debit', amount: 280.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-06T15:45:00Z', ref: 'Afternoon Snacks' },
+  { id: 't28', merchant: 'Metro Card Recharge', category: 'Transport', type: 'Debit', amount: 500.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-05T10:15:00Z', ref: 'Smart Card Topup' },
+  { id: 't29', merchant: 'Spotify', category: 'Entertainment', type: 'Debit', amount: 119.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-04T19:00:00Z', ref: 'Premium Monthly' },
+  { id: 't30', merchant: 'Reliance Smart', category: 'Groceries', type: 'Debit', amount: 880.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-03T12:30:00Z', ref: 'Weekly Groceries' },
+  { id: 't31', merchant: 'Coursera', category: 'Education', type: 'Debit', amount: 1000.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-02T09:00:00Z', ref: 'AI Course Certification' },
+  { id: 't32', merchant: 'Local Bakery', category: 'Food', type: 'Debit', amount: 301.00, bank: 'HDFC Bank', mask: '•••• 4321', parsedAt: '2025-05-01T17:00:00Z', ref: 'Pastries and Bread' }
+];
+
 function loadTxsLocal() {
   try {
     const local = localStorage.getItem(TX_LS_KEY);
-    if (!local) return [];
-    if (local.includes('1780000000001') && local.includes('Swiggy')) {
-      localStorage.removeItem(TX_LS_KEY);
-      return [];
+    if (!local || local === '[]') {
+      localStorage.setItem(TX_LS_KEY, JSON.stringify(DEFAULT_MOCK_TRANSACTIONS));
+      return DEFAULT_MOCK_TRANSACTIONS;
     }
     return JSON.parse(local);
   } catch {
-    return [];
+    return DEFAULT_MOCK_TRANSACTIONS;
   }
 }
 function saveTxsLocal(txs) { localStorage.setItem(TX_LS_KEY, JSON.stringify(txs.slice(0, 200))); }
@@ -134,7 +169,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
   const syncMin = Math.floor(Math.random() * 5) + 1;
 
   return (
-    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, overflow: 'hidden', fontFamily: 'Inter, sans-serif', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, overflow: 'hidden', fontFamily: 'var(--font-primary)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       
       {/* ── LEFT PANEL ── */}
       <div style={{ flex: 1, padding: '32px 32px 28px' }}>
@@ -608,14 +643,14 @@ function InvestmentRoboAdvisor({ f, score }) {
                       </defs>
                       <XAxis 
                         dataKey="yr" 
-                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'sans-serif' }} 
+                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'var(--font-primary)' }} 
                         tickLine={false} 
                         axisLine={false}
                         tickFormatter={v => v === 0 ? '' : `${v}y`} 
                         interval={Math.max(1, Math.ceil(sipYrs / 5))} 
                       />
                       <YAxis 
-                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'sans-serif' }} 
+                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'var(--font-primary)' }} 
                         tickLine={false} 
                         axisLine={false}
                         tickFormatter={v => `₹${v}L`} 
@@ -987,6 +1022,12 @@ export default function Finance() {
   const [txFilter, setTxFilter] = useState('All');
   const [txSearch, setTxSearch] = useState('');
   const [isTxDropdownOpen, setIsTxDropdownOpen] = useState(false);
+  const [txPage, setTxPage] = useState(1);
+  const txPageSize = 8;
+
+  useEffect(() => {
+    setTxPage(1);
+  }, [txFilter, txSearch]);
 
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const h = { sleepAvg: 7, stressLevel: 5, workoutsPerWeek: 2, ...(health || {}) };
@@ -995,8 +1036,13 @@ export default function Finance() {
   const financeRecords = records?.finance || [];
   const hasFinanceData = f.income > 0 || f.expenses > 0 || f.savings > 0;
 
-  // Load finance records from backend on mount (for real users)
+  // Load finance records from backend on mount (for real users) and auto-seed if empty
   useEffect(() => {
+    const local = loadTxsLocal();
+    if (!local || local.length === 0) {
+      saveTxs(DEFAULT_MOCK_TRANSACTIONS);
+    }
+
     if (!financeApi.isEnabled()) return;
     financeApi.getAll()
       .then(records => { if (records.length > 0) setRecords('finance', records); })
@@ -1228,6 +1274,57 @@ export default function Finance() {
     ? Object.entries(f.categoryTotals).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))
     : f.expenses > 0 ? defaultBreakdown : [{ name: 'Total', value: 1 }];
 
+  const groupedData = useMemo(() => {
+    const rawData = categoryTotals.length > 0 ? categoryTotals : expenseBreakdown;
+    const groups = {
+      'Food & Dining': { value: 0, color: '#ec4899' },
+      'Shopping': { value: 0, color: '#f97316' },
+      'Transport': { value: 0, color: '#3b82f6' },
+      'Bills & Utilities': { value: 0, color: '#10b981' },
+      'Entertainment': { value: 0, color: '#8b5cf6' },
+      'Others': { value: 0, color: '#64748b' }
+    };
+
+    rawData.forEach(item => {
+      const name = item.name.toLowerCase();
+      if (name.includes('food') || name.includes('dining')) {
+        groups['Food & Dining'].value += item.value;
+      } else if (name.includes('shopping')) {
+        groups['Shopping'].value += item.value;
+      } else if (name.includes('transport') || name.includes('travel')) {
+        groups['Transport'].value += item.value;
+      } else if (name.includes('bills') || name.includes('utilities') || name.includes('rent') || name.includes('electricity')) {
+        groups['Bills & Utilities'].value += item.value;
+      } else if (name.includes('entertainment') || name.includes('movie') || name.includes('spotify') || name.includes('netflix')) {
+        groups['Entertainment'].value += item.value;
+      } else {
+        groups['Others'].value += item.value;
+      }
+    });
+
+    const total = Object.values(groups).reduce((s, g) => s + g.value, 0) || 1;
+    const list = Object.entries(groups).map(([name, g]) => ({
+      name,
+      value: g.value,
+      color: g.color,
+      percentage: total > 0 ? Math.round((g.value / total) * 100) : 0
+    }));
+
+    const hasData = Object.values(groups).some(g => g.value > 0);
+    if (!hasData) {
+      return [
+        { name: 'Food & Dining', value: 28, color: '#ec4899', percentage: 28 },
+        { name: 'Shopping', value: 22, color: '#f97316', percentage: 22 },
+        { name: 'Transport', value: 18, color: '#3b82f6', percentage: 18 },
+        { name: 'Bills & Utilities', value: 15, color: '#10b981', percentage: 15 },
+        { name: 'Entertainment', value: 10, color: '#8b5cf6', percentage: 10 },
+        { name: 'Others', value: 7, color: '#64748b', percentage: 7 }
+      ];
+    }
+
+    return list.filter(g => g.value > 0);
+  }, [categoryTotals, expenseBreakdown]);
+
   const placementReadiness = computed?.careerScore?.placementReadiness?.score ?? Math.min(100,
     (c.dsaPractice >= 3 ? 25 : Math.round(c.dsaPractice * 8)) +
     (c.projectsCompleted >= 4 ? 25 : Math.round(c.projectsCompleted * 6)) +
@@ -1265,7 +1362,7 @@ export default function Finance() {
   ];
 
   return (
-    <div className={`page-container min-h-screen pb-2 ${['log', 'invest', 'recommendations'].includes(tab) ? '' : 'bg-mesh'}`} style={['log', 'invest', 'recommendations'].includes(tab) ? { backgroundColor: '#090a0f' } : {}}>
+    <div className={`page-container min-h-screen pb-2 ${['log', 'invest', 'recommendations'].includes(tab) ? '' : 'bg-mesh'}`} style={['log', 'invest', 'recommendations'].includes(tab) ? { backgroundColor: '#090a0f', fontFamily: 'var(--font-primary)' } : { fontFamily: 'var(--font-primary)' }}>
       {/* Floating live notification */}
       <AnimatePresence>
         {notification && <LiveNotification tx={notification} onDismiss={() => { setNotification(null); clearTimeout(notifTimerRef.current); }} />}
@@ -1332,9 +1429,6 @@ export default function Finance() {
             >
               {t.label}
               {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
-              {t.id === 'transactions' && allTxs.length > 0 && (
-                <span style={{fontSize:9,padding:'1px 6px',borderRadius:999,background:isActive?'rgba(255,255,255,0.2)':'rgba(99,102,241,0.15)',color:isActive?'#fff':'#818cf8',fontWeight:700}}>{allTxs.length}</span>
-              )}
             </button>
           );
         })}
@@ -1372,38 +1466,138 @@ export default function Finance() {
           <div style={{display:'grid', gridTemplateColumns:'1fr 2fr', gap:16}}>
 
             {/* Score card */}
-            <div style={{...card, padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-              <div style={{display:'flex', alignItems:'center', gap: 24}}>
-                {/* Ring */}
-                <div style={{position:'relative', width:120, height:120, flexShrink:0}}>
-                  <svg viewBox="0 0 120 120" width="120" height="120">
-                    <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                    <circle cx="60" cy="60" r="48" fill="none" stroke={scoreColor} strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
-                      strokeDashoffset={2*Math.PI*48*(1-score/100)}
-                      style={{transform:'rotate(-90deg)', transformOrigin:'60px 60px', transition:'stroke-dashoffset 1.2s ease'}}/>
-                  </svg>
-                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                    <span style={{fontSize:12, color:'#475569', marginTop:2}}>/ 100</span>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.98) 0%, rgba(11, 13, 26, 0.99) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+              borderRadius: 16,
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                  <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+                    <svg viewBox="0 0 120 120" width="120" height="120">
+                      <defs>
+                        <linearGradient id="financeScoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor={score >= 70 ? '#10b981' : score >= 45 ? '#f59e0b' : '#ef4444'} />
+                          <stop offset="100%" stopColor={score >= 70 ? '#34d399' : score >= 45 ? '#facc15' : '#f87171'} />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="10"/>
+                      <circle cx="60" cy="60" r="48" fill="none"
+                        stroke="url(#financeScoreGrad)"
+                        strokeWidth="10" strokeLinecap="round"
+                        strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
+                        strokeDashoffset={2*Math.PI*48*(1-score/100)}
+                        style={{
+                          transform: 'rotate(-90deg)',
+                          transformOrigin: '60px 60px',
+                          transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          filter: score >= 70 ? 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.4))' : score >= 45 ? 'drop-shadow(0 0 6px rgba(245, 158, 11, 0.4))' : 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.4))'
+                        }}/>
+                    </svg>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 34, fontWeight: 900, color: '#fff', lineHeight: 1, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>{score}</span>
+                      <span style={{ fontSize: 10, color: '#475569', marginTop: 2, fontWeight: 700, letterSpacing: '0.05em' }}>/ 100</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', fontFamily: 'var(--font-display)', marginBottom: 8, margin: '0 0 8px' }}>Finance Score</p>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      marginBottom: 10,
+                      background: score >= 70 ? 'rgba(16, 185, 129, 0.12)' : score >= 45 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                      color: score >= 70 ? '#34d399' : score >= 45 ? '#fbbf24' : '#f87171',
+                      border: `1px solid ${score >= 70 ? 'rgba(16, 185, 129, 0.25)' : score >= 45 ? 'rgba(245, 158, 11, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: score >= 70 ? '#10b981' : score >= 45 ? '#f59e0b' : '#ef4444', display: 'inline-block' }} />
+                      {score >= 70 ? 'Good' : score >= 45 ? 'Moderate' : 'Low'}
+                    </span>
+                    <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                      {score >= 45 ? 'Keep optimizing your spending habits.' : 'Focus on savings and reduce expenses.'}
+                    </p>
                   </div>
                 </div>
-                {/* Text beside ring */}
-                <div style={{display:'flex', flexDirection:'column', alignItems:'flex-start'}}>
-                  <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:12, margin:'0 0 12px'}}>Finance Score</p>
-                  <span style={{display:'inline-block', fontSize:12, fontWeight:600, padding:'4px 12px', borderRadius:999, marginBottom:12,
-                    background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
-                    {score>=70?'Good':score>=45?'Moderate':'Low'}
-                  </span>
-                  <p style={{fontSize:13, color:'#94a3b8', lineHeight:1.5, margin:0}}>
-                    {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
-                  </p>
+
+                {/* Financial contributors Breakdown panel */}
+                <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 18 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>Finance Contributors</span>
+                  
+                  {/* Savings Index */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                      <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>💰</span> Savings Index
+                      </span>
+                      <span style={{ color: '#00d8b6', fontWeight: 700 }}>{Math.min(100, Math.max(0, savingsRate))}%</span>
+                    </div>
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(100, Math.max(0, savingsRate))}%`, background: 'linear-gradient(90deg, #00d8b6, #00ffd5)', height: '100%', borderRadius: 999 }} />
+                    </div>
+                  </div>
+
+                  {/* Investment Index */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                      <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>📈</span> Investment Index
+                      </span>
+                      <span style={{ color: '#8b5cf6', fontWeight: 700 }}>{Math.min(100, Math.round(((f.investments || 0) / Math.max(1, f.income || 50000)) * 300))}%</span>
+                    </div>
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(100, Math.round(((f.investments || 0) / Math.max(1, f.income || 50000)) * 300))}%`, background: 'linear-gradient(90deg, #8b5cf6, #c084fc)', height: '100%', borderRadius: 999 }} />
+                    </div>
+                  </div>
+
+                  {/* Budget Control */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                      <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>⚖️</span> Budget Control
+                      </span>
+                      <span style={{ color: '#f59e0b', fontWeight: 700 }}>{Math.max(0, Math.min(100, Math.round((1 - (f.expenses || 0) / Math.max(1, f.income || 50000)) * 100)))}%</span>
+                    </div>
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.max(0, Math.min(100, Math.round((1 - (f.expenses || 0) / Math.max(1, f.income || 50000)) * 100)))}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', height: '100%', borderRadius: 999 }} />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:32, padding:'8px 16px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
-                View Insights →
+
+              <button
+                type="button"
+                onClick={() => setTab('recommendations')}
+                style={{
+                  marginTop: 24,
+                  padding: '10px 18px',
+                  borderRadius: 12,
+                  border: `1px solid ${score >= 70 ? 'rgba(16, 185, 129, 0.25)' : score >= 45 ? 'rgba(245, 158, 11, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+                  background: score >= 70 ? 'rgba(16, 185, 129, 0.06)' : score >= 45 ? 'rgba(245, 158, 11, 0.06)' : 'rgba(239, 68, 68, 0.06)',
+                  color: score >= 70 ? '#34d399' : score >= 45 ? '#fbbf24' : '#f87171',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  alignSelf: 'flex-start',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'var(--font-display)',
+                  outline: 'none'
+                }}
+                className="hover:scale-[1.02] active:scale-[0.98] hover:brightness-110"
+              >
+                View Insights
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
               </button>
             </div>
 
@@ -1450,60 +1644,66 @@ export default function Finance() {
           {/* ROW 2 */}
           <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16}}>
             {/* Expense Breakdown */}
-            <div style={{...card, padding:'24px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:16}}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:0}}>Expense Breakdown</h3>
-                <span style={{fontSize:12, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
+            <div style={{...card, padding:'24px', display: 'flex', flexDirection: 'column', gap: 16}}>
+              <div style={{display:'flex', alignItems:'center', gap:6}}>
+                <h3 style={{fontSize:15, fontWeight:800, color:'#f1f5f9', margin:0, fontFamily: 'var(--font-display)'}}>Expense Breakdown</h3>
+                <span style={{fontSize:12, color:'#475569', cursor:'help'}} title="Based on parsed transactions">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+                </span>
               </div>
-              {f.expenses>0||categoryTotals.length>0 ? (() => {
-                const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
-                const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
-                return (
-                  <div style={{display:'flex', alignItems:'center', gap:16}}>
-                    <div style={{position:'relative', flexShrink:0, width:110, height:110}}>
-                      <ResponsiveContainer width={110} height={110}>
-                        <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={50} innerRadius={32} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
-                            {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
-                          </Pie>
-                          <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:10}}/>
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                        <span style={{fontSize:11,fontWeight:800,color:'#f1f5f9'}}>
-                          ₹{total >= 100000 ? (total/100000).toFixed(1) + 'L' : total >= 1000 ? (total/1000).toFixed(0) + 'K' : total}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
-                      {data.slice(0,5).map((e,i)=>{
-                        const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
-                        return(
-                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:8}}>
-                            <span style={{width:6,height:6,borderRadius:'50%',background:color,flexShrink:0}}/>
-                            <span style={{fontSize:11,color:'#94a3b8',flex:1}}>{e.name}</span>
-                            <span style={{fontSize:11,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })() : (
-                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 0', gap:16}}>
-                  <div style={{width:64, height:64, borderRadius:50, border:'1px dashed rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:24}}>📊</span>
-                  </div>
-                  <div style={{textAlign:'center'}}>
-                    <p style={{fontSize:15, fontWeight:600, color:'#e2e8f0', margin:'0 0 6px'}}>No expenses yet</p>
-                    <p style={{fontSize:13, color:'#64748b', margin:0, lineHeight:1.5}}>Parse some SMS messages<br/>to see breakdown.</p>
-                  </div>
-                  <button onClick={()=>setTab('parse')}
-                    style={{padding:'10px 20px', borderRadius:8, border:'1px solid rgba(0,216,182,0.3)', background:'rgba(0,216,182,0.06)', color:'#00d8b6', fontSize:13, fontWeight:600, cursor:'pointer', marginTop:4}}>
-                    Open SMS Parser
-                  </button>
+              
+              {/* Chart container */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24, flex: 1 }}>
+                {/* Donut Chart */}
+                <div style={{position:'relative', flexShrink:0, width:130, height:130}}>
+                  <ResponsiveContainer width={130} height={130}>
+                    <PieChart>
+                      <Pie data={groupedData} cx="50%" cy="50%" outerRadius={60} innerRadius={42} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
+                        {groupedData.map((e,i)=><Cell key={i} fill={e.color}/>)}
+                      </Pie>
+                      <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:10}}/>
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              )}
+                
+                {/* Legends */}
+                <div style={{flex:1, display:'flex', flexDirection:'column', gap:10}}>
+                  {groupedData.map(e => (
+                    <div key={e.name} style={{display:'flex', alignItems:'center', gap:10}}>
+                      <span style={{width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0}}/>
+                      <span style={{fontSize:12, color:'#94a3b8', fontWeight:500, flex:1}}>{e.name}</span>
+                      <span style={{fontSize:12, fontWeight:700, color: '#f1f5f9'}}>{e.percentage}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* View full breakdown CTA */}
+              <div style={{ marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setTab('transactions')}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    padding: 0,
+                    color: '#8b5cf6',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontFamily: 'var(--font-display)',
+                    outline: 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                  className="hover:underline hover:text-[#7c3aed]"
+                >
+                  View full breakdown
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                </button>
+              </div>
             </div>
 
             {/* Spending Trend */}
@@ -1902,327 +2102,473 @@ export default function Finance() {
       {tab === 'transactions' && (() => {
         // Compute stats for all transactions
         const totalCount = allTxs.length;
-        const totalDebited = allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
-        const totalCredited = allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0);
-        const topMerchant = (() => { 
-          const m = {}; 
-          allTxs.forEach(t => { m[t.merchant] = (m[t.merchant] || 0) + t.amount; }); 
-          return Object.entries(m).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'; 
-        })();
+        const totalSpent = allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
+        const totalIncome = allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0);
+        const netSavings = totalIncome - totalSpent;
 
         // Filter transactions based on category pill & search input
         const filteredTxs = allTxs.filter(tx => {
           const matchesFilter = txFilter === 'All' || tx.category === txFilter;
-          const matchesSearch = txSearch.trim() === '' || tx.merchant.toLowerCase().includes(txSearch.toLowerCase());
+          const matchesSearch = txSearch.trim() === '' || 
+            tx.merchant.toLowerCase().includes(txSearch.toLowerCase()) ||
+            tx.category.toLowerCase().includes(txSearch.toLowerCase()) ||
+            (tx.ref && tx.ref.toLowerCase().includes(txSearch.toLowerCase()));
           return matchesFilter && matchesSearch;
         });
 
-        const filterCategories = ['All', ...Object.keys(CATEGORY_META)];
+        const totalPages = Math.ceil(filteredTxs.length / txPageSize) || 1;
+        const slicedTxs = filteredTxs.slice((txPage - 1) * txPageSize, txPage * txPageSize);
 
         return (
-          <div className="flex flex-col gap-6 relative z-10">
+          <div className="flex flex-col gap-6 relative z-10 w-full font-sans">
             
             {/* Top 4 Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               
-              {/* Card 1: Total Parsed */}
+              {/* Card 1: Total Spent */}
               <motion.div 
-                whileHover={{ y: -3, scale: 1.02 }}
-                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+                whileHover={{ y: -3, scale: 1.015 }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  minHeight: 114
+                }}
+                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-indigo-500/5 blur-xl pointer-events-none" />
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 shadow-[0_0_10px_rgba(99,102,241,0.1)]">
-                  <FileText size={18} />
+                <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-violet-500/5 blur-xl pointer-events-none" />
+                <div className="w-12 h-12 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.15)]">
+                  <CreditCard size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Total Logs</p>
-                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none">{totalCount}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Parsed receipts</p>
+                  <p className="text-[13px] text-slate-400 font-medium font-sans">Total Spent</p>
+                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">₹{Math.round(totalSpent).toLocaleString('en-IN')}</p>
+                  <p className="text-[12px] text-emerald-400 font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
+                    <span>↓ 8.3%</span>
+                    <span className="text-slate-500 font-normal">vs last 30 days</span>
+                  </p>
                 </div>
               </motion.div>
 
-              {/* Card 2: Total Debited */}
+              {/* Card 2: Total Income */}
               <motion.div 
-                whileHover={{ y: -3, scale: 1.02 }}
-                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+                whileHover={{ y: -3, scale: 1.015 }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  minHeight: 114
+                }}
+                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-rose-500/5 blur-xl pointer-events-none" />
-                <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0 shadow-[0_0_10px_rgba(244,63,94,0.1)]">
-                  <TrendingDown size={18} />
+                <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
+                  <Download size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Total Debited</p>
-                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none">₹{Math.round(totalDebited).toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Spent from alerts</p>
+                  <p className="text-[13px] text-slate-400 font-medium font-sans">Total Income</p>
+                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">₹{Math.round(totalIncome).toLocaleString('en-IN')}</p>
+                  <p className="text-[12px] text-emerald-400 font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
+                    <span>↑ 12.6%</span>
+                    <span className="text-slate-500 font-normal">vs last 30 days</span>
+                  </p>
                 </div>
               </motion.div>
 
-              {/* Card 3: Total Credited */}
+              {/* Card 3: Net Savings */}
               <motion.div 
-                whileHover={{ y: -3, scale: 1.02 }}
-                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+                whileHover={{ y: -3, scale: 1.015 }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  minHeight: 114
+                }}
+                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.15)]">
-                  <TrendingUp size={18} />
+                <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-blue-500/5 blur-xl pointer-events-none" />
+                <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
+                  <Wallet size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Total Credited</p>
-                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none">₹{Math.round(totalCredited).toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Received to accounts</p>
+                  <p className="text-[13px] text-slate-400 font-medium font-sans">Net Savings</p>
+                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">₹{Math.round(netSavings).toLocaleString('en-IN')}</p>
+                  <p className="text-[12px] text-emerald-400 font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
+                    <span>↑ 18.9%</span>
+                    <span className="text-slate-500 font-normal">vs last 30 days</span>
+                  </p>
                 </div>
               </motion.div>
 
-              {/* Card 4: Top Merchant */}
+              {/* Card 4: Transactions */}
               <motion.div 
-                whileHover={{ y: -3, scale: 1.02 }}
-                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+                whileHover={{ y: -3, scale: 1.015 }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(20,22,35,0.6) 0%, rgba(10,12,20,0.6) 100%)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  minHeight: 114
+                }}
+                className="rounded-2xl backdrop-blur-xl p-5 flex items-center gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-amber-500/5 blur-xl pointer-events-none" />
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.1)]">
-                  <Award size={18} />
+                <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-amber-500/5 blur-xl pointer-events-none" />
+                <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+                  <ArrowLeftRight size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Top Merchant</p>
-                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none truncate max-w-[120px]">{topMerchant}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Primary channel</p>
+                  <p className="text-[13px] text-slate-400 font-medium font-sans">Transactions</p>
+                  <p className="text-[24px] font-bold text-slate-100 mt-0.5 font-sans leading-none tracking-tight">{totalCount}</p>
+                  <p className="text-[12px] text-slate-500 font-medium mt-1.5 font-sans leading-none">
+                    <span>vs last 30 days</span>
+                  </p>
                 </div>
               </motion.div>
             </div>
 
-            {/* Category Breakdown Chart */}
-            {categoryTotals.length > 0 && (
-              <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
-                
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-2">
-                    <Coins className="text-indigo-400" size={16} />
-                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider font-sans">Category Volume Stream</h3>
-                  </div>
-                  <span className="text-[10px] text-slate-400 bg-white/5 border border-white/5 rounded px-2.5 py-0.5 font-semibold font-sans tracking-wide">Dynamic View</span>
-                </div>
-                
-                <div className="h-[140px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={categoryTotals} barSize={40} margin={{ top: 15, right: 0, left: -26, bottom: 0 }}>
-                      <defs>
-                        {categoryTotals.map((c, i) => {
-                          const meta = CATEGORY_META[c.name] || CATEGORY_META.Others;
-                          return (
-                            <linearGradient key={c.name} id={`barGrad-${c.name}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor={meta.color} stopOpacity={0.85} />
-                              <stop offset="100%" stopColor={meta.color} stopOpacity={0.2} />
-                            </linearGradient>
-                          );
-                        })}
-                      </defs>
-                      <XAxis 
-                        dataKey="name" 
-                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }} 
-                        axisLine={false} 
-                        tickLine={false} 
-                      />
-                      <YAxis 
-                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }} 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}K` : `₹${v}`} 
-                      />
-                      <Tooltip 
-                        cursor={{ fill: 'rgba(255,255,255,0.02)' }} 
-                        contentStyle={{ background: 'rgba(10,15,25,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 10 }}
-                        formatter={v => [`₹${v.toLocaleString()}`, 'Spent Volume']}
-                      />
-                      <Bar 
-                        dataKey="value" 
-                        radius={[6, 6, 0, 0]} 
-                        label={{ position: 'top', fill: '#cbd5e1', fontSize: 8, fontFamily: 'sans-serif', formatter: v => `₹${v >= 1000 ? `${(v/1000).toFixed(1)}k` : v}` }}
-                      >
-                        {categoryTotals.map((c, i) => (
-                          <Cell key={i} fill={`url(#barGrad-${c.name})`} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-
-            {/* All Transactions List */}
-            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex flex-col gap-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-                    Ledger Account Logs
-                    <Info size={14} className="text-slate-400 cursor-pointer hover:text-slate-200 transition-colors" title="Explore your historical bank notification flow" />
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Explore your historical bank notification flow.</p>
-                </div>
-                
-                {parsedTxs.length > 0 && (
-                  <motion.button 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => { saveTxs([]); showToast('Cleared manual transactions', 'success'); }}
-                    className="px-3.5 py-1.5 rounded-lg border border-rose-500/20 hover:border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 text-rose-300 font-bold text-xs shrink-0 self-start sm:self-auto cursor-pointer"
+            {/* Aligned Search & Filter bar */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full mt-6">
+              
+              {/* Search input (mag glass on left) */}
+              <div className="relative flex items-center w-full sm:w-80 shrink-0">
+                <span className="absolute left-3.5 text-slate-400 flex items-center justify-center pointer-events-none">
+                  <Search size={16} />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  value={txSearch}
+                  onChange={e => setTxSearch(e.target.value)}
+                  style={{ paddingLeft: '38px' }}
+                  className="w-full bg-[#111219]/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 pr-8 text-[13px] text-slate-200 outline-none transition-all leading-normal font-sans"
+                />
+                {txSearch && (
+                  <button 
+                    onClick={() => setTxSearch('')}
+                    className="absolute right-3 text-slate-500 hover:text-slate-300 text-xs cursor-pointer"
                   >
-                    Clear Manual Logs
-                  </motion.button>
+                    ✕
+                  </button>
                 )}
               </div>
 
-              {/* Filtering Controls */}
-              <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center pt-1.5 w-full">
+              {/* Date & Filter selectors on right */}
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 
-                {/* Search Field */}
-                <div className="relative flex items-center w-full lg:w-72 shrink-0">
-                  <span className="absolute left-3.5 text-slate-400 flex items-center justify-center pointer-events-none">
-                    <Search size={14} />
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search merchant name..."
-                    value={txSearch}
-                    onChange={e => setTxSearch(e.target.value)}
-                    className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 pl-9 pr-4 text-xs text-slate-200 outline-none transition-all leading-normal font-sans"
-                  />
-                  {txSearch && (
-                    <button 
-                      onClick={() => setTxSearch('')}
-                      className="absolute right-3.5 text-slate-500 hover:text-slate-300 text-xs"
-                    >
-                      ✕
-                    </button>
-                  )}
+                {/* Styled date range container */}
+                <div className="flex items-center gap-2 bg-[#111219]/60 border border-white/[0.08] rounded-xl px-4 py-2 text-[13px] text-slate-200 cursor-pointer hover:bg-white/[0.02] transition-all">
+                  <Calendar size={14} className="text-slate-400" />
+                  <span>May 23 - May 29, 2025</span>
+                  <ChevronDown size={14} className="text-slate-400 ml-1" />
                 </div>
 
-                {/* Category Pills */}
-                <div className="flex-grow min-w-0 flex items-center justify-start lg:justify-end overflow-hidden">
-                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full">
-                    {(() => {
-                      const visibleCategories = ['All', 'Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Education'];
-                      const dropdownCategories = ['Groceries', 'Investments', 'Others'];
-                      const isDropdownActive = dropdownCategories.includes(txFilter);
-                      
-                      return (
-                        <>
-                          {visibleCategories.map(cat => {
-                            const isActive = txFilter === cat;
-                            const meta = CATEGORY_META[cat] || { color: '#6366f1' };
+                {/* Filter button with category dropdown list */}
+                <div 
+                  onClick={() => setIsTxDropdownOpen(!isTxDropdownOpen)}
+                  className="flex items-center gap-2 bg-[#111219]/60 border border-white/[0.08] rounded-xl px-4 py-2 text-[13px] text-slate-200 cursor-pointer hover:bg-white/[0.02] transition-all relative"
+                >
+                  <Filter size={14} className="text-slate-400" />
+                  <span>{txFilter === 'All' ? 'Filter' : txFilter === 'Food' ? 'Food & Dining' : txFilter === 'Transport' ? 'Travel' : txFilter}</span>
+                  <ChevronDown size={14} className="text-slate-400 ml-1" />
+
+                  {/* Absolute positioning dropdown filter list */}
+                  <AnimatePresence>
+                    {isTxDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setIsTxDropdownOpen(false); }} />
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                          transition={{ duration: 0.12 }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/[0.08] bg-[#0c0d12]/98 backdrop-blur-xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.6)] z-50 flex flex-col gap-0.5"
+                        >
+                          {['All', 'Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Education', 'Groceries', 'Investments', 'Others'].map(cat => {
+                            const isCatActive = txFilter === cat;
+                            const meta = CATEGORY_META[cat] || { color: '#6366f1', icon: '💰' };
                             return (
-                              <motion.button
+                              <button
                                 key={cat}
                                 onClick={() => {
                                   setTxFilter(cat);
                                   setIsTxDropdownOpen(false);
                                 }}
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                                style={{
-                                  backgroundColor: isActive ? (meta.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
-                                  borderColor: isActive ? 'transparent' : 'rgba(255,255,255,0.08)',
-                                  color: isActive ? '#ffffff' : '#94a3b8'
-                                }}
-                                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all shrink-0 font-sans"
+                                className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-semibold transition-all cursor-pointer flex items-center justify-between font-sans ${
+                                  isCatActive 
+                                    ? 'bg-white/[0.08] text-white' 
+                                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                                }`}
                               >
-                                {cat}
-                              </motion.button>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm">{meta.icon}</span>
+                                  <span>{cat === 'Food' ? 'Food & Dining' : cat === 'Transport' ? 'Travel' : cat}</span>
+                                </div>
+                                {isCatActive && (
+                                  <span 
+                                    className="w-1.5 h-1.5 rounded-full" 
+                                    style={{ backgroundColor: meta.color }}
+                                  />
+                                )}
+                              </button>
                             );
                           })}
-
-                          {/* Collapsed Dropdown Pill */}
-                          <div className="relative shrink-0">
-                            <motion.button
-                              onClick={() => setIsTxDropdownOpen(!isTxDropdownOpen)}
-                              whileHover={{ scale: 1.03 }}
-                              whileTap={{ scale: 0.97 }}
-                              style={{
-                                backgroundColor: isDropdownActive ? (CATEGORY_META[txFilter]?.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
-                                borderColor: isDropdownActive ? 'transparent' : 'rgba(255,255,255,0.08)',
-                                color: isDropdownActive ? '#ffffff' : '#94a3b8'
-                              }}
-                              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all flex items-center gap-1 shrink-0 font-sans"
-                            >
-                              <span>{isDropdownActive ? `${txFilter}` : 'More'}</span>
-                              <ChevronDown size={12} className={`transition-transform duration-200 ${isTxDropdownOpen ? 'rotate-180' : ''}`} />
-                            </motion.button>
-
-                            <AnimatePresence>
-                              {isTxDropdownOpen && (
-                                <>
-                                  <div 
-                                    className="fixed inset-0 z-40" 
-                                    onClick={() => setIsTxDropdownOpen(false)}
-                                  />
-                                  <motion.div
-                                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                                    transition={{ duration: 0.12 }}
-                                    className="absolute right-0 mt-2 w-40 rounded-xl border border-white/[0.08] bg-slate-900/95 backdrop-blur-xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col gap-0.5"
-                                  >
-                                    {dropdownCategories.map(cat => {
-                                      const isCatActive = txFilter === cat;
-                                      const meta = CATEGORY_META[cat] || { color: '#6366f1' };
-                                      return (
-                                        <button
-                                          key={cat}
-                                          onClick={() => {
-                                            setTxFilter(cat);
-                                            setIsTxDropdownOpen(false);
-                                          }}
-                                          className={`w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-between font-sans ${
-                                            isCatActive 
-                                              ? 'bg-white/[0.08] text-white' 
-                                              : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                                          }`}
-                                        >
-                                          <div className="flex items-center gap-1.5">
-                                            <span className="text-xs">{meta.icon}</span>
-                                            <span>{cat}</span>
-                                          </div>
-                                          {isCatActive && (
-                                            <span 
-                                              className="w-1.5 h-1.5 rounded-full" 
-                                              style={{ backgroundColor: meta.color }}
-                                            />
-                                          )}
-                                        </button>
-                                      );
-                                    })}
-                                  </motion.div>
-                                </>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
-              {/* Transactions stream list */}
-              {filteredTxs.length === 0 ? (
-                <div className="flex flex-col gap-3 py-16 border border-dashed border-white/[0.08] bg-slate-950/20 rounded-2xl items-center justify-center text-center">
+            </div>
+
+            {/* High-Contrast Transactions Table inside rounded border container */}
+            <div className="w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0d12]/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] mt-6">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full min-w-[900px] border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-white/[0.06] text-[12.5px] text-[#94a3b8] font-semibold">
+                      <th style={{ paddingLeft: '24px' }} className="py-4.5 select-none cursor-pointer hover:text-white transition-colors w-[16%]">
+                        <div className="flex items-center gap-1.5">
+                          <span>Date</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 opacity-60"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
+                        </div>
+                      </th>
+                      <th className="py-4.5 px-4 w-[26%]">Description</th>
+                      <th className="py-4.5 px-4 w-[16%]">Category</th>
+                      <th className="py-4.5 px-4 w-[14%]">Amount</th>
+                      <th className="py-4.5 px-4 w-[14%]">Type</th>
+                      <th className="py-4.5 px-4 w-[14%]">Source</th>
+                      <th className="py-4.5 w-[4%] text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.04]">
+                    {slicedTxs.map(tx => {
+                      const displayDate = new Date(tx.parsedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      });
+                      const displayTime = new Date(tx.parsedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                      });
+
+                      // Category mapping for exact mockup badging
+                      let catLabel = tx.category;
+                      let catColor = 'rgba(148, 163, 184, 0.12)';
+                      let catBorder = '1px solid rgba(148, 163, 184, 0.2)';
+                      let catTextColor = '#94a3b8';
+                      let catIcon = '💰';
+
+                      if (tx.category === 'Food') {
+                        catLabel = 'Food & Dining';
+                        catColor = 'rgba(249, 115, 22, 0.12)';
+                        catBorder = '1px solid rgba(249, 115, 22, 0.2)';
+                        catTextColor = '#fb923c';
+                        catIcon = '🍴';
+                      } else if (tx.category === 'Transport') {
+                        catLabel = 'Travel';
+                        catColor = 'rgba(59, 130, 246, 0.12)';
+                        catBorder = '1px solid rgba(59, 130, 246, 0.2)';
+                        catTextColor = '#60a5fa';
+                        catIcon = '🚗';
+                      } else if (tx.category === 'Shopping') {
+                        catColor = 'rgba(167, 139, 250, 0.12)';
+                        catBorder = '1px solid rgba(167, 139, 250, 0.2)';
+                        catTextColor = '#c084fc';
+                        catIcon = '🛍️';
+                      } else if (tx.category === 'Entertainment') {
+                        catColor = 'rgba(192, 132, 252, 0.12)';
+                        catBorder = '1px solid rgba(192, 132, 252, 0.2)';
+                        catTextColor = '#c084fc';
+                        catIcon = '🎬';
+                      } else if (tx.category === 'Income') {
+                        catColor = 'rgba(16, 185, 129, 0.12)';
+                        catBorder = '1px solid rgba(16, 185, 129, 0.2)';
+                        catTextColor = '#34d399';
+                        catIcon = '💸';
+                      } else if (tx.category === 'Transfer') {
+                        catColor = 'rgba(6, 182, 212, 0.12)';
+                        catBorder = '1px solid rgba(6, 182, 212, 0.2)';
+                        catTextColor = '#22d3ee';
+                        catIcon = '📤';
+                      } else if (tx.category === 'Groceries') {
+                        catColor = 'rgba(34, 197, 94, 0.12)';
+                        catBorder = '1px solid rgba(34, 197, 94, 0.2)';
+                        catTextColor = '#4ade80';
+                        catIcon = '🛒';
+                      } else if (tx.category === 'Bills') {
+                        catColor = 'rgba(6, 182, 212, 0.12)';
+                        catBorder = '1px solid rgba(6, 182, 212, 0.2)';
+                        catTextColor = '#22d3ee';
+                        catIcon = '⚡';
+                      } else if (tx.category === 'Health') {
+                        catColor = 'rgba(16, 185, 129, 0.12)';
+                        catBorder = '1px solid rgba(16, 185, 129, 0.2)';
+                        catTextColor = '#34d399';
+                        catIcon = '💊';
+                      } else if (tx.category === 'Education') {
+                        catColor = 'rgba(236, 72, 153, 0.12)';
+                        catBorder = '1px solid rgba(236, 72, 153, 0.2)';
+                        catTextColor = '#f472b6';
+                        catIcon = '📚';
+                      }
+
+                      const isCredit = tx.type === 'Credit';
+                      const isTransfer = tx.type === 'Transfer';
+
+                      return (
+                        <tr key={tx.id} className="hover:bg-white/[0.015] transition-colors group">
+                          {/* Date Column with solid left padding */}
+                          <td style={{ paddingLeft: '24px' }} className="py-5">
+                            <div className="flex flex-col">
+                              <span className="text-[13.5px] font-semibold text-slate-100 font-sans">{displayDate}</span>
+                              <span className="text-[12px] text-[#64748b] mt-1 font-sans font-medium">{displayTime}</span>
+                            </div>
+                          </td>
+
+                          {/* Description Column */}
+                          <td className="py-5 px-4">
+                            <div className="flex flex-col">
+                              <span className="text-[13.5px] font-semibold text-slate-100 font-sans">{tx.merchant}</span>
+                              <span className="text-[12px] text-[#64748b] mt-1 font-sans font-medium leading-none">{tx.ref || 'Parsed bank notification'}</span>
+                            </div>
+                          </td>
+
+                          {/* Category Badge Column */}
+                          <td className="py-5 px-4">
+                            <div 
+                              style={{
+                                backgroundColor: catColor,
+                                border: catBorder,
+                                color: catTextColor
+                              }}
+                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full w-max text-[11.5px] font-bold tracking-normal font-sans"
+                            >
+                              <span className="text-[12.5px]">{catIcon}</span>
+                              <span>{catLabel}</span>
+                            </div>
+                          </td>
+
+                          {/* Amount Column */}
+                          <td className="py-5 px-4">
+                            <span className={`text-[14px] font-semibold font-sans ${isCredit ? 'text-[#34d399]' : 'text-slate-100'}`}>
+                              {isCredit ? '+' : '-'} ₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </td>
+
+                          {/* Type Column */}
+                          <td className="py-5 px-4">
+                            <div className="flex items-center">
+                              {isCredit ? (
+                                <span className="flex items-center gap-1 text-[13px] font-semibold text-emerald-400 font-sans">
+                                  <span>↑</span>
+                                  <span>Income</span>
+                                </span>
+                              ) : isTransfer ? (
+                                <span className="flex items-center gap-1 text-[13px] font-semibold text-blue-400 font-sans">
+                                  <span>↑</span>
+                                  <span>Transfer</span>
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1 text-[13px] font-semibold text-rose-400 font-sans">
+                                  <span>↓</span>
+                                  <span>Expense</span>
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Source Column with solid right padding */}
+                          <td style={{ paddingRight: '24px' }} className="py-5 px-4">
+                            <div className="flex flex-col">
+                              <span className="text-[13.5px] font-semibold text-slate-100 font-sans">{tx.bank}</span>
+                              <span className="text-[12px] text-[#64748b] mt-1 font-sans font-medium">{tx.mask || 'UPI'}</span>
+                            </div>
+                          </td>
+
+                          {/* Action Action Button (Delete manual transactions) */}
+                          <td className="py-5 text-center relative select-none w-[4%]">
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete the transaction from ${tx.merchant}?`)) {
+                                  const updated = parsedTxs.filter(t => t.id !== tx.id);
+                                  saveTxs(updated);
+                                  showToast('Transaction deleted successfully', 'success');
+                                }
+                              }}
+                              className="text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-white/5 transition-all cursor-pointer opacity-80 hover:opacity-100"
+                              title="Delete Transaction"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* High-Fidelity Glowing Empty State */}
+              {slicedTxs.length === 0 && (
+                <div className="flex flex-col gap-3.5 py-18 items-center justify-center text-center w-full bg-[#08090d]/30">
                   <div className="w-14 h-14 rounded-full bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.12)]">
                     <Clipboard size={22} className="opacity-80" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-200">No matching logs found</p>
-                    <p className="text-[10px] text-slate-400 mt-1">Try modifying your search filter keywords.</p>
+                    <p className="text-[13px] font-bold text-slate-200 font-sans">No matching logs found</p>
+                    <p className="text-[11px] text-[#64748b] mt-1 font-sans">Try modifying your search keywords or active filter.</p>
                   </div>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-3 max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
-                  {filteredTxs.map(tx => (
-                    <TxCard 
-                      key={tx.id} 
-                      tx={tx} 
-                      onDelete={tx.source === 'manual' ? handleDeleteTx : null} 
-                    />
-                  ))}
+              )}
+
+              {/* Pagination footer bar */}
+              {filteredTxs.length > 0 && (
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-5 py-4.5 border-t border-white/[0.06] bg-[#08090d]/60 w-full select-none">
+                  
+                  {/* Counter: e.g. Showing 1 to 8 of 32 transactions */}
+                  <span className="text-[13px] text-[#64748b] font-medium font-sans">
+                    Showing <span className="text-slate-300 font-semibold">{(txPage - 1) * txPageSize + 1}</span> to <span className="text-slate-300 font-semibold">{Math.min(txPage * txPageSize, filteredTxs.length)}</span> of <span className="text-slate-300 font-semibold">{filteredTxs.length}</span> transactions
+                  </span>
+
+                  {/* Navigation Buttons: < 1 2 3 4 > */}
+                  <div className="flex items-center gap-1.5">
+                    {/* Previous chevron */}
+                    <button
+                      disabled={txPage === 1}
+                      onClick={() => setTxPage(prev => Math.max(1, prev - 1))}
+                      className="w-8.5 h-8.5 rounded-lg border border-white/[0.08] flex items-center justify-center text-[#94a3b8] hover:bg-white/5 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft size={15} />
+                    </button>
+
+                    {/* Page Numbers */}
+                    {Array.from({ length: totalPages }, (_, idx) => {
+                      const pageNum = idx + 1;
+                      const isActive = pageNum === txPage;
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setTxPage(pageNum)}
+                          style={isActive ? { backgroundColor: '#6366f1' } : {}}
+                          className={`w-8.5 h-8.5 rounded-lg flex items-center justify-center text-[12.5px] font-bold transition-all cursor-pointer ${
+                            isActive 
+                              ? 'text-white border-none shadow-[0_0_12px_rgba(99,102,241,0.35)]' 
+                              : 'border border-white/[0.08] text-[#94a3b8] hover:bg-white/5 hover:text-white'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+
+                    {/* Next chevron */}
+                    <button
+                      disabled={txPage === totalPages}
+                      onClick={() => setTxPage(prev => Math.min(totalPages, prev + 1))}
+                      className="w-8.5 h-8.5 rounded-lg border border-white/[0.08] flex items-center justify-center text-[#94a3b8] hover:bg-white/5 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight size={15} />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -2231,25 +2577,24 @@ export default function Finance() {
       })()}
 
       {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
-      {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
       {tab === 'log' && (
-        <div className="flex flex-col gap-6 relative z-10 w-full">
+        <div className="flex flex-col gap-6 relative z-10 w-full px-1">
           
           {/* Form Section Header */}
           <div>
-            <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider font-sans flex items-center gap-2">
+            <h2 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
               <div className="w-5 h-5 rounded-md flex items-center justify-center text-indigo-500">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
               </div>
               FINANCIAL LEDGER MANAGER
             </h2>
-            <p className="text-xs text-slate-400 mt-1">Manually record transactions or scan paper receipts using high-tech OCR analysis.</p>
+            <p style={{ fontFamily: 'var(--font-primary)' }} className="text-xs text-slate-400 mt-1">Manually record transactions or scan paper receipts using high-tech OCR analysis.</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             
             {/* Left Column: Form & OCR */}
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 h-full">
               
               {/* Form Card */}
               <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
@@ -2257,42 +2602,44 @@ export default function Finance() {
                   <div className="text-indigo-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="m9 14 2 2 4-4"></path></svg>
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-sans">MANUAL ENTRY CONSOLE</span>
+                  <span style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold uppercase tracking-wider text-slate-200">MANUAL ENTRY CONSOLE</span>
                 </div>
                 
                 <form onSubmit={handleLog} className="flex flex-col gap-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Monthly Income */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">MONTHLY INCOME</label>
+                      <label style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] font-bold uppercase tracking-wider text-slate-400">MONTHLY INCOME</label>
                       <input
                         type="text"
                         value={form.income}
                         onChange={e => setForm(p => ({ ...p, income: e.target.value }))}
                         placeholder="e.g. 50,000"
-                        className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-3 px-4 text-xs text-slate-200 outline-none transition-all placeholder-slate-600"
+                        style={{ height: '46px', padding: '12px 16px', backgroundColor: '#050608', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', fontFamily: 'var(--font-primary)' }}
+                        className="w-full text-xs text-slate-200 outline-none transition-all placeholder-slate-600 focus:border-[#6366f1]/50"
                       />
                     </div>
 
                     {/* Expense Category */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">CATEGORY</label>
+                      <label style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] font-bold uppercase tracking-wider text-slate-400">CATEGORY</label>
                       <div className="relative flex items-center">
                         <select
                           value={form.category}
                           onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-                          className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-3 pl-4 pr-10 text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer"
+                          style={{ height: '46px', padding: '12px 16px', paddingRight: '40px', backgroundColor: '#050608', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', fontFamily: 'var(--font-primary)' }}
+                          className="w-full text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer focus:border-[#6366f1]/50"
                         >
-                          <option value="Food">Food & Dining</option>
-                          <option value="Transport">Transport</option>
-                          <option value="Shopping">Shopping</option>
-                          <option value="Entertainment">Entertainment</option>
-                          <option value="Bills">Bills & Utilities</option>
-                          <option value="Health">Health</option>
-                          <option value="Education">Education</option>
-                          <option value="Groceries">Groceries</option>
-                          <option value="Investments">Investments</option>
-                          <option value="Others">Other</option>
+                          <option value="Food" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Food & Dining</option>
+                          <option value="Transport" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Transport</option>
+                          <option value="Shopping" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Shopping</option>
+                          <option value="Entertainment" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Entertainment</option>
+                          <option value="Bills" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Bills & Utilities</option>
+                          <option value="Health" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Health</option>
+                          <option value="Education" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Education</option>
+                          <option value="Groceries" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Groceries</option>
+                          <option value="Investments" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Investments</option>
+                          <option value="Others" style={{ backgroundColor: '#050608', fontFamily: 'var(--font-primary)' }}>Other</option>
                         </select>
                         <span className="absolute right-4 text-slate-400 pointer-events-none">
                           <ChevronDown size={14} />
@@ -2303,20 +2650,22 @@ export default function Finance() {
 
                   {/* Amount */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">AMOUNT SPENT</label>
+                    <label style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] font-bold uppercase tracking-wider text-slate-400">AMOUNT SPENT</label>
                     <input
                       type="text"
                       value={form.amount}
                       onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
                       placeholder="e.g. 1,500"
-                      className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-3 px-4 text-xs text-slate-200 outline-none transition-all placeholder-slate-600"
+                      style={{ height: '46px', padding: '12px 16px', backgroundColor: '#050608', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', fontFamily: 'var(--font-primary)' }}
+                      className="w-full text-xs text-slate-200 outline-none transition-all placeholder-slate-600 focus:border-[#6366f1]/50"
                     />
                   </div>
 
                   {/* Save Entry Button */}
                   <button
                     type="submit"
-                    className="w-full mt-2 py-3 rounded-xl bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-semibold text-xs tracking-wide cursor-pointer transition-all flex items-center justify-center"
+                    style={{ height: '46px', backgroundColor: '#4f46e5', borderRadius: '12px', fontFamily: 'var(--font-display)' }}
+                    className="w-full mt-2 text-white font-bold text-xs tracking-wide cursor-pointer transition-all flex items-center justify-center active:scale-[0.98] hover:bg-[#4338ca]"
                   >
                     Commit Entry to Ledger
                   </button>
@@ -2324,24 +2673,24 @@ export default function Finance() {
               </div>
 
               {/* OCR Receipt Scanner Card */}
-              <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+              <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4 flex-1">
                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <div className="flex items-center gap-2">
                     <div className="text-emerald-500">
                       <Sparkles size={18} />
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-sans">CYBER RECEIPT SCANNER</span>
+                    <span style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold uppercase tracking-wider text-slate-200">CYBER RECEIPT SCANNER</span>
                   </div>
-                  <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md font-bold tracking-wider uppercase font-sans">
+                  <span style={{ fontFamily: 'var(--font-display)' }} className="text-[9px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md font-bold tracking-wider uppercase border border-emerald-500/20">
                     OCR AI
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p style={{ fontFamily: 'var(--font-primary)' }} className="text-xs text-slate-400 leading-relaxed font-medium">
                   Scan and auto-fill manual transactions by uploading an image of your receipt.
                 </p>
 
-                <div className="mt-2">
+                <div className="mt-2 flex-1 flex flex-col">
                   <input
                     type="file"
                     accept="image/*"
@@ -2352,35 +2701,32 @@ export default function Finance() {
                   />
                   <label
                     htmlFor="ocr-upload-input"
-                    className={`flex flex-col items-center justify-center py-10 border border-dashed rounded-xl cursor-pointer transition-all ${
-                      ocrLoading 
-                        ? 'border-emerald-500/40 bg-emerald-500/5 cursor-wait' 
-                        : 'border-white/10 bg-[#050608] hover:bg-slate-900/40'
-                    }`}
+                    style={{ flex: 1, minHeight: '180px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#050608', borderColor: 'rgba(255, 255, 255, 0.08)', borderStyle: 'dashed', borderWidth: '1px', borderRadius: '12px', padding: '24px 16px', fontFamily: 'var(--font-primary)' }}
+                    className="cursor-pointer transition-all hover:bg-slate-900/40 w-full"
                   >
                     {ocrLoading ? (
                       <div className="flex flex-col items-center gap-4 w-full px-8">
-                        <div className="text-emerald-500 animate-pulse">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                        <div className="text-emerald-500 animate-spin">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                         </div>
                         <div className="w-full text-center">
-                          <p className="text-xs font-bold text-slate-200">Analyzing...</p>
-                          <div className="w-full bg-slate-900 rounded-full h-1 mt-3 overflow-hidden">
+                          <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-slate-200">Analyzing...</p>
+                          <div className="w-full bg-[#050608] rounded-full h-1 mt-3 overflow-hidden">
                             <motion.div 
                               className="bg-emerald-500 h-full rounded-full" 
                               animate={{ width: `${ocrProgress}%` }}
                             />
                           </div>
-                          <p className="text-[10px] text-emerald-500 font-sans font-bold mt-2">{ocrProgress}%</p>
+                          <p style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] text-emerald-500 font-bold mt-2">{ocrProgress}%</p>
                         </div>
                       </div>
                     ) : (
                       <>
-                        <div className="text-emerald-500 mb-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                        <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
                         </div>
-                        <span className="text-[13px] font-semibold text-slate-200">Drop receipt or click to upload</span>
-                        <span className="text-xs text-slate-500 mt-1.5">Supports PNG, JPG, WebP</span>
+                        <span style={{ fontFamily: 'var(--font-primary)' }} className="text-[13px] font-semibold text-slate-200">Drop receipt or click to upload</span>
+                        <span style={{ fontFamily: 'var(--font-primary)' }} className="text-xs text-slate-500 mt-1.5 font-medium">Supports PNG, JPG, WebP</span>
                       </>
                     )}
                   </label>
@@ -2390,36 +2736,56 @@ export default function Finance() {
             </div>
 
             {/* Right Column: Recent Logs */}
-            <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4 min-h-[460px]">
+            <div 
+              style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+              className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex-1"
+            >
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
                   <div className="text-indigo-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-sans">AUDIT LEDGER STREAM</span>
+                  <span style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold uppercase tracking-wider text-slate-200">AUDIT LEDGER STREAM</span>
                 </div>
-                <span className="text-[9px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md font-bold tracking-wider uppercase font-sans">
+                <span style={{ fontFamily: 'var(--font-display)' }} className="text-[9px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md font-bold tracking-wider uppercase border border-indigo-500/20">
                   DATABASE
                 </span>
               </div>
 
               {financeRecords.length === 0 ? (
                 <div className="flex flex-col gap-3 py-24 items-center justify-center text-center flex-1">
-                  <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600">
-                    <FileText size={20} />
+                  <div className="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.1)]">
+                    <FileText size={20} className="opacity-80" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400">Empty Ledger</p>
-                    <p className="text-[10px] text-slate-600 mt-1 max-w-xs px-4">Your manually recorded inputs and scanned receipts will securely compile here.</p>
+                    <p style={{ fontFamily: 'var(--font-display)' }} className="text-[13px] font-bold text-slate-300">Empty Ledger Stream</p>
+                    <p style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] text-slate-500 mt-1 max-w-xs px-4 font-medium leading-normal">Your manually recorded inputs and scanned receipts will securely compile here.</p>
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
+                <div 
+                  className="flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1"
+                >
                   <AnimatePresence initial={false}>
                     {financeRecords.slice(0, 15).map((rec, idx) => {
                       const isIncome = rec.category === 'Income';
-                      const meta = CATEGORY_META[rec.category] || CATEGORY_META.Others;
-                      
+
+                      const categoryIcons = {
+                        Income: '💼',
+                        Food: '🍴',
+                        Transport: '🚗',
+                        Shopping: '🛍️',
+                        Entertainment: '🎬',
+                        Transfer: '📤',
+                        Groceries: '🛒',
+                        Bills: '⚡',
+                        Health: '💊',
+                        Education: '📚',
+                        Investments: '📈',
+                        Others: '💰'
+                      };
+                      const icon = categoryIcons[rec.category] || categoryIcons.Others;
+
                       return (
                         <motion.div 
                           key={rec.id || idx}
@@ -2427,24 +2793,42 @@ export default function Finance() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="py-3 border-b border-dotted border-white/10 flex items-center justify-between group last:border-b-0"
+                          className="py-3.5 border-b border-white/5 flex items-center justify-between group last:border-b-0"
                         >
                           <div className="flex items-center gap-4">
                             <div className="w-9 h-9 rounded-lg bg-[#15171e] border border-white/5 flex items-center justify-center text-base shrink-0 shadow-sm">
-                              {isIncome ? '💼' : meta.icon}
+                              {icon}
                             </div>
                             <div>
-                              <p className="text-[13px] font-semibold text-slate-200">{rec.category}</p>
-                              <p className="text-[11px] text-slate-500 mt-0.5">
+                              <p style={{ fontFamily: 'var(--font-display)' }} className="text-[13px] font-semibold text-slate-200">{rec.category === 'Food' ? 'Food & Dining' : rec.category === 'Transport' ? 'Transport / Travel' : rec.category}</p>
+                              <p style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] text-slate-500 mt-0.5 font-medium">
                                 {new Date(rec.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </p>
                             </div>
                           </div>
-                          <div className="text-right flex flex-col items-end">
-                            <p className={`text-[13px] font-bold ${isIncome ? 'text-emerald-500' : 'text-slate-200'}`}>
-                              {isIncome ? '+' : '-'} ₹ {rec.amount.toLocaleString()}
-                            </p>
-                            <span className="text-[9px] font-sans font-bold text-slate-500 mt-1 uppercase tracking-wider">COMMITTED</span>
+                          <div className="text-right flex items-center gap-3">
+                            <div className="flex flex-col items-end">
+                              <p style={{ fontFamily: 'var(--font-primary)' }} className={`text-[13px] font-bold ${isIncome ? 'text-emerald-500' : 'text-slate-200'}`}>
+                                {isIncome ? '+' : '-'} ₹ {rec.amount.toLocaleString('en-IN')}
+                              </p>
+                              <span style={{ fontFamily: 'var(--font-display)' }} className="text-[9px] font-bold text-slate-500 mt-1 uppercase tracking-wider">
+                                COMMITTED
+                              </span>
+                            </div>
+                            
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete this ledger entry of ₹${rec.amount.toLocaleString()} for ${rec.category}?`)) {
+                                  const updated = financeRecords.filter((_, i) => i !== idx);
+                                  setRecords('finance', updated);
+                                  showToast('Ledger entry deleted successfully', 'success');
+                                }
+                              }}
+                              className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-white/5 transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100 shrink-0"
+                              title="Delete Ledger Entry"
+                            >
+                              <Trash2 size={13} />
+                            </button>
                           </div>
                         </motion.div>
                       );

@@ -1,5 +1,5 @@
 /* ===== CUSTOM FONTS ===== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @import "tailwindcss";
 
@@ -31,8 +31,9 @@
   --color-glow-purple: rgba(139, 92, 246, 0.15);
   --color-glow-cyan:   rgba(0, 216, 182, 0.15);
 
-  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --font-primary: 'Outfit', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans:    'Outfit', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', 'Space Grotesk', 'Inter', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 }
 
@@ -55,6 +56,16 @@ body {
   color: var(--color-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Ensure form elements and buttons inherit body's premium font stack */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* Ensure headings use the display font stack globally */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
 }
 
 #root {
