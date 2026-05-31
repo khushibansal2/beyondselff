@@ -95,7 +95,12 @@ export default function Coach() {
     setLiveTranscript('');
     setTyping(true);
 
-    const contextWithSim = { ...computed, lastSimulation: aiCache.lastSimulation };
+    const contextWithSim = {
+      ...computed,
+      lastSimulation:      aiCache.lastSimulation,
+      feedbackPreferences: aiCache.feedbackPreferences || [],
+      feedbackDislikes:    aiCache.feedbackDislikes    || [],
+    };
     const result = await chatWithAI(text.trim(), contextWithSim, newMessages);
     const aiMsg  = { role: 'ai', text: result.response, source: result.source, timestamp: new Date().toISOString() };
     const finalMessages = [...newMessages, aiMsg];
@@ -111,8 +116,10 @@ export default function Coach() {
     const key = String(msgIndex);
     const newFeedback = { ...feedback, [key]: feedback[key] === vote ? null : vote };
     setFeedback(newFeedback);
-    const likedTexts = messages.filter((m, i) => m.role === 'ai' && newFeedback[String(i)] === 'up').map(m => m.text.slice(0, 100));
-    updateAICache({ feedbackPreferences: likedTexts });
+    const likedTexts    = messages.filter((m, i) => m.role === 'ai' && newFeedback[String(i)] === 'up').map(m => m.text.slice(0, 120));
+    const dislikedTexts = messages.filter((m, i) => m.role === 'ai' && newFeedback[String(i)] === 'down').map(m => m.text.slice(0, 120));
+    updateAICache({ feedbackPreferences: likedTexts, feedbackDislikes: dislikedTexts });
+    showToast(vote === 'up' ? 'Got it — I\'ll match this style 👍' : 'Noted — I\'ll adjust my approach 👎', 'success');
   };
 
   const formatTime = (d) => d ? new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';

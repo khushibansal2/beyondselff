@@ -55,7 +55,18 @@ function buildSystemPrompt(context) {
     ? urgentAlerts.map(a => `- ${a.text}`).join('\n')
     : 'No urgent alerts.';
 
-  return `You are a Digital Twin AI Life Coach. You have access to the user's REAL computed scores from a deterministic engine. 
+  const feedbackPreferences = context?.feedbackPreferences || [];
+  const feedbackDislikes    = context?.feedbackDislikes    || [];
+
+  const preferenceSection = feedbackPreferences.length > 0
+    ? `\nUSER PREFERRED RESPONSE STYLE (they thumbed up these — match this tone, length, and framing):\n${feedbackPreferences.map(p => `"${p}"`).join('\n')}`
+    : '';
+
+  const dislikeSection = feedbackDislikes.length > 0
+    ? `\nUSER DISLIKED RESPONSE STYLE (they thumbed down these — avoid this tone and style):\n${feedbackDislikes.map(p => `"${p}"`).join('\n')}`
+    : '';
+
+  return `You are a Digital Twin AI Life Coach. You have access to the user's REAL computed scores from a deterministic engine.
 
 IMPORTANT RULES:
 - ONLY reference the scores below. Do NOT invent new numbers.
@@ -67,7 +78,7 @@ IMPORTANT RULES:
 
 CURRENT USER STATE (from deterministic engines):
 - Health Score: ${hs}/100
-- Finance Score: ${fs}/100  
+- Finance Score: ${fs}/100
 - Career Score: ${cs}/100
 - Life Balance: ${balance}/100
 - Burnout Risk: ${burnoutRisk}% (${burnoutLevel})
@@ -80,8 +91,9 @@ ${crossDomainSummary}
 
 URGENT ALERTS:
 ${alertSummary}
+${preferenceSection}${dislikeSection}
 
-Use this data to give grounded, personalized, and emotionally intelligent coaching. If asked about burnout, explain which factors are causing it from the data above. If asked about finance, reference the actual finance score.`;
+Use this data to give grounded, personalized, and emotionally intelligent coaching. If asked about burnout, explain which factors are causing it from the data above. If asked about finance, reference the actual finance score. Adapt your response style based on the user preferences above.`;
 }
 
 
