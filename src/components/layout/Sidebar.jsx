@@ -66,7 +66,7 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { anomalies = [], gamification } = useData();
+  const { anomalies = [], gamification, computed } = useData();
   const { theme } = useTheme();
   const isLight = theme === 'light';
   const sidebarBg = isLight ? '#ffffff' : '#07090e';
