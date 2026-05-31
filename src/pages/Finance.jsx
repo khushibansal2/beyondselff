@@ -295,7 +295,10 @@ function InvestmentRoboAdvisor({ f, score }) {
   const savingsRate = f.income > 0 ? Math.round(((f.income - f.expenses) / f.income) * 100) : 0;
   const riskProfile = score >= 70 && savingsRate >= 25 ? 'aggressive'
     : score >= 50 && savingsRate >= 15 ? 'moderate' : 'conservative';
-  const risk = RISK_META[riskProfile];
+  
+  const [overrideProfile, setOverrideProfile] = useState(null);
+  const activeProfile = overrideProfile || riskProfile;
+  const risk = RISK_META[activeProfile];
 
   const annualInvestment = (f.investments || 0) * 12;
   const used80C = Math.min(150000, annualInvestment * 0.6);
@@ -311,7 +314,7 @@ function InvestmentRoboAdvisor({ f, score }) {
   const defaultSip = Math.round(Math.max(500, f.income * 0.15));
   const [sipAmt, setSipAmt] = useState(defaultSip || 2000);
   const [sipYrs, setSipYrs] = useState(10);
-  const annualRate = riskProfile === 'aggressive' ? 0.13 : riskProfile === 'moderate' ? 0.11 : 0.09;
+  const annualRate = activeProfile === 'aggressive' ? 0.13 : activeProfile === 'moderate' ? 0.11 : 0.09;
   const mr = annualRate / 12;
   const months = sipYrs * 12;
   const sipFV = Math.round(sipAmt * ((Math.pow(1 + mr, months) - 1) / mr));
@@ -328,216 +331,346 @@ function InvestmentRoboAdvisor({ f, score }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* ── TOP PANEL ── */}
-      <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ display: 'flex' }}>
-          
-          {/* LEFT COLUMN */}
-          <div style={{ flex: 1, padding: '12px 16px', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
-            {/* Active Strategy */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 6px #00d8b6' }} />
-                </div>
-                <div>
-                  <p style={{ fontSize: 9, fontWeight: 700, color: '#818cf8', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Active Strategy</p>
-                  <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{strategyNames[riskProfile]}</p>
-                </div>
-              </div>
-              <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: risk.color + '20', color: risk.color, border: `1px solid ${risk.color}40`, whiteSpace: 'nowrap' }}>
-                {risk.label}
-              </span>
+    <div className="flex flex-col gap-6 relative z-10 w-full font-sans">
+      
+      {/* Strategy Header Card */}
+      <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
+        
+        {/* Toggle Profiles Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <Coins size={16} />
             </div>
-
-            <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4, marginBottom: 16 }}>{strategyDesc[riskProfile]}</p>
-
-            {/* Allocation bars */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {ALLOC_META.map((a, i) => {
-                const pct = risk[a.key];
-                const amount = Math.round(Math.max(0, (f.income || 0) - (f.expenses || 0)) * pct / 100);
-                return (
-                  <motion.div key={a.key} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4, justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 11, color: '#cbd5e1', fontWeight: 500 }}>{a.icon} {a.label}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9', fontVariantNumeric: 'tabular-nums' }}>₹{amount.toLocaleString()}</span>
-                        <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600, minWidth: 28, textAlign: 'right' }}>{pct}%</span>
-                      </div>
-                    </div>
-                    <div style={{ height: 4, background: '#090a0f', borderRadius: 2, overflow: 'hidden' }}>
-                      <motion.div
-                        initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                        style={{ height: '100%', borderRadius: 2, background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : a.color === '#f43f5e' ? '#f43f5e' : '#3b82f6' }}
-                      />
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {/* Recommended Funds */}
-            <div style={{ marginTop: 'auto', paddingTop: 16 }}>
-              <div style={{ background: '#111418', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
-                <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <p style={{ fontSize: 8, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>Curated Portfolio</p>
-                    <p style={{ fontSize: 12, fontWeight: 800, color: '#f1f5f9' }}>Recommended Funds</p>
-                  </div>
-                  <span style={{ fontSize: 9, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>Profile: {risk.label} · CAGR {Math.round(annualRate * 100)}%</span>
-                </div>
-                <div style={{ padding: '6px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {FUND_RECS[riskProfile].map((fund, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 6 }}>
-                      <span style={{ fontSize: 13, flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 1 }}>
-                          <p style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{fund.name}</p>
-                          {fund.tag && <span style={{ fontSize: 7, padding: '1px 4px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', color: '#10b981', fontWeight: 700 }}>{fund.tag}</span>}
-                        </div>
-                        <p style={{ fontSize: 9, color: '#475569', margin: 0 }}>{fund.type} · Risk: {fund.risk}</p>
-                      </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <p style={{ fontSize: 11, fontWeight: 800, color: '#00d8b6', margin: 0 }}>{fund.ret}</p>
-                        <p style={{ fontSize: 8, color: '#475569', margin: 0 }}>Expected CAGR</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-                <div style={{ padding: '6px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
-                  <p style={{ fontSize: 8, color: '#334155', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>⚠ NOT FINANCIAL ADVICE · Consult a SEBI-registered advisor before investing</p>
-                </div>
-              </div>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">Interactive Robo-Advisor</h3>
+              <p className="text-[10px] text-slate-500">Auto-calculated allocation based on your financial statistics. Override profile below to preview options.</p>
             </div>
           </div>
+          
+          {/* Profile selection buttons */}
+          <div className="flex items-center gap-2 bg-slate-950/60 p-1.5 rounded-xl border border-white/5 self-start sm:self-auto">
+            {['conservative', 'moderate', 'aggressive'].map(prof => {
+              const isActive = activeProfile === prof;
+              const isAuto = riskProfile === prof;
+              const meta = RISK_META[prof];
+              return (
+                <button
+                  key={prof}
+                  onClick={() => setOverrideProfile(prof)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isActive 
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/10' 
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  }`}
+                >
+                  <span>{meta.label}</span>
+                  {isAuto && <span className="text-[8px] bg-indigo-500/25 px-1 py-0.5 rounded text-indigo-300 font-bold uppercase tracking-normal">Auto</span>}
+                </button>
+              );
+            })}
+            {overrideProfile && (
+              <button 
+                onClick={() => setOverrideProfile(null)}
+                className="text-[10px] text-slate-500 hover:text-rose-400 font-bold px-2 py-1 transition-colors cursor-pointer"
+                title="Reset to recommended profile"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
 
-          {/* RIGHT COLUMN: Tax & SIP Action Cards */}
-          <div style={{ width: 280, flexShrink: 0, padding: '12px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            
-            {/* Tax Savings Optimizer Card */}
-            <div style={{ background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '12px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>💸</div>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Tax Savings Optimizer</p>
-              </div>
-              <p style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.4, marginBottom: 12 }}>
-                ₹{totalTaxSaving.toLocaleString()} in deductions available this FY under 80C, 80CCD(1B) & 80D. Assuming 30% bracket.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-                {taxRows.map(row => (
-                  <div key={row.section} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>§ {row.section}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981' }}>₹{row.saving.toLocaleString()}</span>
+        {/* Selected Strategy Details Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div className="lg:col-span-8 flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-extrabold text-slate-100 uppercase tracking-wider">
+                Active Strategy: {strategyNames[activeProfile]}
+              </span>
+              <span 
+                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border"
+                style={{ backgroundColor: `${risk.color}15`, borderColor: `${risk.color}30`, color: risk.color }}
+              >
+                {risk.label} Profile
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {strategyDesc[activeProfile]}
+            </p>
+          </div>
+          
+          {/* Estimated Yield Indicator */}
+          <div className="lg:col-span-4 flex items-center justify-start lg:justify-end gap-3.5 bg-slate-950/40 border border-white/5 p-4 rounded-xl">
+            <div className="text-right">
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Target Return Yield</p>
+              <p className="text-lg font-black text-slate-100 mt-0.5">~{Math.round(annualRate * 100)}% p.a.</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <TrendingUp size={20} />
+            </div>
+          </div>
+        </div>
+
+        {/* Allocation Progress Bars */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 pt-2 border-t border-white/5">
+          {ALLOC_META.map((a, i) => {
+            const pct = risk[a.key];
+            const investableSurplus = Math.max(0, (f.income || 0) - (f.expenses || 0));
+            const amount = Math.round(investableSurplus * pct / 100);
+            return (
+              <div key={a.key} className="flex flex-col gap-2 p-3 bg-slate-950/40 border border-white/5 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">{a.icon}</span>
+                    <span className="text-xs font-semibold text-slate-300">{a.label}</span>
                   </div>
-                ))}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-100">₹{amount.toLocaleString()}</span>
+                    <span className="text-[10px] text-slate-500 font-semibold">{pct}%</span>
+                  </div>
+                </div>
+                <div className="w-full bg-[#050608] h-1.5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.8, delay: i * 0.05 }}
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: a.color }}
+                  />
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-                <button style={{ flex: 1, padding: '6px 0', borderRadius: 6, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                  Claim Deductions
-                </button>
-                <button style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.10)', background: 'transparent', color: '#94a3b8', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                  Later
-                </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recommended Funds & Action Center Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        
+        {/* Recommended Funds Card (col-span-2) */}
+        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center gap-2">
+              <div className="text-indigo-500">
+                <Award size={16} />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">Recommended Curated Mutual Funds</span>
+            </div>
+            <span className="text-[9px] text-slate-500 uppercase tracking-wider font-sans font-bold">India Market Benchmarks</span>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {FUND_RECS[activeProfile].map((fund, i) => (
+              <motion.div 
+                key={i} 
+                whileHover={{ scale: 1.01 }}
+                className="flex items-center justify-between p-3.5 bg-slate-950/40 border border-white/5 rounded-xl group transition-all"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#15171e] border border-white/5 flex items-center justify-center text-sm shrink-0">
+                    {i === 0 ? '🏆' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-xs font-bold text-slate-100 truncate">{fund.name}</p>
+                      {fund.tag && (
+                        <span className="text-[8px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase">
+                          {fund.tag}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">{fund.type} · Risk Level: {fund.risk}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-extrabold text-emerald-400">{fund.ret}</p>
+                  <p className="text-[8px] text-slate-500 mt-0.5">Estimated CAGR</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-auto border-t border-white/5 pt-3.5 text-[8px] text-slate-500 leading-normal">
+            ⚠ DISCLAIMER: Curated recommendations are for educational demo purposes. Past performance is not indicative of future returns. Mutual funds are subject to market risks.
+          </div>
+        </div>
+
+        {/* Tax Savings & SIP Planner Side Bar (col-span-1) */}
+        <div className="flex flex-col gap-6">
+          
+          {/* Tax Savings Optimizer Card */}
+          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-white/5 pb-4">
+              <div className="text-emerald-400">
+                <FileText size={16} />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">Tax Savings Optimizer</span>
+            </div>
+            
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Maximize FY deductions under sections 80C, 80CCD(1B), and 80D.
+            </p>
+
+            <div className="bg-slate-950/40 border border-white/5 p-4 rounded-xl flex items-center justify-between">
+              <div>
+                <p className="text-[10px] text-slate-500 font-bold uppercase">Estimated Tax Saved</p>
+                <p className="text-lg font-black text-emerald-400 mt-0.5">₹{totalTaxSaving.toLocaleString()}</p>
+              </div>
+              <div className="text-[10px] text-slate-400 bg-white/5 border border-white/5 rounded px-2.5 py-1 text-center leading-normal">
+                30% Slab
               </div>
             </div>
 
-            {/* SIP card */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#1a1f2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>📅</div>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>SIP Wealth Planner</p>
-              </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                    <label style={{ fontSize: 10, color: '#64748b', fontWeight: 600 }}>Monthly SIP (₹)</label>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b' }}>₹{sipAmt.toLocaleString()}</span>
-                  </div>
-                  <input type="number" value={sipAmt} min={100} step={500}
-                    onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))}
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 6, padding: '4px 6px', color: '#f1f5f9', fontSize: 11, outline: 'none', boxSizing: 'border-box' }} />
+            <div className="flex flex-col gap-3 pt-1">
+              {taxRows.map(row => (
+                <div key={row.section} className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 font-medium">§ {row.section}</span>
+                  <span className="font-bold text-slate-300">₹{row.saving.toLocaleString()}</span>
                 </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                    <label style={{ fontSize: 10, color: '#64748b', fontWeight: 600 }}>Investment Period</label>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9' }}>{sipYrs} Years</span>
-                  </div>
-                  <input type="range" min={1} max={30} value={sipYrs} onChange={e => setSipYrs(+e.target.value)}
-                    style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer', height: 2 }} />
-                </div>
-                {/* SIP Projection Chart */}
-                <div style={{ marginTop: 2 }}>
-                  <p style={{ fontSize: 9, color: '#475569', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>Projected Growth</p>
-                  <div style={{ height: 65 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={Array.from({ length: sipYrs + 1 }, (_, yr) => {
-                          const m = yr * 12;
-                          const fv = m === 0 ? 0 : Math.round(sipAmt * ((Math.pow(1 + mr, m) - 1) / mr));
-                          return { yr, invested: +(sipAmt * m / 100000).toFixed(2), value: +(fv / 100000).toFixed(2) };
-                        })}
-                        margin={{ top: 2, right: 2, left: -24, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient id="sipValueGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#00d8b6" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="#00d8b6" stopOpacity={0} />
-                          </linearGradient>
-                          <linearGradient id="sipInvGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
-                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <XAxis dataKey="yr" tick={{ fontSize: 8, fill: '#475569' }} tickLine={false} axisLine={false}
-                          tickFormatter={v => v === 0 ? '' : `${v}y`} interval={Math.max(1, Math.ceil(sipYrs / 5))} />
-                        <YAxis tick={{ fontSize: 8, fill: '#475569' }} tickLine={false} axisLine={false}
-                          tickFormatter={v => `₹${v}L`} width={30} />
-                        <Tooltip
-                          contentStyle={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 9, padding: '4px 6px' }}
-                          formatter={(val, name) => [`₹${val}L`, name === 'value' ? 'Value' : 'Invested']}
-                          labelFormatter={l => `Year ${l}`}
-                        />
-                        <Area type="monotone" dataKey="invested" stroke="#f59e0b" strokeWidth={1.5} fill="url(#sipInvGrad)" dot={false} />
-                        <Area type="monotone" dataKey="value" stroke="#00d8b6" strokeWidth={1.5} fill="url(#sipValueGrad)" dot={false} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <div style={{ flex: 1, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, padding: '4px 8px' }}>
-                    <p style={{ fontSize: 9, color: '#64748b', marginBottom: 1 }}>Invested</p>
-                    <p style={{ fontSize: 11, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>₹{(sipInvested / 100000).toFixed(1)}L</p>
-                  </div>
-                  <div style={{ flex: 1, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 6, padding: '4px 8px' }}>
-                    <p style={{ fontSize: 9, color: '#64748b', margin: '0 0 1px' }}>Value</p>
-                    <p style={{ fontSize: 11, fontWeight: 800, color: '#10b981', margin: 0 }}>₹{(sipFV / 100000).toFixed(1)}L</p>
-                  </div>
-                </div>
-              </div>
-              <button style={{ marginTop: 'auto', width: '100%', padding: '6px 0', borderRadius: 6, border: 'none', background: '#00d8b6', color: '#060b14', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                Set Up SIP
+              ))}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button 
+                onClick={() => showToast(`Claim forms simulated! Saved ₹${totalTaxSaving.toLocaleString()} in potential tax liabilities.`, 'success')}
+                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs cursor-pointer transition-all text-center"
+              >
+                Optimize Tax Now
               </button>
             </div>
           </div>
+
+          {/* SIP Wealth Planner Card */}
+          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-2 border-b border-white/5 pb-4">
+              <div className="text-amber-500">
+                <TrendingUp size={16} />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">SIP Wealth Planner</span>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {/* Monthly SIP Amount */}
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center text-xs">
+                  <label className="font-semibold text-slate-400">Monthly SIP Amount</label>
+                  <span className="font-bold text-amber-400">₹{sipAmt.toLocaleString()}</span>
+                </div>
+                <input 
+                  type="number" 
+                  value={sipAmt} 
+                  min={100} 
+                  step={500}
+                  onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))}
+                  className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-2 px-3.5 text-xs text-slate-200 outline-none transition-all" 
+                />
+              </div>
+
+              {/* Investment Period */}
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center text-xs">
+                  <label className="font-semibold text-slate-400">Investment Period</label>
+                  <span className="font-bold text-slate-200">{sipYrs} Years</span>
+                </div>
+                <input 
+                  type="range" 
+                  min={1} 
+                  max={30} 
+                  value={sipYrs} 
+                  onChange={e => setSipYrs(+e.target.value)}
+                  className="w-full accent-[#f59e0b] cursor-pointer h-1.5 rounded-full bg-slate-950/60" 
+                />
+              </div>
+
+              {/* Area Chart Projection */}
+              <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Projected Growth</span>
+                <div className="h-[90px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={Array.from({ length: sipYrs + 1 }, (_, yr) => {
+                        const m = yr * 12;
+                        const fv = m === 0 ? 0 : Math.round(sipAmt * ((Math.pow(1 + mr, m) - 1) / mr));
+                        return { yr, invested: +(sipAmt * m / 100000).toFixed(2), value: +(fv / 100000).toFixed(2) };
+                      })}
+                      margin={{ top: 2, right: 2, left: -26, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="sipValueGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00d8b6" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#00d8b6" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="sipInvGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis 
+                        dataKey="yr" 
+                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'sans-serif' }} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tickFormatter={v => v === 0 ? '' : `${v}y`} 
+                        interval={Math.max(1, Math.ceil(sipYrs / 5))} 
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'sans-serif' }} 
+                        tickLine={false} 
+                        axisLine={false}
+                        tickFormatter={v => `₹${v}L`} 
+                        width={28} 
+                      />
+                      <Tooltip
+                        contentStyle={{ background: '#0b0c10', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 8, padding: '4px 6px' }}
+                        formatter={(val, name) => [`₹${val}L`, name === 'value' ? 'Est. Value' : 'Invested']}
+                        labelFormatter={l => `Year ${l}`}
+                      />
+                      <Area type="monotone" dataKey="invested" stroke="#f59e0b" strokeWidth={1.5} fill="url(#sipInvGrad)" dot={false} />
+                      <Area type="monotone" dataKey="value" stroke="#00d8b6" strokeWidth={1.5} fill="url(#sipValueGrad)" dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Wealth Compound Breakdown Indicator */}
+              <div className="flex gap-2">
+                <div className="flex-1 bg-[#f59e0b]/5 border border-[#f59e0b]/10 rounded-xl p-2.5 text-center">
+                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Invested</p>
+                  <p className="text-xs font-black text-slate-200 mt-0.5">₹{(sipInvested / 100000).toFixed(2)}L</p>
+                </div>
+                <div className="flex-1 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-2.5 text-center">
+                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total Value</p>
+                  <p className="text-xs font-black text-emerald-400 mt-0.5">₹{(sipFV / 100000).toFixed(2)}L</p>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => showToast(`SIP Wealth Plan activated! Added automatic monthly savings task of ₹${sipAmt.toLocaleString()}.`, 'success')}
+                className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs cursor-pointer transition-all text-center"
+              >
+                Set Up SIP Now
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        {/* Status bar */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '8px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 9, color: '#475569', fontFamily: 'JetBrains Mono, monospace' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-              ENGINE CONNECTED
-            </span>
-            <span style={{ color: '#334155' }}>|</span>
-            <span>LAST SYNC: {syncMin}M AGO</span>
-          </div>
-          <span style={{ fontSize: 9, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>SESSION ID: {sessionId}</span>
-        </div>
       </div>
+
+      {/* Database Session Footer Indicator */}
+      <div className="flex flex-col sm:flex-row justify-between items-center border-t border-white/5 pt-4 text-[10px] text-slate-500 gap-2">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            ENGINE CONNECTED
+          </span>
+          <span className="text-slate-700">|</span>
+          <span>LAST SYNC: {syncMin}M AGO</span>
+        </div>
+        <span>SESSION ID: {sessionId}</span>
+      </div>
+
     </div>
   );
 }
