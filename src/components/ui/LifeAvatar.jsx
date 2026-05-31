@@ -489,7 +489,7 @@ function PersonaEditor({ persona, onChange, onClose }) {
 // ── Main LifeAvatar ───────────────────────────────────────────────────────────
 export function LifeAvatar({
   healthScore = 50, financeScore = 50, careerScore = 50,
-  burnoutRisk = 20, doomMode = false,
+  burnoutRisk = 20, doomMode = false, hideLabel = false,
 }) {
   const [persona, setPersona] = useState(() => loadPersona() || {
     skin: '#f5cfa0', hair: '#1a1a2e', style: 'short', shape: 'oval',
@@ -522,15 +522,17 @@ export function LifeAvatar({
 
   return (
     <div className="flex flex-col items-center select-none relative">
-      {/* Status badge */}
-      <motion.div key={stateKey}
-        initial={{ scale: 0.7, opacity: 0, y: -6 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        className="mb-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest"
-        style={{ background: s.badge + '20', color: s.badge, border: `1px solid ${s.badge}50` }}
-      >
-        {s.label}
-      </motion.div>
+      {/* Status badge — hidden when parent already shows balance status */}
+      {!hideLabel && (
+        <motion.div key={stateKey}
+          initial={{ scale: 0.7, opacity: 0, y: -6 }} animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          className="mb-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest"
+          style={{ background: s.badge + '20', color: s.badge, border: `1px solid ${s.badge}50` }}
+        >
+          {s.label}
+        </motion.div>
+      )}
 
       {/* Avatar canvas */}
       <div className="w-44 h-56 relative">

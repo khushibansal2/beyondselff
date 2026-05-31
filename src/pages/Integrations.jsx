@@ -2397,7 +2397,7 @@ function CourseraPanel() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-white">Coursera</h3>
-              <p className="text-[11px] text-slate-500">AI-powered · Groq + Coursera · Real course links</p>
+              <p className="text-[11px] text-slate-500">Live catalog · Direct API · Real course data</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -2411,7 +2411,9 @@ function CourseraPanel() {
         </div>
 
         <p className="text-[12px] text-slate-400 mb-4">
-          Uses <span className="text-emerald-400 font-semibold">Groq AI</span> to recommend real Coursera courses — links go directly to <span className="text-[#0056d2]">coursera.org</span>. Uses your existing <code className="text-[11px] bg-white/5 px-1 rounded">VITE_GROQ_API_KEY</code>.
+          Pulls live course data straight from{' '}
+          <span className="text-[#0056d2] font-semibold">Coursera's catalog API</span>.
+          No AI, no mock data — real titles, thumbnails, levels and partner names exactly as they appear on coursera.org.
         </p>
 
         {/* Search */}
@@ -2452,7 +2454,7 @@ function CourseraPanel() {
       {loading && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0056d2]/10 border border-[#0056d2]/20">
           <Loader2 size={14} className="animate-spin text-[#60a5fa]" />
-          <p className="text-[12px] text-[#60a5fa]">{progress || 'Searching Coursera catalog…'}</p>
+          <p className="text-[12px] text-[#60a5fa]">{progress || 'Fetching live courses from Coursera…'}</p>
         </div>
       )}
 
@@ -2541,6 +2543,7 @@ const TABS = [
   { id: 'nutritionix', label: 'Nutrition',    icon: Utensils,   color: 'text-emerald-400'  },
   { id: 'fitbit',      label: 'Fitbit',       icon: Activity,   color: 'text-[#00b0b9]'    },
   { id: 'banking',     label: 'Banking',      icon: Landmark,   color: 'text-emerald-400'  },
+  { id: 'coursera',    label: 'Coursera',     icon: BookOpen,   color: 'text-[#0056d2]'    },
 ];
 
 export default function Integrations() {
@@ -2660,6 +2663,7 @@ export default function Integrations() {
           {tab === 'nutritionix' && <NutritionixPanel />}
           {tab === 'fitbit'      && <FitbitPanel />}
           {tab === 'banking'     && <IndiaBankingPanel />}
+          {tab === 'coursera'    && <CourseraPanel />}
         </motion.div>
       </AnimatePresence>
 

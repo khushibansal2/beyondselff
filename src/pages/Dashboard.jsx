@@ -6,7 +6,7 @@ import { generateNarrative } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
 import { GhostTimeline } from '../components/ui/GhostTimeline';
-// LifePlant kept for potential future use but not rendered in this layout
+import { LifePlant, getStage } from '../components/ui/LifePlant';
 import { Link } from 'react-router-dom';
 import { generateTrendData, generateCorrelations, generateInsights } from '../data/demoData';
 import { computeHealthScore } from '../engines/healthScoreEngine';
@@ -73,54 +73,6 @@ function DoomSwitch({ active, onToggle }) {
   );
 }
 
-// ─── DOOM REALITY PANEL ──────────────────────────────────────────────────────
-function DoomRealityPanel({ stats, burnoutRisk, lifeBalance }) {
-  const items = [
-    { label: 'Projected Retirement Age', value: `${stats.retirementAge} yrs`, icon: '📅', bad: stats.retirementAge > 68 },
-    { label: 'Burnout ETA (current trajectory)', value: `~${stats.burnoutETA} days`, icon: '🔥', bad: stats.burnoutETA < 25 },
-    { label: 'Monthly Sleep Debt', value: `${stats.sleepDebt}h/mo`, icon: '😴', bad: stats.sleepDebt > 10 },
-    { label: 'Career Lag vs Peers', value: `${stats.careerGap} weeks`, icon: '📉', bad: stats.careerGap > 4 },
-    { label: 'Life System Score', value: `${lifeBalance}/100`, icon: '⚠️', bad: lifeBalance < 60 },
-    ...(stats.debtFreeYears > 0 ? [{ label: 'Debt-Free Projection', value: `${stats.debtFreeYears} yrs`, icon: '💳', bad: stats.debtFreeYears > 3 }] : []),
-  ];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-5 rounded-2xl border border-red-900/30 bg-gradient-to-br from-red-950/30 to-[#0d0208]/80 doom-flicker h-full"
-    >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center text-lg flex-shrink-0 border border-red-500/20">☠️</div>
-        <div>
-          <h3 className="text-sm font-bold text-red-300 uppercase tracking-wider">Reality Report</h3>
-          <p className="text-[10px] text-red-900">No filter. Cold hard data.</p>
-        </div>
-        <span className="ml-auto text-[10px] text-red-900/60 font-mono">DOOM MODE</span>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {items.map((item, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.06 }}
-            className={`p-3 rounded-xl border ${item.bad ? 'border-red-700/30 bg-red-950/20' : 'border-amber-800/20 bg-amber-950/10'}`}
-          >
-            <div className="text-sm mb-1">{item.icon}</div>
-            <div className={`text-sm font-bold font-mono ${item.bad ? 'text-red-400' : 'text-amber-400'}`}>{item.value}</div>
-            <div className="text-[9px] text-red-900/70 mt-0.5 leading-tight">{item.label}</div>
-          </motion.div>
-        ))}
-      </div>
-      <div className="mt-3 p-2 rounded-lg bg-red-900/10 border border-red-900/20">
-        <p className="text-[10px] text-red-700/80 text-center">
-          ⚡ These projections assume <strong className="text-red-600">current habits unchanged</strong>. Toggle off to see fixes.
-        </p>
-      </div>
-    </motion.div>
-  );
-}
 
 // ─── ONBOARDING WIZARD ───────────────────────────────────────────────────────
 function OnboardingWizard({ user, onComplete, updateDomain, career }) {
@@ -584,38 +536,400 @@ function StatChip({ icon, label, value, change, isPositive }) {
   );
 }
 
+// ─── EXPLAINABLE AI CARD ──────────────────────────────────────────────────────
+function ExplainAICard({ label, display, color, change, up, factors, insight, link, icon }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        background: 'linear-gradient(160deg, rgba(255,255,255,0.025) 0%, #111827 100%)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderTop: `2px solid ${color}`,
+        borderRadius: 12,
+        padding: '12px 13px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 9,
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ fontSize: 14 }}>{icon}</span>
+          <div>
+            <div style={{ fontSize: 8, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, lineHeight: 1 }}>{label}</div>
+            <div style={{ fontSize: 7, color: '#374151', marginTop: 1.5, fontWeight: 600, letterSpacing: 0.5 }}>EXPLAINABLE AI</div>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontSize: 21, fontWeight: 800, color, lineHeight: 1 }}>{display}</div>
+          <div style={{ fontSize: 9, color: up ? '#22c55e' : '#ef4444', fontWeight: 600, marginTop: 2 }}>{change}</div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
+
+      {/* Factor breakdown */}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 7, color: '#374151', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 7 }}>
+          FACTOR BREAKDOWN
+        </div>
+        {(factors || []).slice(0, 3).map((f, i) => {
+          const barColor = f.status === 'good' ? '#22c55e' : f.status === 'critical' ? '#ef4444' : '#f97316';
+          const barW = Math.min(100, Math.max(0, f.rawScore ?? 0));
+          return (
+            <div key={f.name || i} style={{ marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                <span style={{ fontSize: 9, color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 95 }}>{f.name}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                  <span style={{ fontSize: 8, color: '#6b7280' }}>{f.value != null ? `${f.value}${f.unit ? ` ${f.unit}` : ''}` : '—'}</span>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: barColor }}>{f.status === 'good' ? '✓' : f.status === 'critical' ? '!' : '~'}</span>
+                </div>
+              </div>
+              <div style={{ height: 3, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${barW}%` }}
+                  transition={{ duration: 0.9, delay: i * 0.1, ease: 'easeOut' }}
+                  style={{ height: '100%', background: barColor, borderRadius: 99 }}
+                />
+              </div>
+            </div>
+          );
+        })}
+        {(!factors || factors.length === 0) && (
+          <div style={{ fontSize: 9, color: '#374151', textAlign: 'center', padding: '8px 0' }}>Log data to see breakdown.</div>
+        )}
+      </div>
+
+      {/* Insight */}
+      {insight && (
+        <div style={{
+          fontSize: 9, color: '#94a3b8', lineHeight: 1.5,
+          background: `${color}0d`,
+          borderLeft: `2px solid ${color}55`,
+          borderRadius: '0 6px 6px 0',
+          padding: '5px 8px',
+        }}>
+          {insight}
+        </div>
+      )}
+
+      {/* Footer CTA */}
+      <Link to={link || '/'} style={{ textDecoration: 'none' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          paddingTop: 7, borderTop: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer',
+        }}>
+          <span style={{ fontSize: 8, color: '#374151', fontStyle: 'italic' }}>Deterministic · data-driven</span>
+          <span style={{ fontSize: 9, color: color, fontWeight: 600, opacity: 0.75 }}>Details →</span>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
 const r = 42;
 const circ = 2 * Math.PI * r;
 
-function DashboardScoreRing({ label, score, display, color, change, up }) {
+function DashboardScoreRing({ label, score, display, color, change, up, isActive, onClick }) {
   const offset = circ - (score / 100) * circ;
   return (
-    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <div style={{ position: 'relative', width: 100, height: 100 }}>
-        <svg width="100" height="100" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="6" />
+    <motion.div
+      onClick={onClick}
+      whileHover={{ scale: 1.06 }}
+      whileTap={{ scale: 0.96 }}
+      style={{
+        textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+        cursor: 'pointer', padding: '10px 16px', borderRadius: 14,
+        background: isActive ? `${color}12` : 'transparent',
+        border: isActive ? `1px solid ${color}35` : '1px solid transparent',
+        transition: 'background 0.2s, border 0.2s',
+        position: 'relative',
+      }}
+    >
+      <div style={{ position: 'relative', width: 108, height: 108 }}>
+        {/* Ambient glow when active */}
+        {isActive && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            style={{
+              position: 'absolute', inset: 14, borderRadius: '50%',
+              background: `radial-gradient(circle, ${color}30 0%, transparent 70%)`,
+              filter: 'blur(10px)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+        <svg width="108" height="108" viewBox="0 0 108 108" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="54" cy="54" r={r + 6} fill="none" stroke={`${color}12`} strokeWidth="1" />
+          <circle cx="54" cy="54" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
           <circle
-            cx="50" cy="50" r={r}
+            cx="54" cy="54" r={r}
             fill="none"
             stroke={color}
-            strokeWidth="6"
+            strokeWidth="7"
             strokeLinecap="round"
             strokeDasharray={circ}
             strokeDashoffset={offset}
+            style={{ filter: isActive ? `drop-shadow(0 0 5px ${color}99)` : 'none', transition: 'filter 0.3s' }}
           />
         </svg>
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center'
-        }}>
-          <span style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1 }}>{display}</span>
-          <span style={{ fontSize: 10, color: '#6b7280', lineHeight: 1.4 }}>/100</span>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 23, fontWeight: 800, color, lineHeight: 1 }}>{display}</span>
+          <span style={{ fontSize: 9, color: '#6b7280', lineHeight: 1.5 }}>/100</span>
         </div>
       </div>
-      <span style={{ fontSize: 12, color: '#9ca3af' }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: isActive ? 700 : 500, color: isActive ? '#e2e8f0' : '#9ca3af', transition: 'color 0.2s' }}>{label}</span>
       <span style={{ fontSize: 11, color: up ? '#22c55e' : '#ef4444', fontWeight: 600 }}>{change}</span>
-    </div>
+      {/* "Why this score?" dropdown row */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 4,
+        padding: '3px 10px', borderRadius: 99,
+        background: isActive ? `${color}18` : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${isActive ? `${color}35` : 'rgba(255,255,255,0.08)'}`,
+        transition: 'all 0.2s',
+      }}>
+        <span style={{ fontSize: 9, fontWeight: 600, color: isActive ? color : '#6b7280', transition: 'color 0.2s' }}>
+          Why this score?
+        </span>
+        <motion.span
+          animate={{ rotate: isActive ? 180 : 0 }}
+          transition={{ duration: 0.25 }}
+          style={{ fontSize: 8, color: isActive ? color : '#6b7280', lineHeight: 1, display: 'inline-block' }}
+        >
+          ▼
+        </motion.span>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── WHY-SCORE EXPLANATION BUILDER ───────────────────────────────────────────
+function buildWhyExplanation(label, score, factors) {
+  if (!factors || factors.length === 0) {
+    return {
+      headline: `Your ${label} score is ${score}/100`,
+      body: `Log your ${label.toLowerCase()} data to get a detailed, factor-by-factor explanation of exactly what's driving this number.`,
+      topIssue: null,
+      topWin: null,
+    };
+  }
+  const good     = factors.filter(f => f.status === 'good');
+  const warning  = factors.filter(f => f.status === 'warning');
+  const critical = factors.filter(f => f.status === 'critical');
+  const bad      = [...critical, ...warning];
+
+  const level = score >= 80 ? 'strong' : score >= 65 ? 'good' : score >= 45 ? 'moderate' : 'low';
+  const headline = `Why is your ${label} score ${score}/100?`;
+
+  let body = '';
+  if (bad.length === 0) {
+    const names = good.map(f => f.name).join(', ');
+    body = `Your score is ${level} because every tracked factor — ${names} — is in a healthy range. Sustain these habits to keep the score climbing.`;
+  } else if (good.length === 0) {
+    const names = bad.slice(0, 3).map(f => f.name).join(', ');
+    body = `Your score is ${level} primarily because ${names} ${bad.length === 1 ? 'is' : 'are'} below target. Each of these is weighted in the final calculation — fixing the highest-weight factor first will move the needle most.`;
+  } else {
+    const goodNames = good.slice(0, 2).map(f => f.name).join(' and ');
+    const badNames  = bad.slice(0, 2).map(f => f.name).join(' and ');
+    body = `${goodNames} ${good.length === 1 ? 'is boosting' : 'are boosting'} your score, but ${badNames} ${bad.length === 1 ? 'is pulling it down' : 'are pulling it down'}. `;
+    if (critical.length > 0) {
+      body += `${critical[0].name} is the most critical factor right now — addressing it would have the largest single impact on your score.`;
+    } else {
+      body += `Improving ${bad[0].name.toLowerCase()} even slightly would push your score noticeably higher.`;
+    }
+  }
+
+  return { headline, body, topIssue: bad[0] || null, topWin: good[0] || null };
+}
+
+// ─── EXPLAINABLE AI FULL-WIDTH PANEL (expanded on ring click) ─────────────────
+function ExplainAIPanel({ label, display, color, icon, change, up, link, factors, insight }) {
+  const { headline, body, topIssue, topWin } = buildWhyExplanation(label, display, factors);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -4 }}
+      transition={{ duration: 0.2 }}
+      style={{
+        background: `linear-gradient(135deg, ${color}08 0%, #0f1320 100%)`,
+        border: `1px solid ${color}22`,
+        borderRadius: 10,
+        overflow: 'hidden',
+      }}
+    >
+      {/* ── TOP BAR: icon · name · score ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '12px 18px', borderBottom: `1px solid ${color}18`,
+        background: `${color}06`,
+      }}>
+        <span style={{ fontSize: 18 }}>{icon}</span>
+        <div style={{ flex: 1 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{label} Score</span>
+          <span style={{ fontSize: 9, color: '#4b5563', marginLeft: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.6 }}>Explainable AI</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+          <span style={{ fontSize: 26, fontWeight: 900, color, lineHeight: 1 }}>{display}</span>
+          <span style={{ fontSize: 11, color: '#4b5563' }}>/100</span>
+        </div>
+        <span style={{ fontSize: 12, color: up ? '#22c55e' : '#ef4444', fontWeight: 700, marginLeft: 4 }}>{change}</span>
+      </div>
+
+      <div style={{ padding: '14px 18px', display: 'flex', gap: 20 }}>
+
+        {/* ── LEFT: WHY EXPLANATION ── */}
+        <div style={{ flex: '0 0 320px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Headline */}
+          <div>
+            <div style={{
+              fontSize: 8, fontWeight: 800, color: color,
+              textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 6,
+              display: 'flex', alignItems: 'center', gap: 5,
+            }}>
+              <span style={{ display: 'inline-block', width: 14, height: 2, background: color, borderRadius: 99 }} />
+              Why this score?
+            </div>
+            <div style={{
+              fontSize: 13, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.4,
+            }}>
+              {headline}
+            </div>
+          </div>
+
+          {/* Body explanation */}
+          <div style={{
+            fontSize: 12, color: '#94a3b8', lineHeight: 1.65,
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 8, padding: '10px 12px',
+          }}>
+            {body}
+          </div>
+
+          {/* Top issue / top win pills */}
+          <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+            {topIssue && (
+              <div style={{
+                fontSize: 9, fontWeight: 700,
+                color: topIssue.status === 'critical' ? '#ef4444' : '#f97316',
+                background: topIssue.status === 'critical' ? 'rgba(239,68,68,0.1)' : 'rgba(249,115,22,0.1)',
+                border: `1px solid ${topIssue.status === 'critical' ? 'rgba(239,68,68,0.25)' : 'rgba(249,115,22,0.25)'}`,
+                borderRadius: 6, padding: '4px 9px',
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <span>↓</span> {topIssue.name} needs work
+              </div>
+            )}
+            {topWin && (
+              <div style={{
+                fontSize: 9, fontWeight: 700, color: '#22c55e',
+                background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)',
+                borderRadius: 6, padding: '4px 9px',
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <span>✓</span> {topWin.name} is on track
+              </div>
+            )}
+          </div>
+
+          {/* Recommendation / insight */}
+          {insight && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <div style={{ width: 2, alignSelf: 'stretch', background: color, borderRadius: 99, flexShrink: 0, opacity: 0.6 }} />
+              <div>
+                <div style={{ fontSize: 8, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 3 }}>Recommendation</div>
+                <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5 }}>{insight}</div>
+              </div>
+            </div>
+          )}
+
+          {/* CTA */}
+          <Link to={link || '/'} style={{ textDecoration: 'none', marginTop: 'auto' }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, color: color,
+              background: `${color}12`, border: `1px solid ${color}30`,
+              borderRadius: 8, padding: '8px 14px',
+              display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = `${color}22`}
+              onMouseLeave={e => e.currentTarget.style.background = `${color}12`}
+            >
+              Open {label} page →
+            </div>
+          </Link>
+        </div>
+
+        {/* ── RIGHT: FACTOR BREAKDOWN ── */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 8, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ display: 'inline-block', width: 14, height: 2, background: '#4b5563', borderRadius: 99 }} />
+            Factor breakdown — what goes into this score
+          </div>
+
+          {factors && factors.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {factors.map((f, i) => {
+                const barColor = f.status === 'good' ? '#22c55e' : f.status === 'critical' ? '#ef4444' : '#f97316';
+                const barW = Math.min(100, Math.max(0, f.rawScore ?? 0));
+                const pct = Math.round((f.weight || 0) * 100);
+                return (
+                  <div key={f.name || i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* Factor name + status */}
+                    <div style={{ width: 130, flexShrink: 0 }}>
+                      <div style={{ fontSize: 10, color: '#cbd5e1', fontWeight: 600, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                      <span style={{ fontSize: 8, fontWeight: 700, color: barColor, background: `${barColor}15`, padding: '1px 6px', borderRadius: 99 }}>
+                        {f.status === 'good' ? '✓ Good' : f.status === 'critical' ? '! Critical' : '~ Watch'}
+                      </span>
+                    </div>
+                    {/* Bar */}
+                    <div style={{ flex: 1, position: 'relative' }}>
+                      <div style={{ height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${barW}%` }}
+                          transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
+                          style={{ height: '100%', background: barColor, borderRadius: 99, boxShadow: f.status === 'good' ? `0 0 6px ${barColor}60` : 'none' }}
+                        />
+                      </div>
+                    </div>
+                    {/* Value */}
+                    <div style={{ width: 56, flexShrink: 0, textAlign: 'right' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color }}>{f.value != null ? `${f.value}${f.unit ? f.unit : ''}` : '—'}</div>
+                    </div>
+                    {/* Weight badge */}
+                    <div style={{ width: 44, flexShrink: 0, textAlign: 'right' }}>
+                      <span style={{ fontSize: 8, color: '#374151', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', padding: '2px 5px', borderRadius: 5 }}>
+                        {pct}% wt
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 11, color: '#374151' }}>
+              Log {label.toLowerCase()} data to unlock factor breakdown.
+            </div>
+          )}
+
+          {/* Score math note */}
+          <div style={{ marginTop: 14, padding: '8px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 7 }}>
+            <span style={{ fontSize: 8, color: '#374151', fontStyle: 'italic' }}>
+              Score = weighted sum of all factors above. Computed deterministically from your logged data — no AI guessing.
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </motion.div>
   );
 }
 
@@ -633,10 +947,9 @@ export default function Dashboard() {
   const [showExplain, setShowExplain] = useState(false);
   const [activityTab, setActivityTab] = useState('activity');
   const [showShare, setShowShare] = useState(false);
-  const [engineTab, setEngineTab] = useState('time_travel');
-  const [hoveredNode, setHoveredNode] = useState(null);
+  const [openRings, setOpenRings] = useState({});
+  const toggleRing = (label) => setOpenRings(prev => ({ ...prev, [label]: !prev[label] }));
   const [theme, setTheme] = useState('dark');
-  const [whyCollapsed, setWhyCollapsed] = useState(true);
   const scoreRingsRef = useRef(null);
   const searchRef = useRef(null);
 
@@ -676,16 +989,6 @@ export default function Dashboard() {
   const weakestDomain = computed?.weakestDomain?.name || 'health';
   const savingsRate = f.income > 0 ? Math.max(0, Math.round(((f.income - f.expenses) / f.income) * 100)) : 0;
 
-  const doomStats = useMemo(() => {
-    const retirementAge = Math.min(85, Math.round(65 + Math.max(0, (0.2 - savingsRate / 100) * 50)));
-    const burnoutETA = Math.max(1, Math.round(30 * (100 - burnoutRisk) / 100));
-    const sleepDebt = Math.max(0, Math.round((7 - h.sleepAvg) * 30));
-    const careerGap = Math.max(0, Math.round((4 - (c.studyHoursDaily || 0)) * 5));
-    const debtFreeYears = f.debt > 0 && (f.income - f.expenses) > 0
-      ? Math.round(f.debt / ((f.income - f.expenses) * 12)) : 0;
-    return { retirementAge, burnoutETA, sleepDebt, careerGap, debtFreeYears, savingsRate };
-  }, [h, f, c, burnoutRisk, savingsRate]);
-
   const toggleDoom = useCallback(() => {
     setDoomMode(d => !d);
     setDoomShake(true);
@@ -699,6 +1002,63 @@ export default function Dashboard() {
     finance: computeFinanceScore(finance || {}, []).factors,
     career: computeCareerScore(career || {}, []).factors,
   }), [health, finance, career]);
+
+  const mindsetFactors = useMemo(() => [
+    {
+      name: 'Burnout Risk',
+      status: burnoutRisk < 30 ? 'good' : burnoutRisk < 60 ? 'warning' : 'critical',
+      value: burnoutRisk, unit: '%',
+      rawScore: 100 - burnoutRisk,
+      weight: 0.40, contribution: Math.round((100 - burnoutRisk) * 0.40),
+    },
+    {
+      name: 'Sleep Quality',
+      status: (h.sleepAvg || 0) >= 7 ? 'good' : (h.sleepAvg || 0) >= 5 ? 'warning' : 'critical',
+      value: h.sleepAvg || 0, unit: 'h',
+      rawScore: Math.min(100, ((h.sleepAvg || 7) / 9) * 100),
+      weight: 0.30, contribution: Math.round(Math.min(100, ((h.sleepAvg || 7) / 9) * 100) * 0.30),
+    },
+    {
+      name: 'Stress Control',
+      status: (h.stressLevel || 5) <= 4 ? 'good' : (h.stressLevel || 5) <= 7 ? 'warning' : 'critical',
+      value: h.stressLevel || 0, unit: '/10',
+      rawScore: Math.max(0, 100 - (h.stressLevel || 5) * 10),
+      weight: 0.30, contribution: Math.round(Math.max(0, 100 - (h.stressLevel || 5) * 10) * 0.30),
+    },
+  ], [h, burnoutRisk]);
+
+  const balanceFactors = useMemo(() => {
+    const avg = (healthScore + financeScore + careerScore) / 3;
+    const variance = ([healthScore, financeScore, careerScore].reduce((s, v) => s + Math.pow(v - avg, 2), 0)) / 3;
+    const harmony = Math.max(0, Math.round(100 - Math.sqrt(variance)));
+    return [
+      { name: 'Health Weight',  status: healthScore  >= 70 ? 'good' : healthScore  >= 45 ? 'warning' : 'critical', value: healthScore,  unit: '/100', rawScore: healthScore,  weight: 0.30 },
+      { name: 'Finance Weight', status: financeScore >= 70 ? 'good' : financeScore >= 45 ? 'warning' : 'critical', value: financeScore, unit: '/100', rawScore: financeScore, weight: 0.30 },
+      { name: 'Harmony Index',  status: harmony      >= 70 ? 'good' : harmony      >= 45 ? 'warning' : 'critical', value: harmony,      unit: '/100', rawScore: harmony,      weight: 0.40 },
+    ];
+  }, [healthScore, financeScore, careerScore]);
+
+  const domainInsights = useMemo(() => ({
+    health: h.sleepAvg > 0
+      ? (h.sleepAvg < 7 ? `Sleep debt detected (${h.sleepAvg}h avg). Target 7-8h for full recovery.` : `Sleep on track at ${h.sleepAvg}h. Maintain consistency for peak performance.`)
+      : 'Log sleep & stress data to unlock health insights.',
+    finance: f.income > 0
+      ? (savingsRate < 20 ? `Savings rate at ${savingsRate}% — below 20% threshold. Automate transfers.` : `Savings rate at ${savingsRate}% is solid. Keep growing your runway.`)
+      : 'Log income & expenses to see finance breakdown.',
+    career: c.skills.length > 0
+      ? (c.studyHoursDaily < 2 ? `Study hours (${c.studyHoursDaily}h/day) below target. 2-4h/day accelerates growth.` : `${c.skills.length} skills tracked at ${c.studyHoursDaily}h/day. Strong trajectory.`)
+      : 'Add skills and study hours to calibrate career score.',
+    mindset: burnoutRisk > 60
+      ? `Burnout risk at ${burnoutRisk}% — critical. Schedule recovery time this week.`
+      : burnoutRisk > 30
+      ? `Moderate load (${burnoutRisk}% risk). Protect sleep & limit after-hours work.`
+      : `Resilient mindset at ${burnoutRisk}% burnout risk. Keep protecting your energy.`,
+    balance: lifeBalance < 45
+      ? `Life domains misaligned (${lifeBalance}/100). Finance is the weak link — focus there first.`
+      : lifeBalance < 70
+      ? `Balance improving at ${lifeBalance}/100. Reduce variance across all three domains.`
+      : `Well-balanced system at ${lifeBalance}/100. Sustain all three pillars.`,
+  }), [h, f, c, savingsRate, burnoutRisk, lifeBalance]);
 
   const hasHealthData = h.sleepAvg > 0 || h.stressLevel > 0 || h.workoutsPerWeek > 0 || h.waterIntake > 0;
   const hasFinanceData = f.income > 0 || f.expenses > 0;
@@ -834,11 +1194,11 @@ export default function Dashboard() {
 
   // Score rings
   const rings = [
-    { label: 'Health', score: 76, display: '76', color: '#f97316', change: '+7%', up: true },
-    { label: 'Finance', score: 35, display: '$8k', color: '#eab308', change: '-18%', up: false },
-    { label: 'Career', score: 82, display: '82', color: '#6366f1', change: '+11%', up: true },
-    { label: 'Mindset', score: 76, display: '76', color: '#a78bfa', change: '+10%', up: true },
-    { label: 'Balance', score: 37, display: '37', color: '#8b5cf6', change: '-22%', up: false },
+    { label: 'Health',  score: healthScore,   display: String(healthScore),   color: '#f97316', change: '+7%',  up: true,  icon: '❤️', link: '/health'   },
+    { label: 'Finance', score: financeScore,  display: `$${Math.round((f.income - f.expenses) / 1000)}k`, color: '#eab308', change: '-18%', up: false, icon: '💰', link: '/finance'  },
+    { label: 'Career',  score: careerScore,   display: String(careerScore),   color: '#6366f1', change: '+11%', up: true,  icon: '🎯', link: '/career'   },
+    { label: 'Mindset', score: mindScore,     display: String(mindScore),     color: '#a78bfa', change: '+10%', up: true,  icon: '🧠', link: '/insights' },
+    { label: 'Balance', score: lifeBalance,   display: String(lifeBalance),   color: '#8b5cf6', change: '-22%', up: false, icon: '⚖️', link: '/neural-core' },
   ];
 
   // Today's plan
@@ -852,20 +1212,6 @@ export default function Dashboard() {
   const currentYear = new Date().getFullYear();
   const futureYear = currentYear + 5;
   const userAge = user?.age ? user.age + 5 : 31;
-  const dynamicSkill = c?.skills?.[0] || 'Learn New Skill';
-
-  // Trajectory data for Future Engine
-  const baseScore = (healthScore + financeScore + careerScore) / 3;
-  const TY = [
-    { y: 'Now', o: baseScore * 0.4, c: baseScore * 0.4, r: baseScore * 0.4 },
-    { y: '2025', o: baseScore * 0.8, c: baseScore * 0.6, r: baseScore * 0.45 },
-    { y: '2028', o: baseScore * 1.2, c: baseScore * 0.8, r: baseScore * 0.5 },
-    { y: '2030', o: baseScore * 1.5, c: baseScore * 0.9, r: baseScore * 0.5 },
-    { y: '2035', o: baseScore * 1.9, c: baseScore * 1.0, r: baseScore * 0.45 },
-    { y: '2040', o: baseScore * 2.2, c: baseScore * 1.2, r: baseScore * 0.35 },
-    { y: '2045', o: baseScore * 2.5, c: baseScore * 1.5, r: baseScore * 0.25 },
-  ];
-  const pts = (key) => TY.map((d, i) => `${i * (100 / 6)}%, ${100 - (d[key] / 250) * 100}%`).join(' L ');
 
   const C = {
     bg: theme === 'dark' ? '#07090e' : '#f8fafc',
@@ -946,491 +1292,530 @@ export default function Dashboard() {
           {/* ════════════════════════════════════════════════════
               SECTION 1 — HERO ZONE
           ════════════════════════════════════════════════════ */}
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
 
-            {/* LEFT: Avatar + Metrics card & Score chips */}
-            <div style={{ flex: 1, minWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ background: '#111827', border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
-                {/* BALANCED badge */}
-                <div style={{ textAlign: 'center', marginBottom: 10 }}>
+            {/* LEFT: Radial avatar card — 4.4 parts (~40%+10%) */}
+            <div style={{ flex: 4.4, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ background: '#111827', border: `1px solid ${C.border}`, borderRadius: 12, padding: '12px 14px 12px' }}>
+
+                {/* Balance badge */}
+                <div style={{ textAlign: 'center', marginBottom: 8 }}>
                   <span style={{ background: balanceBg, color: balanceColor, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: balanceColor, display: 'inline-block' }} />
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: balanceColor }} />
                     {balanceLabel}
                   </span>
                 </div>
 
-                {/* 3-column grid: left metrics | avatar | right metrics */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
-                  {/* LEFT METRICS */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {[
-                      { label: 'MIND', value: mindScore, icon: '🧠', st: mindStatus },
-                      { label: 'ENERGY', value: energyScore, icon: '⚡', st: energyStatus },
-                      { label: 'BODY', value: bodyScore, icon: '🛡', st: bodyStatus },
-                    ].map(n => (
-                      <div key={n.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                        <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>{n.label}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexDirection: 'row-reverse' }}>
-                          <div style={{ fontSize: 19, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{n.value}%</div>
-                          <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1a2233', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>{n.icon}</div>
-                        </div>
-                        <div style={{ fontSize: 9, color: statusColor(n.st), fontWeight: 500 }}>{n.st}</div>
-                      </div>
-                    ))}
+                {/* Radial layout */}
+                <div style={{ position: 'relative', height: 250, width: '100%' }}>
+                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+                    viewBox="0 0 340 250" preserveAspectRatio="xMidYMid meet">
+                    {/* Dashed oval */}
+                    <ellipse cx="170" cy="125" rx="100" ry="82" fill="none"
+                      stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    {/* BALANCED text */}
+                    <text x="170" y="65" textAnchor="middle" fill="rgba(255,255,255,0.16)"
+                      fontSize="8" fontWeight="700" letterSpacing="3">BALANCED</text>
+                    {/* Mind → oval top-left */}
+                    <line x1="88" y1="46" x2="110" y2="70" stroke="#22c55e" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
+                    {/* Heart → oval top-right */}
+                    <line x1="252" y1="46" x2="230" y2="70" stroke="#ef4444" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
+                    {/* Energy → horizontal left */}
+                    <line x1="62" y1="125" x2="114" y2="125" stroke="#f97316" strokeWidth="1.5" strokeDasharray="5 4" strokeLinecap="round" />
+                    {/* Habits → horizontal right */}
+                    <line x1="278" y1="125" x2="226" y2="125" stroke="#14b8a6" strokeWidth="1.5" strokeDasharray="5 4" strokeLinecap="round" />
+                    {/* Body → oval bottom-left */}
+                    <line x1="88" y1="204" x2="110" y2="180" stroke="#6366f1" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
+                    {/* Purpose → oval bottom-right */}
+                    <line x1="252" y1="204" x2="230" y2="180" stroke="#f59e0b" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
+                  </svg>
+
+                  {/* MIND — top left */}
+                  <div style={{ position: 'absolute', top: 8, left: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Mind</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{mindScore}<span style={{ fontSize: 10 }}>%</span></div>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.18)', border: '2px solid rgba(16,185,129,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🧠</div>
+                    </div>
+                    <div style={{ fontSize: 9, color: statusColor(mindStatus), fontWeight: 600 }}>{mindStatus}</div>
                   </div>
 
-                  {/* CENTER: Avatar */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                    <div style={{ transform: 'scale(0.72)', transformOrigin: 'top center', flexShrink: 0 }}>
+                  {/* HEART — top right */}
+                  <div style={{ position: 'absolute', top: 8, right: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Heart</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(239,68,68,0.18)', border: '2px solid rgba(239,68,68,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>❤️</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{heartScore}<span style={{ fontSize: 10 }}>%</span></div>
+                    </div>
+                    <div style={{ fontSize: 9, color: statusColor(heartStatus), fontWeight: 600 }}>{heartStatus}</div>
+                  </div>
+
+                  {/* ENERGY — middle left */}
+                  <div style={{ position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Energy</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{energyScore}<span style={{ fontSize: 10 }}>%</span></div>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(249,115,22,0.18)', border: '2px solid rgba(249,115,22,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>⚡</div>
+                    </div>
+                    <div style={{ fontSize: 9, color: statusColor(energyStatus), fontWeight: 600 }}>{energyStatus}</div>
+                  </div>
+
+                  {/* HABITS — middle right */}
+                  <div style={{ position: 'absolute', top: '50%', right: 0, transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Habits</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(20,184,166,0.18)', border: '2px solid rgba(20,184,166,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#14b8a6' }}>✓</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{habitsScore}<span style={{ fontSize: 10 }}>%</span></div>
+                    </div>
+                    <div style={{ fontSize: 9, color: statusColor(habitsStatus), fontWeight: 600 }}>{habitsStatus}</div>
+                  </div>
+
+                  {/* BODY — bottom left */}
+                  <div style={{ position: 'absolute', bottom: 8, left: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Body</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{bodyScore}<span style={{ fontSize: 10 }}>%</span></div>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(99,102,241,0.18)', border: '2px solid rgba(99,102,241,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🛡</div>
+                    </div>
+                    <div style={{ fontSize: 9, color: statusColor(bodyStatus), fontWeight: 600 }}>{bodyStatus}</div>
+                  </div>
+
+                  {/* PURPOSE — bottom right */}
+                  <div style={{ position: 'absolute', bottom: 8, right: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Purpose</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(245,158,11,0.18)', border: '2px solid rgba(245,158,11,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🎯</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{purposeScore}<span style={{ fontSize: 10 }}>%</span></div>
+                    </div>
+                    <div style={{ fontSize: 9, color: statusColor(purposeStatus), fontWeight: 600 }}>{purposeStatus}</div>
+                  </div>
+
+                  {/* AVATAR — centered */}
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                    <div style={{ transform: 'scale(0.62)', transformOrigin: 'center center' }}>
                       <LifeAvatar
                         healthScore={healthScore}
                         financeScore={financeScore}
                         careerScore={careerScore}
                         burnoutRisk={burnoutRisk}
                         doomMode={doomMode}
+                        hideLabel
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* RIGHT METRICS */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {[
-                      { label: 'HEART', value: heartScore, icon: '❤️', st: heartStatus },
-                      { label: 'HABITS', value: habitsScore, icon: '✓', st: habitsStatus },
-                      { label: 'PURPOSE', value: purposeScore, icon: '🎯', st: purposeStatus },
-                    ].map(n => (
-                      <div key={n.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
-                        <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>{n.label}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <div style={{ fontSize: 19, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{n.value}%</div>
-                          <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1a2233', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>{n.icon}</div>
-                        </div>
-                        <div style={{ fontSize: 9, color: statusColor(n.st), fontWeight: 500 }}>{n.st}</div>
-                      </div>
-                    ))}
+                {/* Bottom: legend LEFT — Feels Focused RIGHT */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                  <div style={{ display: 'flex', gap: 12, fontSize: 9, color: '#6b7280' }}>
+                    <span><span style={{ color: '#eab308' }}>●</span> Health</span>
+                    <span><span style={{ color: '#ef4444' }}>●</span> Finance</span>
+                    <span><span style={{ color: '#22c55e' }}>●</span> Career</span>
                   </div>
-                </div>
-
-                {/* Legend row */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginTop: 10, fontSize: 9, color: '#6b7280' }}>
-                  <span><span style={{ color: '#eab308' }}>●</span> Health</span>
-                  <span><span style={{ color: '#ef4444' }}>●</span> Finance</span>
-                  <span><span style={{ color: '#22c55e' }}>●</span> Career</span>
-                </div>
-
-                {/* Feels Focused badge */}
-                <div style={{ textAlign: 'center', marginTop: 10 }}>
                   <span style={{
                     background: burnoutRisk > 60 ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
-                    border: `1px solid ${burnoutRisk > 60 ? 'rgba(239,68,68,0.25)' : 'rgba(34,197,94,0.25)'}`,
+                    border: `1px solid ${burnoutRisk > 60 ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)'}`,
                     color: burnoutRisk > 60 ? '#ef4444' : '#22c55e',
-                    fontSize: 10, fontWeight: 600, padding: '4px 12px', borderRadius: 999,
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 10, fontWeight: 600, padding: '4px 10px', borderRadius: 999,
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
                   }}>
                     <span style={{ width: 5, height: 5, borderRadius: '50%', background: burnoutRisk > 60 ? '#ef4444' : '#22c55e' }} />
                     {burnoutRisk > 60 ? 'Feels Overwhelmed' : 'Feels Focused'}
                   </span>
                 </div>
               </div>
-
             </div>
 
-            {/* MIDDLE: Burnout Risk & Highest Leverage Actions */}
-            <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Burnout Risk */}
-              <div style={{ ...S('#111827'), padding: 14 }}>
-                <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Burnout Risk</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
-                  <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
-                    <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-                      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
-                      <circle
-                        cx="50" cy="50" r="44" fill="none"
+            {/* MIDDLE: Burnout Risk & Action Chips — 3 parts (~30%) */}
+            <div style={{ flex: 3, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+              {/* Burnout Risk — compact */}
+              <div style={{ ...S('#111827'), padding: '8px 12px' }}>
+                <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Burnout Risk</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ position: 'relative', width: 60, height: 60, flexShrink: 0 }}>
+                    <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(135deg)' }}>
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" strokeDasharray="188 63" strokeLinecap="round" />
+                      <circle cx="50" cy="50" r="40" fill="none"
                         stroke={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f97316' : '#22c55e'}
-                        strokeWidth="10"
-                        strokeDasharray={`${(burnoutRisk / 100) * 276} 276`}
-                        strokeLinecap="round"
-                      />
+                        strokeWidth="10" strokeLinecap="round"
+                        strokeDasharray={`${((100 - burnoutRisk) / 100) * 188} 251`} />
                     </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
-                      {burnoutRisk > 60 ? '🔥' : burnoutRisk > 30 ? '⚡' : '✓'}
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f97316' : '#22c55e'}
+                        strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        {burnoutRisk > 60
+                          ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                          : <polyline points="20 6 9 17 4 12" />}
+                      </svg>
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 11, color: burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f97316' : '#22c55e', fontWeight: 700 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f97316' : '#22c55e' }}>
                       {burnoutRisk > 60 ? 'High' : burnoutRisk > 30 ? 'Medium' : 'Low'}
                     </div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: '#e2e8f0', lineHeight: 1.1 }}>{burnoutRisk}%</div>
-                    <div style={{ fontSize: 10, color: '#e2e8f0', fontWeight: 500, marginTop: 2 }}>
-                      {burnoutRisk > 40 ? 'Recovery needed' : 'On track'}
-                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{burnoutRisk}%</div>
+                    <div style={{ fontSize: 10, color: '#e2e8f0', fontWeight: 500, marginTop: 2 }}>{burnoutRisk > 40 ? 'Recovery needed' : 'On track'}</div>
                     <div style={{ fontSize: 9, color: '#6b7280' }}>{burnoutRisk > 40 ? 'Take a break.' : 'Maintain habits.'}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Highest Leverage Actions */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0', paddingLeft: 4, marginBottom: 2 }}>Action Chips</div>
-                {actionPlan.map((task, i) => (
-                  <Link key={task.id || i} to={task.link || '/health'} style={{ textDecoration: 'none' }}>
-                    <div
-                      style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, width: '100%', marginTop: 8, cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s', boxSizing: 'border-box' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#1a2233'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#111827'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; }}
-                    >
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1a2233', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ fontSize: 16 }}>{task.icon}</span>
+              {/* Action Chips */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0', marginBottom: 6 }}>Action Chips</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {actionPlan.map((task, i) => (
+                    <Link key={task.id || i} to={task.link || '/health'} style={{ textDecoration: 'none' }}>
+                      <div
+                        style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', transition: 'background 0.15s' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#161f30'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#111827'; }}
+                      >
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13 }}>
+                          {task.icon}
+                        </div>
+                        <span style={{ flex: 1, fontSize: 11, color: '#e2e8f0', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.text}</span>
+                        <span style={{ fontSize: 9, color: '#22c55e', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap', marginLeft: 4 }}>{task.pts}</span>
                       </div>
-                      <span style={{ flex: 1, fontSize: 11, color: '#e2e8f0', fontWeight: 500 }}>{task.text}</span>
-                      <span style={{ fontSize: 10, color: task.iconColor || '#22c55e', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}>
-                        {task.domain} {task.pts}
-                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── Future Self — below Action Chips ── */}
+              <div style={{ background: 'linear-gradient(160deg, rgba(109,40,217,0.18) 0%, #111827 60%)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 12, padding: '8px 12px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 40, background: 'linear-gradient(180deg, rgba(139,92,246,0.12) 0%, transparent 100%)', pointerEvents: 'none' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 7, position: 'relative' }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span>✨</span> Future Self
                     </div>
+                    <div style={{ fontSize: 9, color: '#a78bfa', marginTop: 1 }}>{futureYear} · Age {userAge}</div>
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: '#a78bfa', background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.3)', padding: '2px 7px', borderRadius: 6 }}>AI</span>
+                </div>
+                <div style={{ display: 'flex', gap: 7, marginBottom: 7, position: 'relative' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13 }}>🔮</div>
+                  <div style={{ flex: 1, fontSize: 10, color: '#cbd5e1', lineHeight: 1.45, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                    {aiNarrative
+                      ? `I'm you, age ${userAge}, in ${futureYear}. ${aiNarrative.slice(0, 100)}${aiNarrative.length > 100 ? '...' : ''}`
+                      : `I'm you, age ${userAge}, in ${futureYear}. The choices around career right now (${careerScore}/100) shape everything that follows.`}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button onClick={() => window.location.href = '/coach'}
+                    style={{ fontSize: 9, color: '#a78bfa', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', padding: '3px 8px', borderRadius: 999, cursor: 'pointer' }}>
+                    How's my health in 5 years?
+                  </button>
+                  <Link to="/coach" style={{ fontSize: 9, color: '#64748b', textDecoration: 'none' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>
+                    Voice Log
                   </Link>
-                ))}
+                </div>
               </div>
             </div>
 
-            {/* RIGHT: Today's Plan & Future Self */}
-            <div style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Today's Plan */}
-              <div style={{ ...S('#111827'), padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* RIGHT: Today's Plan + Goal Tree Life Bloom — 3 parts */}
+            <div style={{ flex: 3, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              {/* ── Today's Plan ── */}
+              <div style={{ ...S('#111827'), padding: '8px 12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0' }}>Today's Plan</div>
                   <div style={{ fontSize: 9, color: '#6b7280' }}>{planDoneCount} / {todayPlan.length} completed</div>
                 </div>
-
-                <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${todayPlan.length ? (planDoneCount / todayPlan.length) * 100 : 0}%`, background: '#6366f1', borderRadius: 999, transition: 'width 0.4s ease' }} />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 7 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                   {todayPlan.length ? todayPlan.map((task, i) => (
-                    <div
-                      key={task.id || i}
-                      onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
-                    >
-                      <div style={{ width: 16, height: 16, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.15)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
-                        {task.done && <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                    <div key={task.id || i} onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                      <div style={{ width: 15, height: 15, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+                        {task.done && <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
                       </div>
-                      <span style={{ flex: 1, fontSize: 10, color: task.done ? '#e2e8f0' : '#6b7280', fontWeight: task.done ? 500 : 400, textDecoration: task.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.text}</span>
-                      <span style={{ fontSize: 8, color: '#6b7280', flexShrink: 0 }}>{task.time}</span>
+                      <span style={{ flex: 1, fontSize: 10, color: task.done ? '#64748b' : '#cbd5e1', textDecoration: task.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.text}</span>
+                      <span style={{ fontSize: 9, color: '#475569', flexShrink: 0 }}>{task.time}</span>
                     </div>
-                  )) : (
-                    <div style={{ fontSize: 10, color: '#6b7280' }}>No tasks scheduled.</div>
-                  )}
+                  )) : <div style={{ fontSize: 10, color: '#6b7280' }}>No tasks scheduled.</div>}
                 </div>
+              </div>
 
-                {/* Life Tree (inside plan card) */}
-                <div style={{ marginTop: 4, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                    <span style={{ fontSize: 14 }}>🌿</span>
-                    <div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0' }}>Life Tree</div>
-                      <div style={{ fontSize: 9, color: '#6b7280' }}>Grows as you complete tasks</div>
+              {/* ── Life Bloom — live reactive tree (todayPlan checkboxes) ── */}
+              {(() => {
+                // Driven by checkedTasks so it updates instantly on each checkbox click
+                const treeTasks = todayPlan.slice(0, 7);
+                const doneCount = treeTasks.filter(t => !!checkedTasks[t.id]).length;
+                const totalCount = treeTasks.length;
+                const pct = totalCount > 0 ? doneCount / totalCount : 0;
+                const th = pct === 0    ? {a:'#78716c',b:'#a8a29e',bg:'rgba(120,113,108,0.15)'}
+                         : pct < 0.35   ? {a:'#22c55e',b:'#4ade80',bg:'rgba(34,197,94,0.18)'}
+                         : pct < 0.7    ? {a:'#10b981',b:'#34d399',bg:'rgba(16,185,129,0.18)'}
+                         : pct < 1.0    ? {a:'#ec4899',b:'#f9a8d4',bg:'rgba(236,72,153,0.18)'}
+                         :                {a:'#f59e0b',b:'#fbbf24',bg:'rgba(245,158,11,0.22)'};
+                const label = doneCount === 0 ? '🌰 Seed' : pct < 0.35 ? '🌱 Sprouting' : pct < 0.7 ? '🌿 Growing' : pct < 1 ? '🌸 Blooming' : '🌳 Thriving!';
+                const W=240,H=290,CX=120,GY=272,maxH=210;
+                const trunkH = totalCount > 0 ? pct * maxH : 0;
+                const topY = GY - trunkH;
+                const sp = totalCount > 1 ? maxH / totalCount : maxH * 0.7;
+                const leafPath = "M 0 0 C -13 -3 -17 -17 0 -26 C 17 -17 13 -3 0 0 Z";
+
+                const trunkColor = '#5c3a1e';
+
+                return (
+                  <div style={{ background:'linear-gradient(180deg,#070c14 0%,#0d1320 50%,#111827 100%)', border:`1px solid ${th.a}30`, borderRadius:12, padding:'10px 10px 8px', overflow:'hidden', position:'relative' }}>
+                    {/* Twinkling stars */}
+                    {[{l:'10%',tp:'8%',d:0},{l:'80%',tp:'6%',d:0.9},{l:'62%',tp:'17%',d:1.6},{l:'28%',tp:'22%',d:0.4},{l:'90%',tp:'28%',d:1.2},{l:'48%',tp:'4%',d:0.7}].map((s,i)=>(
+                      <motion.div key={i} style={{position:'absolute',left:s.l,top:s.tp,width:1.5,height:1.5,borderRadius:'50%',background:'#93c5fd',pointerEvents:'none',zIndex:0}}
+                        animate={{opacity:[0.05,0.65,0.05],scale:[0.5,1.3,0.5]}}
+                        transition={{duration:2.4+i*0.5,repeat:Infinity,delay:parseFloat(s.d)}}/>
+                    ))}
+                    <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'65%',height:55,background:`radial-gradient(ellipse,${th.a}28 0%,transparent 70%)`,pointerEvents:'none',zIndex:0}}/>
+
+                    {/* Header */}
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7,position:'relative',zIndex:1}}>
+                      <div>
+                        <div style={{fontSize:12,fontWeight:700,color:'#e2e8f0'}}>Life Bloom</div>
+                        <div style={{fontSize:8,color:'#4b5563'}}>Check tasks above → branches grow</div>
+                      </div>
+                      <span style={{fontSize:9,fontWeight:700,color:th.a,background:th.bg,border:`1px solid ${th.a}40`,padding:'2px 9px',borderRadius:999}}>{label}</span>
+                    </div>
+
+                    {/* Tree SVG */}
+                    <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:220,display:'block',position:'relative',zIndex:1}}>
+                      <defs>
+                        <radialGradient id="lb_sg" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor={th.a} stopOpacity={Math.min(0.35,0.05+pct*0.3)}/>
+                          <stop offset="100%" stopColor={th.a} stopOpacity="0"/>
+                        </radialGradient>
+                        <linearGradient id="lb_lf" x1="0%" y1="100%" x2="0%" y2="0%">
+                          <stop offset="0%" stopColor={th.a}/><stop offset="100%" stopColor={th.b}/>
+                        </linearGradient>
+                        <linearGradient id="lb_tr" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#3d2010"/><stop offset="50%" stopColor="#6b3e22"/><stop offset="100%" stopColor="#4a2a14"/>
+                        </linearGradient>
+                        <filter id="lb_gl" x="-50%" y="-50%" width="200%" height="200%">
+                          <feGaussianBlur stdDeviation="4" result="b"/>
+                          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="lb_sg2" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="2.5" result="b"/>
+                          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                      </defs>
+
+                      {/* Soil glow */}
+                      <ellipse cx={CX} cy={GY+2} rx="90" ry="20" fill="url(#lb_sg)"/>
+                      {/* Swaying grass */}
+                      {[-36,-24,-14,-4,4,14,24,36].map((dx,i)=>(
+                        <motion.path key={i} d={`M${CX+dx} ${GY-3} Q${CX+dx+(i%2?2.5:-2.5)} ${GY-11} ${CX+dx+(i%2?1.5:-1.5)} ${GY-18}`}
+                          fill="none" stroke={pct>0?th.a:'#1c3a1c'} strokeWidth="1.8" strokeLinecap="round"
+                          opacity={pct>0?0.55:0.2}
+                          animate={{rotate:[-1.5,1.5,-1.5]}} transition={{duration:2.2+i*0.25,repeat:Infinity,ease:'easeInOut',delay:i*0.18}}
+                          style={{transformOrigin:`${CX+dx}px ${GY}px`,transformBox:'fill-box'}}/>
+                      ))}
+                      {/* Soil layers */}
+                      <ellipse cx={CX} cy={GY+4} rx="76" ry="14" fill="#2c1a0a" opacity="0.98"/>
+                      <ellipse cx={CX} cy={GY+1} rx="70" ry="10" fill="#3d2410" opacity="0.9"/>
+                      <ellipse cx={CX} cy={GY-2} rx="62" ry="7" fill="#5c3a1e" opacity="0.75"/>
+
+                      {/* Seed (nothing checked) */}
+                      {doneCount === 0 && (
+                        <g>
+                          <motion.ellipse cx={CX} cy={GY-16} rx="12" ry="15" fill="#8b6030"
+                            animate={{scale:[1,1.04,1]}} transition={{duration:2.2,repeat:Infinity}}
+                            style={{transformOrigin:`${CX}px ${GY-16}px`,transformBox:'fill-box'}}/>
+                          <ellipse cx={CX} cy={GY-16} rx="7" ry="9" fill="#c4a26a" opacity="0.5"/>
+                          <motion.line x1={CX} y1={GY-31} x2={CX} y2={GY-40} stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"
+                            animate={{scaleY:[1,1.15,1],opacity:[0.7,1,0.7]}} transition={{duration:1.8,repeat:Infinity}}
+                            style={{transformOrigin:`${CX}px ${GY-31}px`,transformBox:'fill-box'}}/>
+                        </g>
+                      )}
+
+                      {/* Ghost future branches */}
+                      {treeTasks.map((task,i)=>{
+                        const bY=GY-(i+1)*sp; const iL=i%2===0;
+                        const tX=iL?CX-50:CX+50; const tY=bY-28;
+                        return(
+                          <g key={`gh-${task.id||i}`} opacity="0.15">
+                            <path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
+                              fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeDasharray="3 4" strokeLinecap="round"/>
+                            <circle cx={tX} cy={tY-4} r="9" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="2 3"/>
+                          </g>
+                        );
+                      })}
+
+                      {/* Trunk — grows as tasks checked */}
+                      {trunkH > 3 && (<>
+                        <motion.path d={`M${CX-6} ${GY} C${CX-9} ${GY-trunkH*0.35} ${CX-3} ${GY-trunkH*0.72} ${CX} ${topY}`}
+                          fill="none" stroke="url(#lb_tr)" strokeWidth="12" strokeLinecap="round"
+                          initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut'}}/>
+                        <motion.path d={`M${CX+3} ${GY} C${CX+5} ${GY-trunkH*0.35} ${CX+2} ${GY-trunkH*0.72} ${CX} ${topY}`}
+                          fill="none" stroke="#8b5a34" strokeWidth="3.5" strokeLinecap="round" opacity="0.38"
+                          initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut',delay:0.06}}/>
+                      </>)}
+
+                      {/* Live branches — one per checked task */}
+                      {treeTasks.map((task,i)=>{
+                        const done=!!checkedTasks[task.id];
+                        if(!done) return null;
+                        const bY=GY-(i+1)*sp; const iL=i%2===0;
+                        const tX=iL?CX-50:CX+50; const tY=bY-28;
+                        const dl=i*0.08;
+                        return(
+                          <g key={`br-${task.id||i}`}>
+                            <motion.path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
+                              fill="none" stroke="#6b3e22" strokeWidth="4" strokeLinecap="round"
+                              initial={{pathLength:0,opacity:0}} animate={{pathLength:1,opacity:1}}
+                              transition={{delay:dl,duration:0.55,ease:'easeOut'}}/>
+                            {/* 3 organic leaf shapes */}
+                            <motion.g filter="url(#lb_sg2)"
+                              initial={{scale:0,opacity:0}} animate={{scale:1,opacity:1}}
+                              transition={{delay:dl+0.2,type:'spring',stiffness:200,damping:13}}
+                              style={{transformOrigin:`${tX}px ${tY}px`,transformBox:'fill-box'}}>
+                              <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(-38)`} opacity="0.92"/>
+                              <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(0)`}/>
+                              <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(38)`} opacity="0.92"/>
+                              <path d={leafPath} fill={th.b} transform={`translate(${iL?tX-11:tX+11} ${tY+6}) rotate(${iL?65:-65}) scale(0.55)`} opacity="0.75"/>
+                              <motion.circle cx={tX} cy={tY-14} r={3.5} fill={th.b}
+                                animate={{r:[3,5,3],opacity:[0.6,1,0.6]}} transition={{duration:2.2,repeat:Infinity,delay:i*0.35}}/>
+                            </motion.g>
+                            {/* Fireflies */}
+                            {[{ox:-10,oy:-8,d:0},{ox:8,oy:-14,d:0.5},{ox:16,oy:-4,d:1.0}].map((p,j)=>(
+                              <motion.circle key={j} cx={tX+p.ox} cy={tY+p.oy} r={1.8} fill={th.b}
+                                animate={{y:[0,-7,0],opacity:[0.15,0.9,0.15],scale:[0.5,1.4,0.5]}}
+                                transition={{duration:1.9+j*0.4,repeat:Infinity,delay:dl+p.d}}/>
+                            ))}
+                            {/* Label */}
+                            <text x={iL?tX-22:tX+22} y={tY+5} textAnchor={iL?'end':'start'} fontSize="7" fill={th.b} fontWeight="600" opacity="0.85">
+                              {(task.text||'').slice(0,11)}
+                            </text>
+                          </g>
+                        );
+                      })}
+
+                      {/* Pulsing growing tip */}
+                      {doneCount>0 && doneCount<totalCount && (
+                        <motion.circle cx={CX} cy={topY} r={5} fill={th.b} filter="url(#lb_gl)"
+                          animate={{r:[4,8,4],opacity:[0.35,1,0.35]}} transition={{duration:1.6,repeat:Infinity}}/>
+                      )}
+
+                      {/* Full canopy */}
+                      {doneCount===totalCount && totalCount>0 && (
+                        <g filter="url(#lb_gl)">
+                          {[{cx:CX,cy:topY-10,r:34},{cx:CX-26,cy:topY+16,r:24},{cx:CX+26,cy:topY+16,r:24},{cx:CX,cy:topY+8,r:30},{cx:CX-12,cy:topY-28,r:18},{cx:CX+14,cy:topY-26,r:16}]
+                            .map((c,i)=>(<motion.circle key={i} cx={c.cx} cy={c.cy} r={c.r} fill={i%2===0?th.a:th.b} opacity={0.88}
+                              initial={{scale:0}} animate={{scale:1}} transition={{delay:i*0.07,type:'spring',stiffness:130,damping:10}}
+                              style={{transformOrigin:`${c.cx}px ${c.cy}px`,transformBox:'fill-box'}}/>))}
+                          {[{x:CX-16,y:topY+4},{x:CX+14,y:topY-2},{x:CX-26,y:topY+24},{x:CX+24,y:topY+20}].map((f,i)=>(
+                            <motion.circle key={i} cx={f.x} cy={f.y} r={4} fill="#f87171" opacity="0.9"
+                              initial={{scale:0}} animate={{scale:1}} transition={{delay:0.5+i*0.1,type:'spring'}}
+                              style={{transformOrigin:`${f.x}px ${f.y}px`,transformBox:'fill-box'}}/>
+                          ))}
+                        </g>
+                      )}
+
+                      {/* Celebration ✦ */}
+                      {doneCount===totalCount && totalCount>0 &&
+                        [{x:68,y:topY-32,d:0},{x:172,y:topY-26,d:0.5},{x:52,y:topY+6,d:1.0},{x:188,y:topY+2,d:1.5}]
+                        .map((p,i)=>(
+                          <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle" fill={th.b}
+                            animate={{y:[p.y,p.y-14,p.y],opacity:[0.1,1,0.1]}} transition={{duration:2.5,repeat:Infinity,delay:p.d}}>✦</motion.text>
+                        ))
+                      }
+                    </svg>
+
+                    {/* Progress bar */}
+                    <div style={{position:'relative',zIndex:1}}>
+                      <div style={{height:4,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
+                        <motion.div animate={{width:`${pct*100}%`}} transition={{duration:0.5,ease:'easeOut'}}
+                          style={{height:'100%',background:`linear-gradient(90deg,${th.a},${th.b})`,borderRadius:999}}/>
+                      </div>
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
+                        <span style={{fontSize:8,color:'#4b5563'}}>{totalCount===0?'Complete tasks above to grow':'each ✓ = one branch on your tree'}</span>
+                        <span style={{fontSize:8,color:th.a,fontWeight:700}}>{doneCount}/{totalCount}</span>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+                );
+              })()}
+            </div>
+
+            {/* ── Floating AI Coach button ── */}
+            <Link to="/coach">
+              <motion.div
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.94 }}
+                style={{ position: 'fixed', bottom: 28, right: 28, width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(139,92,246,0.5)', cursor: 'pointer', zIndex: 50 }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+              </motion.div>
+            </Link>
+
+          </div>
+
+          {/* ════ SCORE RINGS — click to toggle each ring's Explainable AI ════ */}
+          {(() => {
+            const factorsMap = {
+              Health: explainFactors.health, Finance: explainFactors.finance,
+              Career: explainFactors.career, Mindset: mindsetFactors, Balance: balanceFactors,
+            };
+            const insightsMap = {
+              Health: domainInsights.health, Finance: domainInsights.finance,
+              Career: domainInsights.career, Mindset: domainInsights.mindset, Balance: domainInsights.balance,
+            };
+            return (
+              <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, marginTop: 16 }}>
+                {/* Rings row */}
+                <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', padding: '12px 16px 8px' }}>
+                  {rings.map((ring) => (
+                    <DashboardScoreRing
+                      key={ring.label}
+                      label={ring.label}
+                      score={ring.score}
+                      display={ring.display}
+                      color={ring.color}
+                      change={ring.change}
+                      up={ring.up}
+                      isActive={!!openRings[ring.label]}
+                      onClick={() => toggleRing(ring.label)}
+                    />
+                  ))}
+                </div>
+
+                {/* Per-ring expandable Explainable AI panels */}
+                <AnimatePresence initial={false}>
+                  {rings.filter(ring => openRings[ring.label]).map((ring, idx, arr) => (
                     <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${todayPlan.length ? (planDoneCount / todayPlan.length) * 100 : 0}%` }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                      style={{ height: '100%', background: 'linear-gradient(90deg, #22c55e, #10b981)', borderRadius: 999 }}
-                    />
-                  </div>
-                </div>
+                      key={ring.label}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      style={{ overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.05)', margin: '0 12px', marginBottom: idx === arr.length - 1 ? 12 : 0 }}
+                    >
+                      <div style={{ paddingTop: 12, paddingBottom: idx < arr.length - 1 ? 12 : 0 }}>
+                        <ExplainAIPanel
+                          label={ring.label}
+                          display={ring.display}
+                          color={ring.color}
+                          icon={ring.icon}
+                          change={ring.change}
+                          up={ring.up}
+                          link={ring.link}
+                          factors={factorsMap[ring.label] || []}
+                          insight={insightsMap[ring.label]}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
-
-              {/* Future Self */}
-              <div style={{ background: 'linear-gradient(145deg, rgba(139,92,246,0.08) 0%, #111827 100%)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 12, padding: 14, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50, background: 'linear-gradient(180deg, rgba(139,92,246,0.1) 0%, transparent 100%)', pointerEvents: 'none' }} />
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, position: 'relative' }}>
-                  <h2 style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', margin: 0, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ color: '#8b5cf6' }}>✨</span> Future Self
-                  </h2>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: '#8b5cf6', background: 'rgba(139,92,246,0.15)', padding: '3px 7px', borderRadius: 10 }}>AI BET</span>
-                </div>
-
-                <div style={{ display: 'flex', gap: 10, marginBottom: 12, position: 'relative' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #8b5cf6 0%, #c084fc 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(139,92,246,0.3)' }}>
-                    <span style={{ fontSize: 18 }}>🔮</span>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa', marginBottom: 4, letterSpacing: 0.5 }}>{futureYear} · AGE {userAge}</div>
-                    <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.5 }}>
-                      {aiNarrative
-                        ? aiNarrative.slice(0, 160) + (aiNarrative.length > 160 ? '...' : '')
-                        : `Your life balance score... career (${careerScore}/100) is your area nee... most attention. Improving this domain would have the greatest projected cross-domain impact.`}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ position: 'relative' }}>
-                  <input
-                    placeholder="Ask your future self..."
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', padding: '8px 34px 8px 12px', borderRadius: 999, color: '#e2e8f0', fontSize: 10, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
-                    onFocus={e => e.target.style.borderColor = '#8b5cf6'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'}
-                  />
-                  <button style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', width: 24, height: 24, borderRadius: '50%', background: '#8b5cf6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(139,92,246,0.3)', transition: 'transform 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
-                  >
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Score rings row full width */}
-          <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', width: '100%', padding: '20px 24px', boxSizing: 'border-box', background: '#111827', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, marginTop: 16 }}>
-            {rings.map((ring) => (
-              <DashboardScoreRing
-                key={ring.label}
-                label={ring.label}
-                score={ring.score}
-                display={ring.display}
-                color={ring.color}
-                change={ring.change}
-                up={ring.up}
-              />
-            ))}
-          </div>
-
-          {/* ════════════════════════════════════════════════════
-              SECTION 2 — FUTURE ENGINE (PRESERVED EXACTLY)
-          ════════════════════════════════════════════════════ */}
-          <div style={{ ...S('#11131c'), padding: '14px 20px', display: 'flex', flexDirection: 'column', marginTop: 16, height: 240 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <h2 style={{ fontSize: 14, fontWeight: 600, color: C.text, margin: 0 }}>Future Engine</h2>
-              </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {[
-                  { id: 'doom_mode', label: 'Doom Mode', icon: '⚠️' },
-                  { id: 'time_travel', label: 'Time Travel', icon: '🚀' },
-                  { id: 'simulator', label: 'Simulator', icon: '⏳' },
-                ].map((t) => (
-                  <div
-                    key={t.id}
-                    onClick={() => setEngineTab(t.id)}
-                    style={{ padding: '4px 10px', fontSize: 10, fontWeight: 600, borderRadius: 6, background: engineTab === t.id ? 'rgba(139,92,246,0.15)' : 'transparent', color: engineTab === t.id ? '#8b5cf6' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, border: engineTab === t.id ? '1px solid rgba(139,92,246,0.3)' : '1px solid transparent', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { if (engineTab !== t.id) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                    onMouseLeave={e => { if (engineTab !== t.id) e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <span>{t.icon}</span> {t.label}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ flex: 1, position: 'relative' }}>
-              {/* Doom Mode View */}
-              {engineTab === 'doom_mode' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, animation: 'fadeIn 0.3s ease', height: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 24, height: 24, background: 'rgba(239,68,68,0.1)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', fontSize: 12 }}>⚠️</div>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>Doom Mode - Immediate impact</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, flex: 1 }}>
-                    <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', padding: 16, borderRadius: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: 18, marginBottom: 6 }}>🔥</div>
-                      <div style={{ fontSize: 10, color: C.text, fontWeight: 600 }}>Burnout ETA</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#ef4444' }}>{doomStats?.burnoutETA || 30} days</div>
-                    </div>
-                    <div style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.2)', padding: 16, borderRadius: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: 18, marginBottom: 6 }}>💤</div>
-                      <div style={{ fontSize: 10, color: C.text, fontWeight: 600 }}>Monthly Sleep Debt</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#3b82f6' }}>{doomStats?.sleepDebt || 14} hours</div>
-                    </div>
-                    <div style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)', padding: 16, borderRadius: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ fontSize: 18, marginBottom: 6 }}>⚡</div>
-                      <div style={{ fontSize: 10, color: C.text, fontWeight: 600 }}>Stress Overload</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#f59e0b' }}>{(h?.stressLevel || 0) > 6 ? 'Critical' : (h?.stressLevel || 0) > 3 ? 'Elevated' : 'Stable'}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Time Travel View */}
-              {engineTab === 'time_travel' && (
-                <div style={{ display: 'flex', gap: 20, animation: 'fadeIn 0.3s ease', height: '100%' }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: C.textMuted, marginBottom: 8 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 2, background: '#10b981' }} /> Optimized</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 2, background: '#3b82f6' }} /> Current</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 2, background: '#ef4444' }} /> Risk</div>
-                    </div>
-                    <div style={{ flex: 1, position: 'relative' }}>
-                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 16, width: 16, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: 8, color: '#475569' }}>
-                        <span>250</span><span>125</span><span>0</span>
-                      </div>
-                      <div style={{ position: 'absolute', left: 20, right: 0, top: 4, bottom: 16 }}>
-                        {[0, 1, 2].map(i => <div key={i} style={{ position: 'absolute', left: 0, right: 0, top: `${i * 50}%`, height: 1, background: 'rgba(255,255,255,0.03)' }} />)}
-                        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} preserveAspectRatio="none">
-                          <path d={`M 0,100% ${pts('o')}`} fill="none" stroke="#10b981" strokeWidth="2" />
-                          <path d={`M 0,100% ${pts('c')}`} fill="none" stroke="#3b82f6" strokeWidth="1.5" />
-                          <path d={`M 0,100% ${pts('r')}`} fill="none" stroke="#ef4444" strokeWidth="1.5" />
-                        </svg>
-                      </div>
-                      <div style={{ position: 'absolute', bottom: 0, left: 20, right: 0, display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#475569' }}>
-                        <span>Now</span><span>{currentYear + 5}</span><span>{currentYear + 10}</span><span>2045</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10, width: 160, borderLeft: `1px solid ${C.border}`, paddingLeft: 16 }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, color: C.text, marginBottom: 4 }}>Explore Trajectories</div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 10, color: C.text }}>
-                      <input type="checkbox" defaultChecked style={{ accentColor: '#10b981' }} />
-                      Optimized Timeline
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 10, color: C.text }}>
-                      <input type="checkbox" defaultChecked style={{ accentColor: '#3b82f6' }} />
-                      Current Baseline
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 10, color: C.text }}>
-                      <input type="checkbox" defaultChecked style={{ accentColor: '#ef4444' }} />
-                      High Risk Events
-                    </label>
-                    <div style={{ fontSize: 8, color: C.textMuted, marginTop: 4, lineHeight: 1.3 }}>Toggle variables to instantly update your 2045 state projection.</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Simulator View */}
-              {engineTab === 'simulator' && (
-                <div style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.3s ease', height: '100%' }}>
-                  <div style={{ display: 'flex', gap: 30, flex: 1 }}>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 20 }}>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: C.text, marginBottom: 6 }}>
-                          <span>If I sleep <span style={{ color: '#8b5cf6', fontWeight: 600 }}>+1 hour</span>...</span>
-                          <span style={{ color: '#10b981' }}>Health +15%</span>
-                        </div>
-                        <div style={{ height: 4, background: C.border, borderRadius: 2, position: 'relative' }}>
-                          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '65%', background: '#8b5cf6', borderRadius: 2 }} />
-                          <div style={{ position: 'absolute', left: '65%', top: '50%', transform: 'translate(-50%,-50%)', width: 12, height: 12, background: '#fff', border: '2px solid #8b5cf6', borderRadius: '50%', cursor: 'pointer' }} />
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: C.text, marginBottom: 6 }}>
-                          <span>If I save <span style={{ color: '#8b5cf6', fontWeight: 600 }}>5%</span>...</span>
-                          <span style={{ color: '#10b981' }}>Wealth +$120k</span>
-                        </div>
-                        <div style={{ height: 4, background: C.border, borderRadius: 2, position: 'relative' }}>
-                          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', background: '#8b5cf6', borderRadius: 2 }} />
-                          <div style={{ position: 'absolute', left: '40%', top: '50%', transform: 'translate(-50%,-50%)', width: 12, height: 12, background: '#fff', border: '2px solid #8b5cf6', borderRadius: '50%', cursor: 'pointer' }} />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ flex: 1, position: 'relative', borderLeft: `1px solid ${C.border}` }}>
-                      <div style={{ position: 'absolute', inset: 0 }}>
-                        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-                          <path d="M30 20 Q70 20 90 50 T110 100" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" strokeDasharray="2 2" />
-                          <path d="M30 100 Q70 100 90 70 T110 20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" strokeDasharray="2 2" />
-                        </svg>
-                        <div style={{ position: 'absolute', top: '10%', left: '15%', transform: 'translate(-50%,-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, textAlign: 'center', color: '#c4b5fd' }}>{dynamicSkill.slice(0, 10)}</div>
-                        <div style={{ position: 'absolute', top: '80%', left: '15%', transform: 'translate(-50%,-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, textAlign: 'center', color: '#fcd34d' }}>Save 5%</div>
-                        <div style={{ position: 'absolute', top: '10%', left: '65%', transform: 'translate(-50%,-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, textAlign: 'center', color: '#6ee7b7' }}>+30% Sal</div>
-                        <div style={{ position: 'absolute', top: '80%', left: '65%', transform: 'translate(-50%,-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, textAlign: 'center', color: '#6ee7b7' }}>+$120k</div>
-                        <div style={{ position: 'absolute', top: '45%', left: '90%', transform: 'translate(-50%,-50%)', width: 32, height: 32, borderRadius: '50%', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, textAlign: 'center', color: C.textMuted }}>-40% Stress</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ════════════════════════════════════════════════════
-              SECTION 3 — WHY THESE SCORES
-          ════════════════════════════════════════════════════ */}
-          <section id="why-scores" style={{ marginTop: 16 }}>
-            {/* Section header */}
-            <div
-              onClick={() => setWhyCollapsed(w => !w)}
-              style={{ background: '#111827', border: `1px solid ${C.border}`, borderRadius: 12, padding: '12px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', transition: 'background 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
-              onMouseLeave={e => e.currentTarget.style.background = '#111827'}
-            >
-              <span style={{ fontSize: 14 }}>🔍</span>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>Why These Scores</h2>
-              <span style={{ fontSize: 9, fontWeight: 700, color: '#6366f1', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 999, padding: '2px 8px' }}>
-                Explainable AI
-              </span>
-              <div style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280', transition: 'transform 0.2s', transform: whyCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                ▲
-              </div>
-            </div>
-
-            <AnimatePresence initial={false}>
-              {!whyCollapsed && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.28 }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                    {/* HEALTH SCORE CARD */}
-                    <DomainScoreCard
-                      icon="❤️"
-                      title="HEALTH SCORE"
-                      score={healthScore}
-                      color="#22c55e"
-                      factors={explainFactors.health}
-                      bottomChips={
-                        <>
-                          <StatChip icon="😴" label="AVG SLEEP" value={`${h.sleepAvg || 9}h`} change="↑5%" isPositive />
-                          <StatChip icon="😟" label="STRESS" value={`${h.stressLevel || 7}/10`} change="↓15%" isPositive={false} />
-                        </>
-                      }
-                    />
-
-                    {/* FINANCE SCORE CARD */}
-                    <DomainScoreCard
-                      icon="💛"
-                      title="FINANCE SCORE"
-                      score={financeScore}
-                      color="#eab308"
-                      factors={explainFactors.finance}
-                      bottomChips={
-                        <>
-                          <StatChip icon="💰" label="SAVINGS RATE" value={`${savingsRate}%`} change="↓10%" isPositive={false} />
-                          <StatChip icon="📊" label="STUDY HOURS" value={`${c.studyHoursDaily || 0}h`} change="↓5%" isPositive={false} />
-                        </>
-                      }
-                    />
-
-                    {/* CAREER SCORE CARD */}
-                    <DomainScoreCard
-                      icon="🎯"
-                      title="CAREER SCORE"
-                      score={careerScore}
-                      color="#6366f1"
-                      factors={explainFactors.career}
-                      bottomChips={
-                        <>
-                          <StatChip icon="⚡" label="ALL INSIGHTS" value={insights.length} change="Pattern Detected" isPositive />
-                          <StatChip icon="⚙" label="AI CONFIDENCE" value="92%" change="High" isPositive />
-                        </>
-                      }
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </section>
+            );
+          })()}
 
           {/* ════════════════════════════════════════════════════
               SECTION 4 — GHOST MODE TIMELINE
