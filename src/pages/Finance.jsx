@@ -369,7 +369,7 @@ function InvestmentRoboAdvisor({ f, score }) {
     <div className="flex flex-col gap-6 relative z-10 w-full font-sans">
       
       {/* Strategy Header Card */}
-      <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
+      <div style={{ padding: '24px' }} className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-5">
         
         {/* Toggle Profiles Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
@@ -484,7 +484,7 @@ function InvestmentRoboAdvisor({ f, score }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         
         {/* Recommended Funds Card (col-span-2) */}
-        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+        <div style={{ padding: '24px' }} className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4">
           <div className="flex items-center justify-between border-b border-white/5 pb-4">
             <div className="flex items-center gap-2">
               <div className="text-indigo-500">
@@ -535,7 +535,7 @@ function InvestmentRoboAdvisor({ f, score }) {
         <div className="flex flex-col gap-6">
           
           {/* Tax Savings Optimizer Card */}
-          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+          <div style={{ padding: '24px' }} className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4">
             <div className="flex items-center gap-2 border-b border-white/5 pb-4">
               <div className="text-emerald-400">
                 <FileText size={16} />
@@ -577,7 +577,7 @@ function InvestmentRoboAdvisor({ f, score }) {
           </div>
 
           {/* SIP Wealth Planner Card */}
-          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+          <div style={{ padding: '24px' }} className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4">
             <div className="flex items-center gap-2 border-b border-white/5 pb-4">
               <div className="text-amber-500">
                 <TrendingUp size={16} />
@@ -1653,7 +1653,7 @@ export default function Finance() {
               </div>
               
               {/* Chart container */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 32, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24, flex: 1 }}>
                 {/* Donut Chart */}
                 <div style={{position:'relative', flexShrink:0, width:130, height:130}}>
                   <ResponsiveContainer width={130} height={130}>
@@ -1666,14 +1666,12 @@ export default function Finance() {
                   </ResponsiveContainer>
                 </div>
                 
-                {/* Legends stacked compactly next to chart to match mockup */}
-                <div style={{width: '180px', display:'flex', flexDirection:'column', gap:10, shrink: 0}}>
+                {/* Legends */}
+                <div style={{flex:1, display:'flex', flexDirection:'column', gap:10}}>
                   {groupedData.map(e => (
-                    <div key={e.name} style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, width:'100%'}}>
-                      <div style={{display:'flex', alignItems:'center', gap:8}}>
-                        <span style={{width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0}}/>
-                        <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>{e.name}</span>
-                      </div>
+                    <div key={e.name} style={{display:'flex', alignItems:'center', gap:10}}>
+                      <span style={{width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0}}/>
+                      <span style={{fontSize:12, color:'#94a3b8', fontWeight:500, flex:1}}>{e.name}</span>
                       <span style={{fontSize:12, fontWeight:700, color: '#f1f5f9'}}>{e.percentage}%</span>
                     </div>
                   ))}
@@ -2599,7 +2597,7 @@ export default function Finance() {
             <div className="flex flex-col gap-6 h-full">
               
               {/* Form Card */}
-              <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
+              <div style={{ padding: '24px' }} className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-5">
                 <div className="flex items-center gap-2 border-b border-white/5 pb-4">
                   <div className="text-indigo-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="m9 14 2 2 4-4"></path></svg>
@@ -2675,7 +2673,7 @@ export default function Finance() {
               </div>
 
               {/* OCR Receipt Scanner Card */}
-              <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4 flex-1">
+              <div style={{ padding: '24px' }} className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4 flex-1">
                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <div className="flex items-center gap-2">
                     <div className="text-emerald-500">
@@ -2739,8 +2737,8 @@ export default function Finance() {
 
             {/* Right Column: Recent Logs */}
             <div 
-              style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-              className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex-1"
+              style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '24px' }}
+              className="rounded-2xl border border-white/5 bg-[#0b0c10] gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex-1"
             >
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
