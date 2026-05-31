@@ -81,12 +81,13 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
   const income = f.income ?? 20000;
   const debt = f.debt ?? 0;
   const savings = f.savings ?? 10000;
+  const totalWorkHours = studyHoursDaily + codingHoursDaily;
 
   const relationships = [];
 
-  // Sleep → Productivity cascade
-  if (sleepAvg < 6.5 && (studyHoursDaily + codingHoursDaily) > 7) {
-    const productivityLoss = Math.round((1 - sleepAvg / 8) * 40); // estimated % loss
+  // ── Sleep ↔ Career (always fires) ────────────────────────────────────────
+  if (sleepAvg < 6) {
+    const productivityLoss = Math.round((1 - sleepAvg / 8) * 40);
     relationships.push({
       id: 'sleep-productivity',
       type: 'negative',
@@ -94,14 +95,27 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
       to: 'career',
       trigger: `Sleep at ${sleepAvg}h/night`,
       effect: `Estimated ${productivityLoss}% reduction in study efficiency`,
-      severity: sleepAvg < 5.5 ? 'critical' : 'warning',
+      severity: sleepAvg < 5 ? 'critical' : 'warning',
       mechanism: 'Sleep deficit reduces cognitive consolidation and working memory, lowering effective study hours.',
       computedImpact: { productivityLoss, effectiveStudyHours: Math.round(studyHoursDaily * (sleepAvg / 8) * 10) / 10 },
     });
+  } else {
+    const perfBoost = Math.round((sleepAvg / 8) * 28);
+    relationships.push({
+      id: 'sleep-performance',
+      type: 'positive',
+      from: 'health',
+      to: 'career',
+      trigger: `Sleep at ${sleepAvg}h/night`,
+      effect: `Estimated ${perfBoost}% boost in cognitive performance and retention`,
+      severity: 'positive',
+      mechanism: 'Adequate sleep supports memory consolidation, working memory, and problem-solving capacity.',
+      computedImpact: { performanceBoost: perfBoost },
+    });
   }
 
-  // Stress → Spending cascade
-  if (stressLevel > 6 && (income > 0 ? expenses / income : 1) > 0.78) {
+  // ── Stress ↔ Finance (always fires) ──────────────────────────────────────
+  if (stressLevel > 6) {
     const excessSpending = Math.round(expenses * 0.15);
     relationships.push({
       id: 'stress-spending',
@@ -109,55 +123,95 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
       from: 'health',
       to: 'finance',
       trigger: `Stress level at ${stressLevel}/10`,
-      effect: `Estimated ₹${excessSpending.toLocaleString()} in stress-related spending per month`,
+      effect: `Estimated ₹${excessSpending.toLocaleString()} in stress-related impulse spending per month`,
       severity: stressLevel > 8 ? 'critical' : 'warning',
-      mechanism: 'High cortisol levels reduce impulse control, increasing likelihood of comfort spending.',
+      mechanism: 'High cortisol reduces impulse control, increasing likelihood of comfort spending.',
       computedImpact: { excessSpending, expenseRatio: Math.round((income > 0 ? expenses / income : 1) * 100) },
+    });
+  } else {
+    relationships.push({
+      id: 'stress-focus',
+      type: stressLevel <= 3 ? 'positive' : 'positive',
+      from: 'health',
+      to: 'career',
+      trigger: `Stress level at ${stressLevel}/10`,
+      effect: `Manageable stress enabling focused work — estimated ${Math.round((5 - Math.min(stressLevel, 5)) * 4 + 10)}% focus advantage`,
+      severity: 'positive',
+      mechanism: 'Low-to-moderate cortisol supports alertness and motivation without impairing prefrontal function.',
+      computedImpact: { focusGain: Math.round((5 - Math.min(stressLevel, 5)) * 4 + 10) },
     });
   }
 
-  // Exercise → Focus boost
-  if (workoutsPerWeek >= 4) {
+  // ── Exercise ↔ Focus (fires at >= 2 workouts/week) ────────────────────────
+  if (workoutsPerWeek >= 2) {
+    const focusBoost = workoutsPerWeek >= 4 ? 22 : workoutsPerWeek >= 3 ? 16 : 10;
     relationships.push({
       id: 'exercise-focus',
       type: 'positive',
       from: 'health',
       to: 'career',
       trigger: `${workoutsPerWeek} workouts/week`,
-      effect: 'Estimated 20-25% improvement in sustained focus',
+      effect: `Estimated ${focusBoost}% improvement in sustained focus and memory`,
       severity: 'positive',
-      mechanism: 'Regular exercise increases BDNF and cerebral blood flow, improving concentration and memory consolidation.',
-      computedImpact: { focusBoost: 22 },
+      mechanism: 'Regular exercise increases BDNF and cerebral blood flow, improving concentration and learning.',
+      computedImpact: { focusBoost },
+    });
+  } else {
+    relationships.push({
+      id: 'exercise-deficit',
+      type: 'negative',
+      from: 'health',
+      to: 'career',
+      trigger: `Only ${workoutsPerWeek} workout(s)/week`,
+      effect: 'Reduced BDNF production limiting cognitive performance and energy levels',
+      severity: 'warning',
+      mechanism: 'Sedentary lifestyle reduces cerebral blood flow and neuroplasticity, hindering learning.',
+      computedImpact: { focusReduction: 15 },
     });
   }
 
-  // Overwork → Health deterioration
-  if ((studyHoursDaily + codingHoursDaily) > 10 && workoutsPerWeek < 2) {
+  // ── Financial Stability ↔ Career Focus (fires when income > 0) ───────────
+  if (income > 0) {
+    const savingsMonths = expenses > 0 ? Math.round((savings / expenses) * 10) / 10 : 0;
+    if (savings >= expenses && debt === 0) {
+      relationships.push({
+        id: 'financial-stability',
+        type: 'positive',
+        from: 'finance',
+        to: 'health',
+        trigger: `${savingsMonths}m expenses in savings, no debt`,
+        effect: 'Reduced financial anxiety freeing cognitive bandwidth for career and wellbeing',
+        severity: 'positive',
+        mechanism: 'Financial security lowers background cortisol, improving sleep quality and focus capacity.',
+        computedImpact: { stressReduction: 18 },
+      });
+    } else if (debt > 0 && savings < expenses) {
+      relationships.push({
+        id: 'financial-stress',
+        type: 'negative',
+        from: 'finance',
+        to: 'health',
+        trigger: `Debt ₹${debt.toLocaleString()} with savings below 1 month expenses`,
+        effect: 'Elevated anxiety levels, potential sleep disruption and focus loss',
+        severity: 'warning',
+        mechanism: 'Financial insecurity activates chronic stress response, impacting sleep quality and mood.',
+        computedImpact: { stressIncrease: 1.5 },
+      });
+    }
+  }
+
+  // ── Overwork → Health (threshold lowered to > 8h) ─────────────────────────
+  if (totalWorkHours > 8 && workoutsPerWeek < 2) {
     relationships.push({
       id: 'overwork-health',
       type: 'negative',
       from: 'career',
       to: 'health',
-      trigger: `${studyHoursDaily + codingHoursDaily}h daily desk work with minimal exercise`,
+      trigger: `${totalWorkHours}h daily desk work with minimal exercise`,
       effect: 'Increased fatigue, reduced alertness, declining retention',
-      severity: 'warning',
+      severity: totalWorkHours > 12 ? 'critical' : 'warning',
       mechanism: 'Prolonged sedentary behavior reduces circulation and increases cognitive fatigue.',
       computedImpact: { alertnessReduction: 25 },
-    });
-  }
-
-  // Financial stress → Mental health
-  if (debt > 0 && savings < expenses) {
-    relationships.push({
-      id: 'financial-stress',
-      type: 'negative',
-      from: 'finance',
-      to: 'health',
-      trigger: `Debt ₹${debt.toLocaleString()} with savings below 1 month expenses`,
-      effect: 'Elevated anxiety levels, potential sleep disruption',
-      severity: 'warning',
-      mechanism: 'Financial insecurity activates chronic stress response, impacting sleep quality and mood.',
-      computedImpact: { stressIncrease: 1.5 },
     });
   }
 

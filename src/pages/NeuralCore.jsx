@@ -57,6 +57,7 @@ export default function NeuralCore() {
   const [showWhatIf, setShowWhatIf] = useState(false);
   const hasData = (state?.computed?.healthScore?.score ?? 0) > 0 || (state?.computed?.financeScore?.score ?? 0) > 0;
   
+  const [years, setYears] = useState(5);
   const [adjustments, setAdjustments] = useState({
     extraSleep: 0,
     extraStudy: 0,
@@ -90,11 +91,11 @@ export default function NeuralCore() {
     }));
   }, [timeline, whatIfTimeline]);
 
-  const handleInference = useCallback(async () => {
+  const handleInference = useCallback(async (y = years) => {
     setLoading(true);
     try {
       const engine = new NeuralEngine();
-      const result = await engine.runInference(state || {});
+      const result = await engine.runInference(state || {}, y);
       setTimeline(result);
       setWhatIfTimeline([]);
     } catch {
@@ -102,15 +103,7 @@ export default function NeuralCore() {
     } finally {
       setLoading(false);
     }
-  }, [state]);
-
-  // Auto-run when data exists
-  useEffect(() => {
-    if (hasData && timeline.length === 0) {
-      handleInference();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [state, years]);
 
   const runWhatIf = useCallback(async (adj = adjustments) => {
     if (!timeline.length) { showToast('Generate base trajectory first', 'info'); return; }
@@ -128,15 +121,16 @@ export default function NeuralCore() {
         studyHoursDaily:  (study + adj.extraStudy).toString(),
         codingHoursDaily: coding.toString(),
       },
+
     };
     try {
       const engine = new NeuralEngine();
-      const result = await engine.runInference(modifiedState);
+      const result = await engine.runInference(modifiedState, years);
       setWhatIfTimeline(result);
     } catch {
       showToast('What-If computation failed', 'error');
     }
-  }, [adjustments, timeline, state, hs, fs, cs, burnout, study, coding]);
+  }, [adjustments, timeline, state, hs, fs, cs, burnout, study, coding, years]);
 
   const updateAdj = (key, val) => {
     const next = { ...adjustments, [key]: val };
@@ -169,7 +163,7 @@ export default function NeuralCore() {
           <span style={{ fontSize: 24, color: '#a855f7' }}>✨</span>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Neural Core</h1>
         </div>
-        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Deterministic 20-year life trajectory + What-if scenario lab.</p>
+        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Deterministic {years}-year life trajectory + What-if scenario lab.</p>
       </motion.div>
 
       {/* ── Grid Layout ─────────────────────────────────────────── */}
@@ -197,7 +191,7 @@ export default function NeuralCore() {
               }} title="Current states from your profile">i</span>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
               {inputs.map(({ label, value, color }) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
                   <span style={{ color: '#64748b' }}>{label}</span>
@@ -206,8 +200,37 @@ export default function NeuralCore() {
               ))}
             </div>
 
+            {/* Year Selector */}
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ fontSize: 11, color: '#64748b', marginBottom: 8, fontWeight: 500 }}>Projection Horizon</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {[2, 3, 5, 10, 15, 20].map(y => (
+                  <button
+                    key={y}
+                    onClick={() => {
+                      setYears(y);
+                      if (timeline.length) handleInference(y);
+                    }}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 7,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      border: years === y ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.08)',
+                      background: years === y ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
+                      color: years === y ? '#c084fc' : '#64748b',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {y}yr
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button
-              onClick={handleInference}
+              onClick={() => handleInference(years)}
               disabled={loading}
               style={{
                 width: '100%',
@@ -243,7 +266,7 @@ export default function NeuralCore() {
             <p style={{ fontSize: 10, color: '#334155', textAlign: 'center', margin: '10px 0 0' }}>Model: Deterministic v2.1</p>
           </motion.div>
 
-          {/* 2045 Outlook Card */}
+          {/* End-year Outlook Card */}
           {trajectory && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -254,7 +277,7 @@ export default function NeuralCore() {
                 background: 'rgba(255,255,255,0.03)',
               }}
             >
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', margin: '0 0 10px' }}>2045 Outlook</p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', margin: '0 0 10px' }}>{2026 + years - 1} Outlook</p>
               <h2 style={{ fontSize: 32, fontWeight: 800, color: '#10b981', margin: '0 0 2px', lineHeight: 1 }}>
                 {endStability}%
               </h2>
@@ -281,7 +304,7 @@ export default function NeuralCore() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>20-Year Life Trajectory</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{years}-Year Life Trajectory</h3>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 11 }}>
@@ -368,7 +391,7 @@ export default function NeuralCore() {
                       </div>
                       {stabilityDelta !== null && (
                         <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>2045 impact</p>
+                          <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>{2026 + years - 1} impact</p>
                           <p style={{ fontSize: 18, fontWeight: 700, color: '#10b981', margin: 0 }}>
                             {stabilityDelta > 0 ? '+' : ''}{stabilityDelta}%
                           </p>
@@ -438,7 +461,7 @@ export default function NeuralCore() {
                   )
                 },
                 {
-                  label: '20-Year Stability',
+                  label: `${years}-Year Stability`,
                   desc: 'Long-term outlook',
                   current: timeline[19]?.stability,
                   wi: whatIfTimeline[19]?.stability,
