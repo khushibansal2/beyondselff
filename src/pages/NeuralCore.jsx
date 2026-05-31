@@ -200,32 +200,40 @@ export default function NeuralCore() {
               ))}
             </div>
 
-            {/* Year Selector */}
+            {/* Year Selector — scrollable strip */}
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 11, color: '#64748b', marginBottom: 8, fontWeight: 500 }}>Projection Horizon</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {[2, 3, 5, 10, 15, 20].map(y => (
-                  <button
-                    key={y}
-                    onClick={() => {
-                      setYears(y);
-                      if (timeline.length) handleInference(y);
-                    }}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: 7,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      border: years === y ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.08)',
-                      background: years === y ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
-                      color: years === y ? '#c084fc' : '#64748b',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {y}yr
-                  </button>
-                ))}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <p style={{ fontSize: 11, color: '#64748b', margin: 0, fontWeight: 500 }}>Projection Horizon</p>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#c084fc' }}>{years} yr</span>
+              </div>
+              <div style={{ overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                   className="hide-scrollbar">
+                <div style={{ display: 'flex', gap: 4, width: 'max-content' }}>
+                  {Array.from({ length: 30 }, (_, i) => i + 1).map(y => (
+                    <button
+                      key={y}
+                      onClick={() => {
+                        setYears(y);
+                        if (timeline.length) handleInference(y);
+                      }}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: 6,
+                        fontSize: 10,
+                        fontWeight: years === y ? 700 : 500,
+                        cursor: 'pointer',
+                        border: years === y ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
+                        background: years === y ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.02)',
+                        color: years === y ? '#c084fc' : '#475569',
+                        transition: 'all 0.12s',
+                        flexShrink: 0,
+                        minWidth: 28,
+                      }}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
