@@ -210,76 +210,71 @@ export default function Sidebar() {
             {/* User Profile Card */}
             <div className="bg-[#1e2136] rounded-[20px] p-4 flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
-                   {user?.avatar ? (
-                     <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
-                   ) : (
-                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
-                       {user?.name?.[0] || 'U'}
-                     </div>
-                   )}
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-[13px] font-bold text-white tracking-wide">{user?.name || 'User'}</span>
-                   <span className="text-[11px] font-medium text-slate-400">Level {level}</span>
-                 </div>
-              </div>
-              
-              <div className="w-full h-1.5 rounded-full bg-black/20 overflow-hidden relative mt-1">
-                 <motion.div 
-                   initial={{width: 0}} animate={{width: `${xpProgress}%`}} 
-                   transition={{duration: 1}}
-                   className="absolute left-0 top-0 bottom-0 bg-indigo-500 rounded-full" 
-                 />
-              </div>
-              <div className="text-[10px] text-center text-slate-400 font-medium">
-                 {xpForNext - xp} XP to Level {level + 1}
-              </div>
-            </div>
-
-            {/* Life Streak Card */}
-            <div className="bg-[#1e2136] rounded-[20px] p-4 flex flex-col gap-2">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[14px]">🔥</span>
-                <span className="text-[12px] font-bold text-white tracking-wide">Life Streak</span>
-              </div>
-              
-              <div className="flex items-baseline gap-1.5 ml-1">
-                <span className="text-[24px] font-extrabold text-indigo-400 leading-none tracking-tight">{gamification?.streak || 0}</span>
-                <span className="text-[12px] font-semibold text-slate-500">days</span>
-              </div>
-
-              <div className="flex justify-between items-center mt-2 px-1">
-                {['M','T','W','T','F','S','S'].map((day, i) => {
-                   // Calculate active days based on streak (e.g. if streak is 3, last 3 days are active)
-                   const totalDays = 7;
-                   const streak = Math.min(gamification?.streak || 0, 7);
-                   const isActive = i >= (totalDays - streak);
-                   return (
-                    <div key={i} className="flex flex-col items-center gap-1.5">
-                      <span className="text-[9px] font-bold text-slate-500">{day}</span>
-                      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-indigo-500' : 'bg-black/20'}`}/>
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
+                      {user?.name?.[0] || 'U'}
                     </div>
-                  );
-                })}
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[13px] font-bold text-white tracking-wide truncate">{user?.name || 'User'}</span>
+                  <span className="text-[10px] text-slate-500">Digital Twin Active</span>
+                </div>
               </div>
+
+              {/* Mini Score Strip */}
+              {(() => {
+                const hs = computed?.healthScore?.score  ?? 0;
+                const fs = computed?.financeScore?.score ?? 0;
+                const cs = computed?.careerScore?.score  ?? 0;
+                const scores = [
+                  { label: 'Health',  value: hs, color: '#10b981' },
+                  { label: 'Finance', value: fs, color: '#f59e0b' },
+                  { label: 'Career',  value: cs, color: '#3b82f6' },
+                ];
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {scores.map(s => (
+                      <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 9, color: '#475569', width: 38, flexShrink: 0 }}>{s.label}</span>
+                        <div style={{ flex: 1, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                          <motion.div
+                            initial={{ width: 0 }} animate={{ width: `${s.value}%` }} transition={{ duration: 1, ease: 'easeOut' }}
+                            style={{ height: '100%', borderRadius: 99, background: s.color }}
+                          />
+                        </div>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: s.color, width: 22, textAlign: 'right', flexShrink: 0 }}>{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         ) : (
           /* Collapsed View */
-          <div className="flex flex-col gap-4 items-center">
-             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
-               {user?.avatar ? (
-                 <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
-               ) : (
-                 <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
-                   {user?.name?.[0] || 'U'}
-                 </div>
-               )}
-             </div>
-            <div className="w-10 h-10 rounded-2xl bg-[#1e2136] flex flex-col items-center justify-center">
-              <span className="text-[12px]">🔥</span>
-              <span className="text-[9px] font-bold text-indigo-400 mt-0.5">{gamification?.streak || 0}</span>
+          <div className="flex flex-col gap-3 items-center">
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
+                  {user?.name?.[0] || 'U'}
+                </div>
+              )}
+            </div>
+            {/* Mini score dots in collapsed mode */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+              {[
+                { color: '#10b981', v: computed?.healthScore?.score  ?? 0 },
+                { color: '#f59e0b', v: computed?.financeScore?.score ?? 0 },
+                { color: '#3b82f6', v: computed?.careerScore?.score  ?? 0 },
+              ].map((s, i) => (
+                <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: s.v > 0 ? s.color : 'rgba(255,255,255,0.1)' }} />
+              ))}
             </div>
           </div>
         )}
