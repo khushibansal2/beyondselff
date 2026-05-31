@@ -1513,143 +1513,160 @@ export default function Health() {
         <NutritionPanel healthData={health} updateDomain={updateDomain} />
       )}
 
-      {tab === 'wellness' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {tab === 'wellness' && (() => {
+        const card = { background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16 };
+        const overallWellness = Math.round(wellnessFactors.reduce((s, f) => s + f.score, 0) / wellnessFactors.length);
+        const wellnessColor = overallWellness >= 70 ? '#22c55e' : overallWellness >= 45 ? '#f59e0b' : '#f43f5e';
+        const wellnessLabel = overallWellness >= 70 ? 'Thriving' : overallWellness >= 45 ? 'Moderate' : 'Needs Care';
 
-          {/* ── Wellness Factor Breakdown ── */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <span style={{ fontSize: 14 }}>📊</span>
-              <h3 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#f0f0f3' }}>Wellness Factor Breakdown</h3>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {wellnessFactors.map((wf, i) => (
-                <motion.div key={wf.label} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, color: '#e4e4e7', fontWeight: 500 }}>
-                      <span style={{ fontSize: 12 }}>{wf.icon}</span>{wf.label}
-                    </span>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: wf.color, minWidth: 36, textAlign: 'right' }}>{wf.score}%</span>
-                  </div>
-                  <div style={{ width: '100%', height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)' }}>
-                    <motion.div
-                      initial={{ width: 0 }} animate={{ width: `${wf.score}%` }} transition={{ duration: 0.9, delay: i * 0.08 }}
-                      style={{ height: '100%', borderRadius: 99, background: wf.color, boxShadow: `0 0 8px ${wf.color}40` }}
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+        const immuneScore = Math.round((Math.min(h.sleepAvg/8,1)*40) + (Math.min(h.waterIntake/8,1)*30) + (Math.max(0,(10-h.stressLevel)/10)*30));
+        const cogScore    = Math.round((Math.min(h.sleepAvg/8,1)*45) + (Math.max(0,(10-h.stressLevel)/10)*35) + (Math.min(h.moodAvg/10,1)*20));
 
-          {/* ── Emotional Wellness Analysis ── */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <span style={{ fontSize: 14 }}>❤️</span>
-              <h3 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#f0f0f3' }}>Emotional Wellness Analysis</h3>
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+            {/* ── ROW 1: Overall Wellness Score + Factor Breakdown ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 12 }}>
+
+              {/* Wellness Score Ring */}
+              <div style={{ ...card, padding: '20px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                <div style={{ position: 'relative', width: 110, height: 110 }}>
+                  <svg viewBox="0 0 110 110" width="110" height="110">
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10"/>
+                    <circle cx="55" cy="55" r="44" fill="none" stroke={wellnessColor} strokeWidth="10"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*44} ${2*Math.PI*44}`}
+                      strokeDashoffset={2*Math.PI*44*(1-overallWellness/100)}
+                      style={{ transform:'rotate(-90deg)', transformOrigin:'55px 55px', filter: `drop-shadow(0 0 8px ${wellnessColor}60)` }}/>
+                  </svg>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 28, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{overallWellness}</span>
+                    <span style={{ fontSize: 9, color: '#475569', marginTop: 2 }}>/ 100</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>Wellness Score</p>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 999, background: wellnessColor + '18', color: wellnessColor, border: `1px solid ${wellnessColor}44` }}>
+                    {wellnessLabel}
+                  </span>
+                </div>
+              </div>
+
+              {/* Factor Breakdown */}
+              <div style={{ ...card, padding: '18px 20px' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Factor Breakdown</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {wellnessFactors.map((wf, i) => (
+                    <motion.div key={wf.label} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: wf.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{wf.icon}</div>
+                      <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 500, width: 110, flexShrink: 0 }}>{wf.label}</span>
+                      <div style={{ flex: 1, height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${wf.score}%` }} transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
+                          style={{ height: '100%', borderRadius: 99, background: wf.color, boxShadow: `0 0 6px ${wf.color}50` }} />
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: wf.color, width: 34, textAlign: 'right', flexShrink: 0 }}>{wf.score}%</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+
+            {/* ── ROW 2: Emotional Wellness ── */}
+            <div style={{ ...card, padding: '18px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(244,63,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>❤️</div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Emotional Wellness</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                {[
+                  {
+                    icon: h.moodAvg < 4 ? '😔' : h.moodAvg < 6 ? '😐' : '😊',
+                    label: 'Emotional State',
+                    value: h.moodAvg < 4 ? 'Needs Attention' : h.moodAvg < 6 ? 'Moderate' : 'Good',
+                    desc: h.moodAvg < 4 ? 'Take a recovery day and connect with friends.' : 'Emotional wellbeing is stable.',
+                    color: h.moodAvg < 4 ? '#f43f5e' : h.moodAvg < 6 ? '#f59e0b' : '#22c55e',
+                  },
+                  {
+                    icon: h.stressLevel > 7 && h.sleepAvg < 6 ? '🚨' : h.stressLevel > 5 ? '⚠️' : '✅',
+                    label: 'Burnout Pattern',
+                    value: h.stressLevel > 7 && h.sleepAvg < 6 ? 'High Risk' : h.stressLevel > 5 ? 'Watch Closely' : 'Sustainable',
+                    desc: h.stressLevel > 7 ? 'Stress + sleep pattern suggests burnout risk.' : 'Current pace is sustainable.',
+                    color: h.stressLevel > 7 ? '#f43f5e' : h.stressLevel > 5 ? '#f59e0b' : '#22c55e',
+                  },
+                  {
+                    icon: '🧘',
+                    label: 'Recovery Suggestion',
+                    value: h.stressLevel > 6 ? 'Active Recovery' : 'Maintain Balance',
+                    desc: h.stressLevel > 6 ? '10-min meditation, a nature walk, or journaling.' : 'Keep up your current routines.',
+                    color: '#8b5cf6',
+                  },
+                ].map((card2, i) => (
+                  <motion.div key={card2.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                    style={{ background: card2.color + '0c', border: `1px solid ${card2.color}30`, borderRadius: 12, padding: '14px 16px' }}>
+                    <div style={{ fontSize: 24, marginBottom: 8 }}>{card2.icon}</div>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: card2.color, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{card2.label}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px' }}>{card2.value}</p>
+                    <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>{card2.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── ROW 3: Daily Health Summary ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {[
                 {
-                  label: 'EMOTIONAL STATE',
-                  value: h.moodAvg < 4 ? '😔 Needs Attention' : h.moodAvg < 6 ? '😐 Moderate' : '😊 Good',
-                  desc: h.moodAvg < 4 ? 'Consider taking a recovery day and connecting with friends.' : 'Your emotional wellbeing is stable.',
-                  border: h.moodAvg < 4 ? 'rgba(239,68,68,0.25)' : h.moodAvg < 6 ? 'rgba(245,158,11,0.2)' : 'rgba(34,197,94,0.2)',
-                  bg: h.moodAvg < 4 ? 'rgba(239,68,68,0.04)' : h.moodAvg < 6 ? 'rgba(245,158,11,0.04)' : 'rgba(34,197,94,0.04)',
+                  label: 'Energy Level', icon: '⚡', color: '#f59e0b',
+                  value: h.sleepAvg >= 7 && h.stressLevel < 6 && h.waterIntake >= 7 ? 'High' : h.sleepAvg >= 6 && h.stressLevel < 7 ? 'Moderate' : 'Low',
+                  desc: h.sleepAvg >= 7 && h.stressLevel < 6 && h.waterIntake >= 7
+                    ? 'Sleep, stress & hydration all green.'
+                    : h.sleepAvg >= 6 && h.stressLevel < 7
+                    ? `+${(7-h.sleepAvg).toFixed(1)}h sleep would push you to high.`
+                    : `${h.sleepAvg < 5.5 ? `Only ${h.sleepAvg}h sleep` : `Stress ${h.stressLevel}/10`} is draining reserves.`,
+                  score: h.sleepAvg >= 7 && h.stressLevel < 6 ? 85 : h.sleepAvg >= 6 ? 60 : 30,
                 },
                 {
-                  label: 'BURNOUT PATTERN',
-                  value: h.stressLevel > 7 && h.sleepAvg < 6 ? '🚨 High Risk' : h.stressLevel > 5 ? '⚠️ Watch Closely' : '✅ Sustainable Pace',
-                  desc: h.stressLevel > 7 ? 'Your stress + sleep pattern suggests burnout risk.' : 'Current pace is sustainable.',
-                  border: h.stressLevel > 7 ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.08)',
-                  bg: h.stressLevel > 7 ? 'rgba(239,68,68,0.04)' : 'rgba(255,255,255,0.02)',
+                  label: 'Recovery Status', icon: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅' : '⚠️', color: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '#22c55e' : '#f59e0b',
+                  value: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? 'Balanced' : h.workoutsPerWeek >= 3 ? 'Underslept' : 'Under-recovered',
+                  desc: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? `${h.workoutsPerWeek}x workouts + ${h.sleepAvg}h sleep.` : h.workoutsPerWeek >= 3 ? 'Training without adequate recovery.' : 'Add 1-2 movement sessions per week.',
+                  score: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? 88 : h.workoutsPerWeek >= 2 ? 55 : 30,
                 },
                 {
-                  label: 'RECOVERY SUGGESTION',
-                  value: `🧘 ${h.stressLevel > 6 ? 'Active Recovery Needed' : 'Maintain Balance'}`,
-                  desc: h.stressLevel > 6 ? 'Try 10-min meditation, a nature walk, or journaling today.' : 'Keep up your current routines.',
-                  border: 'rgba(139,92,246,0.2)',
-                  bg: 'rgba(139,92,246,0.03)',
+                  label: 'Immune Health', icon: '🛡️', color: immuneScore >= 80 ? '#22c55e' : immuneScore >= 55 ? '#f59e0b' : '#f43f5e',
+                  value: immuneScore >= 80 ? 'Strong' : immuneScore >= 55 ? 'Moderate' : 'Compromised',
+                  desc: immuneScore >= 80 ? 'Sleep, hydration & stress all supporting immunity.' : `${h.sleepAvg < 7 ? 'Sleep' : h.waterIntake < 6 ? 'Hydration' : 'Stress'} is the weak link.`,
+                  score: immuneScore,
                 },
-              ].map((card, i) => (
-                <motion.div key={card.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
-                  style={{ border: `1px solid ${card.border}`, background: card.bg, borderRadius: 8, padding: '6px 10px' }}>
-                  <p style={{ margin: '0 0 3px', fontSize: 8, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{card.label}</p>
-                  <p style={{ margin: '0 0 2px', fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>{card.value}</p>
-                  <p style={{ margin: 0, fontSize: 9.5, color: '#a1a1aa', lineHeight: 1.3 }}>{card.desc}</p>
+                {
+                  label: 'Cognitive Performance', icon: '🧠', color: cogScore >= 80 ? '#8b5cf6' : cogScore >= 55 ? '#f59e0b' : '#f43f5e',
+                  value: cogScore >= 80 ? 'Optimal' : cogScore >= 55 ? 'Moderate' : 'Impaired',
+                  desc: cogScore >= 80 ? 'Focus & working memory at peak.' : cogScore >= 55 ? `${h.sleepAvg < 7 ? 'Sleep deficit' : 'Elevated stress'} limiting capacity.` : 'Prioritise recovery today.',
+                  score: cogScore,
+                },
+              ].map((item, i) => (
+                <motion.div key={item.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+                  style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '16px 18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 9, background: item.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{item.icon}</div>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', margin: 0 }}>{item.label}</p>
+                    </div>
+                    <span style={{ fontSize: 20, fontWeight: 900, color: item.color }}>{item.score}</span>
+                  </div>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px' }}>{item.value}</p>
+                  <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 10px', lineHeight: 1.4 }}>{item.desc}</p>
+                  <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${item.score}%` }} transition={{ duration: 1, delay: i * 0.08, ease: 'easeOut' }}
+                      style={{ height: '100%', borderRadius: 99, background: item.color }} />
+                  </div>
                 </motion.div>
               ))}
             </div>
-          </div>
 
-          {/* ── Daily Health Summary ── */}
-          <div style={{ background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <span style={{ fontSize: 14 }}>📝</span>
-              <h3 style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#f0f0f3' }}>Daily Health Summary</h3>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              {(() => {
-                const immuneScore = Math.round((Math.min(h.sleepAvg/8,1)*40) + (Math.min(h.waterIntake/8,1)*30) + (Math.max(0,(10-h.stressLevel)/10)*30));
-                const cogScore   = Math.round((Math.min(h.sleepAvg/8,1)*45) + (Math.max(0,(10-h.stressLevel)/10)*35) + (Math.min(h.moodAvg/10,1)*20));
-                const items = [
-                  {
-                    label: 'ENERGY LEVEL',
-                    icon: '⚡',
-                    iconColor: '#f59e0b',
-                    text: h.sleepAvg >= 7 && h.stressLevel < 6 && h.waterIntake >= 7
-                      ? 'High — sleep, stress, and hydration all green'
-                      : h.sleepAvg >= 6 && h.stressLevel < 7
-                      ? `Moderate — ${h.sleepAvg < 7 ? `+${(7-h.sleepAvg).toFixed(1)}h sleep needed` : 'stress slightly elevated'}`
-                      : `Low — ${h.sleepAvg < 5.5 ? `only ${h.sleepAvg}h sleep` : h.stressLevel > 7 ? `stress ${h.stressLevel}/10` : 'multiple factors'} draining reserves`,
-                  },
-                  {
-                    label: 'RECOVERY STATUS',
-                    icon: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '✅' : '⚠️',
-                    iconColor: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7 ? '#22c55e' : '#f59e0b',
-                    text: h.workoutsPerWeek >= 3 && h.sleepAvg >= 7
-                      ? `Balanced — ${h.workoutsPerWeek}x workouts + ${h.sleepAvg}h sleep`
-                      : h.workoutsPerWeek >= 3 && h.sleepAvg < 7
-                      ? `Training without adequate recovery — increase sleep`
-                      : `Under-recovered — ${h.workoutsPerWeek < 2 ? 'add 1-2 movement sessions' : 'prioritise 7h+ sleep'}`,
-                  },
-                  {
-                    label: 'IMMUNE HEALTH',
-                    icon: immuneScore >= 80 ? '🛡️' : immuneScore >= 55 ? '🛡️' : '⚠️',
-                    iconColor: immuneScore >= 80 ? '#22c55e' : immuneScore >= 55 ? '#f59e0b' : '#ef4444',
-                    text: immuneScore >= 80
-                      ? `Strong (${immuneScore}/100) — sleep, hydration, stress all supporting immunity`
-                      : immuneScore >= 55
-                      ? `Moderate (${immuneScore}/100) — ${h.sleepAvg < 7 ? 'sleep' : h.waterIntake < 6 ? 'hydration' : 'stress'} is the weak link`
-                      : `Compromised (${immuneScore}/100) — multiple factors reducing immune resilience`,
-                  },
-                  {
-                    label: 'COGNITIVE PERFORMANCE',
-                    icon: '🧠',
-                    iconColor: cogScore >= 80 ? '#8b5cf6' : '#f59e0b',
-                    text: cogScore >= 80
-                      ? `Optimal (${cogScore}/100) — focus and working memory at peak`
-                      : cogScore >= 55
-                      ? `Moderate (${cogScore}/100) — ${h.sleepAvg < 7 ? 'sleep deficit' : 'elevated stress'} limiting capacity`
-                      : `Impaired (${cogScore}/100) — prioritise recovery today`,
-                  },
-                ];
-                return items.map((item, i) => (
-                  <motion.div key={item.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                    style={{ display: 'flex', alignItems: 'flex-start', gap: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '6px 10px' }}>
-                    <span style={{ fontSize: 14, flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
-                    <div>
-                      <p style={{ margin: '0 0 2px', fontSize: 8, color: '#71717a', fontWeight: 700, letterSpacing: '0.08em' }}>{item.label}</p>
-                      <p style={{ margin: 0, fontSize: 10, color: '#d4d4d8', lineHeight: 1.3 }}>{item.text}</p>
-                    </div>
-                  </motion.div>
-                ));
-              })()}
-            </div>
           </div>
-
-        </div>
-      )}
+        );
+      })()}
 
       {tab === 'recommendations' && (
         <HealthRecommendations recommendations={recommendations} h={h} score={score} />
