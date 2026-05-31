@@ -8,6 +8,7 @@ import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, CartesianGrid } from 'recharts';
+import { Activity, FileText, TrendingUp, TrendingDown, Sparkles, Pause, Play, Award, Coins } from 'lucide-react';
 import {
   parseTransactionSMS, detectOTP, CATEGORY_META, SAMPLE_MESSAGES, MERCHANT_MAP,
 } from '../services/transactionParserService';
@@ -16,7 +17,19 @@ import { generateMockTransaction, SPEED_OPTIONS } from '../services/mockTransact
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#84cc16'];
 
 const TX_LS_KEY = 'finance_parsed_transactions';
-function loadTxsLocal() { try { return JSON.parse(localStorage.getItem(TX_LS_KEY) || '[]'); } catch { return []; } }
+function loadTxsLocal() {
+  try {
+    const local = localStorage.getItem(TX_LS_KEY);
+    if (!local) return [];
+    if (local.includes('1780000000001') && local.includes('Swiggy')) {
+      localStorage.removeItem(TX_LS_KEY);
+      return [];
+    }
+    return JSON.parse(local);
+  } catch {
+    return [];
+  }
+}
 function saveTxsLocal(txs) { localStorage.setItem(TX_LS_KEY, JSON.stringify(txs.slice(0, 200))); }
 
 // ── Investment Robo-Advisor (cross-domain: health + career + finance) ─────────────────
@@ -838,6 +851,8 @@ export default function Finance() {
   const { user } = useAuth();
   const { finance, health, career, records, computed, updateDomain, addRecords, setRecords, addTimelineEvent } = useData();
   const [tab, setTab] = useState('overview');
+  const [txFilter, setTxFilter] = useState('All');
+  const [txSearch, setTxSearch] = useState('');
 
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const h = { sleepAvg: 7, stressLevel: 5, workoutsPerWeek: 2, ...(health || {}) };
@@ -1217,115 +1232,123 @@ export default function Finance() {
           : 'Review subscriptions and reduce impulse spending.';
 
         return (
-        <div style={{display:'flex', flexDirection:'column', gap:8}}>
+        <div style={{display:'flex', flexDirection:'column', gap:16}}>
 
           {/* ROW 1 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 2fr', gap:16}}>
 
             {/* Score card */}
-            <div style={{...card, padding:'12px 14px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-              <div style={{display:'flex', alignItems:'center', gap:10}}>
+            <div style={{...card, padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+              <div style={{display:'flex', alignItems:'center', gap: 24}}>
                 {/* Ring */}
-                <div style={{position:'relative', width:80, height:80, flexShrink:0}}>
-                  <svg viewBox="0 0 80 80" width="80" height="80">
-                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
-                    <circle cx="40" cy="40" r="32" fill="none" stroke={scoreColor} strokeWidth="7"
+                <div style={{position:'relative', width:120, height:120, flexShrink:0}}>
+                  <svg viewBox="0 0 120 120" width="120" height="120">
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
+                    <circle cx="60" cy="60" r="48" fill="none" stroke={scoreColor} strokeWidth="10"
                       strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*32} ${2*Math.PI*32}`}
-                      strokeDashoffset={2*Math.PI*32*(1-score/100)}
-                      style={{transform:'rotate(-90deg)', transformOrigin:'40px 40px', transition:'stroke-dashoffset 1.2s ease'}}/>
+                      strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
+                      strokeDashoffset={2*Math.PI*48*(1-score/100)}
+                      style={{transform:'rotate(-90deg)', transformOrigin:'60px 60px', transition:'stroke-dashoffset 1.2s ease'}}/>
                   </svg>
                   <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:22, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                    <span style={{fontSize:8, color:'#475569', marginTop:1}}>/ 100</span>
+                    <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
+                    <span style={{fontSize:12, color:'#475569', marginTop:2}}>/ 100</span>
                   </div>
                 </div>
                 {/* Text beside ring */}
-                <div>
-                  <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Finance Score</p>
-                  <span style={{display:'inline-block', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, marginBottom:5,
+                <div style={{display:'flex', flexDirection:'column', alignItems:'flex-start'}}>
+                  <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:12, margin:'0 0 12px'}}>Finance Score</p>
+                  <span style={{display:'inline-block', fontSize:12, fontWeight:600, padding:'4px 12px', borderRadius:999, marginBottom:12,
                     background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
                     {score>=70?'Good':score>=45?'Moderate':'Low'}
                   </span>
-                  <p style={{fontSize:10, color:'#64748b', lineHeight:1.4, whiteSpace:'pre-line'}}>
+                  <p style={{fontSize:13, color:'#94a3b8', lineHeight:1.5, margin:0}}>
                     {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
                   </p>
                 </div>
               </div>
               <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:8, padding:'5px 10px', borderRadius:7, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:10, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, alignSelf:'flex-start'}}>
+                style={{marginTop:32, padding:'8px 16px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
                 View Insights →
               </button>
             </div>
 
-            {/* Metrics card */}
-            <div style={{...card, padding:'10px', display:'flex', flexDirection:'column', gap:6}}>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6}}>
+            {/* Metrics side */}
+            <div style={{display:'flex', flexDirection:'column', gap: 16}}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap: 16}}>
                 {METRICS.map(m => (
-                  <div key={m.label} style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 9px'}}>
-                    <div style={{display:'flex', alignItems:'center', gap:5, marginBottom:3}}>
-                      <div style={{width:18, height:18, borderRadius:5, background:m.color+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, flexShrink:0}}>{m.icon}</div>
-                      <span style={{fontSize:9, color:'#64748b'}}>{m.label}</span>
+                  <div key={m.label} style={{...card, padding:'16px', display:'flex', flexDirection:'column', gap:12}}>
+                    <div style={{display:'flex', alignItems:'center', gap:8}}>
+                      <div style={{width:24, height:24, borderRadius:6, background:m.color+'15', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12}}>{m.icon}</div>
+                      <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>{m.label}</span>
                     </div>
-                    <p style={{fontSize:13, fontWeight:800, color:'#f1f5f9', lineHeight:1, marginBottom:2}}>{m.value}</p>
-                    <p style={{fontSize:8, color:'#475569'}}>{m.sub}</p>
+                    <div>
+                      <p style={{fontSize:20, fontWeight:700, color:'#f1f5f9', margin:'0 0 4px'}}>{m.value}</p>
+                      <p style={{fontSize:11, color:'#64748b', margin:0}}>{m.sub}</p>
+                    </div>
                   </div>
                 ))}
               </div>
-              {/* Savings Rate */}
-              <div style={{background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, padding:'7px 10px', display:'flex', alignItems:'center', gap:8}}>
-                <div style={{width:22, height:22, borderRadius:6, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, flexShrink:0, fontWeight:700, color:'#818cf8'}}>%</div>
-                <div style={{flexShrink:0, minWidth:70}}>
-                  <p style={{fontSize:9, color:'#64748b'}}>Savings Rate</p>
-                  <p style={{fontSize:14, fontWeight:900, color:scoreColor, lineHeight:1}}>{savingsRate}%</p>
-                  <p style={{fontSize:8, color:'#475569'}}>of income</p>
+              
+              {/* Savings Rate Card */}
+              <div style={{...card, padding:'16px 24px', display:'flex', alignItems:'center', gap:16}}>
+                <div style={{width:44, height:44, borderRadius:12, background:'rgba(59,130,246,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, fontWeight:700, color:'#3b82f6', flexShrink:0}}>%</div>
+                <div style={{display:'flex', flexDirection:'column', minWidth:90, flexShrink:0}}>
+                  <p style={{fontSize:11, color:'#64748b', margin:'0 0 4px'}}>Savings Rate</p>
+                  <p style={{fontSize:20, fontWeight:800, color:scoreColor, margin:0}}>{savingsRate}%</p>
+                  <p style={{fontSize:11, color:'#64748b', margin:'2px 0 0'}}>of income</p>
                 </div>
-                <div style={{flex:1}}>
-                  <p style={{fontSize:9, color:'#475569', marginBottom:4}}>Aim for 20% to build strong financial health.</p>
-                  <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
-                    <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
-                      style={{height:'100%', borderRadius:3, background:scoreColor}}/>
+                <div style={{flex:1, display:'flex', flexDirection:'column', justifyContent:'center', marginLeft: 16}}>
+                  <p style={{fontSize:12, color:'#94a3b8', marginBottom:10, margin:'0 0 10px'}}>Aim for 20% to build strong financial health.</p>
+                  <div style={{display:'flex', alignItems:'center', gap:12}}>
+                    <div style={{flex:1, height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
+                      <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
+                        style={{height:'100%', borderRadius:3, background:scoreColor}}/>
+                    </div>
+                    <span style={{fontSize:12, fontWeight:700, color:'#64748b'}}>{savingsRate}%</span>
                   </div>
                 </div>
-                <span style={{fontSize:10, fontWeight:700, color:'#475569', flexShrink:0}}>20%</span>
               </div>
             </div>
+
           </div>
 
           {/* ROW 2 */}
-          <div style={{display:'grid', [col]:'1fr 1.8fr', gap:8}}>
+          <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16}}>
             {/* Expense Breakdown */}
-            <div style={{...card, padding:'12px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:8}}>
-                <h3 style={{fontSize:12, fontWeight:700, color:'#f1f5f9'}}>Expense Breakdown</h3>
-                <span style={{fontSize:10, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
+            <div style={{...card, padding:'24px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:16}}>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:0}}>Expense Breakdown</h3>
+                <span style={{fontSize:12, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
               </div>
               {f.expenses>0||categoryTotals.length>0 ? (() => {
                 const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
                 const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
                 return (
-                  <div style={{display:'flex', alignItems:'center', gap:10}}>
-                    <div style={{position:'relative', flexShrink:0, width:80, height:80}}>
-                      <ResponsiveContainer width={80} height={80}>
+                  <div style={{display:'flex', alignItems:'center', gap:16}}>
+                    <div style={{position:'relative', flexShrink:0, width:110, height:110}}>
+                      <ResponsiveContainer width={110} height={110}>
                         <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={36} innerRadius={22} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
+                          <Pie data={data} cx="50%" cy="50%" outerRadius={50} innerRadius={32} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
                             {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
                           </Pie>
                           <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:10}}/>
                         </PieChart>
                       </ResponsiveContainer>
                       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                        <span style={{fontSize:9,fontWeight:800,color:'#f1f5f9'}}>₹{(total/1000).toFixed(0)}K</span>
+                        <span style={{fontSize:11,fontWeight:800,color:'#f1f5f9'}}>
+                          ₹{total >= 100000 ? (total/100000).toFixed(1) + 'L' : total >= 1000 ? (total/1000).toFixed(0) + 'K' : total}
+                        </span>
                       </div>
                     </div>
-                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
+                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
                       {data.slice(0,5).map((e,i)=>{
                         const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
                         return(
-                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:6}}>
-                            <span style={{width:5,height:5,borderRadius:'50%',background:color,flexShrink:0}}/>
-                            <span style={{fontSize:9,color:'#94a3b8',flex:1}}>{e.name}</span>
-                            <span style={{fontSize:9,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
+                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{width:6,height:6,borderRadius:'50%',background:color,flexShrink:0}}/>
+                            <span style={{fontSize:11,color:'#94a3b8',flex:1}}>{e.name}</span>
+                            <span style={{fontSize:11,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
                           </div>
                         );
                       })}
@@ -1333,12 +1356,16 @@ export default function Finance() {
                   </div>
                 );
               })() : (
-                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'36px 0', gap:12}}>
-                  <div style={{width:72, height:72, borderRadius:50, border:'2px dashed rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28}}>📊</div>
-                  <p style={{fontSize:14, fontWeight:600, color:'#64748b'}}>No expenses yet</p>
-                  <p style={{fontSize:12, color:'#334155', textAlign:'center', lineHeight:1.6}}>Parse some SMS messages<br/>to see breakdown.</p>
+                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 0', gap:16}}>
+                  <div style={{width:64, height:64, borderRadius:50, border:'1px dashed rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                    <span style={{fontSize:24}}>📊</span>
+                  </div>
+                  <div style={{textAlign:'center'}}>
+                    <p style={{fontSize:15, fontWeight:600, color:'#e2e8f0', margin:'0 0 6px'}}>No expenses yet</p>
+                    <p style={{fontSize:13, color:'#64748b', margin:0, lineHeight:1.5}}>Parse some SMS messages<br/>to see breakdown.</p>
+                  </div>
                   <button onClick={()=>setTab('parse')}
-                    style={{padding:'9px 20px', borderRadius:8, border:'1px solid rgba(0,216,182,0.3)', background:'rgba(0,216,182,0.06)', color:'#00d8b6', fontSize:13, fontWeight:600, cursor:'pointer'}}>
+                    style={{padding:'10px 20px', borderRadius:8, border:'1px solid rgba(0,216,182,0.3)', background:'rgba(0,216,182,0.06)', color:'#00d8b6', fontSize:13, fontWeight:600, cursor:'pointer', marginTop:4}}>
                     Open SMS Parser
                   </button>
                 </div>
@@ -1346,46 +1373,49 @@ export default function Finance() {
             </div>
 
             {/* Spending Trend */}
-            <div style={{...card, padding:'12px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6}}>
-                <h3 style={{fontSize:12, fontWeight:700, color:'#f1f5f9'}}>
-                  Spending Trend{!hasFinanceData&&<span style={{fontSize:9, color:'#475569', marginLeft:4}}>(demo)</span>}
+            <div style={{...card, padding:'24px', display:'flex', flexDirection:'column'}}>
+              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12}}>
+                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:0}}>
+                  Spending Trend{!hasFinanceData&&<span style={{fontSize:11, color:'#475569', marginLeft:6}}>(demo)</span>}
                 </h3>
-                <span style={{fontSize:9, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:5, padding:'3px 8px', cursor:'pointer'}}>This Month ▾</span>
+                <span style={{fontSize:11, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'4px 10px', cursor:'pointer'}}>This Month ▾</span>
               </div>
-              <div style={{height:100}}>
+              <div style={{flex:1, minHeight:120}}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{top:4, right:4, left:-28, bottom:0}}>
+                  <AreaChart data={trendData} margin={{top:10, right:10, left:-20, bottom:0}}>
                     <defs>
                       <linearGradient id="spendG3" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4}/>
                         <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02}/>
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="date" tick={{fill:'#334155',fontSize:8.5}} tickFormatter={v=>v?.slice(8)||''} axisLine={false} tickLine={false} interval={2}/>
-                    <YAxis tick={{fill:'#334155',fontSize:8.5}} tickFormatter={v=>v>=1000?`₹${(v/1000).toFixed(0)}K`:`₹${v}`} axisLine={false} tickLine={false}/>
-                    <Tooltip formatter={v=>`₹${Number(v).toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:10.5}} labelStyle={{color:'#94a3b8'}}/>
-                    <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2} fill="url(#spendG3)" dot={false} activeDot={{r:3,fill:'#f43f5e'}}/>
+                    <XAxis dataKey="date" tick={{fill:'#475569',fontSize:10}} tickFormatter={v=>v?.slice(8)||''} axisLine={false} tickLine={false} interval={2}/>
+                    <YAxis tick={{fill:'#475569',fontSize:10}} tickFormatter={v=>v>=1000?`₹${(v/1000).toFixed(0)}K`:`₹${v}`} axisLine={false} tickLine={false}/>
+                    <Tooltip formatter={v=>`₹${Number(v).toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:11}} labelStyle={{color:'#94a3b8'}}/>
+                    <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2} fill="url(#spendG3)" dot={false} activeDot={{r:4,fill:'#f43f5e'}}/>
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginTop:8}}>
-                <span style={{width:6,height:6,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
-                <span style={{fontSize:11,color:'#64748b'}}>Expenses</span>
+              <div style={{display:'flex', alignItems:'center', gap:8, marginTop:12}}>
+                <span style={{width:8,height:8,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
+                <span style={{fontSize:12,color:'#64748b'}}>Expenses</span>
               </div>
             </div>
           </div>
 
-          {/* Financial Anxiety Detection */}
-          <div style={{...card, padding:'8px 12px', display:'flex', alignItems:'center', gap:10}}>
-            <div style={{width:24, height:24, borderRadius:6, background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:12}}>🛡️</div>
+          {/* ROW 3: Financial Anxiety Detection */}
+          <div style={{...card, padding:'20px 24px', display:'flex', alignItems:'center', gap:16}}>
+            <div style={{width:40, height:40, borderRadius:10, background:'rgba(244,63,94,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:18}}>🛡️</div>
             <div style={{flex:1, minWidth:0}}>
-              <p style={{fontSize:11, fontWeight:700, color:'#f1f5f9', marginBottom:1}}>Financial Anxiety Detection</p>
-              <p style={{fontSize:10, fontWeight:600, color:flag.color, marginBottom:1}}>{flag.label}</p>
-              <p style={{fontSize:9, color:'#64748b'}}>{action}</p>
+              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:'0 0 4px'}}>Financial Anxiety Detection</p>
+              <p style={{fontSize:13, fontWeight:600, color:flag.color, margin:'0 0 2px'}}>{flag.label}</p>
+              <p style={{fontSize:12, color:'#94a3b8', margin:0}}>{action}</p>
             </div>
             <button onClick={()=>setTab('recommendations')}
-              style={{padding:'5px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#94a3b8', fontSize:10, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:4}}>
+              style={{padding:'8px 16px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#cbd5e1', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:6, transition:'background 0.2s'}}
+              onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.08)'}
+              onMouseOut={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
+            >
               View Recommendations →
             </button>
           </div>
@@ -1578,86 +1608,152 @@ export default function Finance() {
 
       {/* ── LIVE FEED TAB ─────────────────────────────────────────────────── */}
       {tab === 'live' && (
-        <div style={{display:'flex', flexDirection:'column', gap:20}}>
+        <div className="flex flex-col gap-6 relative z-10">
 
           {/* Header row */}
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10}}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:3}}>Live Transaction Simulator</p>
-              <p style={{fontSize:12, color:'#64748b'}}>Simulates real-time payment notifications — impressive for demos!</p>
+              <div className="flex items-center gap-2">
+                <Activity className="text-indigo-400" size={18} />
+                <h3 className="text-base font-extrabold text-slate-100 uppercase tracking-widest font-mono">Live Transaction Simulator</h3>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">Simulates real-time payment notifications — impressive for live data demonstrations.</p>
             </div>
-            <div style={{display:'flex', alignItems:'center', gap:10}}>
-              <span style={{fontSize:12, color:'#64748b'}}>Speed</span>
-              <div style={{display:'flex', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:8, padding:3, gap:2}}>
+            <div className="flex items-center gap-3.5 self-start sm:self-auto">
+              <span className="text-xs text-slate-500 font-mono font-bold uppercase">Speed</span>
+              <div className="flex bg-white/5 border border-white/[0.06] rounded-xl p-1 gap-1">
                 {Object.keys(SPEED_OPTIONS).map(s => (
-                  <button key={s} onClick={() => setLiveSpeed(s)}
-                    style={{padding:'5px 14px', borderRadius:6, fontSize:12, fontWeight:600, border:'none', cursor:'pointer', transition:'all 0.15s',
-                      background: liveSpeed===s ? '#6366f1' : 'transparent',
-                      color: liveSpeed===s ? '#fff' : '#64748b'}}>
+                  <motion.button 
+                    key={s} 
+                    onClick={() => setLiveSpeed(s)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all ${
+                      liveSpeed === s 
+                        ? 'bg-indigo-500 text-white shadow-[0_2px_8px_rgba(99,102,241,0.4)]' 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                  >
                     {s}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-              <button onClick={() => { setLiveActive(v => !v); if (liveActive) liveCountRef.current = 0; }}
-                style={{padding:'7px 18px', borderRadius:8, border:'none', background: liveActive ? 'rgba(244,63,94,0.15)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: liveActive ? '#f87171' : '#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6}}>
-                {liveActive ? '⏸ Stop' : '▶ Start'}
-              </button>
+              
+              <motion.button 
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => { setLiveActive(v => !v); if (liveActive) liveCountRef.current = 0; }}
+                className={`px-4.5 py-2.5 rounded-xl border text-xs font-bold font-mono tracking-wide flex items-center gap-2 cursor-pointer transition-all shadow-[0_4px_16px_rgba(0,0,0,0.2)] ${
+                  liveActive 
+                    ? 'border-rose-500/30 bg-rose-500/10 text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.15)]' 
+                    : 'border-indigo-500/30 bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)]'
+                }`}
+              >
+                {liveActive ? (
+                  <>
+                    <Pause size={14} className="animate-pulse" /> Stop Simulation
+                  </>
+                ) : (
+                  <>
+                    <Play size={14} /> Start Simulation
+                  </>
+                )}
+              </motion.button>
             </div>
           </div>
 
           {liveActive && (
-            <div style={{display:'flex', alignItems:'center', gap:8, padding:'8px 14px', borderRadius:8, background:'rgba(16,185,129,0.05)', border:'1px solid rgba(16,185,129,0.2)'}}>
-              <span style={{width:7, height:7, borderRadius:'50%', background:'#10b981', display:'inline-block', animation:'pulse 1.5s infinite'}}/>
-              <p style={{fontSize:12, color:'#10b981'}}>Live — {liveTxs.length} transactions · Total: ₹{Math.round(liveTotal).toLocaleString()}</p>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <p className="text-xs font-bold text-emerald-400 font-mono uppercase tracking-wide">
+                Active Streaming — {liveTxs.length} transactions · Total: ₹{Math.round(liveTotal).toLocaleString()}
+              </p>
+            </motion.div>
           )}
 
           {/* Two-column grid */}
-          <div style={{display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:20}}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {/* Left: Incoming Transactions */}
-            <div style={{background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px'}}>
-              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:16}}>Incoming Transactions</p>
+            <div className="lg:col-span-2 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.25)] min-h-[300px]">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest font-mono">Incoming Live Stream</h3>
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider bg-white/5 border border-white/5 px-2 py-0.5 rounded font-mono">Real-time ledger</span>
+              </div>
+              
               {liveTxs.length === 0 ? (
-                <div style={{display:'flex', flexDirection:'column', gap:12, padding:'60px 0', border:'1.5px dashed rgba(255,255,255,0.08)', borderRadius:12, alignItems:'center', justifyContent:'center'}}>
-                  <div style={{width:52, height:52, borderRadius:'50%', border:'2px solid rgba(99,102,241,0.4)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:20, color:'#6366f1'}}>▶</span>
+                <div className="flex flex-col gap-3 py-16 border border-dashed border-white/10 rounded-2xl items-center justify-center text-center flex-1">
+                  <motion.div 
+                    animate={{ scale: [1, 1.08, 1] }} 
+                    transition={{ repeat: Infinity, duration: 2.5 }}
+                    className="w-12 h-12 rounded-full border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.15)] text-indigo-300"
+                  >
+                    ⚡
+                  </motion.div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-300">Live Simulation Standby</p>
+                    <p className="text-[10px] text-slate-500 mt-1 max-w-xs leading-normal">Click "Start Simulation" at the top right to stream mock credit/debit alerts into your digital twin.</p>
                   </div>
-                  <p style={{fontSize:13, color:'#475569'}}>Press Start to begin the live simulation</p>
                 </div>
               ) : (
-                <div style={{display:'flex', flexDirection:'column', gap:10, maxHeight:460, overflowY:'auto'}}>
+                <div className="flex flex-col gap-3.5 max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
                   <AnimatePresence initial={false}>
-                    {liveTxs.map(tx => <TxCard key={tx.id} tx={tx} />)}
+                    {liveTxs.map(tx => (
+                      <TxCard key={tx.id} tx={tx} />
+                    ))}
                   </AnimatePresence>
                 </div>
               )}
             </div>
 
             {/* Right: Live Category Breakdown */}
-            <div style={{background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16}}>
-                <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Live Category Breakdown</p>
-                <span style={{fontSize:14, color:'#475569', cursor:'help'}} title="Updates as transactions stream in">ⓘ</span>
+            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-violet-500/5 blur-2xl pointer-events-none" />
+              
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest font-mono">Live Breakdown</h3>
+                <span className="text-[10px] text-slate-500 font-bold uppercase cursor-help bg-white/5 border border-white/5 px-2 py-0.5 rounded font-mono" title="Updates automatically as transactions stream in">reactive</span>
               </div>
+              
               {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).length === 0 ? (
-                <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'80px 0', color:'#475569', fontSize:13}}>
-                  Stats will appear here
+                <div className="flex flex-col items-center justify-center py-20 gap-3 flex-1">
+                  <div className="w-10 h-10 rounded-full border border-dashed border-white/10 flex items-center justify-center text-slate-600 text-lg">📊</div>
+                  <p className="text-[11px] text-slate-500 font-bold tracking-wide uppercase font-mono">Waiting for data...</p>
                 </div>
               ) : (
-                <div style={{display:'flex', flexDirection:'column', gap:10}}>
+                <div className="flex flex-col gap-3.5">
                   {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).map((cat, i) => {
                     const meta = CATEGORY_META[cat.name] || CATEGORY_META.Others;
                     const max = categoryTotals[0]?.value || 1;
                     return (
-                      <motion.div key={cat.name} initial={{opacity:0,x:10}} animate={{opacity:1,x:0}} transition={{delay:i*0.05}}
-                        style={{padding:'12px 16px', borderRadius:10, border:'1px solid #20222a', background:'rgba(255,255,255,0.02)'}}>
-                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:8}}>
-                          <span style={{fontSize:12, color:'#cbd5e1', fontWeight:500}}>{meta.icon} {cat.name}</span>
-                          <span style={{fontSize:12, fontWeight:700, color:meta.color}}>₹{cat.value.toLocaleString()}</span>
+                      <motion.div 
+                        key={cat.name} 
+                        initial={{ opacity: 0, x: 10 }} 
+                        animate={{ opacity: 1, x: 0 }} 
+                        transition={{ delay: i * 0.05 }}
+                        className="p-3.5 rounded-xl border border-white/[0.05] bg-white/[0.01] hover:bg-white/[0.03] transition-all"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                            <span className="text-sm">{meta.icon}</span> {cat.name}
+                          </span>
+                          <span className="text-xs font-black font-mono text-slate-200">
+                            ₹{cat.value.toLocaleString()}
+                          </span>
                         </div>
-                        <div style={{height:4, background:'rgba(255,255,255,0.05)', borderRadius:2, overflow:'hidden'}}>
-                          <motion.div animate={{width:`${(cat.value/max)*100}%`}} style={{height:'100%', borderRadius:2, background:meta.color}}/>
+                        <div className="h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
+                          <motion.div 
+                            animate={{ width: `${(cat.value / max) * 100}%` }} 
+                            className="h-full rounded-full" 
+                            style={{ background: meta.color }} 
+                          />
                         </div>
                       </motion.div>
                     );
@@ -1665,324 +1761,474 @@ export default function Finance() {
                 </div>
               )}
             </div>
+
           </div>
         </div>
       )}
 
       {/* ── TRANSACTIONS TAB ──────────────────────────────────────────────── */}
-      {tab === 'transactions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-          
-          {/* Top 4 Stat Cards */}
-          {allTxs.length >= 0 && (
-            <div style={{ display: 'flex', gap: 12 }}>
-              {/* Total Parsed */}
-              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 16 }}>📄</span>
-                </div>
-                <div>
-                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Total Parsed</p>
-                  <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1 }}>{allTxs.length}</p>
-                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Transactions</p>
-                </div>
-              </div>
+      {tab === 'transactions' && (() => {
+        // Compute stats for all transactions
+        const totalCount = allTxs.length;
+        const totalDebited = allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
+        const totalCredited = allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0);
+        const topMerchant = (() => { 
+          const m = {}; 
+          allTxs.forEach(t => { m[t.merchant] = (m[t.merchant] || 0) + t.amount; }); 
+          return Object.entries(m).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'; 
+        })();
 
-              {/* Total Debited */}
-              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(244,63,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 16, color: '#f43f5e' }}>↓</span>
-                </div>
-                <div>
-                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Total Debited</p>
-                  <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1 }}>₹{Math.round(allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0)).toLocaleString()}</p>
-                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Total Spent</p>
-                </div>
-              </div>
+        // Filter transactions based on category pill & search input
+        const filteredTxs = allTxs.filter(tx => {
+          const matchesFilter = txFilter === 'All' || tx.category === txFilter;
+          const matchesSearch = txSearch.trim() === '' || tx.merchant.toLowerCase().includes(txSearch.toLowerCase());
+          return matchesFilter && matchesSearch;
+        });
 
-              {/* Total Credited */}
-              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 16, color: '#10b981' }}>↑</span>
-                </div>
-                <div>
-                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Total Credited</p>
-                  <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1 }}>₹{Math.round(allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0)).toLocaleString()}</p>
-                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Total Received</p>
-                </div>
-              </div>
+        const filterCategories = ['All', ...Object.keys(CATEGORY_META)];
 
-              {/* Top Merchant */}
-              <div style={{ flex: 1, background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: 16 }}>🏆</span>
+        return (
+          <div className="flex flex-col gap-6 relative z-10">
+            
+            {/* Top 4 Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              
+              {/* Card 1: Total Parsed */}
+              <motion.div 
+                whileHover={{ y: -3, scale: 1.02 }}
+                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-indigo-500/5 blur-xl pointer-events-none" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 shadow-[0_0_10px_rgba(99,102,241,0.1)]">
+                  <FileText size={18} />
                 </div>
                 <div>
-                  <p style={{ fontSize: 9, color: '#64748b', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 2px' }}>Top Merchant</p>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 100 }}>
-                    {(() => { const m = {}; allTxs.forEach(t => { m[t.merchant] = (m[t.merchant] || 0) + t.amount; }); return Object.entries(m).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'; })()}
-                  </p>
-                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Most Frequent</p>
+                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Logs</p>
+                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{totalCount}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Parsed receipts</p>
                 </div>
-              </div>
+              </motion.div>
+
+              {/* Card 2: Total Debited */}
+              <motion.div 
+                whileHover={{ y: -3, scale: 1.02 }}
+                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-rose-500/5 blur-xl pointer-events-none" />
+                <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0 shadow-[0_0_10px_rgba(244,63,94,0.1)]">
+                  <TrendingDown size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Debited</p>
+                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">₹{Math.round(totalDebited).toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Spent from alerts</p>
+                </div>
+              </motion.div>
+
+              {/* Card 3: Total Credited */}
+              <motion.div 
+                whileHover={{ y: -3, scale: 1.02 }}
+                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.15)]">
+                  <TrendingUp size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Credited</p>
+                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">₹{Math.round(totalCredited).toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Received to accounts</p>
+                </div>
+              </motion.div>
+
+              {/* Card 4: Top Merchant */}
+              <motion.div 
+                whileHover={{ y: -3, scale: 1.02 }}
+                className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-amber-500/5 blur-xl pointer-events-none" />
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.1)]">
+                  <Award size={18} />
+                </div>
+                <div>
+                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Top Merchant</p>
+                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono truncate max-w-[120px]">{topMerchant}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Primary channel</p>
+                </div>
+              </motion.div>
             </div>
-          )}
 
-          {/* Spending by Category */}
-          {categoryTotals.length >= 0 && (
-            <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: '14px 16px 8px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Spending by Category</h3>
-                <div style={{ padding: '4px 10px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 11, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                  This Month <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            {/* Category Breakdown Chart */}
+            {categoryTotals.length > 0 && (
+              <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
+                
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <Coins className="text-indigo-400" size={16} />
+                    <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest font-mono">Category Volume Stream</h3>
+                  </div>
+                  <span className="text-[10px] text-slate-400 bg-white/5 border border-white/5 rounded px-2.5 py-0.5 font-bold font-mono tracking-wide">Dynamic View</span>
                 </div>
-              </div>
-              <div style={{ height: 120 }}>
-                {categoryTotals.length > 0 ? (
+                
+                <div className="h-[140px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={categoryTotals} barSize={36} margin={{ top: 18, right: 0, left: -24, bottom: 0 }}>
-                      <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{ fill: 'rgba(255,255,255,0.02)' }} contentStyle={{ background: '#1e2128', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 11, padding: '4px 8px' }} />
-                      <Bar dataKey="value" name="₹ Spent" radius={[4, 4, 0, 0]} label={{ position: 'top', fill: '#f1f5f9', fontSize: 10, formatter: v => `₹${v.toLocaleString()}` }}>
-                        {categoryTotals.map((c, i) => <Cell key={i} fill={CATEGORY_META[c.name]?.color || COLORS[i % COLORS.length]} />)}
+                    <BarChart data={categoryTotals} barSize={40} margin={{ top: 15, right: 0, left: -26, bottom: 0 }}>
+                      <defs>
+                        {categoryTotals.map((c, i) => {
+                          const meta = CATEGORY_META[c.name] || CATEGORY_META.Others;
+                          return (
+                            <linearGradient key={c.name} id={`barGrad-${c.name}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={meta.color} stopOpacity={0.85} />
+                              <stop offset="100%" stopColor={meta.color} stopOpacity={0.2} />
+                            </linearGradient>
+                          );
+                        })}
+                      </defs>
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} 
+                        axisLine={false} 
+                        tickLine={false} 
+                      />
+                      <YAxis 
+                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}K` : `₹${v}`} 
+                      />
+                      <Tooltip 
+                        cursor={{ fill: 'rgba(255,255,255,0.02)' }} 
+                        contentStyle={{ background: 'rgba(10,15,25,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 10 }}
+                        formatter={v => [`₹${v.toLocaleString()}`, 'Spent Volume']}
+                      />
+                      <Bar 
+                        dataKey="value" 
+                        radius={[6, 6, 0, 0]} 
+                        label={{ position: 'top', fill: '#cbd5e1', fontSize: 8, fontFamily: 'monospace', formatter: v => `₹${v >= 1000 ? `${(v/1000).toFixed(1)}k` : v}` }}
+                      >
+                        {categoryTotals.map((c, i) => (
+                          <Cell key={i} fill={`url(#barGrad-${c.name})`} />
+                        ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                ) : (
-                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 11 }}>No spending data for chart</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* All Transactions List */}
-          <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 10, padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>All Transactions ({allTxs.length})</h3>
-              {parsedTxs.length > 0 && (
-                <button onClick={() => { saveTxs([]); showToast('Cleared manual transactions', 'success'); }}
-                  style={{ background: 'none', border: 'none', color: '#f43f5e', fontSize: 11, fontWeight: 500, cursor: 'pointer', padding: 0 }}>
-                  Clear manual
-                </button>
-              )}
-            </div>
-            
-            {allTxs.length === 0 ? (
-              <div style={{ height: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 8, color: '#64748b', fontSize: 12 }}>
-                <span style={{ fontSize: 20, opacity: 0.5 }}>📋</span>
-                No transactions yet — use the SMS Parser or Live Feed tab
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {allTxs.map((tx, i) => {
-                  const meta = CATEGORY_META[tx.category] || CATEGORY_META.Others;
-                  return (
-                    <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < allTxs.length - 1 ? '1px solid #20222a' : 'none' }}>
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', border: `1px solid ${meta.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
-                        {meta.icon}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tx.merchant}</p>
-                        <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{tx.category} • {tx.bank || 'Unknown'} • {tx.paymentMode || 'UPI'}</p>
-                      </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: tx.type === 'Credit' ? '#10b981' : '#f43f5e', margin: '0 0 2px' }}>
-                          {tx.type === 'Credit' ? '+' : '−'}₹{tx.amount.toLocaleString()}
-                        </p>
-                        <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>
-                          {new Date(tx.parsedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-                      <div style={{ color: '#475569', marginLeft: 6, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                      </div>
-                    </div>
-                  );
-                })}
+                </div>
               </div>
             )}
+
+            {/* All Transactions List */}
+            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex flex-col gap-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-black text-slate-100 flex items-center gap-2">
+                    Ledger Account Logs <span className="text-xs font-mono font-normal text-slate-500">({filteredTxs.length})</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Explore your historical bank notification flow.</p>
+                </div>
+                
+                {parsedTxs.length > 0 && (
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { saveTxs([]); showToast('Cleared manual transactions', 'success'); }}
+                    className="px-3.5 py-1.5 rounded-lg border border-rose-500/20 hover:border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 text-rose-300 font-bold text-xs shrink-0 self-start sm:self-auto cursor-pointer"
+                  >
+                    Clear Manual Logs
+                  </motion.button>
+                )}
+              </div>
+
+              {/* Filtering Controls */}
+              <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center pt-1.5">
+                
+                {/* Search Field */}
+                <div className="relative flex items-center w-full md:w-72">
+                  <span className="absolute left-3.5 text-slate-500">
+                    <Sparkles size={12} className="animate-pulse" />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search merchant name..."
+                    value={txSearch}
+                    onChange={e => setTxSearch(e.target.value)}
+                    className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 pl-9 pr-4 text-xs text-slate-200 outline-none transition-all leading-normal"
+                  />
+                  {txSearch && (
+                    <button 
+                      onClick={() => setTxSearch('')}
+                      className="absolute right-3.5 text-slate-500 hover:text-slate-300 text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Pills */}
+                <div className="flex flex-wrap gap-2 items-center max-w-full overflow-x-auto no-scrollbar py-0.5">
+                  {filterCategories.map(cat => {
+                    const isActive = txFilter === cat;
+                    const meta = CATEGORY_META[cat] || { color: '#6366f1' };
+                    return (
+                      <motion.button
+                        key={cat}
+                        onClick={() => setTxFilter(cat)}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        style={{
+                          borderColor: isActive ? `${meta.color}50` : 'rgba(255,255,255,0.06)',
+                          background: isActive ? `${meta.color}15` : 'rgba(255,255,255,0.02)',
+                          color: isActive ? meta.color : '#94a3b8'
+                        }}
+                        className="px-3.5 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-wide border cursor-pointer transition-all"
+                      >
+                        {cat}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Transactions stream list */}
+              {filteredTxs.length === 0 ? (
+                <div className="flex flex-col gap-2.5 py-14 border border-dashed border-white/10 rounded-2xl items-center justify-center text-center">
+                  <span className="text-2xl opacity-60">📋</span>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400">No matching logs found</p>
+                    <p className="text-[10px] text-slate-600 mt-1">Try modifying your search filter keywords.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
+                  {filteredTxs.map(tx => (
+                    <TxCard 
+                      key={tx.id} 
+                      tx={tx} 
+                      onDelete={tx.source === 'manual' ? handleDeleteTx : null} 
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
       {tab === 'log' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+        <div className="flex flex-col gap-6 relative z-10 w-full">
           
           {/* Form Section Header */}
           <div>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', margin: 0 }}>Log Financial Data</h2>
-            <p style={{ fontSize: 12, color: '#8e929b', marginTop: 2, marginBottom: 0 }}>Manually add or record financial transactions.</p>
+            <h2 className="text-base font-extrabold text-slate-100 uppercase tracking-widest font-mono">Financial Ledger Manager</h2>
+            <p className="text-xs text-slate-400 mt-1">Manually record transactions or scan paper receipts using high-tech OCR analysis.</p>
           </div>
 
-          {/* Form Card */}
-          <div style={{
-            background: '#12141a',
-            border: '1px solid #20222a',
-            borderRadius: 12,
-            padding: 16,
-            width: '100%',
-          }}>
-            <form onSubmit={handleLog} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
-              
-              {/* Monthly Income */}
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#8e929b', marginBottom: 6 }}>Monthly Income</label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ position: 'absolute', left: 12, color: '#8e929b', fontSize: 13 }}>₹</span>
-                  <input
-                    type="number"
-                    value={form.income}
-                    onChange={e => setForm(p => ({ ...p, income: e.target.value }))}
-                    placeholder="25000"
-                    style={{
-                      width: '100%',
-                      background: '#0a0b0e',
-                      border: '1px solid #20222a',
-                      borderRadius: 6,
-                      padding: '8px 12px 8px 24px',
-                      color: '#ffffff',
-                      fontSize: 13,
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Expense Category */}
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#8e929b', marginBottom: 6 }}>Expense Category</label>
-                <select
-                  value={form.category}
-                  onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    background: '#0a0b0e',
-                    border: '1px solid #20222a',
-                    borderRadius: 6,
-                    padding: '8px 12px',
-                    color: '#ffffff',
-                    fontSize: 13,
-                    outline: 'none',
-                    appearance: 'none',
-                    backgroundImage: 'url("data:image/svg+xml;utf8,<svg fill=\'%238e929b\' height=\'20\' viewBox=\'0 0 24 24\' width=\'20\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/><path d=\'M0 0h24v24H0z\' fill=\'none\'/></svg>")',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 12px center',
-                    backgroundSize: '16px'
-                  }}
-                >
-                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="food">Food & Dining</option>
-                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="transport">Transport</option>
-                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="shopping">Shopping</option>
-                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="subscriptions">Subscriptions</option>
-                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="bills">Bills & Utilities</option>
-                  <option style={{ background: '#0a0b0e', color: '#ffffff' }} value="other">Other</option>
-                </select>
-              </div>
-
-              {/* Amount */}
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#8e929b', marginBottom: 6 }}>Amount</label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ position: 'absolute', left: 12, color: '#8e929b', fontSize: 13 }}>₹</span>
-                  <input
-                    type="number"
-                    value={form.amount}
-                    onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
-                    placeholder="500"
-                    style={{
-                      width: '100%',
-                      background: '#0a0b0e',
-                      border: '1px solid #20222a',
-                      borderRadius: 6,
-                      padding: '8px 12px 8px 24px',
-                      color: '#ffffff',
-                      fontSize: 13,
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Save Entry Button */}
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                <button
-                  type="submit"
-                  style={{
-                    background: '#5a3bee',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '8px 20px',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'background 0.2s',
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.background = '#4a2ecc'}
-                  onMouseOut={(e) => e.currentTarget.style.background = '#5a3bee'}
-                >
-                  Save Entry
-                </button>
-              </div>
-
-            </form>
-          </div>
-
-          {/* Recent Logs Card */}
-          <div style={{
-            background: '#12141a',
-            border: '1px solid #20222a',
-            borderRadius: 12,
-            padding: 16,
-            width: '100%',
-          }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', margin: '0 0 12px 0' }}>Recent Logs</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             
-            {financeRecords.length === 0 ? (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px 0',
-                textAlign: 'center',
-              }}>
-                <svg style={{ width: 32, height: 32, color: '#374151', marginBottom: 8 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                  <rect width="14" height="18" x="5" y="3" rx="2" />
-                  <path d="M9 7h6M9 11h6M9 15h4" />
-                </svg>
-                <h4 style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>No logs yet</h4>
-                <p style={{ fontSize: 12, color: '#8e929b', margin: 0 }}>You haven't added any financial logs.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {financeRecords.slice(0, 5).map((rec, idx) => (
-                  <div key={idx} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    background: '#0a0b0e',
-                    border: '1px solid #20222a',
-                    borderRadius: 6,
-                  }}>
-                    <div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#ffffff', textTransform: 'capitalize' }}>
-                        {rec.category}
-                      </span>
-                      <span style={{ fontSize: 11, color: '#8e929b', marginLeft: 12 }}>
-                        {new Date(rec.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
+            {/* Left Column: Form & OCR */}
+            <div className="flex flex-col gap-6">
+              
+              {/* Form Card */}
+              <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex flex-col gap-5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">Manual Entry Console</span>
+                </div>
+                
+                <form onSubmit={handleLog} className="flex flex-col gap-4">
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Monthly Income */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Monthly Income</label>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-3.5 text-slate-500 font-mono text-xs">₹</span>
+                        <input
+                          type="number"
+                          value={form.income}
+                          onChange={e => setForm(p => ({ ...p, income: e.target.value }))}
+                          placeholder="e.g. 50,000"
+                          className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 pl-8 pr-4 text-xs text-slate-200 outline-none transition-all leading-normal"
+                        />
+                      </div>
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: rec.category === 'Income' ? '#10b981' : '#f43f5e' }}>
-                      {rec.category === 'Income' ? '+' : '-'} ₹{rec.amount}
-                    </span>
+
+                    {/* Expense Category */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Category</label>
+                      <div className="relative flex items-center">
+                        <select
+                          value={form.category}
+                          onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                          className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 px-3.5 text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer leading-normal"
+                          style={{
+                            backgroundImage: 'url("data:image/svg+xml;utf8,<svg fill=\'%238e929b\' height=\'20\' viewBox=\'0 0 24 24\' width=\'20\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/><path d=\'M0 0h24v24H0z\' fill=\'none\'/></svg>")',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 12px center',
+                            backgroundSize: '16px'
+                          }}
+                        >
+                          <option value="food">Food & Dining</option>
+                          <option value="transport">Transport</option>
+                          <option value="shopping">Shopping</option>
+                          <option value="subscriptions">Subscriptions</option>
+                          <option value="bills">Bills & Utilities</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                ))}
+
+                  {/* Amount */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Amount Spent</label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3.5 text-slate-500 font-mono text-xs">₹</span>
+                      <input
+                        type="number"
+                        value={form.amount}
+                        onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
+                        placeholder="e.g. 1,500"
+                        className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 pl-8 pr-4 text-xs text-slate-200 outline-none transition-all leading-normal"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Save Entry Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    className="w-full mt-2 py-2.5 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-bold text-xs tracking-wide shadow-[0_4px_12px_rgba(99,102,241,0.25)] cursor-pointer"
+                  >
+                    Commit Entry to Ledger
+                  </motion.button>
+                </form>
               </div>
-            )}
+
+              {/* OCR Receipt Scanner Card */}
+              <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Cyber Receipt Scanner</span>
+                  <span className="text-[9px] text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 rounded font-bold font-mono tracking-wide">OCR AI</span>
+                </div>
+
+                <p className="text-[11px] text-slate-400 leading-normal">
+                  Scan and auto-fill manual transactions by uploading an image of your receipt.
+                </p>
+
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    id="ocr-upload-input"
+                    className="hidden"
+                    disabled={ocrLoading}
+                  />
+                  <label
+                    htmlFor="ocr-upload-input"
+                    className={`flex flex-col items-center justify-center py-6 border border-dashed rounded-xl cursor-pointer transition-all ${
+                      ocrLoading 
+                        ? 'border-emerald-500/20 bg-emerald-500/5 cursor-wait' 
+                        : 'border-white/10 bg-white/[0.01] hover:bg-white/[0.03]'
+                    }`}
+                  >
+                    {ocrLoading ? (
+                      <div className="flex flex-col items-center gap-3 w-full px-6">
+                        <div className="w-10 h-10 rounded-full border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-lg relative overflow-hidden">
+                          <span className="animate-spin">🔄</span>
+                        </div>
+                        <div className="w-full text-center">
+                          <p className="text-xs font-bold text-slate-200">Analyzing Document Structure...</p>
+                          <div className="w-full bg-slate-950/60 rounded-full h-1.5 mt-2.5 overflow-hidden">
+                            <motion.div 
+                              className="bg-emerald-400 h-full rounded-full" 
+                              animate={{ width: `${ocrProgress}%` }}
+                            />
+                          </div>
+                          <p className="text-[9px] text-slate-500 font-mono mt-1.5">{ocrProgress}% analyzed</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2">
+                          <Sparkles size={16} className="animate-pulse" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-300">Drop receipt or click to upload</span>
+                        <span className="text-[10px] text-slate-500 mt-1">Supports PNG, JPG, WebP</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Column: Recent Logs */}
+            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex flex-col gap-4 min-h-[460px]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Audit Ledger Stream</span>
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider bg-white/5 px-2 py-0.5 rounded font-mono">database</span>
+              </div>
+
+              {financeRecords.length === 0 ? (
+                <div className="flex flex-col gap-3 py-24 border border-dashed border-white/10 rounded-2xl items-center justify-center text-center flex-1">
+                  <div className="w-12 h-12 rounded-full border border-white/5 bg-white/[0.01] flex items-center justify-center text-xl text-slate-600">
+                    📂
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400">Empty Ledger</p>
+                    <p className="text-[10px] text-slate-600 mt-1 max-w-xs leading-normal">Your manually recorded inputs will compile here in real-time.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 max-h-[440px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
+                  <AnimatePresence initial={false}>
+                    {financeRecords.slice(0, 15).map((rec, idx) => {
+                      const isIncome = rec.category === 'Income';
+                      return (
+                        <motion.div 
+                          key={rec.id || idx}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className={`p-3.5 rounded-xl border flex items-center justify-between ${
+                            isIncome 
+                              ? 'border-emerald-500/10 bg-emerald-500/[0.01] hover:bg-emerald-500/[0.03]' 
+                              : 'border-white/[0.05] bg-white/[0.01] hover:bg-white/[0.03]'
+                          } transition-all`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs shrink-0 ${
+                              isIncome 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                            }`}>
+                              {isIncome ? '💼' : '🛍️'}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-200 capitalize font-mono tracking-wide">{rec.category}</p>
+                              <p className="text-[10px] text-slate-500 mt-0.5">
+                                {new Date(rec.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-xs font-black font-mono ${isIncome ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {isIncome ? '+' : '-'} ₹{rec.amount.toLocaleString()}
+                            </p>
+                            <p className="text-[9px] font-mono text-slate-500 mt-0.5 uppercase">Committed</p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
           </div>
 
         </div>
