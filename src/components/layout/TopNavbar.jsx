@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
+import { getAvatarUrl } from '../../utils/avatarUtils';
 
 const routeNames = {
   '/dashboard': 'Dashboard',
@@ -69,14 +70,9 @@ export default function TopNavbar() {
 
           {/* User */}
           <div className="hidden lg:flex items-center gap-2.5">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px]"
-              style={{
-                background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)',
-                border: isLight ? '1px solid rgba(0,0,0,0.10)' : '1px solid rgba(255,255,255,0.08)',
-              }}
-            >
-              {user?.avatar || '👤'}
+            <div className="w-7 h-7 rounded-lg overflow-hidden"
+              style={{ border: isLight ? '1px solid rgba(0,0,0,0.10)' : '1px solid rgba(255,255,255,0.08)' }}>
+              <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
             </div>
             <span className="text-[12px] truncate max-w-[120px]" style={{ color: isLight ? '#64748b' : '#71717a' }}>
               {user?.name}

@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
 import { AnomalyBell } from '../ui/Components';
+import { getAvatarUrl } from '../../utils/avatarUtils';
 import {
   LayoutDashboard, Heart, Wallet, Target, Trophy, Sparkles,
   Brain, MessageSquare, Star, Leaf, Upload, Settings,
@@ -211,13 +212,11 @@ export default function Sidebar() {
             <div className="bg-[#1e2136] rounded-[20px] p-4 flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
-                  {user?.avatar ? (
-                    <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
-                      {user?.name?.[0] || 'U'}
-                    </div>
-                  )}
+                  <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover"
+                    onError={e => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='flex'); }} />
+                  <div className="w-full h-full items-center justify-center text-[10px] font-bold text-slate-300" style={{display:'none'}}>
+                    {user?.name?.[0] || 'U'}
+                  </div>
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="text-[13px] font-bold text-white tracking-wide truncate">{user?.name || 'User'}</span>
@@ -258,13 +257,7 @@ export default function Sidebar() {
           /* Collapsed View */
           <div className="flex flex-col gap-3 items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
-              {user?.avatar ? (
-                <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"/>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-300">
-                  {user?.name?.[0] || 'U'}
-                </div>
-              )}
+              <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
             </div>
             {/* Mini score dots in collapsed mode */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
@@ -332,8 +325,8 @@ export default function Sidebar() {
             </div>
             <span className="text-[14px] font-bold text-white tracking-tight">BeyondSelf</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-slate-700/60 border border-white/[0.1] flex items-center justify-center text-sm">
-            {user?.avatar || '👤'}
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/[0.1]">
+            <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
