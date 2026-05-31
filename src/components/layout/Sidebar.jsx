@@ -236,17 +236,17 @@ export default function Sidebar() {
                   { label: 'Career',  value: cs, color: '#3b82f6' },
                 ];
                 return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                     {scores.map(s => (
                       <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 9, color: '#475569', width: 38, flexShrink: 0 }}>{s.label}</span>
-                        <div style={{ flex: 1, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8', width: 40, flexShrink: 0 }}>{s.label}</span>
+                        <div style={{ flex: 1, height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
                           <motion.div
                             initial={{ width: 0 }} animate={{ width: `${s.value}%` }} transition={{ duration: 1, ease: 'easeOut' }}
-                            style={{ height: '100%', borderRadius: 99, background: s.color }}
+                            style={{ height: '100%', borderRadius: 99, background: s.color, boxShadow: `0 0 6px ${s.color}80` }}
                           />
                         </div>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: s.color, width: 22, textAlign: 'right', flexShrink: 0 }}>{s.value}</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: s.color, width: 24, textAlign: 'right', flexShrink: 0 }}>{s.value}</span>
                       </div>
                     ))}
                   </div>
