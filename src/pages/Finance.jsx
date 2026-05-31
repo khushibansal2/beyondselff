@@ -1802,9 +1802,9 @@ export default function Finance() {
                   <FileText size={18} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Logs</p>
-                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{totalCount}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Parsed receipts</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Total Logs</p>
+                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none">{totalCount}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Parsed receipts</p>
                 </div>
               </motion.div>
 
@@ -1818,9 +1818,9 @@ export default function Finance() {
                   <TrendingDown size={18} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Debited</p>
-                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">₹{Math.round(totalDebited).toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Spent from alerts</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Total Debited</p>
+                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none">₹{Math.round(totalDebited).toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Spent from alerts</p>
                 </div>
               </motion.div>
 
@@ -1834,9 +1834,9 @@ export default function Finance() {
                   <TrendingUp size={18} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Credited</p>
-                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">₹{Math.round(totalCredited).toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Received to accounts</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Total Credited</p>
+                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none">₹{Math.round(totalCredited).toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Received to accounts</p>
                 </div>
               </motion.div>
 
@@ -1850,9 +1850,9 @@ export default function Finance() {
                   <Award size={18} />
                 </div>
                 <div>
-                  <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Top Merchant</p>
-                  <p className="text-xl font-black text-slate-100 mt-0.5 font-mono truncate max-w-[120px]">{topMerchant}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Primary channel</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">Top Merchant</p>
+                  <p className="text-[22px] font-black text-slate-100 mt-0.5 font-sans leading-none truncate max-w-[120px]">{topMerchant}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Primary channel</p>
                 </div>
               </motion.div>
             </div>
@@ -1865,9 +1865,9 @@ export default function Finance() {
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-2">
                     <Coins className="text-indigo-400" size={16} />
-                    <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest font-mono">Category Volume Stream</h3>
+                    <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider font-sans">Category Volume Stream</h3>
                   </div>
-                  <span className="text-[10px] text-slate-400 bg-white/5 border border-white/5 rounded px-2.5 py-0.5 font-bold font-mono tracking-wide">Dynamic View</span>
+                  <span className="text-[10px] text-slate-400 bg-white/5 border border-white/5 rounded px-2.5 py-0.5 font-semibold font-sans tracking-wide">Dynamic View</span>
                 </div>
                 
                 <div className="h-[140px]">
@@ -1886,12 +1886,12 @@ export default function Finance() {
                       </defs>
                       <XAxis 
                         dataKey="name" 
-                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} 
+                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }} 
                         axisLine={false} 
                         tickLine={false} 
                       />
                       <YAxis 
-                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'monospace' }} 
+                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }} 
                         axisLine={false} 
                         tickLine={false} 
                         tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}K` : `₹${v}`} 
@@ -1904,7 +1904,7 @@ export default function Finance() {
                       <Bar 
                         dataKey="value" 
                         radius={[6, 6, 0, 0]} 
-                        label={{ position: 'top', fill: '#cbd5e1', fontSize: 8, fontFamily: 'monospace', formatter: v => `₹${v >= 1000 ? `${(v/1000).toFixed(1)}k` : v}` }}
+                        label={{ position: 'top', fill: '#cbd5e1', fontSize: 8, fontFamily: 'sans-serif', formatter: v => `₹${v >= 1000 ? `${(v/1000).toFixed(1)}k` : v}` }}
                       >
                         {categoryTotals.map((c, i) => (
                           <Cell key={i} fill={`url(#barGrad-${c.name})`} />
@@ -2104,7 +2104,7 @@ export default function Finance() {
           
           {/* Form Section Header */}
           <div>
-            <h2 className="text-base font-extrabold text-slate-100 uppercase tracking-[0.2em] font-mono flex items-center gap-2.5">
+            <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider font-sans flex items-center gap-2">
               <div className="w-5 h-5 rounded-md flex items-center justify-center text-indigo-500">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
               </div>
@@ -2120,18 +2120,18 @@ export default function Finance() {
               
               {/* Form Card */}
               <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
-                <div className="flex items-center gap-2.5 border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2 border-b border-white/5 pb-4">
                   <div className="text-indigo-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="m9 14 2 2 4-4"></path></svg>
                   </div>
-                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-200">MANUAL ENTRY CONSOLE</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-sans">MANUAL ENTRY CONSOLE</span>
                 </div>
                 
                 <form onSubmit={handleLog} className="flex flex-col gap-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Monthly Income */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">MONTHLY INCOME</label>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">MONTHLY INCOME</label>
                       <input
                         type="text"
                         value={form.income}
@@ -2143,7 +2143,7 @@ export default function Finance() {
 
                     {/* Expense Category */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">CATEGORY</label>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">CATEGORY</label>
                       <div className="relative flex items-center">
                         <select
                           value={form.category}
@@ -2170,7 +2170,7 @@ export default function Finance() {
 
                   {/* Amount */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">AMOUNT SPENT</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans">AMOUNT SPENT</label>
                     <input
                       type="text"
                       value={form.amount}
@@ -2193,13 +2193,13 @@ export default function Finance() {
               {/* OCR Receipt Scanner Card */}
               <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <div className="text-emerald-500">
                       <Sparkles size={18} />
                     </div>
-                    <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-200">CYBER RECEIPT SCANNER</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-sans">CYBER RECEIPT SCANNER</span>
                   </div>
-                  <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md font-bold tracking-widest uppercase font-mono">
+                  <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md font-bold tracking-wider uppercase font-sans">
                     OCR AI
                   </span>
                 </div>
@@ -2238,7 +2238,7 @@ export default function Finance() {
                               animate={{ width: `${ocrProgress}%` }}
                             />
                           </div>
-                          <p className="text-[10px] text-emerald-500 font-mono mt-2">{ocrProgress}%</p>
+                          <p className="text-[10px] text-emerald-500 font-sans font-bold mt-2">{ocrProgress}%</p>
                         </div>
                       </div>
                     ) : (
@@ -2259,13 +2259,13 @@ export default function Finance() {
             {/* Right Column: Recent Logs */}
             <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4 min-h-[460px]">
               <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <div className="text-indigo-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
                   </div>
-                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-200">AUDIT LEDGER STREAM</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-sans">AUDIT LEDGER STREAM</span>
                 </div>
-                <span className="text-[9px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md font-bold tracking-widest uppercase font-mono">
+                <span className="text-[9px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md font-bold tracking-wider uppercase font-sans">
                   DATABASE
                 </span>
               </div>
@@ -2311,7 +2311,7 @@ export default function Finance() {
                             <p className={`text-[13px] font-bold ${isIncome ? 'text-emerald-500' : 'text-slate-200'}`}>
                               {isIncome ? '+' : '-'} ₹ {rec.amount.toLocaleString()}
                             </p>
-                            <span className="text-[9px] font-mono text-slate-500 mt-1 uppercase tracking-widest">COMMITTED</span>
+                            <span className="text-[9px] font-sans font-bold text-slate-500 mt-1 uppercase tracking-wider">COMMITTED</span>
                           </div>
                         </motion.div>
                       );
