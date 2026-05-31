@@ -5,7 +5,7 @@ import { useData } from '../context/DataContext';
 import { badges as allBadges, challenges as allChallenges } from '../data/demoData';
 import { GlassCard, PageHeader, Badge, AchievementPopup, showToast } from '../components/ui/Components';
 import {
-  Zap, Shield, Brain, Flame, TrendingUp, Target, Clock, Users,
+  Zap, Shield, Brain, Flame, TrendingUp, Target, Clock, Users, User,
   Trophy, Play, Pause, RotateCcw, Sparkles, Star, ChevronRight,
   CheckCircle, AlertTriangle, Lock, Swords, Scroll, Wind,
 } from 'lucide-react';
@@ -454,38 +454,59 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
 
   const DIFF_COLOR = { easy: 'text-emerald-400 bg-emerald-500/[0.08] border-emerald-500/20', medium: 'text-amber-400 bg-amber-500/[0.08] border-amber-500/20', hard: 'text-red-400 bg-red-500/[0.08] border-red-500/20' };
 
+  const CHALLENGE_ICONS = {
+    c1: { icon: '💤', bg: 'rgba(129,140,248,0.08)', border: 'rgba(129,140,248,0.15)', color: '#818cf8' },
+    c2: { icon: '🥡', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
+    c3: { icon: '🧩', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.15)', color: '#10b981' },
+    c4: { icon: '🧘', bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.15)', color: '#f97316' },
+    c5: { icon: '📊', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.15)', color: '#06b6d4' }
+  };
+
   return (
-    <div className="space-y-5">
-      {/* AI Quests */}
-      <GlassCard>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Scroll size={14} className="text-indigo-400" />
-            <h3 className="text-[13px] font-semibold text-[#f0f0f3]">AI-Generated Quests</h3>
-            {isRecovery && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">Recovery Mode</span>}
-          </div>
-          <button onClick={handleGenerate} disabled={loading}
-            className="flex items-center gap-2 text-[12px] px-4 py-2 rounded-xl font-semibold text-white disabled:opacity-50 transition-all"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-            {loading ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Sparkles size={13} />}
-            {loading ? 'Generating…' : aiQuests.length ? 'Regenerate' : 'Generate Quests'}
-          </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Plain Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18, filter: 'drop-shadow(0 0 6px rgba(129,140,248,0.5))' }}>✨</span>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f3', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em' }}>AI-Generated Quests</h2>
+          {isRecovery && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">Recovery Mode</span>}
         </div>
+        <button onClick={handleGenerate} disabled={loading}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 12,
+            padding: '8px 16px',
+            borderRadius: 10,
+            fontWeight: 700,
+            color: '#a5b4fc',
+            background: 'rgba(99, 102, 241, 0.06)',
+            border: '1px solid rgba(99, 102, 241, 0.35)',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          className="hover:scale-[1.02] hover:bg-indigo-500/10 active:scale-[0.98] disabled:opacity-50"
+        >
+          {loading ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-indigo-400 rounded-full animate-spin" /> : <Sparkles size={13} className="text-[#a5b4fc]" />}
+          {loading ? 'Generating…' : aiQuests.length ? 'Regenerate' : 'Generate Quests'}
+        </button>
+      </div>
 
-        {error && (
-          <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2 mb-3">
-            <AlertTriangle size={13} /> {error}
-          </div>
-        )}
+      {error && (
+        <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2">
+          <AlertTriangle size={13} /> {error}
+        </div>
+      )}
 
-        {aiQuests.length === 0 && !loading && (
-          <div className="text-center py-10 text-[#71717a]">
-            <Sparkles size={28} className="mx-auto mb-3 text-[#6b7280]" />
-            <p className="text-[13px] font-semibold text-[#71717a] mb-1">No quests yet</p>
-            <p className="text-[12px]">Click Generate to get AI-personalized quests based on your weakest stats.</p>
-          </div>
-        )}
+      {aiQuests.length === 0 && !loading && (
+        <div style={{ textAlign: 'center', padding: '48px 0 36px' }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0', margin: '0 0 6px', fontFamily: 'Inter, sans-serif' }}>No quests yet.</p>
+          <p style={{ fontSize: 12.5, color: '#64748b', margin: 0, fontFamily: 'Inter, sans-serif' }}>Click "Generate Quests" to get AI-personalized quests based on your weakest stats.</p>
+        </div>
+      )}
 
+      {aiQuests.length > 0 && (
         <div className="space-y-3">
           {aiQuests.map((q, i) => {
             const done = completed.has(i);
@@ -514,54 +535,85 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
             );
           })}
         </div>
-      </GlassCard>
+      )}
 
-      {/* Existing Challenges */}
-      <GlassCard>
-        <div className="flex items-center gap-2 mb-4">
-          <Target size={14} className="text-purple-400" />
-          <h3 className="text-[13px] font-semibold text-[#f0f0f3]">Domain Challenges</h3>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          {allChallenges.map((ch, i) => {
-            const isActive = activeChallenges.has(ch.id);
-            let progress = 0;
-            if (ch.id === 'c1') progress = Math.min(100, Math.round(((health?.sleepAvg || 0) / 7) * 100));
-            if (ch.id === 'c2') progress = finance?.expenses > 0 ? Math.max(0, 100 - Math.round((finance.expenses / (finance.income || 1)) * 100)) : 100;
-            if (ch.id === 'c3') progress = Math.min(100, Math.round(((career?.dsaPractice || 0) / 5) * 100));
-            if (ch.id === 'c4') progress = Math.min(100, Math.round(((health?.workoutsPerWeek || 0) / 5) * 100));
-            if (ch.id === 'c5') progress = Math.min(100, Math.round(((finance?.savings || 0) / Math.max(finance?.expenses || 1, 1)) * 100));
-            return (
-              <div key={ch.id} className={`p-3.5 rounded-xl border transition-all ${isActive ? 'bg-indigo-500/[0.04] border-indigo-500/20' : 'bg-white/[0.02] border-white/[0.06]'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{ch.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-semibold text-[#f0f0f3] truncate">{ch.title}</p>
-                    <p className="text-[10px] text-[#71717a]">{ch.duration}</p>
-                  </div>
+      {/* Grid of Standalone Challenge Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {allChallenges.map((ch) => {
+          const isActive = activeChallenges.has(ch.id);
+          const meta = CHALLENGE_ICONS[ch.id] || CHALLENGE_ICONS.c1;
+          return (
+            <div 
+              key={ch.id} 
+              style={{
+                display: 'flex',
+                gap: 16,
+                padding: 20,
+                borderRadius: 20,
+                border: isActive ? '1px solid rgba(129, 140, 248, 0.25)' : '1px solid rgba(255, 255, 255, 0.05)',
+                background: 'rgba(13, 17, 28, 0.45)',
+                boxShadow: isActive ? '0 8px 32px rgba(129,140,248,0.1), inset 0 1px 1px rgba(255,255,255,0.02)' : '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.02)',
+                backdropFilter: 'blur(20px)',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+            >
+              {/* Circle icon container */}
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: meta.bg,
+                border: `1px solid ${meta.border}`,
+                fontSize: 20,
+                flexShrink: 0
+              }}>
+                {meta.icon}
+              </div>
+
+              {/* Main Content Area */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                {/* Title & XP */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                  <h4 style={{ fontSize: 14.5, fontWeight: 800, color: '#f8fafc', margin: 0, fontFamily: 'Inter, sans-serif' }}>{ch.title}</h4>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: '#f59e0b', fontFamily: 'Inter, sans-serif', flexShrink: 0 }}>+{ch.reward} XP</span>
                 </div>
-                <p className="text-[11px] text-[#71717a] mb-2.5 leading-relaxed">{ch.desc}</p>
-                {isActive && (
-                  <div className="mb-2.5">
-                    <div className="flex justify-between text-[10px] text-[#71717a] mb-1"><span>Progress</span><span>{progress}%</span></div>
-                    <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1 }}
-                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" />
-                    </div>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-amber-400 font-semibold">+{ch.reward} XP</span>
-                  <button onClick={() => toggleChallenge(ch.id)}
-                    className={`text-[10px] px-3 py-1.5 rounded-xl border font-semibold transition-all ${isActive ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'}`}>
-                    {isActive ? 'Abandon' : 'Accept'}
+                
+                {/* Duration */}
+                <p style={{ fontSize: 11.5, color: '#64748b', fontWeight: 600, margin: '2px 0 0', fontFamily: 'Inter, sans-serif' }}>{ch.duration}</p>
+
+                {/* Dotted Divider */}
+                <div style={{ borderTop: '1px dotted rgba(255,255,255,0.08)', margin: '12px 0' }} />
+
+                {/* Description & Action */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <p style={{ fontSize: 12.5, color: '#94a3b8', margin: 0, fontFamily: 'Inter, sans-serif', lineHeight: 1.4, flex: 1 }}>{ch.desc}</p>
+                  <button
+                    onClick={() => toggleChallenge(ch.id)}
+                    style={{
+                      padding: '6px 16px',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      transition: 'all 0.2s',
+                      border: isActive ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(129,140,248,0.35)',
+                      background: isActive ? 'rgba(239,68,68,0.08)' : 'rgba(129,140,248,0.06)',
+                      color: isActive ? '#fca5a5' : '#a5b4fc',
+                      flexShrink: 0
+                    }}
+                    className="hover:scale-[1.02] hover:bg-indigo-500/10 active:scale-[0.98]"
+                  >
+                    {isActive ? '✓ Joined' : 'Accept'}
                   </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </GlassCard>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -614,60 +666,105 @@ function GrindRoomPanel({ onXP }) {
   const pct = selectedRoom ? Math.round(((selectedRoom.minutes * 60 - timeLeft) / (selectedRoom.minutes * 60)) * 100) : 0;
 
   if (!selectedRoom) {
-    const gCard = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
     return (
-      <div style={{display:'flex', flexDirection:'column', gap:10}}>
-        <div style={gCard}>
-          {/* Header */}
-          <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'20px 20px 14px'}}>
-            <div>
-              <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Silent Grind Rooms</p>
-              <p style={{fontSize:12, color:'#64748b'}}>Join anonymously. Work in silence. Earn XP on completion. Others are grinding right now.</p>
-            </div>
-            <div style={{display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
-              <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>All Rooms</span>
-              <span style={{fontSize:10, color:'#64748b'}}>▾</span>
-            </div>
-          </div>
-
-          {/* Room rows */}
+      <div style={{display:'flex', flexDirection:'column', gap:12}}>
+        {/* Plain Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            {GRIND_ROOMS.map((room, i) => (
-              <button key={room.id} onClick={() => enterRoom(room)}
-                style={{width:'100%', display:'flex', alignItems:'center', gap:16, padding:'16px 20px', background:'transparent', border:'none', borderTop: i===0 ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(255,255,255,0.06)', cursor:'pointer', textAlign:'left', transition:'background 0.15s'}}
-                onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}
-                onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                <div style={{width:46, height:46, borderRadius:12, background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0}}>
-                  {room.icon}
-                </div>
-                <div style={{flex:1, minWidth:0}}>
-                  <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:3}}>{room.name}</p>
-                  <p style={{fontSize:12, color:'#64748b'}}>{room.type} • {room.sound}</p>
-                </div>
-                <div style={{display:'flex', alignItems:'center', gap:6, flexShrink:0}}>
-                  <Clock size={13} style={{color:'#475569'}}/>
-                  <span style={{fontSize:13, color:'#94a3b8', fontWeight:500, marginRight:16}}>{room.minutes} min</span>
-                </div>
-                <span style={{fontSize:13, fontWeight:700, color:'#10b981', minWidth:90, flexShrink:0}}>{room.users} grinding</span>
-                <ChevronRight size={16} style={{color:'#475569', flexShrink:0}}/>
-              </button>
-            ))}
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f3', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em' }}>Silent Grind Rooms</h2>
+            <p style={{ fontSize: 12.5, color: '#8b949e', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
+              Join anonymously. Work in silence. Earn XP on completion. Others are grinding right now.
+            </p>
           </div>
-
-          {/* Tip bar */}
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', borderTop:'1px solid rgba(255,255,255,0.06)'}}>
-            <div style={{display:'flex', alignItems:'center', gap:10}}>
-              <span style={{fontSize:16}}>🎧</span>
-              <span style={{fontSize:12, color:'#64748b'}}>Tip: Use headphones for the best experience.</span>
-            </div>
-            <span style={{fontSize:12, color:'#6366f1', fontWeight:600, cursor:'pointer'}}>Learn more ↗</span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 14px',
+            borderRadius: 10,
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.03)',
+            cursor: 'pointer',
+            flexShrink: 0
+          }}>
+            <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 600 }}>All Rooms</span>
+            <span style={{ fontSize: 10, color: '#8b949e' }}>▾</span>
           </div>
         </div>
 
+        {/* Room rows Card Container */}
+        <div style={{
+          borderRadius: 20,
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'linear-gradient(135deg, rgba(13, 20, 38, 0.6) 0%, rgba(8, 12, 24, 0.8) 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05)',
+          backdropFilter: 'blur(20px)',
+          overflow: 'hidden'
+        }}>
+          {GRIND_ROOMS.map((room, i) => (
+            <button key={room.id} onClick={() => enterRoom(room)}
+              style={{
+                width:'100%', 
+                display:'flex', 
+                alignItems:'center', 
+                gap:16, 
+                padding:'16px 20px', 
+                background:'transparent', 
+                border:'none', 
+                borderTop: i===0 ? 'none' : '1px solid rgba(255,255,255,0.06)', 
+                cursor:'pointer', 
+                textAlign:'left', 
+                transition:'background 0.15s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}
+              onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+              <div style={{width:46, height:46, borderRadius:12, background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0}}>
+                {room.icon}
+              </div>
+              <div style={{flex:1, minWidth:0}}>
+                <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin: '0 0 3px'}}>{room.name}</p>
+                <p style={{fontSize:12, color:'#8b949e', margin: 0}}>{room.type} • {room.sound}</p>
+              </div>
+              <div style={{display:'flex', alignItems:'center', gap:6, flexShrink:0}}>
+                <Clock size={13} style={{color:'#475569'}}/>
+                <span style={{fontSize:13, color:'#cbd5e1', fontWeight:500, marginRight:16}}>{room.minutes} min</span>
+              </div>
+              <span style={{fontSize:13, fontWeight:700, color:'#10b981', minWidth:90, flexShrink:0}}>{room.users} grinding</span>
+              <ChevronRight size={16} style={{color:'#475569', flexShrink:0}}/>
+            </button>
+          ))}
+        </div>
+
+        {/* Standalone Tip Bar Card */}
+        <div style={{
+          borderRadius: 16,
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'linear-gradient(135deg, rgba(13, 20, 38, 0.6) 0%, rgba(8, 12, 24, 0.8) 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 20px'
+        }}>
+          <div style={{display:'flex', alignItems:'center', gap:10}}>
+            <span style={{fontSize:16}}>🎧</span>
+            <span style={{fontSize:12.5, color:'#8b949e', fontWeight:500, fontFamily: 'Inter, sans-serif'}}>Tip: Use headphones for the best experience.</span>
+          </div>
+          <span style={{fontSize:12.5, color:'#818cf8', fontWeight:700, cursor:'pointer', fontFamily: 'Inter, sans-serif'}} className="hover:underline">Learn more ↗</span>
+        </div>
+
         {sessions > 0 && (
-          <div style={{...gCard, padding:'16px 20px'}}>
-            <p style={{fontSize:11, color:'#64748b', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.08em', fontWeight:600}}>Today's Grind</p>
-            <p style={{fontSize:22, fontWeight:800, color:'#10b981'}}>{sessions} session{sessions !== 1 ? 's' : ''} completed</p>
+          <div style={{
+            borderRadius: 16,
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: 'linear-gradient(135deg, rgba(13, 20, 38, 0.6) 0%, rgba(8, 12, 24, 0.8) 100%)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(20px)',
+            padding:'16px 20px'
+          }}>
+            <p style={{fontSize:11, color:'#8b949e', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.08em', fontWeight:600}}>Today's Grind</p>
+            <p style={{fontSize:22, fontWeight:800, color:'#10b981', margin: 0}}>{sessions} session{sessions !== 1 ? 's' : ''} completed</p>
           </div>
         )}
       </div>
@@ -782,156 +879,226 @@ function PeersPanel({ userScores, codename }) {
     return names.map((name, i) => {
       const v = mults[i];
       const h  = Math.min(100, Math.max(20, Math.round((userScores.health  || 60) * v + (i * 4 - 8))));
-      const fi = Math.min(100, Math.max(20, Math.round((userScores.finance || 60) * v - (i * 3))));
-      const ca = Math.min(100, Math.max(20, Math.round((userScores.career  || 60) * v + (i * 5 - 6))));
-      return { name, health: h, finance: fi, career: ca, total: Math.round((h + fi + ca) / 3) };
+      const fi = Math.min(100, Math.max(20, Math.round((userScores.finance || 60) * v + (i * 3 - 6))));
+      const ca = Math.min(100, Math.max(20, Math.round((userScores.career  || 60) * v + (i * 5 - 10))));
+      return { name, h, fi, ca, total: Math.round((h + fi + ca) / 3), isMe: false };
     });
   }, [userScores]);
 
+  const PEER_COLORS = ['#6366f1','#10b981','#f59e0b','#ec4899','#06b6d4'];
+  const PEER_AVATARS = ['🦁','🐉','🦊','🦅','🧬'];
+  const getLevel = (total) => Math.max(1, Math.floor(total / 10));
+  const rankIcon = (rank) => rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+
   const leaderboard = useMemo(() => {
-    return [
-      { name: codename, ...userScores, total: myTotal, isMe: true },
-      ...peers,
-    ].sort((a, b) => b.total - a.total).map((p, i) => ({ ...p, rank: i + 1 }));
-  }, [peers, userScores, myTotal, codename]);
+    const list = [
+      ...peers.map(p => ({ ...p })),
+      { name: codename, h: userScores.health || 60, fi: userScores.finance || 60, ca: userScores.career || 60, total: myTotal, isMe: true }
+    ];
+    list.sort((a, b) => b.total - a.total);
+    return list.map((p, i) => ({ ...p, rank: i + 1 }));
+  }, [peers, codename, myTotal, userScores]);
 
   function toggleChallenge(id) {
-    const next = new Set(joined);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setJoined(next);
-    localStorage.setItem('joined_challenges', JSON.stringify(Array.from(next)));
-    showToast(next.has(id) ? 'Challenge joined! 🔥' : 'Challenge left', next.has(id) ? 'success' : 'info');
+    setJoined(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      localStorage.setItem('joined_challenges', JSON.stringify([...next]));
+      return next;
+    });
   }
 
-  const PEER_AVATARS = ['🔥','⛈️','∞','🌿','⚡'];
-  const PEER_COLORS  = ['#f97316','#64748b','#6366f1','#10b981','#f59e0b'];
-  const rankIcon = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `#${r}`;
-  const getLevel = total => Math.max(1, Math.floor(total / 7));
+  const pCard = {
+    borderRadius: 20,
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    background: 'linear-gradient(135deg, rgba(13, 20, 38, 0.6) 0%, rgba(8, 12, 24, 0.8) 100%)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(20px)',
+  };
 
-  const pCard = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
-
-  // Sparkline: normalise 7 fake points ending at myTotal
   const rawPts = [myTotal-8, myTotal-6, myTotal-7, myTotal-4, myTotal-5, myTotal-2, myTotal];
   const minP = Math.min(...rawPts), maxP = Math.max(...rawPts);
-  const norm = v => maxP === minP ? 40 : 70 - ((v - minP) / (maxP - minP)) * 60;
+  const norm = v => maxP === minP ? 35 : 45 - ((v - minP) / (maxP - minP)) * 32;
   const sparkCoords = rawPts.map((v, i) => `${(i / 6) * 200},${norm(v)}`).join(' ');
 
   return (
-    <div style={{display:'flex', flexDirection:'column', gap:8}}>
-
-      {/* ── Row 1: Leaderboard + Score card ── */}
-      <div style={{display:'grid', gridTemplateColumns:'1.8fr 1fr', gap:8}}>
-
-        {/* Leaderboard */}
-        <div style={pCard}>
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px 8px'}}>
+    <div style={{display:'flex', flexDirection:'column', gap:12}}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2" style={pCard}>
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px 6px'}}>
             <div>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:2}}>
-                <span style={{fontSize:13}}>🏆</span>
-                <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Anonymous Leaderboard</p>
+              <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:2}}>
+                <span style={{fontSize:14, filter: 'drop-shadow(0 0 4px rgba(245,158,11,0.6))'}}>🏆</span>
+                <p style={{fontSize:14, fontWeight:800, color:'#ffffff', margin: 0, letterSpacing: '-0.01em'}}>Anonymous Leaderboard</p>
               </div>
-              <p style={{fontSize:11, color:'#64748b'}}>Real scores. Hidden identities.</p>
+              <p style={{fontSize:11, color:'#64748b', margin: 0}}>Real scores. Hidden identities.</p>
             </div>
-            <div style={{display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:7, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
-              <span style={{fontSize:11, color:'#94a3b8'}}>All Time</span>
+            <div style={{display:'flex', alignItems:'center', gap:6, padding:'3px 10px', borderRadius:8, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
+              <span style={{fontSize:11, color:'#94a3b8', fontWeight:600}}>All Time</span>
               <span style={{fontSize:9, color:'#64748b'}}>▾</span>
             </div>
           </div>
-          <div style={{padding:'4px 14px', borderTop:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'flex-end'}}>
-            <span style={{fontSize:10, color:'#475569', fontWeight:600}}>Life Score</span>
+          <div style={{padding:'2px 18px', borderTop:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'flex-end'}}>
+            <span style={{fontSize:9.5, color:'#475569', fontWeight:800, textTransform: 'uppercase', letterSpacing: '0.05em'}}>Life Score</span>
           </div>
           {leaderboard.map((p, idx) => {
             const avatarColor = PEER_COLORS[idx] || '#6366f1';
             return (
               <div key={p.name} style={{
-                display:'flex', alignItems:'center', gap:8, padding:'7px 14px',
+                display:'flex', alignItems:'center', gap:10, padding:'7px 18px',
                 borderTop:'1px solid rgba(255,255,255,0.05)',
                 background: p.isMe ? 'rgba(99,102,241,0.08)' : 'transparent',
               }}>
-                <span style={{fontSize: p.rank<=3?13:11, fontWeight:700, color:'#64748b', width:22, textAlign:'center', flexShrink:0}}>{rankIcon(p.rank)}</span>
-                <div style={{width:26, height:26, borderRadius:6, background:avatarColor+'18', border:`1px solid ${avatarColor}35`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, flexShrink:0}}>
+                <span style={{fontSize: p.rank<=3?13:11, fontWeight:800, color:'#64748b', width:22, textAlign:'center', flexShrink:0}}>{rankIcon(p.rank)}</span>
+                <div style={{
+                  width:30, height:30, borderRadius:8, background:avatarColor+'15', border:`1px solid ${avatarColor}30`,
+                  display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0,
+                }}>
                   {PEER_AVATARS[idx]}
                 </div>
                 <div style={{flex:1, minWidth:0, display:'flex', alignItems:'center', gap:6}}>
-                  <p style={{fontSize:12, fontWeight:600, color:'#f1f5f9'}}>{p.name}</p>
-                  {p.isMe && <span style={{fontSize:8, padding:'1px 5px', borderRadius:4, background:'rgba(99,102,241,0.3)', color:'#a5b4fc', fontWeight:700}}>YOU</span>}
-                  <span style={{fontSize:10, color:'#64748b', background:'rgba(255,255,255,0.05)', padding:'1px 7px', borderRadius:999}}>Lv. {getLevel(p.total)}</span>
+                  <p style={{fontSize:13, fontWeight:700, color: p.isMe ? '#a5b4fc' : '#f1f5f9', margin: 0}}>{p.name}</p>
+                  {p.isMe && (
+                    <span style={{fontSize:8, padding:'1.5px 5px', borderRadius:4, background:'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', color:'#a5b4fc', fontWeight:900}}>
+                      YOU
+                    </span>
+                  )}
+                  <span className="text-slate-400 bg-white/5 border border-white/5 text-[9.5px] font-semibold px-2 py-0.5 rounded-full">
+                    Lv. {getLevel(p.total)}
+                  </span>
                 </div>
-                <p style={{fontSize:14, fontWeight:800, color: p.isMe ? '#818cf8' : '#f1f5f9', flexShrink:0}}>{p.total}</p>
+                <p style={{fontSize:14, fontWeight:900, color: p.isMe ? '#818cf8' : '#ffffff', flexShrink:0, margin: 0}}>{p.total}</p>
               </div>
             );
           })}
         </div>
-
-        {/* Your Life Score */}
-        <div style={{...pCard, padding:'12px', display:'flex', flexDirection:'column', gap:8}}>
-          <div style={{display:'flex', alignItems:'baseline', gap:8}}>
-            <p style={{fontSize:30, fontWeight:900, color:'#f1f5f9', lineHeight:1}}>{myTotal}</p>
-            <p style={{fontSize:12, color:'#94a3b8', fontWeight:600}}>Your Life Score</p>
+        <div className="lg:col-span-1" style={{...pCard, padding: '24px 20px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+          <div style={{display:'flex', flexDirection:'column'}}>
+            <div style={{display:'flex', alignItems:'baseline', gap:10, marginBottom: 12}}>
+              <p style={{fontSize:46, fontWeight:900, color:'#ffffff', lineHeight:1, margin:0, letterSpacing: '-0.03em'}}>{myTotal}</p>
+              <p style={{fontSize:15, color:'#cbd5e1', fontWeight:600, margin:0, letterSpacing: '-0.01em'}}>Your Life Score</p>
+            </div>
+            <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+              {[
+                ['🔥', userScores.health||55, '#f97316'],
+                ['❤️', userScores.finance||54, '#ef4444'],
+                ['🧠', userScores.career||39, '#ec4899'],
+                ['🛡️', Math.round(myTotal*0.78), '#8b5cf6']
+              ].map(([icon, val, color]) => (
+                <div key={icon} style={{
+                  display:'flex', alignItems:'center', gap:6,
+                  background:'rgba(255,255,255,0.035)', 
+                  padding:'5px 12px', borderRadius:12,
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
+                }}>
+                  <span style={{fontSize:12, filter: `drop-shadow(0 0 3px ${color}60)`}}>{icon}</span>
+                  <span style={{fontSize:12, fontWeight:800, color:'#ffffff'}}>{val}</span>
+                </div>
+              ))}
+            </div>
+            
+            {/* Divider Line */}
+            <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', margin: '16px 0 12px' }} />
           </div>
-          <div style={{display:'flex', gap:10, flexWrap:'wrap'}}>
-            {[['🔥', userScores.health||55],['❤️', userScores.finance||54],['💜', userScores.career||39],['🛡️', Math.round(myTotal*0.78)]].map(([icon,val]) => (
-              <div key={icon} style={{display:'flex', alignItems:'center', gap:3}}>
-                <span style={{fontSize:12}}>{icon}</span>
-                <span style={{fontSize:12, fontWeight:700, color:'#e2e8f0'}}>{val}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{flex:1, minHeight:50}}>
-            <svg width="100%" height="60" viewBox="0 0 200 60" preserveAspectRatio="none">
+          
+          {/* Sparkline Chart */}
+          <div style={{flex:1, minHeight:46, display: 'flex', alignItems: 'flex-end', marginTop: 4}}>
+            <svg width="100%" height="46" viewBox="0 0 200 46" preserveAspectRatio="none" style={{overflow: 'visible'}}>
               <defs>
                 <linearGradient id="spkG" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25"/>
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0"/>
+                  <stop offset="0%" stopColor="#818cf8" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#818cf8" stopOpacity="0"/>
                 </linearGradient>
               </defs>
-              <polygon points={`${sparkCoords} 200,60 0,60`} fill="url(#spkG)"/>
-              <polyline points={sparkCoords} fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              {rawPts.map((v,i) => <circle key={i} cx={(i/6)*200} cy={norm(v)} r="3" fill="#6366f1"/>)}
+              {/* Polygon area below the line */}
+              <polygon points={`0,46 ${[36, 26, 26, 16, 17, 20, 11, 6].map((v, i) => `${(i/7)*200},${v}`).join(' ')} 200,46`} fill="url(#spkG)"/>
+              {/* Sparkline stroke */}
+              <polyline points={[36, 26, 26, 16, 17, 20, 11, 6].map((v, i) => `${(i/7)*200},${v}`).join(' ')} fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              {/* Circular data points */}
+              {[36, 26, 26, 16, 17, 20, 11, 6].map((v, i) => (
+                <circle key={i} cx={(i/7)*200} cy={v} r="3.5" fill="#ffffff" stroke="#818cf8" strokeWidth="2" />
+              ))}
             </svg>
           </div>
-          <p style={{fontSize:11, fontWeight:700, color:'#10b981'}}>+4 this week</p>
+          
+          {/* +4 this week label */}
+          <div style={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 12}}>
+            <p style={{fontSize:12.5, fontWeight:600, color:'#22c55e', margin: 0}}>{`+4 this week`}</p>
+          </div>
         </div>
       </div>
-
-      {/* ── Row 2: Global Challenges ── */}
       <div>
-        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8}}>
+        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10}}>
           <div>
-            <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:2}}>
-              <span style={{fontSize:13}}>🌍</span>
-              <p style={{fontSize:13, fontWeight:700, color:'#f1f5f9'}}>Global Challenges</p>
+            <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:2}}>
+              <span style={{fontSize:14, filter: 'drop-shadow(0 0 4px rgba(59,130,246,0.6))'}}>🌎</span>
+              <p style={{fontSize:14, fontWeight:800, color:'#ffffff', margin: 0, letterSpacing: '-0.01em'}}>Global Challenges</p>
             </div>
-            <p style={{fontSize:11, color:'#64748b'}}>Join challenges. Earn XP. Beat your peers.</p>
+            <p style={{fontSize:11, color:'#64748b', margin: 0}}>Join challenges. Earn XP. Beat your peers.</p>
           </div>
-          <button style={{padding:'6px 12px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', flexShrink:0}}>
+          <button style={{
+            padding: '5px 11px', borderRadius: '9px',
+            border: '1px solid rgba(99, 102, 241, 0.3)',
+            background: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc',
+            fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+          }}>
             View All Challenges
           </button>
         </div>
-
-        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {SOCIAL_CHALLENGES.map(ch => {
             const isJoined = joined.has(ch.id);
             const dColor = DOMAIN_COLOR[ch.domain] || '#6366f1';
             const dLabel = ch.domain.charAt(0).toUpperCase() + ch.domain.slice(1);
             return (
-              <div key={ch.id} style={{...pCard, padding:'10px 12px', display:'flex', alignItems:'center', gap:10}}>
-                <div style={{width:36, height:36, borderRadius:9, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0}}>
+              <div key={ch.id} style={{...pCard, padding: 13, display:'flex', alignItems:'center', gap:12}}>
+                <div style={{
+                  width:42, height:42, borderRadius:'50%',
+                  background:'rgba(255,255,255,0.03)',
+                  border:'1px solid rgba(255,255,255,0.08)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:18, flexShrink:0,
+                }}>
                   {ch.icon}
                 </div>
                 <div style={{flex:1, minWidth:0}}>
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:6, marginBottom:2}}>
-                    <p style={{fontSize:12, fontWeight:700, color:'#f1f5f9', lineHeight:1.2}}>{ch.title}</p>
-                    <span style={{fontSize:9, padding:'2px 6px', borderRadius:999, background:dColor+'20', color:dColor, fontWeight:700, flexShrink:0}}>{dLabel}</span>
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, marginBottom:1}}>
+                    <p style={{fontSize:12, fontWeight:800, color:'#f1f5f9', lineHeight:1.2, margin: 0}}>{ch.title}</p>
+                    <span style={{fontSize:9, padding:'2px 6px', borderRadius:999, background:dColor+'18', color:dColor, border:`1.5px solid ${dColor}25`, fontWeight:800, flexShrink:0}}>{dLabel}</span>
                   </div>
-                  <p style={{fontSize:10, color:'#64748b', marginBottom:6}}>{ch.desc}</p>
+                  <p style={{fontSize:10.5, color:'#64748b', margin: '0 0 6px'}}>{ch.desc}</p>
                   <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
-                    <p style={{fontSize:10, color:'#475569'}}>👥 {ch.participants.toLocaleString()} joined</p>
+                    <p style={{fontSize:10, color:'#475569', fontWeight:600, margin: 0}}>👥 {ch.participants.toLocaleString()} joined</p>
                     <div style={{display:'flex', alignItems:'center', gap:6}}>
-                      <span style={{fontSize:11, fontWeight:700, color:dColor}}>+{ch.xp} XP</span>
-                      <button onClick={() => toggleChallenge(ch.id)}
-                        style={{padding:'3px 10px', borderRadius:6, border: isJoined ? '1px solid rgba(99,102,241,0.3)' : 'none', background: isJoined ? 'rgba(99,102,241,0.15)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: isJoined ? '#a5b4fc' : '#fff', fontSize:10, fontWeight:700, cursor:'pointer'}}>
-                        {isJoined ? '✓' : 'Join'}
+                      <span style={{fontSize:11, fontWeight:800, color:dColor}}>+{ch.xp} XP</span>
+                      <button
+                        onClick={() => toggleChallenge(ch.id)}
+                        style={{
+                          padding:'4px 10px', 
+                          borderRadius:6, 
+                          border: isJoined ? '1px solid rgba(99,102,241,0.3)' : 'none', 
+                          background: isJoined ? 'rgba(99,102,241,0.15)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)', 
+                          color: isJoined ? '#a5b4fc' : '#ffffff', 
+                          fontSize:10.5, 
+                          fontWeight:800, 
+                          cursor:'pointer',
+                          boxShadow: isJoined ? 'none' : '0 4px 10px rgba(99,102,241,0.25)',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isJoined) {
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 5px 12px rgba(99,102,241,0.3)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isJoined) {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 10px rgba(99,102,241,0.25)';
+                          }
+                        }}
+                      >
+                        {isJoined ? '✓ Joined' : 'Join'}
                       </button>
                     </div>
                   </div>
@@ -957,64 +1124,104 @@ function GuildsPanel({ myGuildId, onJoin }) {
   const fmtMembers = n => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n;
 
   return (
-    <div style={{background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14}}>
-      {/* Header */}
-      <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'18px 20px 14px'}}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Plain Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Anonymous Guilds</p>
-          <p style={{fontSize:12, color:'#64748b'}}>Join a guild to earn XP, complete collective quests, and build accountability — all anonymously.</p>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f3', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em' }}>Anonymous Guilds</h2>
+          <p style={{ fontSize: 12.5, color: '#8b949e', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
+            Join a guild to earn XP, complete collective quests, and build accountability — all anonymously.
+          </p>
         </div>
-        <div style={{display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:9, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
-          <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>All Guilds</span>
-          <span style={{fontSize:10, color:'#64748b'}}>▾</span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '6px 14px',
+          borderRadius: 10,
+          border: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(255,255,255,0.03)',
+          cursor: 'pointer',
+          flexShrink: 0
+        }}>
+          <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 600 }}>All Guilds</span>
+          <span style={{ fontSize: 10, color: '#8b949e' }}>▾</span>
         </div>
       </div>
 
-      {/* Guild rows */}
-      {GUILDS.map((guild, i) => {
-        const isMine = myGuildId === guild.id;
-        const rs = RANK_STYLE[guild.rank] || RANK_STYLE.Silver;
-        return (
-          <div key={guild.id} style={{
-            display:'flex', alignItems:'center', gap:16, padding:'16px 20px',
-            borderTop:'1px solid rgba(255,255,255,0.06)',
-            background: isMine ? guild.color+'08' : 'transparent',
-          }}>
-            {/* Icon */}
-            <div style={{width:58, height:58, borderRadius:14, background:`linear-gradient(135deg, ${guild.color}22, rgba(255,255,255,0.04))`, border:`1px solid ${guild.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, flexShrink:0}}>
-              {guild.icon}
-            </div>
-            {/* Info */}
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:4}}>
-                <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>{guild.name}</p>
-                <span style={{fontSize:10, padding:'2px 8px', borderRadius:999, fontWeight:700, color:rs.color, background:rs.bg, border:`1px solid ${rs.border}`}}>
-                  {guild.rank.toUpperCase()}
-                </span>
+      {/* Grid of Standalone Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {GUILDS.map((guild) => {
+          const isMine = myGuildId === guild.id;
+          const rs = RANK_STYLE[guild.rank] || RANK_STYLE.Silver;
+          return (
+            <div 
+              key={guild.id} 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                padding: '16px 20px',
+                borderRadius: 16,
+                border: isMine ? '1px solid rgba(99,102,241,0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+                background: isMine 
+                  ? 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(8, 12, 24, 0.9) 100%)' 
+                  : 'linear-gradient(135deg, rgba(13, 20, 38, 0.6) 0%, rgba(8, 12, 24, 0.8) 100%)',
+                boxShadow: isMine ? '0 8px 32px rgba(99,102,241,0.15), inset 0 1px 1px rgba(255,255,255,0.05)' : '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05)',
+                backdropFilter: 'blur(20px)',
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              {/* Icon */}
+              <div style={{
+                width: 58, 
+                height: 58, 
+                borderRadius: 14, 
+                background: `linear-gradient(135deg, ${guild.color}22, rgba(255,255,255,0.04))`, 
+                border: `1px solid ${guild.color}30`, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontSize: 26, 
+                flexShrink: 0
+              }}>
+                {guild.icon}
               </div>
-              <p style={{fontSize:12, color:'#64748b', marginBottom:3}}>{guild.desc}</p>
-              <p style={{fontSize:12, color:'#475569'}}>Focus: <span style={{color:guild.color, fontWeight:600}}>{guild.stat}</span></p>
-            </div>
-            {/* Members + Join */}
-            <div style={{display:'flex', alignItems:'center', gap:16, flexShrink:0}}>
-              <div style={{display:'flex', alignItems:'center', gap:6}}>
-                <span style={{fontSize:13, color:'#475569'}}>👥</span>
-                <span style={{fontSize:12, color:'#94a3b8'}}>{fmtMembers(guild.members)} members</span>
+              {/* Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{guild.name}</p>
+                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999, fontWeight: 700, color: rs.color, background: rs.bg, border: `1px solid ${rs.border}` }}>
+                    {guild.rank.toUpperCase()}
+                  </span>
+                </div>
+                <p style={{ fontSize: 12, color: '#8b949e', margin: '0 0 4px', lineHeight: 1.4 }}>{guild.desc}</p>
+                <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>Focus: <span style={{ color: guild.color, fontWeight: 600 }}>{guild.stat}</span></p>
               </div>
-              <button
-                onClick={() => { onJoin(isMine ? null : guild.id); showToast(isMine ? 'Left guild' : `Joined ${guild.name}!`, isMine ? 'info' : 'success'); }}
-                style={{
-                  display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:600, transition:'all 0.15s',
-                  border: isMine ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(255,255,255,0.18)',
-                  background: isMine ? 'rgba(239,68,68,0.08)' : 'rgba(255,255,255,0.04)',
-                  color: isMine ? '#fca5a5' : '#f1f5f9',
-                }}>
-                {isMine ? 'Leave' : 'Join'} <span style={{fontSize:13}}>→</span>
-              </button>
+              {/* Members + Join */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, color: '#475569' }}>👥</span>
+                  <span style={{ fontSize: 12, color: '#94a3b8' }}>{fmtMembers(guild.members)} members</span>
+                </div>
+                <button
+                  onClick={() => { onJoin(isMine ? null : guild.id); showToast(isMine ? 'Left guild' : `Joined ${guild.name}!`, isMine ? 'info' : 'success'); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, transition: 'all 0.15s',
+                    border: isMine ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                    background: isMine ? 'rgba(239,68,68,0.08)' : 'rgba(255,255,255,0.03)',
+                    color: isMine ? '#fca5a5' : '#ffffff',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
+                  }}
+                  className="hover:scale-[1.02] hover:brightness-115 active:scale-[0.98]"
+                >
+                  {isMine ? 'Leave' : 'Join'} <span style={{ fontSize: 13 }}>→</span>
+                </button>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1025,24 +1232,54 @@ function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
   const earnedCount = badges.filter(b => b.unlocked).length;
 
   return (
-    <div className="space-y-6 max-w-[1100px]">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }} className="max-w-[1100px]">
 
       {/* ── Active Streaks ── */}
       <div>
-        <h2 className="text-[17px] font-bold text-[#f0f0f3] mb-1">Active Streaks</h2>
-        <p className="text-[12px] text-[#8b949e] mb-4">Keep going. Consistency builds legends.</p>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f3', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em', marginBottom: 6 }}>Active Streaks</h2>
+        <p style={{ fontSize: 12.5, color: '#8b949e', margin: '0 0 20px', fontFamily: 'Inter, sans-serif' }}>Keep going. Consistency builds legends.</p>
         <div className="flex gap-4">
           {streaks.map((s, i) => (
-            <div key={i}
-              className="bg-[#161b22] border border-[#30363d] rounded-2xl px-8 py-6 flex items-center gap-6 min-w-[220px]">
-              <span className="text-[44px] leading-none">{s.icon}</span>
-              <div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[36px] font-black text-[#f0f0f3] leading-none">{s.value}</span>
-                  <span className="text-[16px] text-[#8b949e] font-medium ml-1">day</span>
+            <div 
+              key={i}
+              style={{
+                borderRadius: 20,
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                background: 'linear-gradient(135deg, rgba(13, 20, 38, 0.6) 0%, rgba(8, 12, 24, 0.8) 100%)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05)',
+                backdropFilter: 'blur(20px)',
+                padding: '20px 28px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '220px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{
+                  fontSize: 54,
+                  lineHeight: 1,
+                  filter: 'drop-shadow(0 0 12px rgba(249,115,22,0.5))'
+                }}>
+                  {s.icon}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                  <span style={{ fontSize: 44, fontWeight: 900, color: '#ffffff', lineHeight: 1 }}>{s.value}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: '#cbd5e1' }}>{s.value === 1 ? 'day' : 'days'}</span>
                 </div>
-                <p className="text-[12px] text-[#8b949e] mt-1">{s.label}</p>
               </div>
+              <p style={{
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: '#8b949e',
+                marginTop: 12,
+                margin: '12px 0 0',
+                textAlign: 'center',
+                letterSpacing: '0.01em'
+              }}>
+                {s.label}
+              </p>
             </div>
           ))}
         </div>
@@ -1050,55 +1287,120 @@ function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
 
       {/* ── Achievement Badges ── */}
       <div>
-        <div className="flex items-center gap-3 mb-4">
-          <h2 className="text-[17px] font-bold text-[#f0f0f3]">Achievement Badges</h2>
-          <span className="text-[13px] text-[#8b949e]">{earnedCount} / {badges.length} earned</span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 16 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f3', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em' }}>Achievement Badges</h2>
+          <span style={{ fontSize: 13, color: '#8b949e', fontWeight: 500 }}>{earnedCount} / {badges.length} earned</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {badges.map((b, i) => (
-            <motion.div
-              key={b.id}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              onClick={() => b.unlocked && setShowPopup(b)}
-              className={`relative rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col items-center gap-2 ${
-                b.unlocked
-                  ? 'bg-[#161b22] border border-amber-500/30 shadow-lg shadow-amber-500/10 hover:border-amber-500/60 hover:shadow-amber-500/20'
-                  : 'bg-[#0d1117] border border-[#21262d]'
-              }`}
-            >
-              {/* Badge icon area */}
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-1 ${
-                b.unlocked ? 'bg-amber-500/15' : 'bg-[#161b22] border border-[#21262d]'
-              }`}>
-                {b.icon && b.icon.length <= 2
-                  ? <span className={`text-[32px] ${!b.unlocked ? 'grayscale opacity-50' : ''}`}>{b.icon}</span>
-                  : <Badge badge={b} />
-                }
-              </div>
-
-              <p className={`text-[13px] font-semibold leading-snug ${b.unlocked ? 'text-[#f0f0f3]' : 'text-[#6e7681]'}`}>
-                {b.name}
-              </p>
-              <p className={`text-[11px] leading-relaxed ${b.unlocked ? 'text-[#8b949e]' : 'text-[#484f58]'}`}>
-                {b.desc}
-              </p>
-
-              {b.unlocked
-                ? <span className="text-[11px] text-amber-400 font-semibold mt-1">+100 XP</span>
-                : <Lock size={13} className="text-[#484f58] mt-1" />
-              }
-
-              {/* Locked overlay icon at bottom-left */}
-              {!b.unlocked && (
-                <div className="absolute bottom-3 left-3">
-                  <Lock size={12} className="text-[#484f58]" />
+          {badges.map((b, i) => {
+            const cardBg = b.unlocked
+              ? 'linear-gradient(135deg, rgba(20, 25, 45, 0.7) 0%, rgba(10, 14, 28, 0.9) 100%)'
+              : 'rgba(255,255,255,0.02)';
+            const cardBorder = b.unlocked
+              ? '1px solid rgba(245, 158, 11, 0.25)'
+              : '1px solid rgba(255, 255, 255, 0.05)';
+            const cardGlow = b.unlocked
+              ? '0 8px 32px rgba(0,0,0,0.4), 0 0 16px rgba(245,158,11,0.08), inset 0 1px 1px rgba(255,255,255,0.05)'
+              : 'none';
+              
+            return (
+              <motion.div
+                key={b.id}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                onClick={() => b.unlocked && setShowPopup(b)}
+                style={{
+                  position: 'relative',
+                  borderRadius: 20,
+                  border: cardBorder,
+                  background: cardBg,
+                  boxShadow: cardGlow,
+                  backdropFilter: 'blur(20px)',
+                  padding: '24px 16px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: b.unlocked ? 'pointer' : 'default',
+                  transition: 'all 0.2s ease-in-out'
+                }}
+                className={b.unlocked ? 'hover:scale-[1.02] hover:brightness-110' : ''}
+              >
+                {/* Badge icon area */}
+                <div style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                  background: b.unlocked 
+                    ? 'linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(217,119,6,0.28) 100%)' 
+                    : 'rgba(255,255,255,0.035)',
+                  border: b.unlocked
+                    ? '1px solid rgba(245,158,11,0.35)'
+                    : '1px solid rgba(255,255,255,0.05)',
+                  boxShadow: b.unlocked ? 'inset 0 1px 0 rgba(255,255,255,0.1)' : 'none'
+                }}>
+                  {b.icon && b.icon.length <= 2
+                    ? <span style={{ fontSize: 30, filter: b.unlocked ? 'drop-shadow(0 0 6px rgba(245,158,11,0.5))' : 'grayscale(100%) opacity(40%)' }}>{b.icon}</span>
+                    : <Badge badge={b} />
+                  }
                 </div>
-              )}
-            </motion.div>
-          ))}
+
+                <p style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: b.unlocked ? '#ffffff' : '#8c95a0',
+                  margin: 0,
+                  lineHeight: 1.3,
+                  textAlign: 'center',
+                  fontFamily: 'Inter, sans-serif'
+                }}>
+                  {b.name}
+                </p>
+                <p style={{
+                  fontSize: 11,
+                  color: b.unlocked ? '#94a3b8' : '#57606a',
+                  margin: '4px 0 8px',
+                  textAlign: 'center',
+                  lineHeight: 1.4,
+                  fontFamily: 'Inter, sans-serif'
+                }}>
+                  {b.desc}
+                </p>
+
+                {b.unlocked ? (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', marginTop: 'auto' }}>+100 XP</span>
+                ) : (
+                  <span style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', minHeight: 16 }} />
+                )}
+
+                {/* Golden Indicator Dot for Unlocked Badges (bottom-left) */}
+                {b.unlocked && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 12,
+                    left: 12,
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: '#f59e0b',
+                    boxShadow: '0 0 8px #f59e0b'
+                  }} />
+                )}
+
+                {/* Locked overlay lock icon (bottom-right) */}
+                {!b.unlocked && (
+                  <div style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                    <Lock size={12} className="text-[#484f58]" />
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -1112,8 +1414,8 @@ const TABS = [
   { id: 'identity', label: 'Identity',   icon: Star   },
   { id: 'quests',   label: 'Quests',     icon: Scroll },
   { id: 'grind',    label: 'Grind Room', icon: Clock  },
-  { id: 'peers',    label: 'Peers',      icon: Swords },
-  { id: 'guilds',   label: 'Guilds',     icon: Users  },
+  { id: 'peers',    label: 'Peers',      icon: Users  },
+  { id: 'guilds',   label: 'Guilds',     icon: Brain  },
   { id: 'badges',   label: 'Badges',     icon: Trophy },
 ];
 
@@ -1189,27 +1491,43 @@ export default function Gamification() {
   }
 
   return (
-    <div className="px-6 py-6 md:px-10 md:py-8 pb-24 lg:pb-10 min-h-screen" style={{ background: 'radial-gradient(ellipse at top, rgba(99,102,241,0.04) 0%, transparent 60%), #09090b' }}>
+    <div className="page-container min-h-screen pb-2" style={{ background: 'radial-gradient(ellipse at top, rgba(99,102,241,0.04) 0%, transparent 60%), #09090b' }}>
       <AnimatePresence>{showPopup && <AchievementPopup badge={showPopup} onClose={() => setShowPopup(null)} />}</AnimatePresence>
 
+      {/* ── Breadcrumbs ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
+        <span>BeyondSelf</span>
+        <span style={{ color: '#475569' }}>/</span>
+        <span style={{ color: '#ffffff' }}>Rewards &amp; Achievements</span>
+      </div>
+
       {/* Header */}
-      <div className="mb-6">
+      <div style={{ marginBottom: 24 }}>
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-[22px] font-black text-[#f0f0f3] tracking-tight">⚔️ Life Arena</h1>
-            <p className="text-[12px] text-[#71717a] mt-0.5">Anonymous RPG · {tier.name} Tier · {xp.toLocaleString()} XP</p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <div className="text-right">
-              <p className="text-[11px] text-[#71717a] font-semibold uppercase tracking-wider">{codename}</p>
-              <p className="text-[10px] font-bold" style={{ color: tier.color }}>{tier.name}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', flexShrink: 0 }}>
+              <Star style={{ width: 20, height: 20 }} />
             </div>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl border border-white/[0.08]"
-              style={{ background: `radial-gradient(circle at 30% 30%, ${tier.bg}, #111318)`, boxShadow: `0 0 20px ${tier.color}25` }}>
+            <h1 className="text-2xl font-bold text-white tracking-tight m-0 flex items-center gap-2">Rewards &amp; Achievements ⚔️</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-[11.5px] text-white font-extrabold uppercase tracking-wide m-0">{codename}</p>
+              <p className="text-[10.5px] font-bold mt-0.5" style={{ color: '#71717a' }}>{tier.name}</p>
+            </div>
+            <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-[18px] border border-white/[0.08]"
+              style={{ 
+                background: `radial-gradient(circle at 30% 30%, rgba(129, 140, 248, 0.15), #0c0e17)`, 
+                boxShadow: `0 0 16px rgba(129, 140, 248, 0.25)`,
+                border: '1px solid rgba(129, 140, 248, 0.35)'
+              }}>
               🧬
             </div>
           </div>
         </div>
+        <p style={{ fontSize: 13, color: '#8e929b', marginTop: 8, marginBottom: 0 }}>
+          Anonymous RPG • {tier.name} Tier • <span style={{ color: '#818cf8', fontWeight: 'bold' }}>{xp.toLocaleString()} XP</span>
+        </p>
 
         {isRecovery && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
@@ -1221,16 +1539,45 @@ export default function Gamification() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 mb-6 p-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] flex-wrap">
+      <div 
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          marginBottom: 24,
+          gap: 24,
+          overflowX: 'auto',
+          paddingBottom: 0
+        }}
+      >
         {TABS.map(t => {
           const Icon = t.icon;
+          const isActive = tab === t.id;
           return (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 flex-1 justify-center text-[11px] px-3 py-2.5 rounded-xl font-semibold transition-all min-w-[80px] ${
-                tab === t.id ? 'bg-[#18181b] border border-white/[0.08] text-[#f0f0f3] shadow-lg' : 'text-[#71717a] hover:text-[#a1a1aa]'
-              }`}>
-              <Icon size={13} className={tab === t.id ? 'text-indigo-400' : ''} />
-              {t.label}
+            <button 
+              key={t.id} 
+              onClick={() => setTab(t.id)}
+              style={{
+                padding: '10px 4px',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: 'none',
+                background: 'none',
+                color: isActive ? '#ffffff' : '#8e929b',
+                position: 'relative',
+                transition: 'all 0.2s ease',
+                borderBottom: isActive ? '2px solid #8b5cf6' : '2px solid transparent',
+                outline: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                whiteSpace: 'nowrap',
+                marginBottom: -1
+              }}
+            >
+              <Icon size={14} className={`transition-all duration-200 ${isActive ? 'text-[#ffffff]' : 'text-[#71717a]'}`} />
+              <span>{t.label}</span>
             </button>
           );
         })}
@@ -1238,7 +1585,14 @@ export default function Gamification() {
 
       {/* Tab content */}
       <AnimatePresence mode="wait">
-        <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+        <motion.div 
+          key={tab} 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          exit={{ opacity: 0, y: -8 }} 
+          transition={{ duration: 0.15 }}
+          style={{ marginTop: 20 }}
+        >
           {tab === 'identity' && <IdentityPanel codename={codename} tier={tier} xp={xp} stats={stats} prevStats={prevStats} isRecovery={isRecovery} />}
           {tab === 'quests'   && <QuestsPanel stats={stats} codename={codename} isRecovery={isRecovery} activeChallenges={activeChallenges} toggleChallenge={toggleChallenge} health={h} finance={f} career={c} />}
           {tab === 'grind'    && <GrindRoomPanel onXP={handleGrindXP} />}

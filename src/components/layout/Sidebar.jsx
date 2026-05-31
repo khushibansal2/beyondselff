@@ -36,7 +36,7 @@ const navSections = [
       { path: '/insights',    label: 'Insights',    icon: Brain,          color: '#8b5cf6' },
       { path: '/neural-core', label: 'Neural Core', icon: Dna,            color: '#10b981' },
       { path: '/coach',       label: 'AI Coach',    icon: MessageSquare,  color: '#6366f1' },
-      { path: '/gamification',label: 'Rewards',     icon: Star,           color: '#f59e0b' },
+      { path: '/gamification',label: 'Rewards',     icon: Star,           color: '#818cf8' },
       { path: '/market',      label: 'Life Market', icon: ArrowLeftRight, color: '#f43f5e' },
       { path: '/stress-test', label: 'Stress Test',  icon: AlertTriangle, color: '#ef4444' },
       { path: '/future-you',   label: 'Future You',    icon: TrendingUp,    color: '#6366f1' },
@@ -45,12 +45,11 @@ const navSections = [
     ],
   },
   {
-    label: 'Integrations',
+    label: 'Tools',
     items: [
       { path: '/sustainability', label: 'Sustainability', icon: Leaf,     color: '#10b981' },
       { path: '/upload',         label: 'Data Import',   icon: Upload,   color: '#06b6d4' },
       { path: '/integrations',   label: 'Integrations',  icon: Link2,    color: '#8b5cf6' },
-      { path: '/settings',       label: 'Settings',      icon: Settings, color: '#94a3b8' },
     ],
   },
 ];
@@ -204,98 +203,93 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="flex-shrink-0 p-4 space-y-4">
+      <div className="flex-shrink-0 p-4 space-y-3.5">
         
         {(!collapsed || mobile) ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3.5">
             {/* User Profile Card */}
-            <div className="bg-[#1e2136] rounded-[20px] p-4 flex flex-col gap-3">
+            <div className="bg-[#1b1e32]/45 border border-white/[0.04] rounded-[20px] p-4 flex flex-col gap-3" style={{ backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.02)' }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
-                  <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover"
-                    onError={e => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='flex'); }} />
-                  <div className="w-full h-full items-center justify-center text-[10px] font-bold text-slate-300" style={{display:'none'}}>
-                    {user?.name?.[0] || 'U'}
-                  </div>
+                <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[13px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
+                  {(user?.name || 'Yash')[0].toUpperCase()}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[13px] font-bold text-white tracking-wide truncate">{user?.name || 'User'}</span>
-                  <span className="text-[10px] text-slate-500">Digital Twin Active</span>
+                  <span className="text-[13.5px] font-black text-white tracking-wide truncate">{(user?.name || 'YASH').toUpperCase()}</span>
+                  <span className="text-[10.5px] text-slate-500 font-medium">Level {level}</span>
                 </div>
               </div>
 
-              {/* Mini Score Strip */}
-              {(() => {
-                const hs = computed?.healthScore?.score  ?? 0;
-                const fs = computed?.financeScore?.score ?? 0;
-                const cs = computed?.careerScore?.score  ?? 0;
-                const scores = [
-                  { label: 'Health',  value: hs, color: '#10b981' },
-                  { label: 'Finance', value: fs, color: '#f59e0b' },
-                  { label: 'Career',  value: cs, color: '#3b82f6' },
-                ];
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                    {scores.map(s => (
-                      <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8', width: 40, flexShrink: 0 }}>{s.label}</span>
-                        <div style={{ flex: 1, height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
-                          <motion.div
-                            initial={{ width: 0 }} animate={{ width: `${s.value}%` }} transition={{ duration: 1, ease: 'easeOut' }}
-                            style={{ height: '100%', borderRadius: 99, background: s.color, boxShadow: `0 0 6px ${s.color}80` }}
-                          />
-                        </div>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: s.color, width: 24, textAlign: 'right', flexShrink: 0 }}>{s.value}</span>
+              {/* Progress bar to next level */}
+              <div className="flex flex-col gap-2 mt-1.5">
+                <div className="w-full h-1.5 rounded-full bg-slate-950/80 border border-white/5 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${xpProgress}%` }}
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="h-full rounded-full"
+                    style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', boxShadow: '0 0 6px rgba(99,102,241,0.5)' }}
+                  />
+                </div>
+                <span className="text-[10.5px] text-slate-500 font-bold tracking-wide">{xpForNext - xp} XP to Level {level + 1}</span>
+              </div>
+            </div>
+
+            {/* Life Streak Calendar Block */}
+            <div className="bg-[#1b1e32]/25 border border-white/[0.03] rounded-[20px] p-4 flex flex-col gap-3" style={{ backdropFilter: 'blur(10px)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-[12px] font-black text-white">
+                  <span>🔥 Life Streak</span>
+                </div>
+                <span className="text-[12.5px] font-black text-slate-300">{gamification?.streak || 1} day</span>
+              </div>
+              <div className="flex justify-between items-center text-[10.5px] font-bold text-slate-500 px-0.5 mt-0.5">
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
+                  const today = new Date();
+                  const currentDayIdx = (today.getDay() + 6) % 7; // Monday = 0
+                  const isActive = idx === currentDayIdx;
+                  return (
+                    <div key={idx} className="flex flex-col items-center gap-2 flex-1">
+                      <span className={isActive ? 'text-slate-300' : 'text-slate-500'}>{day}</span>
+                      <div className="h-1.5 flex items-center justify-center">
+                        {isActive ? (
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#f97316] shadow-[0_0_8px_#f97316]" />
+                        ) : (
+                          <div className="w-1 h-1 rounded-full bg-slate-800" />
+                        )}
                       </div>
-                    ))}
-                  </div>
-                );
-              })()}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         ) : (
           /* Collapsed View */
           <div className="flex flex-col gap-3 items-center">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-teal-500/20">
-              <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
+            <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[13px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
+              {(user?.name || 'Yash')[0].toUpperCase()}
             </div>
-            {/* Mini score dots in collapsed mode */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-              {[
-                { color: '#10b981', v: computed?.healthScore?.score  ?? 0 },
-                { color: '#f59e0b', v: computed?.financeScore?.score ?? 0 },
-                { color: '#3b82f6', v: computed?.careerScore?.score  ?? 0 },
-              ].map((s, i) => (
-                <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: s.v > 0 ? s.color : 'rgba(255,255,255,0.1)' }} />
-              ))}
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-[10px] text-slate-500 font-bold">L1</span>
+              <span className="text-[10px] text-orange-400 font-black">🔥 1d</span>
             </div>
           </div>
         )}
 
         {/* Action buttons */}
-        <div className="flex gap-2 pt-2">
-          {(!collapsed || mobile) && (
-            <>
-              <button
-                onClick={() => !mobile && setCollapsed(!collapsed)}
-                className="flex-1 text-[11px] font-medium text-slate-400 hover:text-white py-2 px-3 rounded-xl hover:bg-white/[0.05] transition-all flex items-center justify-center gap-2"
-              >
-                <ChevronLeft size={14} />
-                <span>Collapse</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="text-[11px] font-medium text-slate-400 hover:text-red-400 py-2 px-3 rounded-xl hover:bg-red-500/[0.05] transition-all flex items-center justify-center gap-2"
-              >
-                <LogOut size={13} />
-                <span>Logout</span>
-              </button>
-            </>
-          )}
-          {collapsed && !mobile && (
+        <div className="flex flex-col gap-1.5 pt-2">
+          {(!collapsed || mobile) ? (
+            <button
+              onClick={handleLogout}
+              className="text-[12px] font-semibold text-slate-400 hover:text-white py-2 px-3 rounded-xl hover:bg-white/[0.04] transition-all flex items-center gap-2.5 w-full cursor-pointer"
+            >
+              <LogOut size={14} className="text-slate-400" />
+              <span>Logout</span>
+            </button>
+          ) : (
             <button
               onClick={() => setCollapsed(false)}
-              className="flex-1 text-slate-500 hover:text-slate-300 py-2 rounded-xl hover:bg-white/[0.05] transition-all flex items-center justify-center"
+              className="w-full text-slate-500 hover:text-slate-300 py-2 rounded-xl hover:bg-white/[0.04] transition-all flex items-center justify-center"
             >
               <ChevronRight size={15} />
             </button>

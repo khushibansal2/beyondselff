@@ -1900,70 +1900,208 @@ export default function Career() {
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-            {/* ── ROW 1: Career Score + 5 Metrics (6 equal columns) ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14 }}>
+            {/* ── ROW 1: Score card (1fr) + Metrics side (2fr) ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
 
               {/* Career Score Card */}
               <div style={{
-                background: 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(99,102,241,0.04) 100%)',
-                border: '1px solid rgba(139,92,246,0.15)',
+                background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.98) 0%, rgba(11, 13, 26, 0.99) 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.07)',
                 borderRadius: 16,
-                padding: '28px 16px 22px',
+                padding: '24px',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
               }}>
-                <div style={{ position: 'relative', width: 100, height: 100, marginBottom: 14 }}>
-                  <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-                    <defs>
-                      <filter id="score-glow-v2" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor={scoreColor} floodOpacity="0.5" />
-                      </filter>
-                    </defs>
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="6"/>
-                    <circle cx="50" cy="50" r="42" fill="none" stroke={scoreColor} strokeWidth="6"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 42}`}
-                      strokeDashoffset={`${2 * Math.PI * 42 * (1 - score / 100)}`}
-                      filter="url(#score-glow-v2)"
-                      style={{ transition: 'stroke-dashoffset 1s ease-out', transform: 'rotate(-90deg)', transformOrigin: '50px 50px' }}
-                    />
-                  </svg>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 30, fontWeight: 900, color: '#ffffff', lineHeight: 1, letterSpacing: '-0.02em' }}>{score}</span>
-                    <span style={{ fontSize: 10, color: '#64748b', fontWeight: 600, marginTop: 3 }}>/ 100</span>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+                      <svg viewBox="0 0 120 120" width="120" height="120">
+                        <defs>
+                          <linearGradient id="careerScoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor={score >= 70 ? '#10b981' : score >= 45 ? '#8b5cf6' : '#ef4444'} />
+                            <stop offset="100%" stopColor={score >= 70 ? '#34d399' : score >= 45 ? '#c084fc' : '#f87171'} />
+                          </linearGradient>
+                        </defs>
+                        <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="10"/>
+                        <circle cx="60" cy="60" r="48" fill="none"
+                          stroke="url(#careerScoreGrad)"
+                          strokeWidth="10" strokeLinecap="round"
+                          strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
+                          strokeDashoffset={2*Math.PI*48*(1-score/100)}
+                          style={{
+                            transform: 'rotate(-90deg)',
+                            transformOrigin: '60px 60px',
+                            transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            filter: score >= 70 ? 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.4))' : score >= 45 ? 'drop-shadow(0 0 6px rgba(139, 92, 246, 0.4))' : 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.4))'
+                          }}/>
+                      </svg>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: 34, fontWeight: 900, color: '#fff', lineHeight: 1, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>{score}</span>
+                        <span style={{ fontSize: 10, color: '#475569', marginTop: 2, fontWeight: 700, letterSpacing: '0.05em' }}>/ 100</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', fontFamily: 'var(--font-display)', marginBottom: 8, margin: '0 0 8px' }}>Career Score</p>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '4px 10px',
+                        borderRadius: '999px',
+                        marginBottom: 10,
+                        background: score >= 70 ? 'rgba(16, 185, 129, 0.12)' : score >= 45 ? 'rgba(139, 92, 246, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                        color: score >= 70 ? '#34d399' : score >= 45 ? '#a78bfa' : '#f87171',
+                        border: `1px solid ${score >= 70 ? 'rgba(16, 185, 129, 0.25)' : score >= 45 ? 'rgba(139, 92, 246, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: score >= 70 ? '#10b981' : score >= 45 ? '#8b5cf6' : '#ef4444', display: 'inline-block' }} />
+                        {score >= 70 ? 'Good' : score >= 45 ? 'Moderate' : 'Low'}
+                      </span>
+                      <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                        {weeklyStudyHrs > 0 ? `+${weeklyStudyHrs}h study this week` : '0h study this week'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Skill contributors panel */}
+                  <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 18 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>Career Contributors</span>
+                    
+                    {/* DSA Solved */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                        <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>🧩</span> DSA Practice
+                        </span>
+                        <span style={{ color: '#10b981', fontWeight: 700 }}>{c.dsaPractice} / 10 problems</span>
+                      </div>
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(100, (c.dsaPractice / 10) * 100)}%`, background: 'linear-gradient(90deg, #10b981, #34d399)', height: '100%', borderRadius: 999 }} />
+                      </div>
+                    </div>
+
+                    {/* Projects Completed */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                        <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>🚀</span> Projects Done
+                        </span>
+                        <span style={{ color: '#8b5cf6', fontWeight: 700 }}>{c.projectsCompleted} / 5</span>
+                      </div>
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(100, (c.projectsCompleted / 5) * 100)}%`, background: 'linear-gradient(90deg, #8b5cf6, #c084fc)', height: '100%', borderRadius: 999 }} />
+                      </div>
+                    </div>
+
+                    {/* Skills Portfolio */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                        <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>📚</span> Skills Portfolio
+                        </span>
+                        <span style={{ color: '#f59e0b', fontWeight: 700 }}>{c.skills.length} / 8</span>
+                      </div>
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(100, (c.skills.length / 8) * 100)}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', height: '100%', borderRadius: 999 }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', margin: '0 0 6px', textAlign: 'center' }}>Career Score</p>
-                <p style={{ fontSize: 11, color: weeklyStudyHrs > 0 ? '#10b981' : '#64748b', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <TrendingUp size={12} /> {weeklyStudyHrs > 0 ? `+${weeklyStudyHrs}h study this week` : '0h study this week'}
-                </p>
+
+                <button
+                  type="button"
+                  onClick={() => setTab('recommendations')}
+                  style={{
+                    marginTop: 24,
+                    padding: '10px 18px',
+                    borderRadius: 12,
+                    border: `1px solid ${score >= 70 ? 'rgba(16, 185, 129, 0.25)' : score >= 45 ? 'rgba(139, 92, 246, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+                    background: score >= 70 ? 'rgba(16, 185, 129, 0.06)' : score >= 45 ? 'rgba(139, 92, 246, 0.06)' : 'rgba(239, 68, 68, 0.06)',
+                    color: score >= 70 ? '#34d399' : score >= 45 ? '#c084fc' : '#f87171',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    alignSelf: 'flex-start',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'var(--font-display)',
+                    outline: 'none'
+                  }}
+                  className="hover:scale-[1.02] active:scale-[0.98] hover:brightness-110"
+                >
+                  View Insights
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                </button>
               </div>
 
-              {/* 5 Metric Cards */}
-              {[
-                { label: 'TOTAL XP', IconComp: Zap, color: '#f59e0b', value: statsData.totalXP.toLocaleString(), sub: `Level ${Math.floor(statsData.totalXP / 500) + 1}` },
-                { label: 'STREAK', IconComp: Flame, color: '#f43f5e', value: `${statsData.streak}d`, sub: statsData.streak > 0 ? 'Keep it going!' : 'Start your streak!' },
-                { label: 'TOTAL STUDY', IconComp: Clock, color: '#6366f1', value: `${Math.round(statsData.totalMinutes / 60)}h`, sub: 'Total study hours' },
-                { label: 'SESSIONS', IconComp: Calendar, color: '#8b5cf6', value: String(statsData.totalSessions), sub: 'Total focus sessions' },
-                { label: 'BEST TOPIC', IconComp: Trophy, color: '#10b981', value: statsData.bestTopic || '\u2014', sub: statsData.bestTopic && statsData.bestTopic !== '\u2014' ? 'Top performer' : 'Not enough data' },
-              ].map(m => (
-                <div key={m.label} style={{
-                  background: 'rgba(255,255,255,0.015)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 16,
-                  padding: '22px 20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-start',
-                }}>
-                  <m.IconComp size={22} color={m.color} strokeWidth={2} style={{ marginBottom: 16, opacity: 0.9 }} />
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>{m.label}</p>
-                  <p style={{ fontSize: 28, fontWeight: 900, color: '#ffffff', lineHeight: 1, margin: '0 0 6px', letterSpacing: '-0.01em' }}>{m.value}</p>
-                  <p style={{ fontSize: 11, color: '#64748b', margin: 0, fontWeight: 500 }}>{m.sub}</p>
+              {/* Metrics side */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                  {[
+                    { label: 'TOTAL XP', IconComp: Zap, color: '#f59e0b', value: statsData.totalXP.toLocaleString(), sub: `Level ${Math.floor(statsData.totalXP / 500) + 1}` },
+                    { label: 'STREAK', IconComp: Flame, color: '#f43f5e', value: `${statsData.streak}d`, sub: statsData.streak > 0 ? 'Keep it going!' : 'Start your streak!' },
+                    { label: 'TOTAL STUDY', IconComp: Clock, color: '#6366f1', value: `${Math.round(statsData.totalMinutes / 60)}h`, sub: 'Total study hours' },
+                    { label: 'SESSIONS', IconComp: Calendar, color: '#8b5cf6', value: String(statsData.totalSessions), sub: 'Total focus sessions' },
+                    { label: 'BEST TOPIC', IconComp: Trophy, color: '#10b981', value: statsData.bestTopic || '\u2014', sub: statsData.bestTopic && statsData.bestTopic !== '\u2014' ? 'Top topic' : 'Not enough data' },
+                    { label: 'READINESS', IconComp: Target, color: '#3b82f6', value: `${placementReadiness}%`, sub: 'Placement readiness' },
+                  ].map(m => (
+                    <div key={m.label} style={{
+                      background: 'rgba(15,20,35,0.98)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      borderRadius: 16,
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 6, background: m.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <m.IconComp size={13} color={m.color} />
+                        </div>
+                        <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{m.label}</span>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>{m.value}</p>
+                        <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{m.sub}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+
+                {/* Placement Readiness Card */}
+                <div style={{
+                  background: 'rgba(15,20,35,0.98)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 16,
+                  padding: '16px 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 16
+                }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#818cf8', flexShrink: 0 }}>🎯</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 90, flexShrink: 0 }}>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Placement Readiness</p>
+                    <p style={{ fontSize: 20, fontWeight: 800, color: scoreColor, margin: 0 }}>{placementReadiness}%</p>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0' }}>score</p>
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', marginLeft: 16 }}>
+                    <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10, margin: '0 0 10px' }}>Aim for 75%+ to be highly competitive for roles.</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, placementReadiness)}%` }} transition={{ duration: 1, ease: 'easeOut' }}
+                          style={{ height: '100%', borderRadius: 3, background: scoreColor }} />
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>{placementReadiness}%</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
             {/* ── ROW 2: Cognitive Load + Skill Radar + Skills Portfolio (3 equal columns) ── */}

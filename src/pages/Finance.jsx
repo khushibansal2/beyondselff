@@ -1731,37 +1731,42 @@ export default function Finance() {
 
 
 
+      {/* ── Breadcrumbs ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
+        <span>BeyondSelf</span>
+        <span style={{ color: '#475569' }}>/</span>
+        <span style={{ color: '#ffffff' }}>Financial Intelligence</span>
+      </div>
+
       {/* ── Page Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: 28,
-          height: 28,
-          borderRadius: 7,
+          width: 32,
+          height: 32,
+          borderRadius: 8,
           background: 'rgba(139, 92, 246, 0.15)',
           color: '#8b5cf6',
           flexShrink: 0
         }}>
-          <svg style={{ width: 16, height: 16 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg style={{ width: 20, height: 20 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <path d="m19 8-5 5-3-3-5 5" />
           </svg>
         </div>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Financial Intelligence</h1>
-        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Financial Intelligence</h1>
       </div>
-      <p style={{ fontSize: 12, color: '#8e929b', marginTop: 1, marginBottom: 12 }}>AI-powered transaction parsing, live feed, and spending analytics.</p>
+      <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>AI-powered transaction parsing, live feed, and spending analytics.</p>
 
       {/* Tab bar */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        marginBottom: 14,
-        gap: 20,
+        marginBottom: 24,
+        gap: 24,
         overflowX: 'auto',
         paddingBottom: 0
       }}>
@@ -1772,9 +1777,9 @@ export default function Finance() {
               key={t.id}
               onClick={() => setTab(t.id)}
               style={{
-                padding: '8px 4px',
+                padding: '10px 4px',
                 fontSize: 13,
-                fontWeight: 500,
+                fontWeight: 600,
                 cursor: 'pointer',
                 border: 'none',
                 background: 'none',
