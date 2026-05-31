@@ -8,7 +8,7 @@ import { generateTrendData } from '../data/demoData';
 import { ScoreRing, GlassCard, PageHeader, MetricCard, showToast, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, CartesianGrid } from 'recharts';
-import { Activity, FileText, TrendingUp, TrendingDown, Sparkles, Pause, Play, Award, Coins } from 'lucide-react';
+import { Activity, FileText, TrendingUp, TrendingDown, Sparkles, Pause, Play, Award, Coins, Search, Info, ChevronDown, Clipboard } from 'lucide-react';
 import {
   parseTransactionSMS, detectOTP, CATEGORY_META, SAMPLE_MESSAGES, MERCHANT_MAP,
 } from '../services/transactionParserService';
@@ -853,6 +853,7 @@ export default function Finance() {
   const [tab, setTab] = useState('overview');
   const [txFilter, setTxFilter] = useState('All');
   const [txSearch, setTxSearch] = useState('');
+  const [isTxDropdownOpen, setIsTxDropdownOpen] = useState(false);
 
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const h = { sleepAvg: 7, stressLevel: 5, workoutsPerWeek: 2, ...(health || {}) };
@@ -1608,55 +1609,58 @@ export default function Finance() {
 
       {/* ── LIVE FEED TAB ─────────────────────────────────────────────────── */}
       {tab === 'live' && (
-        <div className="flex flex-col gap-6 relative z-10">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative', zIndex: 10 }}>
 
           {/* Header row */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <div className="flex items-center gap-2">
-                <Activity className="text-indigo-400" size={18} />
-                <h3 className="text-base font-extrabold text-slate-100 uppercase tracking-widest font-mono">Live Transaction Simulator</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Activity size={20} color="#818cf8" />
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Live Transaction Simulator</h3>
               </div>
-              <p className="text-xs text-slate-400 mt-1">Simulates real-time payment notifications — impressive for live data demonstrations.</p>
+              <p style={{ fontSize: 13, color: '#94a3b8', margin: '4px 0 0 0' }}>Simulates real-time payment notifications — impressive for live data demonstrations.</p>
             </div>
-            <div className="flex items-center gap-3.5 self-start sm:self-auto">
-              <span className="text-xs text-slate-500 font-mono font-bold uppercase">Speed</span>
-              <div className="flex bg-white/5 border border-white/[0.06] rounded-xl p-1 gap-1">
-                {Object.keys(SPEED_OPTIONS).map(s => (
-                  <motion.button 
-                    key={s} 
-                    onClick={() => setLiveSpeed(s)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all ${
-                      liveSpeed === s 
-                        ? 'bg-indigo-500 text-white shadow-[0_2px_8px_rgba(99,102,241,0.4)]' 
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                  >
-                    {s}
-                  </motion.button>
-                ))}
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>SPEED</span>
+                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 4, gap: 4 }}>
+                  {Object.keys(SPEED_OPTIONS).map(s => (
+                    <motion.button 
+                      key={s} 
+                      onClick={() => setLiveSpeed(s)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      style={{
+                        padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                        background: liveSpeed === s ? '#6366f1' : 'transparent',
+                        color: liveSpeed === s ? '#ffffff' : '#94a3b8',
+                        boxShadow: liveSpeed === s ? '0 2px 8px rgba(99,102,241,0.4)' : 'none'
+                      }}
+                    >
+                      {s}
+                    </motion.button>
+                  ))}
+                </div>
               </div>
               
               <motion.button 
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => { setLiveActive(v => !v); if (liveActive) liveCountRef.current = 0; }}
-                className={`px-4.5 py-2.5 rounded-xl border text-xs font-bold font-mono tracking-wide flex items-center gap-2 cursor-pointer transition-all shadow-[0_4px_16px_rgba(0,0,0,0.2)] ${
-                  liveActive 
-                    ? 'border-rose-500/30 bg-rose-500/10 text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.15)]' 
-                    : 'border-indigo-500/30 bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)]'
-                }`}
+                style={{
+                  padding: '10px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: liveActive ? 'rgba(244,63,94,0.1)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  border: liveActive ? '1px solid rgba(244,63,94,0.3)' : '1px solid rgba(255,255,255,0.1)',
+                  color: liveActive ? '#fb7185' : '#ffffff',
+                  boxShadow: liveActive ? '0 0 12px rgba(244,63,94,0.15)' : '0 4px 12px rgba(99,102,241,0.25)'
+                }}
               >
                 {liveActive ? (
-                  <>
-                    <Pause size={14} className="animate-pulse" /> Stop Simulation
-                  </>
+                  <><Pause size={16} className="animate-pulse" /> Stop Simulation</>
                 ) : (
-                  <>
-                    <Play size={14} /> Start Simulation
-                  </>
+                  <><Play size={16} /> Start Simulation</>
                 )}
               </motion.button>
             </div>
@@ -1664,46 +1668,44 @@ export default function Finance() {
 
           {liveActive && (
             <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', borderRadius: 12, background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)' }}
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span style={{ position: 'relative', display: 'flex', width: 8, height: 8 }}>
+                <span style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: '50%', background: '#34d399', opacity: 0.75, animation: 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite' }}></span>
+                <span style={{ position: 'relative', width: 8, height: 8, borderRadius: '50%', background: '#10b981' }}></span>
               </span>
-              <p className="text-xs font-bold text-emerald-400 font-mono uppercase tracking-wide">
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#34d399', margin: 0 }}>
                 Active Streaming — {liveTxs.length} transactions · Total: ₹{Math.round(liveTotal).toLocaleString()}
               </p>
             </motion.div>
           )}
 
           {/* Two-column grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 16 }}>
 
             {/* Left: Incoming Transactions */}
-            <div className="lg:col-span-2 rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.25)] min-h-[300px]">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest font-mono">Incoming Live Stream</h3>
-                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider bg-white/5 border border-white/5 px-2 py-0.5 rounded font-mono">Real-time ledger</span>
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', minHeight: 300 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Incoming Live Stream</h3>
+                <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 6 }}>Real-Time Ledger</span>
               </div>
               
               {liveTxs.length === 0 ? (
-                <div className="flex flex-col gap-3 py-16 border border-dashed border-white/10 rounded-2xl items-center justify-center text-center flex-1">
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '60px 0', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, background: 'rgba(255,255,255,0.02)', gap: 16 }}>
                   <motion.div 
-                    animate={{ scale: [1, 1.08, 1] }} 
-                    transition={{ repeat: Infinity, duration: 2.5 }}
-                    className="w-12 h-12 rounded-full border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.15)] text-indigo-300"
+                    animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2.5 }}
+                    style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}
                   >
                     ⚡
                   </motion.div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-300">Live Simulation Standby</p>
-                    <p className="text-[10px] text-slate-500 mt-1 max-w-xs leading-normal">Click "Start Simulation" at the top right to stream mock credit/debit alerts into your digital twin.</p>
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#e2e8f0', margin: '0 0 6px' }}>Live Simulation Standby</p>
+                    <p style={{ fontSize: 13, color: '#64748b', maxWidth: 300, lineHeight: 1.5, margin: 0 }}>Click "Start Simulation" at the top right to stream mock credit/debit alerts into your digital twin.</p>
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-3.5 max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 460, overflowY: 'auto', paddingRight: 4 }}>
                   <AnimatePresence initial={false}>
                     {liveTxs.map(tx => (
                       <TxCard key={tx.id} tx={tx} />
@@ -1714,45 +1716,42 @@ export default function Finance() {
             </div>
 
             {/* Right: Live Category Breakdown */}
-            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-violet-500/5 blur-2xl pointer-events-none" />
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, right: 0, width: 96, height: 96, borderRadius: '50%', background: 'rgba(139,92,246,0.05)', filter: 'blur(24px)', pointerEvents: 'none' }} />
               
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest font-mono">Live Breakdown</h3>
-                <span className="text-[10px] text-slate-500 font-bold uppercase cursor-help bg-white/5 border border-white/5 px-2 py-0.5 rounded font-mono" title="Updates automatically as transactions stream in">reactive</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Live Breakdown</h3>
+                <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 6 }} title="Updates automatically as transactions stream in">Reactive</span>
               </div>
               
               {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-3 flex-1">
-                  <div className="w-10 h-10 rounded-full border border-dashed border-white/10 flex items-center justify-center text-slate-600 text-lg">📊</div>
-                  <p className="text-[11px] text-slate-500 font-bold tracking-wide uppercase font-mono">Waiting for data...</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '80px 0', gap: 16 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>📊</div>
+                  <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600, margin: 0 }}>Waiting for data...</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-3.5">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).map((cat, i) => {
                     const meta = CATEGORY_META[cat.name] || CATEGORY_META.Others;
                     const max = categoryTotals[0]?.value || 1;
                     return (
                       <motion.div 
                         key={cat.name} 
-                        initial={{ opacity: 0, x: 10 }} 
-                        animate={{ opacity: 1, x: 0 }} 
-                        transition={{ delay: i * 0.05 }}
-                        className="p-3.5 rounded-xl border border-white/[0.05] bg-white/[0.01] hover:bg-white/[0.03] transition-all"
+                        initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                        style={{ padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}
                       >
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
-                            <span className="text-sm">{meta.icon}</span> {cat.name}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                          <span style={{ fontSize: 14, color: '#e2e8f0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 18 }}>{meta.icon}</span> {cat.name}
                           </span>
-                          <span className="text-xs font-black font-mono text-slate-200">
+                          <span style={{ fontSize: 14, fontWeight: 700, color: '#f8fafc' }}>
                             ₹{cat.value.toLocaleString()}
                           </span>
                         </div>
-                        <div className="h-1.5 bg-slate-950/60 rounded-full overflow-hidden">
+                        <div style={{ height: 6, background: 'rgba(0,0,0,0.6)', borderRadius: 3, overflow: 'hidden' }}>
                           <motion.div 
                             animate={{ width: `${(cat.value / max) * 100}%` }} 
-                            className="h-full rounded-full" 
-                            style={{ background: meta.color }} 
+                            style={{ height: '100%', borderRadius: 3, background: meta.color }} 
                           />
                         </div>
                       </motion.div>
@@ -1921,8 +1920,9 @@ export default function Finance() {
             <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex flex-col gap-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-sm font-black text-slate-100 flex items-center gap-2">
-                    Ledger Account Logs <span className="text-xs font-mono font-normal text-slate-500">({filteredTxs.length})</span>
+                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                    Ledger Account Logs
+                    <Info size={14} className="text-slate-400 cursor-pointer hover:text-slate-200 transition-colors" title="Explore your historical bank notification flow" />
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">Explore your historical bank notification flow.</p>
                 </div>
@@ -1944,8 +1944,8 @@ export default function Finance() {
                 
                 {/* Search Field */}
                 <div className="relative flex items-center w-full md:w-72">
-                  <span className="absolute left-3.5 text-slate-500">
-                    <Sparkles size={12} className="animate-pulse" />
+                  <span className="absolute left-3.5 text-slate-400 flex items-center justify-center pointer-events-none">
+                    <Search size={14} />
                   </span>
                   <input
                     type="text"
@@ -1966,36 +1966,117 @@ export default function Finance() {
 
                 {/* Category Pills */}
                 <div className="flex flex-wrap gap-2 items-center max-w-full overflow-x-auto no-scrollbar py-0.5">
-                  {filterCategories.map(cat => {
-                    const isActive = txFilter === cat;
-                    const meta = CATEGORY_META[cat] || { color: '#6366f1' };
+                  {(() => {
+                    const visibleCategories = ['All', 'Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Education'];
+                    const dropdownCategories = ['Groceries', 'Investments', 'Others'];
+                    const isDropdownActive = dropdownCategories.includes(txFilter);
+                    
                     return (
-                      <motion.button
-                        key={cat}
-                        onClick={() => setTxFilter(cat)}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        style={{
-                          borderColor: isActive ? `${meta.color}50` : 'rgba(255,255,255,0.06)',
-                          background: isActive ? `${meta.color}15` : 'rgba(255,255,255,0.02)',
-                          color: isActive ? meta.color : '#94a3b8'
-                        }}
-                        className="px-3.5 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-wide border cursor-pointer transition-all"
-                      >
-                        {cat}
-                      </motion.button>
+                      <>
+                        {visibleCategories.map(cat => {
+                          const isActive = txFilter === cat;
+                          const meta = CATEGORY_META[cat] || { color: '#6366f1' };
+                          return (
+                            <motion.button
+                              key={cat}
+                              onClick={() => {
+                                setTxFilter(cat);
+                                setIsTxDropdownOpen(false);
+                              }}
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
+                              style={{
+                                backgroundColor: isActive ? (meta.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
+                                borderColor: isActive ? 'transparent' : 'rgba(255,255,255,0.08)',
+                                color: isActive ? '#ffffff' : '#94a3b8'
+                              }}
+                              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all"
+                            >
+                              {cat}
+                            </motion.button>
+                          );
+                        })}
+
+                        {/* Collapsed Dropdown Pill */}
+                        <div className="relative">
+                          <motion.button
+                            onClick={() => setIsTxDropdownOpen(!isTxDropdownOpen)}
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            style={{
+                              backgroundColor: isDropdownActive ? (CATEGORY_META[txFilter]?.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
+                              borderColor: isDropdownActive ? 'transparent' : 'rgba(255,255,255,0.08)',
+                              color: isDropdownActive ? '#ffffff' : '#94a3b8'
+                            }}
+                            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all flex items-center gap-1"
+                          >
+                            <span>{isDropdownActive ? `${txFilter}` : 'More'}</span>
+                            <ChevronDown size={12} className={`transition-transform duration-200 ${isTxDropdownOpen ? 'rotate-180' : ''}`} />
+                          </motion.button>
+
+                          <AnimatePresence>
+                            {isTxDropdownOpen && (
+                              <>
+                                <div 
+                                  className="fixed inset-0 z-40" 
+                                  onClick={() => setIsTxDropdownOpen(false)}
+                                />
+                                <motion.div
+                                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                                  transition={{ duration: 0.12 }}
+                                  className="absolute right-0 mt-2 w-40 rounded-xl border border-white/[0.08] bg-slate-900/95 backdrop-blur-xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col gap-0.5"
+                                >
+                                  {dropdownCategories.map(cat => {
+                                    const isCatActive = txFilter === cat;
+                                    const meta = CATEGORY_META[cat] || { color: '#6366f1' };
+                                    return (
+                                      <button
+                                        key={cat}
+                                        onClick={() => {
+                                          setTxFilter(cat);
+                                          setIsTxDropdownOpen(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-between ${
+                                          isCatActive 
+                                            ? 'bg-white/[0.08] text-white' 
+                                            : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-xs">{meta.icon}</span>
+                                          <span>{cat}</span>
+                                        </div>
+                                        {isCatActive && (
+                                          <span 
+                                            className="w-1.5 h-1.5 rounded-full" 
+                                            style={{ backgroundColor: meta.color }}
+                                          />
+                                        )}
+                                      </button>
+                                    );
+                                  })}
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </>
                     );
-                  })}
+                  })()}
                 </div>
               </div>
 
               {/* Transactions stream list */}
               {filteredTxs.length === 0 ? (
-                <div className="flex flex-col gap-2.5 py-14 border border-dashed border-white/10 rounded-2xl items-center justify-center text-center">
-                  <span className="text-2xl opacity-60">📋</span>
+                <div className="flex flex-col gap-3 py-16 border border-dashed border-white/[0.08] bg-slate-950/20 rounded-2xl items-center justify-center text-center">
+                  <div className="w-14 h-14 rounded-full bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.12)]">
+                    <Clipboard size={22} className="opacity-80" />
+                  </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400">No matching logs found</p>
-                    <p className="text-[10px] text-slate-600 mt-1">Try modifying your search filter keywords.</p>
+                    <p className="text-xs font-bold text-slate-200">No matching logs found</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Try modifying your search filter keywords.</p>
                   </div>
                 </div>
               ) : (

@@ -532,101 +532,161 @@ function NutritionPanel({ healthData, updateDomain }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="flex flex-col gap-6 relative z-10">
+      
+      {/* Top 4 Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        {/* Card 1: Total Calories */}
+        <motion.div 
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+        >
+          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-orange-500/5 blur-xl pointer-events-none" />
+          <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 shrink-0 shadow-[0_0_10px_rgba(244,63,94,0.1)]">
+            <Flame size={18} />
+          </div>
+          <div>
+            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Calories</p>
+            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.totalCalories || 0}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Target: {profile.targetCalories} kcal</p>
+          </div>
+        </motion.div>
+
+        {/* Card 2: Protein */}
+        <motion.div 
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+        >
+          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+            <Activity size={18} />
+          </div>
+          <div>
+            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Protein</p>
+            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.macros?.protein || 0}g</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Total ingested</p>
+          </div>
+        </motion.div>
+
+        {/* Card 3: Carbs */}
+        <motion.div 
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+        >
+          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-amber-500/5 blur-xl pointer-events-none" />
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.1)]">
+            <Activity size={18} />
+          </div>
+          <div>
+            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Carbs</p>
+            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.macros?.carbs || 0}g</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Total ingested</p>
+          </div>
+        </motion.div>
+
+        {/* Card 4: Fats */}
+        <motion.div 
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+        >
+          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-rose-500/5 blur-xl pointer-events-none" />
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0 shadow-[0_0_10px_rgba(244,63,94,0.1)]">
+            <Activity size={18} />
+          </div>
+          <div>
+            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Fats</p>
+            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.macros?.fat || 0}g</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Total ingested</p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Action Bar (replaces Search bar in Transactions) */}
+      <div className="mt-4 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-[20px] font-bold text-[#f0f0f3] tracking-tight mb-1">Today's Meal Plan</h3>
-          <p className="text-[13px] text-[#71717a] flex items-center gap-2">
-            Target: {profile.targetCalories} kcal <span className="text-white/[0.1]">|</span> {profile.dietaryPreference} <span className="text-white/[0.1]">|</span> {profile.cuisine}
-          </p>
+          <div className="flex items-center gap-2 mb-1">
+             <UtensilsCrossed size={16} className="text-slate-400" />
+             <h3 className="text-sm font-extrabold text-slate-100">Meal Plan Logs <span className="text-[10px] text-slate-500 font-bold ml-2">ⓘ</span></h3>
+          </div>
+          <p className="text-[11px] text-slate-400">Review your daily nutritional intake and adjust preferences.</p>
         </div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <button onClick={() => setEditing(true)} className="btn-chip flex-1 sm:flex-none justify-center">
-            ✏️ Edit Preferences
-          </button>
-          <button onClick={handleRegenerate} disabled={loading} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[12px] font-medium hover:bg-orange-500/20 transition-all">
+        <div className="flex gap-2 bg-slate-900/50 p-1.5 rounded-xl border border-white/[0.05]">
+           <button onClick={() => setEditing(true)} className="px-4 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-colors">
+             Edit Preferences
+           </button>
+           <button onClick={handleRegenerate} disabled={loading} className="px-4 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors">
              {loading ? 'Generating...' : 'Regenerate Plan'}
-          </button>
+           </button>
         </div>
       </div>
 
-      {loading ? (
-        <GlassCard className="flex flex-col items-center justify-center py-20">
-          <div className="w-10 h-10 rounded-full border-2 border-orange-400 border-t-transparent animate-spin mb-4" />
-          <p className="text-[14px] text-orange-300 font-medium">Crafting your meal plan...</p>
-          <p className="text-[12px] text-[#71717a]">Analyzing nutritional balance and preferences</p>
-        </GlassCard>
-      ) : (
-        <>
-          <div className="grid md:grid-cols-2 gap-4">
-            {plan?.meals?.map((meal, idx) => (
-              <GlassCard key={idx} className="flex flex-col justify-between hover:border-orange-500/20 transition-all group">
-                <div>
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-widest font-semibold text-orange-400 bg-orange-500/10 px-2 py-1 rounded-md">{meal.type}</span>
-                      <button 
-                        onClick={() => handleRegenerateSingleMeal(meal.type, meal.name)}
-                        disabled={loadingMeal === meal.type}
-                        className="text-[#71717a] hover:text-orange-400 transition-colors bg-white/[0.02] hover:bg-orange-500/10 p-1 rounded border border-transparent hover:border-orange-500/20 disabled:opacity-50"
-                        title="Change this meal"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${loadingMeal === meal.type ? 'animate-spin text-orange-400' : ''}`} />
-                      </button>
-                    </div>
-                    <span className="text-[14px] font-bold text-[#f0f0f3] bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06]">{meal.calories} kcal</span>
-                  </div>
-                  <h4 className="text-[16px] font-bold text-[#f0f0f3] mb-1.5 group-hover:text-orange-300 transition-colors">{meal.name}</h4>
-                  <p className="text-[12px] text-[#a1a1aa] leading-relaxed mb-4">
-                    {loadingMeal === meal.type ? <span className="text-orange-300 animate-pulse">Finding alternative...</span> : meal.description}
-                  </p>
-                </div>
-                <div className="flex justify-between border-t border-white/[0.04] pt-3 text-[11px]">
-                  <div className="flex gap-3">
-                    <span className="text-[#a1a1aa]"><span className="text-[#10b981] font-medium">P:</span> {meal.macros.protein}g</span>
-                    <span className="text-[#a1a1aa]"><span className="text-[#f59e0b] font-medium">C:</span> {meal.macros.carbs}g</span>
-                    <span className="text-[#a1a1aa]"><span className="text-[#ef4444] font-medium">F:</span> {meal.macros.fat}g</span>
-                  </div>
-                </div>
-              </GlassCard>
-            ))}
+      {/* Main Container */}
+      <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden min-h-[300px]">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24 h-full relative z-10">
+             <div className="w-12 h-12 rounded-full border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.15)] mb-4">
+               <RefreshCw className="animate-spin text-indigo-400" size={20} />
+             </div>
+             <p className="text-sm font-bold text-slate-300 mb-1">Crafting your meal plan...</p>
+             <p className="text-[11px] text-slate-500">Analyzing nutritional balance and preferences</p>
           </div>
+        ) : (
+          <div className="flex flex-col gap-3 relative z-10 max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
+             {plan?.meals?.map((meal, idx) => (
+               <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
+                 className="rounded-xl border border-white/[0.05] bg-white/[0.01] hover:bg-white/[0.03] transition-all p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+               >
+                  <div className="flex items-start sm:items-center gap-4 flex-1">
+                     <div className="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                       <UtensilsCrossed size={16} />
+                     </div>
+                     <div>
+                       <div className="flex items-center gap-2 mb-1">
+                         <span className="text-[9px] uppercase tracking-widest font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md">{meal.type}</span>
+                         <h4 className="text-[13px] font-bold text-slate-200">{meal.name}</h4>
+                       </div>
+                       <p className="text-[11px] text-slate-500 line-clamp-1 max-w-md">
+                         {loadingMeal === meal.type ? <span className="text-indigo-400 animate-pulse">Finding alternative...</span> : meal.description}
+                       </p>
+                     </div>
+                  </div>
 
-          <GlassCard>
-            <h3 className="dash-section-title mb-5">Macro Breakdown</h3>
-            <div className="flex flex-col sm:flex-row gap-5 mb-5">
-               <MacroPill label="Protein" value={plan?.macros?.protein || 0} unit="g" color="#10b981" />
-               <MacroPill label="Carbs" value={plan?.macros?.carbs || 0} unit="g" color="#f59e0b" />
-               <MacroPill label="Fats" value={plan?.macros?.fat || 0} unit="g" color="#ef4444" />
-               <div className="flex-1 flex flex-col items-center justify-center border border-white/[0.06] rounded-2xl bg-white/[0.02] p-4">
-                 <p className="text-[10px] text-[#71717a] uppercase tracking-widest font-semibold mb-1">Total Plan Calories</p>
-                 <p className="text-[28px] font-bold text-[#f0f0f3] leading-none">{plan?.totalCalories || 0}</p>
-               </div>
-            </div>
-            
-            <div className="space-y-3">
-              {[
-                { label: 'Protein', val: plan?.macros?.protein || 0, target: Math.round((profile.targetCalories * 0.3) / 4), color: '#10b981' },
-                { label: 'Carbohydrates', val: plan?.macros?.carbs || 0, target: Math.round((profile.targetCalories * 0.45) / 4), color: '#f59e0b' },
-                { label: 'Fats', val: plan?.macros?.fat || 0, target: Math.round((profile.targetCalories * 0.25) / 9), color: '#ef4444' }
-              ].map(m => (
-                <div key={m.label}>
-                  <div className="flex justify-between text-[11px] mb-1.5">
-                    <span className="text-[#a1a1aa] font-medium">{m.label}</span>
-                    <span className="text-[#71717a]">{m.val}g / {m.target}g</span>
+                  <div className="flex items-center gap-4 sm:gap-6 self-start sm:self-center shrink-0 border-t sm:border-t-0 border-white/5 pt-3 sm:pt-0 w-full sm:w-auto mt-2 sm:mt-0">
+                     <div className="flex gap-4">
+                       <div className="flex flex-col">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Protein</span>
+                          <span className="text-[11px] font-mono text-emerald-400">{meal.macros.protein}g</span>
+                       </div>
+                       <div className="flex flex-col">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Carbs</span>
+                          <span className="text-[11px] font-mono text-amber-400">{meal.macros.carbs}g</span>
+                       </div>
+                       <div className="flex flex-col">
+                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Fats</span>
+                          <span className="text-[11px] font-mono text-rose-400">{meal.macros.fat}g</span>
+                       </div>
+                     </div>
+                     
+                     <div className="flex flex-col items-end border-l border-white/5 pl-4 ml-2">
+                       <span className="text-[13px] font-black font-mono text-slate-200">{meal.calories}</span>
+                       <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Kcal</span>
+                     </div>
+
+                     <button 
+                       onClick={() => handleRegenerateSingleMeal(meal.type, meal.name)}
+                       disabled={loadingMeal === meal.type}
+                       className="ml-2 w-7 h-7 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500/20 transition-all disabled:opacity-50 opacity-0 group-hover:opacity-100"
+                       title="Swap meal"
+                     >
+                       <RefreshCw size={12} className={loadingMeal === meal.type ? 'animate-spin text-indigo-400' : ''} />
+                     </button>
                   </div>
-                  <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
-                    <div 
-                      className="h-full rounded-full transition-all duration-1000" 
-                      style={{ width: `${Math.min(100, (m.val / (m.target || 1)) * 100)}%`, backgroundColor: m.color }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
-        </>
-      )}
+               </motion.div>
+             ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1115,80 +1175,55 @@ export default function Health() {
 
 
       {tab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* ── Row 1: Health Score (1fr) + Metrics 3×2 (1.8fr) ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 8 }}>
+          {/* ── Row 1: Health Score (1fr) + Metrics 3×2 (2fr) ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
 
             {/* Health Score Detail */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              {/* Ring + title/badge/desc */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
-                  <svg viewBox="0 0 80 80" width="80" height="80">
-                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7"/>
-                    <circle cx="40" cy="40" r="32" fill="none"
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+                  <svg viewBox="0 0 120 120" width="120" height="120">
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
+                    <circle cx="60" cy="60" r="48" fill="none"
                       stroke={score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}
-                      strokeWidth="7" strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*32} ${2*Math.PI*32}`}
-                      strokeDashoffset={2*Math.PI*32*(1-score/100)}
-                      style={{ transform:'rotate(-90deg)', transformOrigin:'40px 40px', transition:'stroke-dashoffset 1.2s ease' }}/>
+                      strokeWidth="10" strokeLinecap="round"
+                      strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
+                      strokeDashoffset={2*Math.PI*48*(1-score/100)}
+                      style={{ transform:'rotate(-90deg)', transformOrigin:'60px 60px', transition:'stroke-dashoffset 1.2s ease' }}/>
                   </svg>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
-                    <span style={{ fontSize: 8, color: '#475569', marginTop: 1 }}>/ 100</span>
+                    <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
+                    <span style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>/ 100</span>
                   </div>
                 </div>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Health Score</p>
-                  <span style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, marginBottom: 5,
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 12, margin: '0 0 12px' }}>Health Score</p>
+                  <span style={{ display: 'inline-block', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 999, marginBottom: 12,
                     background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'18',
                     color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
                     border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44` }}>
                     {score >= 70 ? 'Good' : score >= 45 ? 'Average' : 'Low'}
                   </span>
-                  <p style={{ fontSize: 10, color: '#64748b', lineHeight: 1.4 }}>
+                  <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>
                     {score >= 45 ? 'Keep maintaining your\nhealthy habits.' : 'Focus on sleep and\nreduce stress.'}
                   </p>
                 </div>
               </div>
               <button onClick={() => setTab('recommendations')}
-                style={{ marginTop: 8, padding: '5px 10px', borderRadius: 7,
+                style={{ marginTop: 32, padding: '8px 16px', borderRadius: 8,
                   border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44`,
                   background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'0f',
                   color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
-                  fontSize: 10, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, alignSelf: 'flex-start' }}>
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
                 View Insights →
               </button>
-              {/* Score Trend */}
-              <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <span style={{ fontSize: 9, fontWeight: 600, color: '#a1a1aa', display: 'block', marginBottom: 3 }}>Score Trend</span>
-                <div style={{ height: 40 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={trendData.slice(-7)}>
-                      <defs>
-                        <linearGradient id="sTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.25} />
-                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="date" hide />
-                      <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="sleep" stroke="#22c55e" fill="url(#sTrendGrad)" strokeWidth={2} dot={false} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#71717a', padding: '2px 4px 0' }}>
-                  {['May 23','May 24','May 25','May 26','May 27','May 28','May 29'].map(d => <span key={d}>{d}</span>)}
-                </div>
-              </div>
             </div>
 
-            {/* Metrics 3×2 grid */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+            {/* Metrics side */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
                 {[
                   { label: 'Avg Sleep', icon: '🌙', color: '#a78bfa', value: `${h.sleepAvg || 5.2}h`, sub: 'per night' },
                   { label: 'Stress',    icon: '🔥', color: '#f43f5e', value: `${h.stressLevel || 8}/10`, sub: (h.stressLevel||8) > 6 ? 'High' : 'Low' },
@@ -1197,49 +1232,54 @@ export default function Health() {
                   { label: 'Water',     icon: '💧', color: '#3b82f6', value: h.waterIntake || 4, sub: 'glasses/day' },
                   { label: 'Calories',  icon: '🥗', color: '#f97316', value: h.calories ? h.calories.toLocaleString() : '2,800', sub: 'kcal/day' },
                 ].map(m => (
-                  <div key={m.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '7px 9px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 5, background: m.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>{m.icon}</div>
-                      <span style={{ fontSize: 9, color: '#64748b' }}>{m.label}</span>
+                  <div key={m.label} style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 6, background: m.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>{m.icon}</div>
+                      <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{m.label}</span>
                     </div>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9', lineHeight: 1, marginBottom: 2 }}>{m.value}</p>
-                    <p style={{ fontSize: 8, color: '#475569' }}>{m.sub}</p>
+                    <div>
+                      <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>{m.value}</p>
+                      <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{m.sub}</p>
+                    </div>
                   </div>
                 ))}
               </div>
+              
               {/* Wellness bar */}
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, color: '#4ade80' }}>⚡</div>
-                <div style={{ flexShrink: 0, minWidth: 70 }}>
-                  <p style={{ fontSize: 9, color: '#64748b', margin: 0 }}>Wellness Score</p>
-                  <p style={{ fontSize: 14, fontWeight: 900, color: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e', lineHeight: 1, margin: 0 }}>{score}</p>
-                  <p style={{ fontSize: 8, color: '#475569', margin: 0 }}>out of 100</p>
+              <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(34,197,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#4ade80', flexShrink: 0 }}>⚡</div>
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 90, flexShrink: 0 }}>
+                  <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Wellness Score</p>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e', margin: 0 }}>{score}</p>
+                  <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0' }}>out of 100</p>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 9, color: '#475569', marginBottom: 4 }}>Aim for 70+ to maintain strong health.</p>
-                  <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, score)}%` }} transition={{ duration: 1, ease: 'easeOut' }}
-                      style={{ height: '100%', borderRadius: 3, background: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e' }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', marginLeft: 16 }}>
+                  <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10, margin: '0 0 10px' }}>Aim for 70+ to maintain strong health.</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, score)}%` }} transition={{ duration: 1, ease: 'easeOut' }}
+                        style={{ height: '100%', borderRadius: 3, background: score >= 70 ? '#22c55e' : score >= 45 ? '#f59e0b' : '#f43f5e' }} />
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>100</span>
                   </div>
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#475569', flexShrink: 0 }}>100</span>
               </div>
             </div>
           </div>
 
           {/* ── Row 2: Today's Plan + 7-Day Trends ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
 
             {/* Today's Plan */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '10px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Calendar size={11} color="#a1a1aa" />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>Today's Plan</span>
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Calendar size={14} color="#a1a1aa" />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Today's Plan</span>
                 </div>
-                <span style={{ fontSize: 8, color: '#71717a' }}>3 / 4 completed</span>
+                <span style={{ fontSize: 12, color: '#71717a' }}>3 / 4 completed</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {[
                   { text: 'Drink 8 glasses of water', time: '7:30 AM', done: true },
                   { text: '30 min workout',           time: '8:00 AM', done: true },
@@ -1247,56 +1287,56 @@ export default function Health() {
                   { text: 'Meditate for 10 min',      time: '9:30 PM', done: false },
                 ].map((task, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {task.done
-                        ? <CheckCircle size={11} color="#22c55e" />
-                        : <div style={{ width: 11, height: 11, borderRadius: '50%', border: '1.5px solid #52525b' }} />}
-                      <span style={{ fontSize: 10, color: task.done ? '#f0f0f3' : '#a1a1aa' }}>{task.text}</span>
+                        ? <CheckCircle size={14} color="#22c55e" />
+                        : <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid #52525b' }} />}
+                      <span style={{ fontSize: 13, color: task.done ? '#f0f0f3' : '#a1a1aa' }}>{task.text}</span>
                     </div>
-                    <span style={{ fontSize: 8, color: '#71717a' }}>{task.time}</span>
+                    <span style={{ fontSize: 11, color: '#71717a' }}>{task.time}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: 5, paddingTop: 5, borderTop: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
-                <button style={{ fontSize: 9, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
+                <button style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
                   View full plan →
                 </button>
               </div>
             </div>
 
             {/* 7-Day Health Trends */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '10px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>7-Day Health Trends</span>
+            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>7-Day Health Trends</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '2px 6px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 8, color: '#a1a1aa', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 11, color: '#a1a1aa', cursor: 'pointer' }}>
                   7 Days ▾
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 5 }}>
+              <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
                 {[{ col: '#22c55e', label: 'Health Score' }, { col: '#a78bfa', label: 'Sleep (hrs)' }, { col: '#3b82f6', label: 'Water' }].map(l => (
-                  <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#a1a1aa' }}>
-                    <span style={{ width: 8, height: 2, background: l.col, borderRadius: 2, display: 'inline-block' }} />
+                  <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#a1a1aa' }}>
+                    <span style={{ width: 10, height: 3, background: l.col, borderRadius: 2, display: 'inline-block' }} />
                     {l.label}
                   </div>
                 ))}
               </div>
-              <div style={{ height: 100 }}>
+              <div style={{ flex: 1, minHeight: 120 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData.slice(-7)} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                  <AreaChart data={trendData.slice(-7)} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 8 }} tickFormatter={v => {
+                    <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 10 }} tickFormatter={v => {
                       const days = ['Thu','Fri','Sat','Sun','Mon','Tue','Today'];
                       const d = trendData.slice(-7);
                       const idx = d.findIndex(x => x.date === v);
                       return idx >= 0 ? days[idx] : '';
                     }} axisLine={false} tickLine={false} dy={4} />
-                    <YAxis tick={{ fill: '#71717a', fontSize: 8 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 100]} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="mood"  stroke="#22c55e" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#22c55e', strokeWidth: 0 }} activeDot={{ r: 4 }} />
-                    <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }} activeDot={{ r: 4 }} />
-                    <Area type="monotone" dataKey="water" stroke="#3b82f6" fill="transparent" strokeWidth={2} dot={{ r: 3, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                    <Area type="monotone" dataKey="mood"  stroke="#22c55e" fill="transparent" strokeWidth={2} dot={{ r: 4, fill: '#22c55e', strokeWidth: 0 }} activeDot={{ r: 6 }} />
+                    <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="transparent" strokeWidth={2} dot={{ r: 4, fill: '#a78bfa', strokeWidth: 0 }} activeDot={{ r: 6 }} />
+                    <Area type="monotone" dataKey="water" stroke="#3b82f6" fill="transparent" strokeWidth={2} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 6 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -1304,28 +1344,27 @@ export default function Health() {
           </div>
 
           {/* ── Row 3: AI Health Coach ── */}
-          <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '8px 12px', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                <span style={{ color: '#a78bfa' }}><Brain size={11} /></span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#f0f0f3' }}>AI Health Coach</span>
+          <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '20px 24px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#a78bfa' }}>
+                <Brain size={20} />
               </div>
-              <div style={{ width: '70%', position: 'relative', zIndex: 2 }}>
-                <p style={{ fontSize: 9, color: '#a1a1aa', lineHeight: 1.4, marginBottom: 7 }}>
-                  Your stress levels are slightly elevated in the evenings.<br />
-                  Try a 10-minute breathing exercise before bed to improve sleep quality and recovery.
+              <div style={{ flex: 1, position: 'relative', zIndex: 2 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3', margin: '0 0 4px' }}>AI Health Coach</p>
+                <p style={{ fontSize: 13, color: '#a1a1aa', lineHeight: 1.5, margin: 0 }}>
+                  Your stress levels are slightly elevated in the evenings. Try a 10-minute breathing exercise before bed to improve sleep quality and recovery.
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button style={{ padding: '4px 8px', borderRadius: 8, background: '#2e1065', color: '#d8b4fe', fontSize: 9, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10 }}>
+                  <button style={{ padding: '6px 12px', borderRadius: 8, background: '#2e1065', color: '#d8b4fe', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                     Start Breathing Exercise →
                   </button>
-                  <button style={{ fontSize: 9, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <button style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
                     💡 More tips
                   </button>
                 </div>
               </div>
               {/* Decorative Meditating Figure */}
-              <div style={{ position: 'absolute', right: -4, bottom: -4, opacity: 0.75, pointerEvents: 'none' }}>
-                <svg width="120" height="120" viewBox="0 0 100 100">
+              <div style={{ position: 'absolute', right: 10, bottom: -10, opacity: 0.75, pointerEvents: 'none' }}>
+                <svg width="140" height="140" viewBox="0 0 100 100">
                   <g fill="none" stroke="#a78bfa" strokeWidth="1.2" opacity="0.8">
                     <circle cx="50" cy="20" r="6" />
                     <path d="M50 26 C 44 32, 40 42, 38 55 C 36 62, 40 68, 50 68 C 60 68, 64 62, 62 55 C 60 42, 56 32, 50 26" />
@@ -1339,9 +1378,9 @@ export default function Health() {
                   <circle cx="78" cy="25" r="1.5" fill="#d8b4fe" opacity="0.5" className="animate-pulse" />
                   <circle cx="72" cy="50" r="1" fill="#d8b4fe" opacity="0.4" />
                   <circle cx="20" cy="55" r="1.5" fill="#d8b4fe" opacity="0.5" className="animate-pulse" style={{ animationDelay: '0.7s' }} />
-                  <text x="22" y="36" fontSize="8" fill="#d8b4fe" opacity="0.5">+</text>
-                  <text x="75" y="42" fontSize="10" fill="#d8b4fe" opacity="0.4">+</text>
-                  <text x="70" y="18" fontSize="8" fill="#d8b4fe" opacity="0.5">+</text>
+                  <text x="22" y="36" fontSize="10" fill="#d8b4fe" opacity="0.5">+</text>
+                  <text x="75" y="42" fontSize="12" fill="#d8b4fe" opacity="0.4">+</text>
+                  <text x="70" y="18" fontSize="10" fill="#d8b4fe" opacity="0.5">+</text>
                 </svg>
               </div>
             </div>
