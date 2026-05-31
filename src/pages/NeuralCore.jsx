@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NeuralEngine } from '../engines/NeuralEngine';
 import { useData } from '../context/DataContext';
@@ -91,11 +91,15 @@ export default function NeuralCore() {
     }));
   }, [timeline, whatIfTimeline]);
 
-  const handleInference = useCallback(async (y = years) => {
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const handleInference = useCallback(async (y) => {
+    const yearsToRun = typeof y === 'number' ? y : years;
     setLoading(true);
     try {
       const engine = new NeuralEngine();
-      const result = await engine.runInference(state || {}, y);
+      const result = await engine.runInference(stateRef.current || {}, yearsToRun);
       setTimeline(result);
       setWhatIfTimeline([]);
     } catch {
@@ -103,7 +107,8 @@ export default function NeuralCore() {
     } finally {
       setLoading(false);
     }
-  }, [state, years]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [years]);
 
   const runWhatIf = useCallback(async (adj = adjustments) => {
     if (!timeline.length) { showToast('Generate base trajectory first', 'info'); return; }
@@ -200,40 +205,28 @@ export default function NeuralCore() {
               ))}
             </div>
 
-            {/* Year Selector — scrollable strip */}
+            {/* Year Selector — drag slider */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <p style={{ fontSize: 11, color: '#64748b', margin: 0, fontWeight: 500 }}>Projection Horizon</p>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#c084fc' }}>{years} yr</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#c084fc', background: 'rgba(139,92,246,0.12)', padding: '2px 10px', borderRadius: 7 }}>{years} yr</span>
               </div>
-              <div style={{ overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                   className="hide-scrollbar">
-                <div style={{ display: 'flex', gap: 4, width: 'max-content' }}>
-                  {Array.from({ length: 30 }, (_, i) => i + 1).map(y => (
-                    <button
-                      key={y}
-                      onClick={() => {
-                        setYears(y);
-                        if (timeline.length) handleInference(y);
-                      }}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: 6,
-                        fontSize: 10,
-                        fontWeight: years === y ? 700 : 500,
-                        cursor: 'pointer',
-                        border: years === y ? '1px solid rgba(139,92,246,0.6)' : '1px solid rgba(255,255,255,0.06)',
-                        background: years === y ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.02)',
-                        color: years === y ? '#c084fc' : '#475569',
-                        transition: 'all 0.12s',
-                        flexShrink: 0,
-                        minWidth: 28,
-                      }}
-                    >
-                      {y}
-                    </button>
-                  ))}
-                </div>
+              <CustomSlider
+                label=""
+                value={years}
+                min={1}
+                max={30}
+                step={1}
+                unit=" yr"
+                color="#c084fc"
+                desc="Drag to select any year from 1 to 30"
+                onChange={y => {
+                  setYears(y);
+                  if (timeline.length) handleInference(y);
+                }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#334155', marginTop: 4 }}>
+                <span>1 yr</span><span>10 yr</span><span>20 yr</span><span>30 yr</span>
               </div>
             </div>
 
