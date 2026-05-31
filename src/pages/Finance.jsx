@@ -2104,9 +2104,11 @@ export default function Finance() {
           
           {/* Form Section Header */}
           <div>
-            <h2 className="text-base font-extrabold text-slate-100 uppercase tracking-widest font-sans flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]"></span>
-              Financial Ledger Manager
+            <h2 className="text-base font-extrabold text-slate-100 uppercase tracking-[0.2em] font-mono flex items-center gap-2.5">
+              <div className="w-5 h-5 rounded-md flex items-center justify-center text-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
+              </div>
+              FINANCIAL LEDGER MANAGER
             </h2>
             <p className="text-xs text-slate-400 mt-1">Manually record transactions or scan paper receipts using high-tech OCR analysis.</p>
           </div>
@@ -2117,47 +2119,36 @@ export default function Finance() {
             <div className="flex flex-col gap-6">
               
               {/* Form Card */}
-              <div className="rounded-2xl border border-white/[0.08] bg-slate-900/50 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex flex-col gap-5 relative overflow-hidden group">
-                {/* Decorative background glow */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-700" />
-                
-                <div className="flex items-center gap-2 border-b border-white/[0.05] pb-3">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                    <FileText size={16} />
+              <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
+                <div className="flex items-center gap-2.5 border-b border-white/5 pb-4">
+                  <div className="text-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="m9 14 2 2 4-4"></path></svg>
                   </div>
-                  <span className="text-sm font-bold text-slate-200">Manual Entry Console</span>
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-200">MANUAL ENTRY CONSOLE</span>
                 </div>
                 
-                <form onSubmit={handleLog} className="flex flex-col gap-4 relative z-10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <form onSubmit={handleLog} className="flex flex-col gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Monthly Income */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Monthly Income</label>
-                      <div className="relative flex items-center">
-                        <span className="absolute left-3.5 text-slate-400 flex items-center justify-center">
-                          <span className="font-bold text-xs">₹</span>
-                        </span>
-                        <input
-                          type="number"
-                          value={form.income}
-                          onChange={e => setForm(p => ({ ...p, income: e.target.value }))}
-                          placeholder="e.g. 50,000"
-                          className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-slate-200 outline-none transition-all font-sans placeholder-slate-600"
-                        />
-                      </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">MONTHLY INCOME</label>
+                      <input
+                        type="text"
+                        value={form.income}
+                        onChange={e => setForm(p => ({ ...p, income: e.target.value }))}
+                        placeholder="e.g. 50,000"
+                        className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-3 px-4 text-xs text-slate-200 outline-none transition-all placeholder-slate-600"
+                      />
                     </div>
 
                     {/* Expense Category */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Category</label>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">CATEGORY</label>
                       <div className="relative flex items-center">
-                        <span className="absolute left-3.5 text-slate-400 pointer-events-none">
-                          <Activity size={14} />
-                        </span>
                         <select
                           value={form.category}
                           onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-                          className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl py-2.5 pl-9 pr-8 text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer font-sans"
+                          className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-3 pl-4 pr-10 text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer"
                         >
                           <option value="Food">Food & Dining</option>
                           <option value="Transport">Transport</option>
@@ -2170,7 +2161,7 @@ export default function Finance() {
                           <option value="Investments">Investments</option>
                           <option value="Others">Other</option>
                         </select>
-                        <span className="absolute right-3.5 text-slate-400 pointer-events-none">
+                        <span className="absolute right-4 text-slate-400 pointer-events-none">
                           <ChevronDown size={14} />
                         </span>
                       </div>
@@ -2178,56 +2169,46 @@ export default function Finance() {
                   </div>
 
                   {/* Amount */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-sans">Amount Spent</label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-3.5 text-slate-400 flex items-center justify-center">
-                        <span className="font-bold text-xs">₹</span>
-                      </span>
-                      <input
-                        type="number"
-                        value={form.amount}
-                        onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
-                        placeholder="e.g. 1,500"
-                        className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-slate-200 outline-none transition-all font-sans placeholder-slate-600"
-                      />
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">AMOUNT SPENT</label>
+                    <input
+                      type="text"
+                      value={form.amount}
+                      onChange={e => setForm(p => ({ ...p, amount: e.target.value }))}
+                      placeholder="e.g. 1,500"
+                      className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-3 px-4 text-xs text-slate-200 outline-none transition-all placeholder-slate-600"
+                    />
                   </div>
 
                   {/* Save Entry Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.01, y: -1 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     type="submit"
-                    className="w-full mt-3 py-3 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-xs tracking-wide shadow-[0_4px_15px_rgba(99,102,241,0.3)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.4)] cursor-pointer transition-all flex items-center justify-center gap-2"
+                    className="w-full mt-2 py-3 rounded-xl bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-semibold text-xs tracking-wide cursor-pointer transition-all flex items-center justify-center"
                   >
-                    <Coins size={14} />
                     Commit Entry to Ledger
-                  </motion.button>
+                  </button>
                 </form>
               </div>
 
               {/* OCR Receipt Scanner Card */}
-              <div className="rounded-2xl border border-white/[0.08] bg-slate-900/50 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex flex-col gap-4 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/10 transition-colors duration-700" />
-                
-                <div className="flex items-center justify-between border-b border-white/[0.05] pb-3 relative z-10">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                      <Search size={16} />
+              <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="text-emerald-500">
+                      <Sparkles size={18} />
                     </div>
-                    <span className="text-sm font-bold text-slate-200">Cyber Receipt Scanner</span>
+                    <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-200">CYBER RECEIPT SCANNER</span>
                   </div>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md font-bold tracking-wide flex items-center gap-1">
-                    <Sparkles size={10} className="animate-pulse" /> AI OCR
+                  <span className="text-[9px] text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md font-bold tracking-widest uppercase font-mono">
+                    OCR AI
                   </span>
                 </div>
 
-                <p className="text-[11.5px] text-slate-400 leading-relaxed relative z-10">
-                  Upload an image of your receipt. Our neural engine will automatically extract the merchant, category, and exact amount.
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Scan and auto-fill manual transactions by uploading an image of your receipt.
                 </p>
 
-                <div className="relative z-10 mt-1">
+                <div className="mt-2">
                   <input
                     type="file"
                     accept="image/*"
@@ -2238,35 +2219,35 @@ export default function Finance() {
                   />
                   <label
                     htmlFor="ocr-upload-input"
-                    className={`flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                    className={`flex flex-col items-center justify-center py-10 border border-dashed rounded-xl cursor-pointer transition-all ${
                       ocrLoading 
-                        ? 'border-emerald-500/40 bg-emerald-500/10 cursor-wait shadow-[0_0_20px_rgba(16,185,129,0.15)]' 
-                        : 'border-white/10 bg-slate-950/40 hover:bg-slate-900/60 hover:border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.05)]'
+                        ? 'border-emerald-500/40 bg-emerald-500/5 cursor-wait' 
+                        : 'border-white/10 bg-[#050608] hover:bg-slate-900/40'
                     }`}
                   >
                     {ocrLoading ? (
                       <div className="flex flex-col items-center gap-4 w-full px-8">
-                        <div className="w-12 h-12 rounded-full border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center text-emerald-400 relative overflow-hidden shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                          <Activity size={24} className="animate-pulse" />
+                        <div className="text-emerald-500 animate-pulse">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
                         </div>
                         <div className="w-full text-center">
-                          <p className="text-xs font-bold text-slate-200">Analyzing Receipt Data...</p>
-                          <div className="w-full bg-slate-950/80 rounded-full h-1.5 mt-3 overflow-hidden border border-white/5">
+                          <p className="text-xs font-bold text-slate-200">Analyzing...</p>
+                          <div className="w-full bg-slate-900 rounded-full h-1 mt-3 overflow-hidden">
                             <motion.div 
-                              className="bg-emerald-500 h-full rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]" 
+                              className="bg-emerald-500 h-full rounded-full" 
                               animate={{ width: `${ocrProgress}%` }}
                             />
                           </div>
-                          <p className="text-[10px] text-emerald-400/80 font-mono mt-2 font-bold">{ocrProgress}% complete</p>
+                          <p className="text-[10px] text-emerald-500 font-mono mt-2">{ocrProgress}%</p>
                         </div>
                       </div>
                     ) : (
                       <>
-                        <div className="w-12 h-12 rounded-xl bg-slate-800/50 border border-white/5 flex items-center justify-center text-slate-400 mb-3 group-hover:scale-110 group-hover:bg-emerald-500/10 group-hover:text-emerald-400 group-hover:border-emerald-500/20 transition-all duration-300">
-                          <Clipboard size={22} />
+                        <div className="text-emerald-500 mb-3">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
                         </div>
-                        <span className="text-[13px] font-bold text-slate-200">Drop receipt or click to browse</span>
-                        <span className="text-[11px] text-slate-500 mt-1.5 font-medium">JPG, PNG, WebP up to 5MB</span>
+                        <span className="text-[13px] font-semibold text-slate-200">Drop receipt or click to upload</span>
+                        <span className="text-xs text-slate-500 mt-1.5">Supports PNG, JPG, WebP</span>
                       </>
                     )}
                   </label>
@@ -2276,34 +2257,31 @@ export default function Finance() {
             </div>
 
             {/* Right Column: Recent Logs */}
-            <div className="rounded-2xl border border-white/[0.08] bg-slate-900/50 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex flex-col gap-4 min-h-[460px] relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
-              
-              <div className="flex items-center justify-between border-b border-white/[0.05] pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                    <TrendingUp size={16} />
+            <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4 min-h-[460px]">
+              <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="text-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg>
                   </div>
-                  <span className="text-sm font-bold text-slate-200">Audit Ledger Stream</span>
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-slate-200">AUDIT LEDGER STREAM</span>
                 </div>
-                <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md font-bold tracking-wide flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                  LIVE DB
+                <span className="text-[9px] text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md font-bold tracking-widest uppercase font-mono">
+                  DATABASE
                 </span>
               </div>
 
               {financeRecords.length === 0 ? (
-                <div className="flex flex-col gap-3 py-24 border-2 border-dashed border-white/5 bg-slate-950/20 rounded-xl items-center justify-center text-center flex-1 mt-2">
-                  <div className="w-14 h-14 rounded-full border border-white/5 bg-slate-900 flex items-center justify-center text-slate-500 shadow-inner">
-                    <FileText size={24} />
+                <div className="flex flex-col gap-3 py-24 items-center justify-center text-center flex-1">
+                  <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-slate-600">
+                    <FileText size={20} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-bold text-slate-300">Empty Ledger</p>
-                    <p className="text-[11px] text-slate-500 mt-1.5 max-w-xs leading-relaxed px-4">Your manually recorded inputs and scanned receipts will securely compile here.</p>
+                    <p className="text-xs font-bold text-slate-400">Empty Ledger</p>
+                    <p className="text-[10px] text-slate-600 mt-1 max-w-xs px-4">Your manually recorded inputs and scanned receipts will securely compile here.</p>
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2.5 max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1.5 mt-1">
+                <div className="flex flex-col max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
                   <AnimatePresence initial={false}>
                     {financeRecords.slice(0, 15).map((rec, idx) => {
                       const isIncome = rec.category === 'Income';
@@ -2312,39 +2290,28 @@ export default function Finance() {
                       return (
                         <motion.div 
                           key={rec.id || idx}
-                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className={`p-3.5 rounded-xl border flex items-center justify-between transition-all group ${
-                            isIncome 
-                              ? 'border-emerald-500/10 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.04] hover:border-emerald-500/20' 
-                              : 'border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.08]'
-                          }`}
+                          className="py-3 border-b border-dotted border-white/10 flex items-center justify-between group last:border-b-0"
                         >
-                          <div className="flex items-center gap-3.5">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm ${
-                              isIncome 
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                : `bg-slate-950/50 border border-white/5 ${meta.text}`
-                            }`}
-                            style={!isIncome ? { backgroundColor: `${meta.color}15`, borderColor: `${meta.color}30` } : {}}
-                            >
+                          <div className="flex items-center gap-4">
+                            <div className="w-9 h-9 rounded-lg bg-[#15171e] border border-white/5 flex items-center justify-center text-base shrink-0 shadow-sm">
                               {isIncome ? '💼' : meta.icon}
                             </div>
                             <div>
-                              <p className="text-[13px] font-bold text-slate-200 tracking-wide font-sans">{rec.category}</p>
-                              <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
-                                <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                                {new Date(rec.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              <p className="text-[13px] font-semibold text-slate-200">{rec.category}</p>
+                              <p className="text-[11px] text-slate-500 mt-0.5">
+                                {new Date(rec.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </p>
                             </div>
                           </div>
                           <div className="text-right flex flex-col items-end">
-                            <p className={`text-sm font-black font-sans tracking-tight ${isIncome ? 'text-emerald-400' : 'text-slate-100'}`}>
-                              {isIncome ? '+' : '-'}₹{rec.amount.toLocaleString()}
+                            <p className={`text-[13px] font-bold ${isIncome ? 'text-emerald-500' : 'text-slate-200'}`}>
+                              {isIncome ? '+' : '-'} ₹ {rec.amount.toLocaleString()}
                             </p>
-                            <span className="text-[9px] font-bold text-slate-500 mt-1 uppercase tracking-wider bg-slate-950/50 px-1.5 py-0.5 rounded">Committed</span>
+                            <span className="text-[9px] font-mono text-slate-500 mt-1 uppercase tracking-widest">COMMITTED</span>
                           </div>
                         </motion.div>
                       );
