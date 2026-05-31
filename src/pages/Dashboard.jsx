@@ -19,6 +19,33 @@ import {
   Download, ShieldCheck, Lock, EyeOff,
 } from 'lucide-react';
 
+// ─── MINI SPARKLINE ─────────────────────────────────────────────────────────
+function MiniSparkline({ data = [40, 50, 45, 60, 55, 70], color = "#10b981", width = 50, height = 18 }) {
+  if (!data || data.length === 0) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const padding = 2;
+  const points = data.map((val, index) => {
+    const x = (index / (data.length - 1)) * width;
+    const y = height - ((val - min) / range) * (height - 2 * padding) - padding;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <svg width={width} height={height} className="overflow-visible" style={{ display: 'block' }}>
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={points}
+      />
+    </svg>
+  );
+}
+
 // ─── SECURITY STATUS BADGE ────────────────────────────────────────────────────
 function SecurityStatusBadge() {
   return (
@@ -952,6 +979,7 @@ export default function Dashboard() {
   const [theme, setTheme] = useState('dark');
   const scoreRingsRef = useRef(null);
   const searchRef = useRef(null);
+  const [whatIfHours, setWhatIfHours] = useState(2);
 
   // ⌘K shortcut
   useEffect(() => {
@@ -1290,109 +1318,234 @@ export default function Dashboard() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', scrollBehavior: 'smooth' }}>
 
           {/* ════════════════════════════════════════════════════
-              SECTION 1 — HERO ZONE
+              HIGHLIGHTED METRIC SCORE CARDS (KPI Ribbon)
           ════════════════════════════════════════════════════ */}
-          <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+          <div style={{ position: 'relative', marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr) auto', gap: 12, alignItems: 'stretch', marginBottom: 12 }}>
+              {[
+                { label: 'Health', score: healthScore, trend: '▲ 7% this week', color: '#10b981', icon: '❤️', points: [45, 52, 49, 62, 58, 65, healthScore] },
+                { label: 'Finance', score: financeScore, trend: '▼ 3% this week', color: '#fbbf24', icon: '💰', points: [72, 70, 68, 65, 67, 66, financeScore] },
+                { label: 'Career', score: careerScore, trend: '▲ 11% this week', color: '#a78bfa', icon: '🎯', points: [25, 30, 28, 35, 32, 40, careerScore] },
+                { label: 'Mindset', score: mindScore, trend: '▲ 10% this week', color: '#c084fc', icon: '🧠', points: [55, 60, 58, 64, 62, 70, mindScore] },
+                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#818cf8', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance] },
+              ].map((card) => {
+                const isActive = !!openRings[card.label];
+                return (
+                  <div
+                    key={card.label}
+                    onClick={() => toggleRing(card.label)}
+                    style={{
+                      background: '#111827',
+                      border: `1px solid ${isActive ? card.color : 'rgba(255,255,255,0.06)'}`,
+                      borderRadius: 12,
+                      padding: '10px 12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: isActive ? `0 0 10px ${card.color}25` : 'none',
+                      transform: isActive ? 'translateY(-2px)' : 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 13 }}>{card.icon}</span>
+                      <span style={{ fontSize: 9.5, color: '#6b7280', fontWeight: 850, textTransform: 'uppercase', letterSpacing: 0.5 }}>{card.label}</span>
+                    </div>
+                    
+                    <div style={{ margin: '6px 0 4px' }}>
+                      <span style={{ fontSize: 18, fontWeight: 900, color: '#e2e8f0' }}>{card.score}</span>
+                      <span style={{ fontSize: 10, color: '#6b7280' }}>/100</span>
+                      <div style={{ fontSize: 8, color: card.color === '#ef4444' || card.trend.includes('▼') ? '#f43f5e' : '#10b981', fontWeight: 700, marginTop: 1 }}>{card.trend}</div>
+                    </div>
 
-            {/* LEFT: Radial avatar card — 4.4 parts (~40%+10%) */}
-            <div style={{ flex: 4.4, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ background: '#111827', border: `1px solid ${C.border}`, borderRadius: 12, padding: '12px 14px 12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+                      <MiniSparkline data={card.points} color={card.color} width={80} height={16} />
+                    </div>
+                  </div>
+                );
+              })}
 
-                {/* Balance badge */}
-                <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                  <span style={{ background: balanceBg, color: balanceColor, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: balanceColor }} />
-                    {balanceLabel}
-                  </span>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <button
+                  onClick={() => window.location.href = '/goals'}
+                  style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+                    border: 'none', color: '#fff', fontSize: 18, fontWeight: 800,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', outline: 'none', boxShadow: '0 4px 12px rgba(124,58,237,0.3)',
+                    transition: 'transform 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {(() => {
+              const factorsMap = {
+                Health: explainFactors.health, Finance: explainFactors.finance,
+                Career: explainFactors.career, Mindset: mindsetFactors, 'Life Balance': balanceFactors,
+              };
+              const insightsMap = {
+                Health: domainInsights.health, Finance: domainInsights.finance,
+                Career: domainInsights.career, Mindset: domainInsights.mindset, 'Life Balance': domainInsights.balance,
+              };
+              const cardDetails = [
+                { label: 'Health', icon: '❤️', color: '#10b981', display: String(healthScore), change: '+7%', up: true, link: '/health' },
+                { label: 'Finance', icon: '💰', color: '#fbbf24', display: String(financeScore), change: '▼ -3%', up: false, link: '/finance' },
+                { label: 'Career', icon: '🎯', color: '#a78bfa', display: String(careerScore), change: '+11%', up: true, link: '/career' },
+                { label: 'Mindset', icon: '🧠', color: '#c084fc', display: String(mindScore), change: '+10%', up: true, link: '/insights' },
+                { label: 'Life Balance', icon: '⚖️', color: '#818cf8', display: String(lifeBalance), change: '+7%', up: true, link: '/neural-core' },
+              ];
+              
+              return (
+                <AnimatePresence initial={false}>
+                  {cardDetails.filter(card => openRings[card.label]).map((card) => (
+                    <motion.div
+                      key={card.label}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      style={{ overflow: 'hidden', border: `1px solid ${card.color}22`, borderRadius: 10, background: '#111827', margin: '8px 0 16px' }}
+                    >
+                      <ExplainAIPanel
+                        label={card.label}
+                        display={card.display}
+                        color={card.color}
+                        icon={card.icon}
+                        change={card.change}
+                        up={card.up}
+                        link={card.link}
+                        factors={factorsMap[card.label] || []}
+                        insight={insightsMap[card.label]}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              );
+            })()}
+          </div>
+
+          {/* ════════════════════════════════════════════════════
+              ROW 2 — HERO ZONE (Grid of 3 columns)
+          ════════════════════════════════════════════════════ */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr 0.95fr', gap: 16, alignItems: 'stretch', marginBottom: 16 }}>
+
+            {/* COLUMN 1: Life Core Card */}
+            <div style={{ ...S('#111827'), padding: '16px 18px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
+              {/* Card Title & Subtitle */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: '#e2e8f0' }}>Life Core</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#6b7280', marginTop: 1 }}>Your Digital Twin</div>
+                </div>
+                {/* Live Sync Badge */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5.5, background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 99, padding: '3px 10px', fontSize: 9.5, fontWeight: 700, color: '#cbd5e1' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+                  Live Sync
+                </div>
+              </div>
+
+              {/* Three column row layout */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: 16, alignItems: 'stretch', flexGrow: 1, minHeight: 180, padding: '16px 0 8px', boxSizing: 'border-box' }}>
+                
+                {/* Column A: Health & Finance */}
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', height: '100%', boxSizing: 'border-box' }}>
+                  {/* Health block */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e', boxShadow: '0 0 8px rgba(244, 63, 94, 0.12)', flexShrink: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontSize: 9, color: '#64748b', fontWeight: 700 }}>Health</span>
+                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>61</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 9, color: '#10b981', fontWeight: 800, marginTop: 4, paddingLeft: 40 }}>Good</div>
+                  </div>
+
+                  {/* Finance block */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', boxShadow: '0 0 8px rgba(59, 130, 246, 0.12)', flexShrink: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+                          <line x1="12" y1="4" x2="12" y2="20" />
+                        </svg>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontSize: 9, color: '#64748b', fontWeight: 700 }}>Finance</span>
+                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>65</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 9, color: '#10b981', fontWeight: 800, marginTop: 4, paddingLeft: 40 }}>Stable</div>
+                  </div>
                 </div>
 
-                {/* Radial layout */}
-                <div style={{ position: 'relative', height: 250, width: '100%' }}>
-                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-                    viewBox="0 0 340 250" preserveAspectRatio="xMidYMid meet">
-                    {/* Dashed oval */}
-                    <ellipse cx="170" cy="125" rx="100" ry="82" fill="none"
-                      stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    {/* BALANCED text */}
-                    <text x="170" y="65" textAnchor="middle" fill="rgba(255,255,255,0.16)"
-                      fontSize="8" fontWeight="700" letterSpacing="3">BALANCED</text>
-                    {/* Mind → oval top-left */}
-                    <line x1="88" y1="46" x2="110" y2="70" stroke="#22c55e" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
-                    {/* Heart → oval top-right */}
-                    <line x1="252" y1="46" x2="230" y2="70" stroke="#ef4444" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
-                    {/* Energy → horizontal left */}
-                    <line x1="62" y1="125" x2="114" y2="125" stroke="#f97316" strokeWidth="1.5" strokeDasharray="5 4" strokeLinecap="round" />
-                    {/* Habits → horizontal right */}
-                    <line x1="278" y1="125" x2="226" y2="125" stroke="#14b8a6" strokeWidth="1.5" strokeDasharray="5 4" strokeLinecap="round" />
-                    {/* Body → oval bottom-left */}
-                    <line x1="88" y1="204" x2="110" y2="180" stroke="#6366f1" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
-                    {/* Purpose → oval bottom-right */}
-                    <line x1="252" y1="204" x2="230" y2="180" stroke="#f59e0b" strokeWidth="1.3" strokeDasharray="4 4" strokeLinecap="round" />
-                  </svg>
+                {/* Column B: Avatar & Segmented Progress Ring */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                  <div style={{ position: 'relative', width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    
+                    {/* SVG overlay containing the exact split/segmented progress ring and outer dot halo */}
+                    <svg width="180" height="180" viewBox="0 0 180 180" style={{ position: 'absolute', inset: 0, overflow: 'visible', zIndex: 1 }}>
+                      {/* Outer faint thin grid ring */}
+                      <circle cx="90" cy="90" r="84" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+                      
+                      {/* Glowing dot indicators on thin outer ring */}
+                      <circle cx="6" cy="90" r="3" fill="#fbbf24" style={{ filter: 'drop-shadow(0 0 5px #fbbf24)' }} />
+                      <circle cx="174" cy="90" r="3" fill="#3b82f6" style={{ filter: 'drop-shadow(0 0 5px #3b82f6)' }} />
+                      <circle cx="90" cy="174" r="2.5" fill="#8b5cf6" style={{ filter: 'drop-shadow(0 0 5px #8b5cf6)' }} />
+                      
+                      {/* Tiny slate floating dot markers */}
+                      <circle cx="150" cy="30" r="1" fill="#475569" />
+                      <circle cx="30" cy="150" r="1" fill="#475569" />
+                      <circle cx="90" cy="6" r="1" fill="#475569" />
 
-                  {/* MIND — top left */}
-                  <div style={{ position: 'absolute', top: 8, left: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Mind</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{mindScore}<span style={{ fontSize: 10 }}>%</span></div>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(16,185,129,0.18)', border: '2px solid rgba(16,185,129,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🧠</div>
-                    </div>
-                    <div style={{ fontSize: 9, color: statusColor(mindStatus), fontWeight: 600 }}>{mindStatus}</div>
-                  </div>
+                      {/* Split glowing circle arcs (5 segments matching mockup life core domains) */}
+                      {/* Segment 1: Top Right (Cyan/Blue) */}
+                      <circle
+                        cx="90" cy="90" r="72" fill="none"
+                        stroke="#06b6d4" strokeWidth="6" strokeDasharray="67.8 384.6" strokeLinecap="round"
+                        transform="rotate(270, 90, 90)" style={{ filter: 'drop-shadow(0 0 4px #06b6d4)' }}
+                      />
+                      {/* Segment 2: Top Left (Green) */}
+                      <circle
+                        cx="90" cy="90" r="72" fill="none"
+                        stroke="#10b981" strokeWidth="6" strokeDasharray="67.8 384.6" strokeLinecap="round"
+                        transform="rotate(198, 90, 90)" style={{ filter: 'drop-shadow(0 0 4px #10b981)' }}
+                      />
+                      {/* Segment 3: Bottom Left (Orange) */}
+                      <circle
+                        cx="90" cy="90" r="72" fill="none"
+                        stroke="#fbbf24" strokeWidth="6" strokeDasharray="67.8 384.6" strokeLinecap="round"
+                        transform="rotate(126, 90, 90)" style={{ filter: 'drop-shadow(0 0 4px #fbbf24)' }}
+                      />
+                      {/* Segment 4: Bottom Right (Purple) */}
+                      <circle
+                        cx="90" cy="90" r="72" fill="none"
+                        stroke="#8b5cf6" strokeWidth="6" strokeDasharray="67.8 384.6" strokeLinecap="round"
+                        transform="rotate(54, 90, 90)" style={{ filter: 'drop-shadow(0 0 4px #8b5cf6)' }}
+                      />
+                      {/* Segment 5: Right (Magenta/Pink) */}
+                      <circle
+                        cx="90" cy="90" r="72" fill="none"
+                        stroke="#d946ef" strokeWidth="6" strokeDasharray="67.8 384.6" strokeLinecap="round"
+                        transform="rotate(-18, 90, 90)" style={{ filter: 'drop-shadow(0 0 4px #d946ef)' }}
+                      />
+                    </svg>
 
-                  {/* HEART — top right */}
-                  <div style={{ position: 'absolute', top: 8, right: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Heart</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(239,68,68,0.18)', border: '2px solid rgba(239,68,68,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>❤️</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{heartScore}<span style={{ fontSize: 10 }}>%</span></div>
-                    </div>
-                    <div style={{ fontSize: 9, color: statusColor(heartStatus), fontWeight: 600 }}>{heartStatus}</div>
-                  </div>
-
-                  {/* ENERGY — middle left */}
-                  <div style={{ position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Energy</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{energyScore}<span style={{ fontSize: 10 }}>%</span></div>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(249,115,22,0.18)', border: '2px solid rgba(249,115,22,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>⚡</div>
-                    </div>
-                    <div style={{ fontSize: 9, color: statusColor(energyStatus), fontWeight: 600 }}>{energyStatus}</div>
-                  </div>
-
-                  {/* HABITS — middle right */}
-                  <div style={{ position: 'absolute', top: '50%', right: 0, transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Habits</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(20,184,166,0.18)', border: '2px solid rgba(20,184,166,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#14b8a6' }}>✓</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{habitsScore}<span style={{ fontSize: 10 }}>%</span></div>
-                    </div>
-                    <div style={{ fontSize: 9, color: statusColor(habitsStatus), fontWeight: 600 }}>{habitsStatus}</div>
-                  </div>
-
-                  {/* BODY — bottom left */}
-                  <div style={{ position: 'absolute', bottom: 8, left: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Body</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{bodyScore}<span style={{ fontSize: 10 }}>%</span></div>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(99,102,241,0.18)', border: '2px solid rgba(99,102,241,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🛡</div>
-                    </div>
-                    <div style={{ fontSize: 9, color: statusColor(bodyStatus), fontWeight: 600 }}>{bodyStatus}</div>
-                  </div>
-
-                  {/* PURPOSE — bottom right */}
-                  <div style={{ position: 'absolute', bottom: 8, right: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-                    <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Purpose</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(245,158,11,0.18)', border: '2px solid rgba(245,158,11,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🎯</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{purposeScore}<span style={{ fontSize: 10 }}>%</span></div>
-                    </div>
-                    <div style={{ fontSize: 9, color: statusColor(purposeStatus), fontWeight: 600 }}>{purposeStatus}</div>
-                  </div>
-
-                  {/* AVATAR — centered */}
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                    <div style={{ transform: 'scale(0.62)', transformOrigin: 'center center' }}>
+                    {/* Nest Avatar inside ring with scale */}
+                    <div style={{ position: 'absolute', transform: 'scale(0.92)', transformOrigin: 'center center', width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
                       <LifeAvatar
                         healthScore={healthScore}
                         financeScore={financeScore}
@@ -1405,422 +1558,930 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Bottom: legend LEFT — Feels Focused RIGHT */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                  <div style={{ display: 'flex', gap: 12, fontSize: 9, color: '#6b7280' }}>
-                    <span><span style={{ color: '#eab308' }}>●</span> Health</span>
-                    <span><span style={{ color: '#ef4444' }}>●</span> Finance</span>
-                    <span><span style={{ color: '#22c55e' }}>●</span> Career</span>
-                  </div>
-                  <span style={{
-                    background: burnoutRisk > 60 ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
-                    border: `1px solid ${burnoutRisk > 60 ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)'}`,
-                    color: burnoutRisk > 60 ? '#ef4444' : '#22c55e',
-                    fontSize: 10, fontWeight: 600, padding: '4px 10px', borderRadius: 999,
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                  }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: burnoutRisk > 60 ? '#ef4444' : '#22c55e' }} />
-                    {burnoutRisk > 60 ? 'Feels Overwhelmed' : 'Feels Focused'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* MIDDLE: Burnout Risk & Action Chips — 3 parts (~30%) */}
-            <div style={{ flex: 3, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-
-              {/* Burnout Risk — compact */}
-              <div style={{ ...S('#111827'), padding: '8px 12px' }}>
-                <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Burnout Risk</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ position: 'relative', width: 60, height: 60, flexShrink: 0 }}>
-                    <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(135deg)' }}>
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" strokeDasharray="188 63" strokeLinecap="round" />
-                      <circle cx="50" cy="50" r="40" fill="none"
-                        stroke={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f97316' : '#22c55e'}
-                        strokeWidth="10" strokeLinecap="round"
-                        strokeDasharray={`${((100 - burnoutRisk) / 100) * 188} 251`} />
-                    </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke={burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f97316' : '#22c55e'}
-                        strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        {burnoutRisk > 60
-                          ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
-                          : <polyline points="20 6 9 17 4 12" />}
-                      </svg>
+                {/* Column C: Overall Score & Mindset */}
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', height: '100%', alignItems: 'flex-end', textAlign: 'right', boxSizing: 'border-box' }}>
+                  {/* Overall Score */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ fontSize: 9.5, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Overall Score</span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 2 }}>
+                      <span style={{ fontSize: 24, fontWeight: 900, color: '#ffffff', lineHeight: 1 }}>{lifeBalance}</span>
+                      <span style={{ fontSize: 11, color: '#64748b' }}>/100</span>
                     </div>
+                    <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 800, marginTop: 2 }}>↑ 7 this week</div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: burnoutRisk > 60 ? '#ef4444' : burnoutRisk > 30 ? '#f97316' : '#22c55e' }}>
-                      {burnoutRisk > 60 ? 'High' : burnoutRisk > 30 ? 'Medium' : 'Low'}
-                    </div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: '#e2e8f0', lineHeight: 1 }}>{burnoutRisk}%</div>
-                    <div style={{ fontSize: 10, color: '#e2e8f0', fontWeight: 500, marginTop: 2 }}>{burnoutRisk > 40 ? 'Recovery needed' : 'On track'}</div>
-                    <div style={{ fontSize: 9, color: '#6b7280' }}>{burnoutRisk > 40 ? 'Take a break.' : 'Maintain habits.'}</div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Action Chips */}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0', marginBottom: 6 }}>Action Chips</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {actionPlan.map((task, i) => (
-                    <Link key={task.id || i} to={task.link || '/health'} style={{ textDecoration: 'none' }}>
-                      <div
-                        style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', transition: 'background 0.15s' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#161f30'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#111827'; }}
-                      >
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13 }}>
-                          {task.icon}
-                        </div>
-                        <span style={{ flex: 1, fontSize: 11, color: '#e2e8f0', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.text}</span>
-                        <span style={{ fontSize: 9, color: '#22c55e', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap', marginLeft: 4 }}>{task.pts}</span>
+                  {/* Mindset block */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, alignItems: 'flex-end' }}>
+                        <span style={{ fontSize: 9, color: '#64748b', fontWeight: 700 }}>Mindset</span>
+                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>76</span>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Future Self — below Action Chips ── */}
-              <div style={{ background: 'linear-gradient(160deg, rgba(109,40,217,0.18) 0%, #111827 60%)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 12, padding: '8px 12px', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 40, background: 'linear-gradient(180deg, rgba(139,92,246,0.12) 0%, transparent 100%)', pointerEvents: 'none' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 7, position: 'relative' }}>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span>✨</span> Future Self
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a855f7', boxShadow: '0 0 8px rgba(168, 85, 247, 0.12)', flexShrink: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2zM14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z" />
+                        </svg>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 9, color: '#a78bfa', marginTop: 1 }}>{futureYear} · Age {userAge}</div>
-                  </div>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: '#a78bfa', background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.3)', padding: '2px 7px', borderRadius: 6 }}>AI</span>
-                </div>
-                <div style={{ display: 'flex', gap: 7, marginBottom: 7, position: 'relative' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13 }}>🔮</div>
-                  <div style={{ flex: 1, fontSize: 10, color: '#cbd5e1', lineHeight: 1.45, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                    {aiNarrative
-                      ? `I'm you, age ${userAge}, in ${futureYear}. ${aiNarrative.slice(0, 100)}${aiNarrative.length > 100 ? '...' : ''}`
-                      : `I'm you, age ${userAge}, in ${futureYear}. The choices around career right now (${careerScore}/100) shape everything that follows.`}
+                    <div style={{ fontSize: 9, color: '#a855f7', fontWeight: 800, marginTop: 4, paddingRight: 40 }}>Strong</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <button onClick={() => window.location.href = '/coach'}
-                    style={{ fontSize: 9, color: '#a78bfa', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', padding: '3px 8px', borderRadius: 999, cursor: 'pointer' }}>
-                    How's my health in 5 years?
-                  </button>
-                  <Link to="/coach" style={{ fontSize: 9, color: '#64748b', textDecoration: 'none' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#a78bfa'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>
-                    Voice Log
-                  </Link>
-                </div>
+
               </div>
             </div>
 
-            {/* RIGHT: Today's Plan + Goal Tree Life Bloom — 3 parts */}
-            <div style={{ flex: 3, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-              {/* ── Today's Plan ── */}
-              <div style={{ ...S('#111827'), padding: '8px 12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0' }}>Today's Plan</div>
-                  <div style={{ fontSize: 9, color: '#6b7280' }}>{planDoneCount} / {todayPlan.length} completed</div>
+            {/* COLUMN 2: Stacked Today's Plan & Life Bloom */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
+              {/* Today's Plan */}
+              <div style={{ ...S('#111827'), padding: '12px 14px', flexShrink: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0' }}>Today's Plan</div>
+                  <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 600 }}>{planDoneCount} / {todayPlan.length} completed</div>
                 </div>
-                <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 7 }} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                  {todayPlan.length ? todayPlan.map((task, i) => (
-                    <div key={task.id || i} onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                  {todayPlan.map((task) => (
+                    <div key={task.id} onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                      <div style={{ width: 15, height: 15, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
-                        {task.done && <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                      <div style={{ width: 14, height: 14, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+                        {task.done && <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>}
                       </div>
                       <span style={{ flex: 1, fontSize: 10, color: task.done ? '#64748b' : '#cbd5e1', textDecoration: task.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.text}</span>
                       <span style={{ fontSize: 9, color: '#475569', flexShrink: 0 }}>{task.time}</span>
                     </div>
-                  )) : <div style={{ fontSize: 10, color: '#6b7280' }}>No tasks scheduled.</div>}
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <button style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 99, padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', outline: 'none' }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#818cf8' }}>⚡ +12 XP Available</span>
+                    <span style={{ fontSize: 8, color: '#818cf8' }}>➔</span>
+                  </button>
                 </div>
               </div>
 
-              {/* ── Life Bloom — live reactive tree (todayPlan checkboxes) ── */}
-              {(() => {
-                // Driven by checkedTasks so it updates instantly on each checkbox click
-                const treeTasks = todayPlan.slice(0, 7);
-                const doneCount = treeTasks.filter(t => !!checkedTasks[t.id]).length;
-                const totalCount = treeTasks.length;
-                const pct = totalCount > 0 ? doneCount / totalCount : 0;
-                const th = pct === 0    ? {a:'#78716c',b:'#a8a29e',bg:'rgba(120,113,108,0.15)'}
-                         : pct < 0.35   ? {a:'#22c55e',b:'#4ade80',bg:'rgba(34,197,94,0.18)'}
-                         : pct < 0.7    ? {a:'#10b981',b:'#34d399',bg:'rgba(16,185,129,0.18)'}
-                         : pct < 1.0    ? {a:'#ec4899',b:'#f9a8d4',bg:'rgba(236,72,153,0.18)'}
-                         :                {a:'#f59e0b',b:'#fbbf24',bg:'rgba(245,158,11,0.22)'};
-                const label = doneCount === 0 ? '🌰 Seed' : pct < 0.35 ? '🌱 Sprouting' : pct < 0.7 ? '🌿 Growing' : pct < 1 ? '🌸 Blooming' : '🌳 Thriving!';
-                const W=240,H=290,CX=120,GY=272,maxH=210;
-                const trunkH = totalCount > 0 ? pct * maxH : 0;
-                const topY = GY - trunkH;
-                const sp = totalCount > 1 ? maxH / totalCount : maxH * 0.7;
-                const leafPath = "M 0 0 C -13 -3 -17 -17 0 -26 C 17 -17 13 -3 0 0 Z";
+              {/* Life Bloom reactive SVG */}
+              <div style={{ flex: 1, minHeight: 0 }}>
+                {(() => {
+                  const treeTasks = todayPlan.slice(0, 7);
+                  const doneCount = treeTasks.filter(t => !!checkedTasks[t.id]).length;
+                  const totalCount = treeTasks.length;
+                  const pct = totalCount > 0 ? doneCount / totalCount : 0;
+                  const th = pct === 0    ? {a:'#78716c',b:'#a8a29e',bg:'rgba(120,113,108,0.15)'}
+                           : pct < 0.35   ? {a:'#22c55e',b:'#4ade80',bg:'rgba(34,197,94,0.18)'}
+                           : pct < 0.7    ? {a:'#10b981',b:'#34d399',bg:'rgba(16,185,129,0.18)'}
+                           : pct < 1.0    ? {a:'#ec4899',b:'#f9a8d4',bg:'rgba(236,72,153,0.18)'}
+                           :                {a:'#f59e0b',b:'#fbbf24',bg:'rgba(245,158,11,0.22)'};
+                  const label = doneCount === 0 ? '🌰 Seed' : pct < 0.35 ? '🌱 Sprouting' : pct < 0.7 ? '🌿 Growing' : pct < 1 ? '🌸 Blooming' : '🌳 Thriving!';
+                  const W=240,H=290,CX=120,GY=272,maxH=210;
+                  const trunkH = totalCount > 0 ? pct * maxH : 0;
+                  const topY = GY - trunkH;
+                  const sp = totalCount > 1 ? maxH / totalCount : maxH * 0.7;
+                  const leafPath = "M 0 0 C -13 -3 -17 -17 0 -26 C 17 -17 13 -3 0 0 Z";
 
-                const trunkColor = '#5c3a1e';
-
-                return (
-                  <div style={{ background:'linear-gradient(180deg,#070c14 0%,#0d1320 50%,#111827 100%)', border:`1px solid ${th.a}30`, borderRadius:12, padding:'10px 10px 8px', overflow:'hidden', position:'relative' }}>
-                    {/* Twinkling stars */}
-                    {[{l:'10%',tp:'8%',d:0},{l:'80%',tp:'6%',d:0.9},{l:'62%',tp:'17%',d:1.6},{l:'28%',tp:'22%',d:0.4},{l:'90%',tp:'28%',d:1.2},{l:'48%',tp:'4%',d:0.7}].map((s,i)=>(
-                      <motion.div key={i} style={{position:'absolute',left:s.l,top:s.tp,width:1.5,height:1.5,borderRadius:'50%',background:'#93c5fd',pointerEvents:'none',zIndex:0}}
-                        animate={{opacity:[0.05,0.65,0.05],scale:[0.5,1.3,0.5]}}
-                        transition={{duration:2.4+i*0.5,repeat:Infinity,delay:parseFloat(s.d)}}/>
-                    ))}
-                    <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'65%',height:55,background:`radial-gradient(ellipse,${th.a}28 0%,transparent 70%)`,pointerEvents:'none',zIndex:0}}/>
-
-                    {/* Header */}
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7,position:'relative',zIndex:1}}>
-                      <div>
-                        <div style={{fontSize:12,fontWeight:700,color:'#e2e8f0'}}>Life Bloom</div>
-                        <div style={{fontSize:8,color:'#4b5563'}}>Check tasks above → branches grow</div>
-                      </div>
-                      <span style={{fontSize:9,fontWeight:700,color:th.a,background:th.bg,border:`1px solid ${th.a}40`,padding:'2px 9px',borderRadius:999}}>{label}</span>
-                    </div>
-
-                    {/* Tree SVG */}
-                    <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:220,display:'block',position:'relative',zIndex:1}}>
-                      <defs>
-                        <radialGradient id="lb_sg" cx="50%" cy="50%" r="50%">
-                          <stop offset="0%" stopColor={th.a} stopOpacity={Math.min(0.35,0.05+pct*0.3)}/>
-                          <stop offset="100%" stopColor={th.a} stopOpacity="0"/>
-                        </radialGradient>
-                        <linearGradient id="lb_lf" x1="0%" y1="100%" x2="0%" y2="0%">
-                          <stop offset="0%" stopColor={th.a}/><stop offset="100%" stopColor={th.b}/>
-                        </linearGradient>
-                        <linearGradient id="lb_tr" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#3d2010"/><stop offset="50%" stopColor="#6b3e22"/><stop offset="100%" stopColor="#4a2a14"/>
-                        </linearGradient>
-                        <filter id="lb_gl" x="-50%" y="-50%" width="200%" height="200%">
-                          <feGaussianBlur stdDeviation="4" result="b"/>
-                          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <filter id="lb_sg2" x="-30%" y="-30%" width="160%" height="160%">
-                          <feGaussianBlur stdDeviation="2.5" result="b"/>
-                          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                      </defs>
-
-                      {/* Soil glow */}
-                      <ellipse cx={CX} cy={GY+2} rx="90" ry="20" fill="url(#lb_sg)"/>
-                      {/* Swaying grass */}
-                      {[-36,-24,-14,-4,4,14,24,36].map((dx,i)=>(
-                        <motion.path key={i} d={`M${CX+dx} ${GY-3} Q${CX+dx+(i%2?2.5:-2.5)} ${GY-11} ${CX+dx+(i%2?1.5:-1.5)} ${GY-18}`}
-                          fill="none" stroke={pct>0?th.a:'#1c3a1c'} strokeWidth="1.8" strokeLinecap="round"
-                          opacity={pct>0?0.55:0.2}
-                          animate={{rotate:[-1.5,1.5,-1.5]}} transition={{duration:2.2+i*0.25,repeat:Infinity,ease:'easeInOut',delay:i*0.18}}
-                          style={{transformOrigin:`${CX+dx}px ${GY}px`,transformBox:'fill-box'}}/>
+                  return (
+                    <div style={{ background:'linear-gradient(180deg,#070c14 0%,#0d1320 50%,#111827 100%)', border:`1px solid ${th.a}30`, borderRadius:12, padding:'10px 12px 8px', overflow:'hidden', position:'relative', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+                      {/* Twinkling stars */}
+                      {[{l:'10%',tp:'8%',d:0},{l:'80%',tp:'6%',d:0.9},{l:'62%',tp:'17%',d:1.6},{l:'28%',tp:'22%',d:0.4},{l:'90%',tp:'28%',d:1.2},{l:'48%',tp:'4%',d:0.7}].map((s,i)=>(
+                        <motion.div key={i} style={{position:'absolute',left:s.l,top:s.tp,width:1.5,height:1.5,borderRadius:'50%',background:'#93c5fd',pointerEvents:'none',zIndex:0}}
+                          animate={{opacity:[0.05,0.65,0.05],scale:[0.5,1.3,0.5]}}
+                          transition={{duration:2.4+i*0.5,repeat:Infinity,delay:parseFloat(s.d)}}/>
                       ))}
-                      {/* Soil layers */}
-                      <ellipse cx={CX} cy={GY+4} rx="76" ry="14" fill="#2c1a0a" opacity="0.98"/>
-                      <ellipse cx={CX} cy={GY+1} rx="70" ry="10" fill="#3d2410" opacity="0.9"/>
-                      <ellipse cx={CX} cy={GY-2} rx="62" ry="7" fill="#5c3a1e" opacity="0.75"/>
+                      <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'65%',height:55,background:`radial-gradient(ellipse,${th.a}28 0%,transparent 70%)`,pointerEvents:'none',zIndex:0}}/>
 
-                      {/* Seed (nothing checked) */}
-                      {doneCount === 0 && (
-                        <g>
-                          <motion.ellipse cx={CX} cy={GY-16} rx="12" ry="15" fill="#8b6030"
-                            animate={{scale:[1,1.04,1]}} transition={{duration:2.2,repeat:Infinity}}
-                            style={{transformOrigin:`${CX}px ${GY-16}px`,transformBox:'fill-box'}}/>
-                          <ellipse cx={CX} cy={GY-16} rx="7" ry="9" fill="#c4a26a" opacity="0.5"/>
-                          <motion.line x1={CX} y1={GY-31} x2={CX} y2={GY-40} stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"
-                            animate={{scaleY:[1,1.15,1],opacity:[0.7,1,0.7]}} transition={{duration:1.8,repeat:Infinity}}
-                            style={{transformOrigin:`${CX}px ${GY-31}px`,transformBox:'fill-box'}}/>
-                        </g>
-                      )}
-
-                      {/* Ghost future branches */}
-                      {treeTasks.map((task,i)=>{
-                        const bY=GY-(i+1)*sp; const iL=i%2===0;
-                        const tX=iL?CX-50:CX+50; const tY=bY-28;
-                        return(
-                          <g key={`gh-${task.id||i}`} opacity="0.15">
-                            <path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
-                              fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeDasharray="3 4" strokeLinecap="round"/>
-                            <circle cx={tX} cy={tY-4} r="9" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="2 3"/>
-                          </g>
-                        );
-                      })}
-
-                      {/* Trunk — grows as tasks checked */}
-                      {trunkH > 3 && (<>
-                        <motion.path d={`M${CX-6} ${GY} C${CX-9} ${GY-trunkH*0.35} ${CX-3} ${GY-trunkH*0.72} ${CX} ${topY}`}
-                          fill="none" stroke="url(#lb_tr)" strokeWidth="12" strokeLinecap="round"
-                          initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut'}}/>
-                        <motion.path d={`M${CX+3} ${GY} C${CX+5} ${GY-trunkH*0.35} ${CX+2} ${GY-trunkH*0.72} ${CX} ${topY}`}
-                          fill="none" stroke="#8b5a34" strokeWidth="3.5" strokeLinecap="round" opacity="0.38"
-                          initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut',delay:0.06}}/>
-                      </>)}
-
-                      {/* Live branches — one per checked task */}
-                      {treeTasks.map((task,i)=>{
-                        const done=!!checkedTasks[task.id];
-                        if(!done) return null;
-                        const bY=GY-(i+1)*sp; const iL=i%2===0;
-                        const tX=iL?CX-50:CX+50; const tY=bY-28;
-                        const dl=i*0.08;
-                        return(
-                          <g key={`br-${task.id||i}`}>
-                            <motion.path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
-                              fill="none" stroke="#6b3e22" strokeWidth="4" strokeLinecap="round"
-                              initial={{pathLength:0,opacity:0}} animate={{pathLength:1,opacity:1}}
-                              transition={{delay:dl,duration:0.55,ease:'easeOut'}}/>
-                            {/* 3 organic leaf shapes */}
-                            <motion.g filter="url(#lb_sg2)"
-                              initial={{scale:0,opacity:0}} animate={{scale:1,opacity:1}}
-                              transition={{delay:dl+0.2,type:'spring',stiffness:200,damping:13}}
-                              style={{transformOrigin:`${tX}px ${tY}px`,transformBox:'fill-box'}}>
-                              <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(-38)`} opacity="0.92"/>
-                              <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(0)`}/>
-                              <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(38)`} opacity="0.92"/>
-                              <path d={leafPath} fill={th.b} transform={`translate(${iL?tX-11:tX+11} ${tY+6}) rotate(${iL?65:-65}) scale(0.55)`} opacity="0.75"/>
-                              <motion.circle cx={tX} cy={tY-14} r={3.5} fill={th.b}
-                                animate={{r:[3,5,3],opacity:[0.6,1,0.6]}} transition={{duration:2.2,repeat:Infinity,delay:i*0.35}}/>
-                            </motion.g>
-                            {/* Fireflies */}
-                            {[{ox:-10,oy:-8,d:0},{ox:8,oy:-14,d:0.5},{ox:16,oy:-4,d:1.0}].map((p,j)=>(
-                              <motion.circle key={j} cx={tX+p.ox} cy={tY+p.oy} r={1.8} fill={th.b}
-                                animate={{y:[0,-7,0],opacity:[0.15,0.9,0.15],scale:[0.5,1.4,0.5]}}
-                                transition={{duration:1.9+j*0.4,repeat:Infinity,delay:dl+p.d}}/>
-                            ))}
-                            {/* Label */}
-                            <text x={iL?tX-22:tX+22} y={tY+5} textAnchor={iL?'end':'start'} fontSize="7" fill={th.b} fontWeight="600" opacity="0.85">
-                              {(task.text||'').slice(0,11)}
-                            </text>
-                          </g>
-                        );
-                      })}
-
-                      {/* Pulsing growing tip */}
-                      {doneCount>0 && doneCount<totalCount && (
-                        <motion.circle cx={CX} cy={topY} r={5} fill={th.b} filter="url(#lb_gl)"
-                          animate={{r:[4,8,4],opacity:[0.35,1,0.35]}} transition={{duration:1.6,repeat:Infinity}}/>
-                      )}
-
-                      {/* Full canopy */}
-                      {doneCount===totalCount && totalCount>0 && (
-                        <g filter="url(#lb_gl)">
-                          {[{cx:CX,cy:topY-10,r:34},{cx:CX-26,cy:topY+16,r:24},{cx:CX+26,cy:topY+16,r:24},{cx:CX,cy:topY+8,r:30},{cx:CX-12,cy:topY-28,r:18},{cx:CX+14,cy:topY-26,r:16}]
-                            .map((c,i)=>(<motion.circle key={i} cx={c.cx} cy={c.cy} r={c.r} fill={i%2===0?th.a:th.b} opacity={0.88}
-                              initial={{scale:0}} animate={{scale:1}} transition={{delay:i*0.07,type:'spring',stiffness:130,damping:10}}
-                              style={{transformOrigin:`${c.cx}px ${c.cy}px`,transformBox:'fill-box'}}/>))}
-                          {[{x:CX-16,y:topY+4},{x:CX+14,y:topY-2},{x:CX-26,y:topY+24},{x:CX+24,y:topY+20}].map((f,i)=>(
-                            <motion.circle key={i} cx={f.x} cy={f.y} r={4} fill="#f87171" opacity="0.9"
-                              initial={{scale:0}} animate={{scale:1}} transition={{delay:0.5+i*0.1,type:'spring'}}
-                              style={{transformOrigin:`${f.x}px ${f.y}px`,transformBox:'fill-box'}}/>
-                          ))}
-                        </g>
-                      )}
-
-                      {/* Celebration ✦ */}
-                      {doneCount===totalCount && totalCount>0 &&
-                        [{x:68,y:topY-32,d:0},{x:172,y:topY-26,d:0.5},{x:52,y:topY+6,d:1.0},{x:188,y:topY+2,d:1.5}]
-                        .map((p,i)=>(
-                          <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle" fill={th.b}
-                            animate={{y:[p.y,p.y-14,p.y],opacity:[0.1,1,0.1]}} transition={{duration:2.5,repeat:Infinity,delay:p.d}}>✦</motion.text>
-                        ))
-                      }
-                    </svg>
-
-                    {/* Progress bar */}
-                    <div style={{position:'relative',zIndex:1}}>
-                      <div style={{height:4,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
-                        <motion.div animate={{width:`${pct*100}%`}} transition={{duration:0.5,ease:'easeOut'}}
-                          style={{height:'100%',background:`linear-gradient(90deg,${th.a},${th.b})`,borderRadius:999}}/>
+                      {/* Header */}
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4,position:'relative',zIndex:1}}>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:'#e2e8f0'}}>Life Bloom</div>
+                          <div style={{fontSize:8,color:'#4b5563'}}>Check tasks above → branches grow</div>
+                        </div>
+                        <span style={{fontSize:9,fontWeight:700,color:th.a,background:th.bg,border:`1px solid ${th.a}40`,padding:'2px 9px',borderRadius:999}}>{label}</span>
                       </div>
-                      <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
-                        <span style={{fontSize:8,color:'#4b5563'}}>{totalCount===0?'Complete tasks above to grow':'each ✓ = one branch on your tree'}</span>
-                        <span style={{fontSize:8,color:th.a,fontWeight:700}}>{doneCount}/{totalCount}</span>
+
+                      {/* Tree SVG */}
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
+                        <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'100%',maxHeight:210,display:'block',position:'relative',zIndex:1}}>
+                          <defs>
+                            <radialGradient id="lb_sg" cx="50%" cy="50%" r="50%">
+                              <stop offset="0%" stopColor={th.a} stopOpacity={Math.min(0.35,0.05+pct*0.3)}/>
+                              <stop offset="100%" stopColor={th.a} stopOpacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="lb_lf" x1="0%" y1="100%" x2="0%" y2="0%">
+                              <stop offset="0%" stopColor={th.a}/><stop offset="100%" stopColor={th.b}/>
+                            </linearGradient>
+                            <linearGradient id="lb_tr" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#3d2010"/><stop offset="50%" stopColor="#6b3e22"/><stop offset="100%" stopColor="#4a2a14"/>
+                            </linearGradient>
+                            <filter id="lb_gl" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur stdDeviation="4" result="b"/>
+                              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                            <filter id="lb_sg2" x="-30%" y="-30%" width="160%" height="160%">
+                              <feGaussianBlur stdDeviation="2.5" result="b"/>
+                              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                          </defs>
+
+                          {/* Soil glow */}
+                          <ellipse cx={CX} cy={GY+2} rx="90" ry="20" fill="url(#lb_sg)"/>
+                          {/* Swaying grass */}
+                          {[-36,-24,-14,-4,4,14,24,36].map((dx,i)=>(
+                            <motion.path key={i} d={`M${CX+dx} ${GY-3} Q${CX+dx+(i%2?2.5:-2.5)} ${GY-11} ${CX+dx+(i%2?1.5:-1.5)} ${GY-18}`}
+                              fill="none" stroke={pct>0?th.a:'#1c3a1c'} strokeWidth="1.8" strokeLinecap="round"
+                              opacity={pct>0?0.55:0.2}
+                              animate={{rotate:[-1.5,1.5,-1.5]}} transition={{duration:2.2+i*0.25,repeat:Infinity,ease:'easeInOut',delay:i*0.18}}
+                              style={{transformOrigin:`${CX+dx}px ${GY}px`,transformBox:'fill-box'}}/>
+                          ))}
+                          {/* Soil layers */}
+                          <ellipse cx={CX} cy={GY+4} rx="76" ry="14" fill="#2c1a0a" opacity="0.98"/>
+                          <ellipse cx={CX} cy={GY+1} rx="70" ry="10" fill="#3d2410" opacity="0.9"/>
+                          <ellipse cx={CX} cy={GY-2} rx="62" ry="7" fill="#5c3a1e" opacity="0.75"/>
+
+                          {/* Seed (nothing checked) */}
+                          {doneCount === 0 && (
+                            <g>
+                              <motion.ellipse cx={CX} cy={GY-16} rx="12" ry="15" fill="#8b6030"
+                                animate={{scale:[1,1.04,1]}} transition={{duration:2.2,repeat:Infinity}}
+                                style={{transformOrigin:`${CX}px ${GY-16}px`,transformBox:'fill-box'}}/>
+                              <ellipse cx={CX} cy={GY-16} rx="7" ry="9" fill="#c4a26a" opacity="0.5"/>
+                              <motion.line x1={CX} y1={GY-31} x2={CX} y2={GY-40} stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"
+                                animate={{scaleY:[1,1.15,1],opacity:[0.7,1,0.7]}} transition={{duration:1.8,repeat:Infinity}}
+                                style={{transformOrigin:`${CX}px ${GY-31}px`,transformBox:'fill-box'}}/>
+                            </g>
+                          )}
+
+                          {/* Ghost future branches */}
+                          {treeTasks.map((task,i)=>{
+                            const bY=GY-(i+1)*sp; const iL=i%2===0;
+                            const tX=iL?CX-50:CX+50; const tY=bY-28;
+                            return(
+                              <g key={`gh-${task.id||i}`} opacity="0.15">
+                                <path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
+                                  fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeDasharray="3 4" strokeLinecap="round"/>
+                                <circle cx={tX} cy={tY-4} r="9" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="2 3"/>
+                              </g>
+                            );
+                          })}
+
+                          {/* Trunk */}
+                          {trunkH > 3 && (<>
+                            <motion.path d={`M${CX-6} ${GY} C${CX-9} ${GY-trunkH*0.35} ${CX-3} ${GY-trunkH*0.72} ${CX} ${topY}`}
+                              fill="none" stroke="url(#lb_tr)" strokeWidth="12" strokeLinecap="round"
+                              initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut'}}/>
+                            <motion.path d={`M${CX+3} ${GY} C${CX+5} ${GY-trunkH*0.35} ${CX+2} ${GY-trunkH*0.72} ${CX} ${topY}`}
+                              fill="none" stroke="#8b5a34" strokeWidth="3.5" strokeLinecap="round" opacity="0.38"
+                              initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut',delay:0.06}}/>
+                          </>)}
+
+                          {/* Live branches */}
+                          {treeTasks.map((task,i)=>{
+                            const done=!!checkedTasks[task.id];
+                            if(!done) return null;
+                            const bY=GY-(i+1)*sp; const iL=i%2===0;
+                            const tX=iL?CX-50:CX+50; const tY=bY-28;
+                            const dl=i*0.08;
+                            return(
+                              <g key={`br-${task.id||i}`}>
+                                <motion.path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
+                                  fill="none" stroke="#6b3e22" strokeWidth="4" strokeLinecap="round"
+                                  initial={{pathLength:0,opacity:0}} animate={{pathLength:1,opacity:1}}
+                                  transition={{delay:dl,duration:0.55,ease:'easeOut'}}/>
+                                <motion.g filter="url(#lb_sg2)"
+                                  initial={{scale:0,opacity:0}} animate={{scale:1,opacity:1}}
+                                  transition={{delay:dl+0.2,type:'spring',stiffness:200,damping:13}}
+                                  style={{transformOrigin:`${tX}px ${tY}px`,transformBox:'fill-box'}}>
+                                  <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(-38)`} opacity="0.92"/>
+                                  <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(0)`}/>
+                                  <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(38)`} opacity="0.92"/>
+                                  <path d={leafPath} fill={th.b} transform={`translate(${iL?tX-11:tX+11} ${tY+6}) rotate(${iL?65:-65}) scale(0.55)`} opacity="0.75"/>
+                                  <motion.circle cx={tX} cy={tY-14} r={3.5} fill={th.b}
+                                    animate={{r:[3,5,3],opacity:[0.6,1,0.6]}} transition={{duration:2.2,repeat:Infinity,delay:i*0.35}}/>
+                                </motion.g>
+                                {[{ox:-10,oy:-8,d:0},{ox:8,oy:-14,d:0.5},{ox:16,oy:-4,d:1.0}].map((p,j)=>(
+                                  <motion.circle key={j} cx={tX+p.ox} cy={tY+p.oy} r={1.8} fill={th.b}
+                                    animate={{y:[0,-7,0],opacity:[0.15,0.9,0.15],scale:[0.5,1.4,0.5]}}
+                                    transition={{duration:1.9+j*0.4,repeat:Infinity,delay:dl+p.d}}/>
+                                ))}
+                                <text x={iL?tX-22:tX+22} y={tY+5} textAnchor={iL?'end':'start'} fontSize="7" fill={th.b} fontWeight="600" opacity="0.85">
+                                  {(task.text||'').slice(0,11)}
+                                </text>
+                              </g>
+                            );
+                          })}
+
+                          {doneCount>0 && doneCount<totalCount && (
+                            <motion.circle cx={CX} cy={topY} r={5} fill={th.b} filter="url(#lb_gl)"
+                              animate={{r:[4,8,4],opacity:[0.35,1,0.35]}} transition={{duration:1.6,repeat:Infinity}}/>
+                          )}
+
+                          {doneCount===totalCount && totalCount>0 && (
+                            <g filter="url(#lb_gl)">
+                              {[{cx:CX,cy:topY-10,r:34},{cx:CX-26,cy:topY+16,r:24},{cx:CX+26,cy:topY+16,r:24},{cx:CX,cy:topY+8,r:30},{cx:CX-12,cy:topY-28,r:18},{cx:CX+14,cy:topY-26,r:16}]
+                                .map((c,i)=>(<motion.circle key={i} cx={c.cx} cy={c.cy} r={c.r} fill={i%2===0?th.a:th.b} opacity={0.88}
+                                  initial={{scale:0}} animate={{scale:1}} transition={{delay:i*0.07,type:'spring',stiffness:130,damping:10}}
+                                  style={{transformOrigin:`${c.cx}px ${c.cy}px`,transformBox:'fill-box'}}/>))}
+                              {[{x:CX-16,y:topY+4},{x:CX+14,y:topY-2},{x:CX-26,y:topY+24},{x:CX+24,y:topY+20}].map((f,i)=>(
+                                <motion.circle key={i} cx={f.x} cy={f.y} r={4} fill="#f87171" opacity="0.9"
+                                  initial={{scale:0}} animate={{scale:1}} transition={{delay:0.5+i*0.1,type:'spring'}}
+                                  style={{transformOrigin:`${f.x}px ${f.y}px`,transformBox:'fill-box'}}/>
+                              ))}
+                            </g>
+                          )}
+
+                          {doneCount===totalCount && totalCount>0 &&
+                            [{x:68,y:topY-32,d:0},{x:172,y:topY-26,d:0.5},{x:52,y:topY+6,d:1.0},{x:188,y:topY+2,d:1.5}]
+                            .map((p,i)=>(
+                              <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle" fill={th.b}
+                                animate={{y:[p.y,p.y-14,p.y],opacity:[0.1,1,0.1]}} transition={{duration:2.5,repeat:Infinity,delay:p.d}}>✦</motion.text>
+                            ))
+                          }
+                        </svg>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div style={{position:'relative',zIndex:1}}>
+                        <div style={{height:4,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
+                          <motion.div animate={{width:`${pct*100}%`}} transition={{duration:0.5,ease:'easeOut'}}
+                            style={{height:'100%',background:`linear-gradient(90deg,${th.a},${th.b})`,borderRadius:999}}/>
+                        </div>
+                        <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
+                          <span style={{fontSize:8,color:'#4b5563'}}>{totalCount===0?'Complete tasks to grow':'each ✓ = one branch'}</span>
+                          <span style={{fontSize:8,color:th.a,fontWeight:700}}>{doneCount}/{totalCount}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
+              </div>
             </div>
 
-            {/* ── Floating AI Coach button ── */}
-            <Link to="/coach">
-              <motion.div
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.94 }}
-                style={{ position: 'fixed', bottom: 28, right: 28, width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(139,92,246,0.5)', cursor: 'pointer', zIndex: 50 }}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                </svg>
-              </motion.div>
-            </Link>
+            {/* COLUMN 3: Future Self Card (Full height) */}
+            <div style={{ background: 'linear-gradient(160deg, rgba(109,40,217,0.18) 0%, #111827 60%)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 12, padding: '16px 14px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50, background: 'linear-gradient(180deg, rgba(139,92,246,0.12) 0%, transparent 100%)', pointerEvents: 'none' }} />
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span>✨</span> Future Self
+                  </div>
+                  <div style={{ fontSize: 9, color: '#a78bfa', marginTop: 1 }}>{futureYear} · Age {userAge}</div>
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 700, color: '#a78bfa', background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.3)', padding: '2px 7px', borderRadius: 6 }}>AI</span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '14px 0' }}>
+                <div style={{ position: 'relative', width: 90, height: 90, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <motion.div
+                    animate={{ scale: [1.02, 1.12, 1.02], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '2px solid rgba(167, 139, 250, 0.4)', filter: 'blur(1px)' }}
+                  />
+                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, boxShadow: '0 0 20px rgba(124, 58, 237, 0.4)' }}>
+                    👦
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ fontSize: 11, color: '#cbd5e1', lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 12px', marginBottom: 12, flex: 1, display: 'flex', alignItems: 'center' }}>
+                {aiNarrative
+                  ? `I'm you, age ${userAge}, in ${futureYear}. ${aiNarrative.slice(0, 160)}${aiNarrative.length > 160 ? '...' : ''}`
+                  : `I'm you, age ${userAge}, in ${futureYear}. Your life balance score is ${lifeBalance}/100. Career (${careerScore}/100) is currently your area needing the most attention.`}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <button onClick={() => window.location.href = '/coach'}
+                  style={{ flex: 1, fontSize: 10, color: '#fff', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', border: 'none', padding: '7px 14px', borderRadius: 999, cursor: 'pointer', fontWeight: 600, boxShadow: '0 4px 10px rgba(124, 58, 237, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <span>✨</span> Ask Future Self
+                </button>
+                
+                <div onClick={() => window.location.href = '/coach'} style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#a78bfa', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
+                  <span>Voice Log</span>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 10 }}>
+                    <motion.div animate={{ height: [3, 8, 3] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.1 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
+                    <motion.div animate={{ height: [4, 10, 4] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
+                    <motion.div animate={{ height: [3, 7, 3] }} transition={{ duration: 0.9, repeat: Infinity, delay: 0.5 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
+                    <motion.div animate={{ height: [2, 5, 2] }} transition={{ duration: 0.7, repeat: Infinity, delay: 0.2 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
+                  </div>
+                </div>
+              </div>
+            </div>
 
           </div>
 
-          {/* ════ SCORE RINGS — click to toggle each ring's Explainable AI ════ */}
-          {(() => {
-            const factorsMap = {
-              Health: explainFactors.health, Finance: explainFactors.finance,
-              Career: explainFactors.career, Mindset: mindsetFactors, Balance: balanceFactors,
-            };
-            const insightsMap = {
-              Health: domainInsights.health, Finance: domainInsights.finance,
-              Career: domainInsights.career, Mindset: domainInsights.mindset, Balance: domainInsights.balance,
-            };
-            return (
-              <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, marginTop: 16 }}>
-                {/* Rings row */}
-                <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center', padding: '12px 16px 8px' }}>
-                  {rings.map((ring) => (
-                    <DashboardScoreRing
-                      key={ring.label}
-                      label={ring.label}
-                      score={ring.score}
-                      display={ring.display}
-                      color={ring.color}
-                      change={ring.change}
-                      up={ring.up}
-                      isActive={!!openRings[ring.label]}
-                      onClick={() => toggleRing(ring.label)}
-                    />
-                  ))}
+          {/* ════════════════════════════════════════════════════
+              ROW 2 — 14-DAY LIFE TIMELINE (Ribbon Calendar)
+          ════════════════════════════════════════════════════ */}
+          <div style={{ background: '#111827', border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0' }}>14-Day Life Timeline</span>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                <div style={{ display: 'flex', gap: 12, fontSize: 9.5 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px rgba(16,185,129,0.4)' }} /> Completed
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', border: '2px solid #a855f7', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }} /> Partial
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a1f2c', border: '1.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+                      <span style={{ width: 4, height: 1, background: '#64748b', borderRadius: 1 }} />
+                    </span> Missed
+                  </span>
                 </div>
-
-                {/* Per-ring expandable Explainable AI panels */}
-                <AnimatePresence initial={false}>
-                  {rings.filter(ring => openRings[ring.label]).map((ring, idx, arr) => (
-                    <motion.div
-                      key={ring.label}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: 'easeOut' }}
-                      style={{ overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.05)', margin: '0 12px', marginBottom: idx === arr.length - 1 ? 12 : 0 }}
-                    >
-                      <div style={{ paddingTop: 12, paddingBottom: idx < arr.length - 1 ? 12 : 0 }}>
-                        <ExplainAIPanel
-                          label={ring.label}
-                          display={ring.display}
-                          color={ring.color}
-                          icon={ring.icon}
-                          change={ring.change}
-                          up={ring.up}
-                          link={ring.link}
-                          factors={factorsMap[ring.label] || []}
-                          insight={insightsMap[ring.label]}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                <Link to="/simulator" style={{ fontSize: 10, color: '#a78bfa', textDecoration: 'none', fontWeight: 700 }}>View Calendar</Link>
               </div>
-            );
-          })()}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 6, boxSizing: 'border-box' }}>
+              {[
+                { date: 'May 30', day: 'Fri', status: 'completed' },
+                { date: 'May 31', day: 'Sat', status: 'completed' },
+                { date: 'Jun 01', day: 'Sun', status: 'completed' },
+                { date: 'Jun 02', day: 'Mon', status: 'completed' },
+                { date: 'Jun 03', day: 'Tue', status: 'partial' },
+                { date: 'Jun 04', day: 'Wed', status: 'completed' },
+                { date: 'Jun 05', day: 'Thu', status: 'completed' },
+                { date: 'Jun 06', day: 'Fri', status: 'missed' },
+                { date: 'Jun 07', day: 'Sat', status: 'completed' },
+                { date: 'Jun 08', day: 'Sun', status: 'partial' },
+                { date: 'Jun 10', day: 'Mon', status: 'completed' },
+                { date: 'Jun 10', day: 'Tue', status: 'missed' },
+                { date: 'Jun 12', day: 'Thu', status: 'missed' },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.015)',
+                    border: '1px solid rgba(255, 255, 255, 0.03)',
+                    borderRadius: 10,
+                    padding: '8px 4px',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: 0,
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <span style={{ fontSize: 9.5, color: '#e2e8f0', fontWeight: 700 }}>{item.date}</span>
+                  <span
+                    style={{
+                      fontSize: 8.5,
+                      fontWeight: 700,
+                      marginTop: 2,
+                      color: item.status === 'completed' ? '#cbd5e1' : item.status === 'partial' ? '#c084fc' : '#475569',
+                    }}
+                  >
+                    {item.day}
+                  </span>
+                  
+                  <div style={{ marginTop: 8 }}>
+                    {(() => {
+                      if (item.status === 'completed') {
+                        return (
+                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px rgba(16,185,129,0.35)' }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        );
+                      } else if (item.status === 'partial') {
+                        return (
+                          <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px rgba(168,85,247,0.35)', boxSizing: 'border-box' }} />
+                        );
+                      } else {
+                        return (
+                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1a1f2c', border: '1.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+                            <div style={{ width: 6, height: 1.5, background: '#64748b', borderRadius: 1 }} />
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom Slider Progress Track */}
+            <div style={{ position: 'relative', width: '100%', height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 99, marginTop: 14 }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  height: '100%',
+                  width: '80%',
+                  background: 'linear-gradient(90deg, #10b981 0%, #a78bfa 60%, #3b82f6 100%)',
+                  borderRadius: 99,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '80%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  background: '#ffffff',
+                  border: '2.5px solid #3b82f6',
+                  boxShadow: '0 0 8px #3b82f6',
+                }}
+              />
+            </div>
+          </div>
 
           {/* ════════════════════════════════════════════════════
-              SECTION 4 — GHOST MODE TIMELINE
+              ROW 3 — INTELLIGENCE WIDGETS (3 columns grid)
           ════════════════════════════════════════════════════ */}
-          <section id="ghost-timeline" style={{ marginTop: 16, marginBottom: 28 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+            
+            {/* Column 1: Daily Intelligence */}
+            <div style={{ ...S('#111827'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0', marginBottom: 12, textTransform: 'none', letterSpacing: 0.2 }}>Daily Intelligence</div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  {
+                    label: 'Drink 5 more glasses of water',
+                    detail: '3 / 5 glasses',
+                    pct: 60,
+                    pts: '+2 pts',
+                    color: '#3b82f6',
+                    glow: 'rgba(59,130,246,0.4)',
+                    icon: (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                      </svg>
+                    ),
+                    iconBg: 'radial-gradient(circle, rgba(59,130,246,0.18) 0%, rgba(29,78,216,0.25) 100%)',
+                    iconBorder: '1px solid rgba(59,130,246,0.3)',
+                    iconShadow: '0 0 10px rgba(59,130,246,0.2)'
+                  },
+                  {
+                    label: '+1h study today',
+                    detail: '20 / 60 mins',
+                    pct: 33,
+                    pts: '+3 pts',
+                    color: '#a855f7',
+                    glow: 'rgba(168,85,247,0.4)',
+                    icon: (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                      </svg>
+                    ),
+                    iconBg: 'radial-gradient(circle, rgba(168,85,247,0.18) 0%, rgba(109,40,217,0.25) 100%)',
+                    iconBorder: '1px solid rgba(168,85,247,0.3)',
+                    iconShadow: '0 0 10px rgba(168,85,247,0.2)'
+                  },
+                  {
+                    label: 'Sleep before 11 PM',
+                    detail: 'Target 11:00 PM',
+                    pct: 40,
+                    pts: '+4 pts',
+                    color: '#f97316',
+                    glow: 'rgba(249,115,22,0.4)',
+                    icon: (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.1 22c-5.5 0-10-4.5-10-10 0-4.3 2.7-8.1 6.8-9.5.5-.2 1.1.1 1.3.6.2.5.1 1.1-.4 1.4-3.5 1.7-5.7 5.3-5.7 9.5 0 4.4 3.6 8 8 8 4.2 0 7.8-2.2 9.5-5.7.2-.5.8-.7 1.4-.4.5.2.7.8.6 1.3-1.4 4.1-5.2 6.8-9.5 6.8z" />
+                      </svg>
+                    ),
+                    iconBg: 'radial-gradient(circle, rgba(249,115,22,0.18) 0%, rgba(194,65,12,0.25) 100%)',
+                    iconBorder: '1px solid rgba(249,115,22,0.3)',
+                    iconShadow: '0 0 10px rgba(249,115,22,0.2)'
+                  },
+                  {
+                    label: 'Walk 15 minutes',
+                    detail: '5 / 15 mins',
+                    pct: 33,
+                    pts: '+2 pts',
+                    color: '#10b981',
+                    glow: 'rgba(16,185,129,0.4)',
+                    icon: (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 10.2l-.6 3c-.1.7.4 1.3 1.1 1.4h.2c.6 0 1.1-.4 1.2-1l.7-3.8 2.1-.8 1.6 2.3v5.4c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-6.2c0-.5-.2-1-.7-1.3l-2.4-2.4c-.4-.4-1-.7-1.6-.7-1.1 0-2.1.7-2.4 1.7l-.5 1.7-2.3 1.1c-.7.3-1.1 1.1-.8 1.8.3.7 1.1 1.1 1.8.8l2.9-1.4z" />
+                      </svg>
+                    ),
+                    iconBg: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(4,120,87,0.25) 100%)',
+                    iconBorder: '1px solid rgba(16,185,129,0.3)',
+                    iconShadow: '0 0 10px rgba(16,185,129,0.2)'
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      background: 'rgba(255, 255, 255, 0.015)',
+                      border: '1px solid rgba(255, 255, 255, 0.03)',
+                      borderRadius: 12,
+                      padding: '8px 10px',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        background: item.iconBg,
+                        border: item.iconBorder,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: item.iconShadow,
+                        flexShrink: 0,
+                        color: item.color,
+                      }}
+                    >
+                      {item.icon}
+                    </div>
+                    <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+                        <span style={{ color: '#10b981', fontSize: 10, fontWeight: 800, flexShrink: 0, marginLeft: 6 }}>{item.pts}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        <span style={{ color: '#64748b', fontSize: 8.5, fontWeight: 650 }}>{item.detail}</span>
+                      </div>
+                      <div style={{ height: 3.5, background: 'rgba(255,255,255,0.06)', borderRadius: 99, marginTop: 2, width: '100%', position: 'relative' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${item.pct}%`,
+                            background: item.color,
+                            borderRadius: 99,
+                            boxShadow: `0 0 6px ${item.glow}`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Column 2: Habit Projection (What-if Engine) */}
+            <div style={{ ...S('#111827'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0', marginBottom: 12 }}>
+                Habit Projection <span style={{ fontSize: 10.5, color: '#64748b', fontWeight: 500, marginLeft: 2 }}>(What-If Engine)</span>
+              </div>
+              
+              {/* Selector Row */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                {/* Minus Button */}
+                <button
+                  onClick={() => setWhatIfHours(h => Math.max(0, h - 1))}
+                  style={{
+                    width: 34, height: 34, borderRadius: 10,
+                    background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)',
+                    color: '#94a3b8', fontSize: 16, fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
+                    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                >
+                  −
+                </button>
+                {/* Value Text */}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ color: '#fff', fontWeight: 800, fontSize: 18 }}>{whatIfHours} hrs</span>
+                  <span style={{ color: '#94a3b8', fontWeight: 500, fontSize: 13 }}>/ day</span>
+                </div>
+                {/* Plus Button */}
+                <button
+                  onClick={() => setWhatIfHours(h => Math.min(8, h + 1))}
+                  style={{
+                    width: 34, height: 34, borderRadius: 10,
+                    background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)',
+                    color: '#94a3b8', fontSize: 16, fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
+                    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Slider Input Row */}
+              <div style={{ position: 'relative', width: '100%', marginBottom: 14, display: 'flex', alignItems: 'center' }}>
+                <style>{`
+                  .custom-range-slider {
+                    -webkit-appearance: none;
+                    width: 100%;
+                    height: 6px;
+                    border-radius: 99px;
+                    outline: none;
+                    cursor: pointer;
+                    background: transparent;
+                  }
+                  .custom-range-slider::-webkit-slider-thumb {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    width: 15px;
+                    height: 15px;
+                    border-radius: 50%;
+                    background: #ffffff;
+                    border: 3.5px solid #a78bfa;
+                    box-shadow: 0 0 8px #7c3aed;
+                    cursor: pointer;
+                    transition: transform 0.1s;
+                  }
+                  .custom-range-slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.2);
+                  }
+                `}</style>
+                <input
+                  type="range"
+                  min="0"
+                  max="8"
+                  value={whatIfHours}
+                  onChange={(e) => setWhatIfHours(Number(e.target.value))}
+                  style={{
+                    background: `linear-gradient(to right, #7c3aed 0%, #a78bfa ${(whatIfHours / 8) * 100}%, rgba(255, 255, 255, 0.08) ${(whatIfHours / 8) * 100}%)`,
+                  }}
+                  className="custom-range-slider"
+                />
+              </div>
+
+              {/* Career scores comparison */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0 14px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: 9.5, color: '#94a3b8', fontWeight: 600 }}>Current Career Score</div>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: '#818cf8', marginTop: 4 }}>36</div>
+                </div>
+                
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.18)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 0 10px rgba(99, 102, 241, 0.15)',
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <div style={{ fontSize: 9.5, color: '#94a3b8', fontWeight: 600 }}>Projected in 6 months</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 4 }}>
+                    <span style={{ fontSize: 26, fontWeight: 900, color: '#22c55e' }}>{36 + whatIfHours * 8}</span>
+                    <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <span>↑</span><span>{whatIfHours * 8}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sparkline curve */}
+              <div style={{ height: 56, display: 'flex', alignItems: 'flex-end', margin: '4px 0 2px' }}>
+                {(() => {
+                  const scale = 0.5 + (whatIfHours / 8) * 0.8;
+                  const y0 = 48 - 0 * scale;
+                  const y1 = 48 - 12 * scale;
+                  const y2 = 48 - 8 * scale;
+                  const y3 = 48 - 22 * scale;
+                  const y4 = 48 - 36 * scale;
+                  
+                  const pathD = `M10,${y0} C30,${y0 - 2} 45,${y1 + 4} 60,${y1} C75,${y1 - 4} 95,${y2 + 4} 110,${y2} C125,${y2 - 4} 145,${y3 + 4} 160,${y3} C175,${y3 - 4} 195,${y4 + 2} 210,${y4}`;
+                  const areaD = `${pathD} L210,50 L10,50 Z`;
+
+                  return (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <svg width="100%" height="50" viewBox="0 0 220 50" style={{ overflow: 'visible' }}>
+                        <defs>
+                          <linearGradient id="projAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+                          </linearGradient>
+                          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#8b5cf6" />
+                            <stop offset="50%" stopColor="#3b82f6" />
+                            <stop offset="100%" stopColor="#14b8a6" />
+                          </linearGradient>
+                        </defs>
+                        {/* Faint vertical lines grid */}
+                        {[10, 60, 110, 160, 210].map((x, idx) => (
+                          <line key={idx} x1={x} y1={5} x2={x} y2={49} stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+                        ))}
+                        {/* Area */}
+                        <path d={areaD} fill="url(#projAreaGrad)" />
+                        {/* Line */}
+                        <path d={pathD} fill="none" stroke="url(#lineGrad)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                        {/* Circle points */}
+                        <circle cx="10" cy={y0} r="2.5" fill="#8b5cf6" stroke="#07090e" strokeWidth="1" />
+                        <circle cx="60" cy={y1} r="2.5" fill="#8b5cf6" stroke="#07090e" strokeWidth="1" />
+                        <circle cx="110" cy={y2} r="2.5" fill="#3b82f6" stroke="#07090e" strokeWidth="1" />
+                        <circle cx="160" cy={y3} r="2.5" fill="#14b8a6" stroke="#07090e" strokeWidth="1" />
+                        
+                        {/* Final peak glow point */}
+                        <g>
+                          <circle cx="210" cy={y4} r="6" fill="#14b8a6" opacity="0.4" />
+                          <circle cx="210" cy={y4} r="3" fill="#ffffff" style={{ filter: 'drop-shadow(0 0 3px #ffffff)' }} />
+                        </g>
+                      </svg>
+                      {/* X labels */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, padding: '0 4px' }}>
+                        <span>Now</span>
+                        <span>1M</span>
+                        <span>3M</span>
+                        <span>6M</span>
+                        <span>1Y</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Column 3: Cross-Domain Insights */}
+            <div style={{ ...S('#111827'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0' }}>Cross-Domain Insights</span>
+                <Link to="/insights" style={{ fontSize: 10, color: '#a78bfa', textDecoration: 'none', fontWeight: 700 }}>View all</Link>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  {
+                    label: 'Low Sleep → Higher Spending',
+                    corr: 'Correlation: 0.73',
+                    color: '#ef4444',
+                    glow: 'rgba(239, 68, 68, 0.4)',
+                    boxBg: 'rgba(239, 68, 68, 0.03)',
+                    boxBorder: '1px solid rgba(239, 68, 68, 0.1)',
+                    sparkData: [45, 52, 48, 60, 58, 68, 75],
+                    icon1: (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.1 22c-5.5 0-10-4.5-10-10 0-4.3 2.7-8.1 6.8-9.5.5-.2 1.1.1 1.3.6.2.5.1 1.1-.4 1.4-3.5 1.7-5.7 5.3-5.7 9.5 0 4.4 3.6 8 8 8 4.2 0 7.8-2.2 9.5-5.7.2-.5.8-.7 1.4-.4.5.2.7.8.6 1.3-1.4 4.1-5.2 6.8-9.5 6.8z" />
+                      </svg>
+                    ),
+                    icon2: (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="9" cy="21" r="1" fill="currentColor" />
+                        <circle cx="20" cy="21" r="1" fill="currentColor" />
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                      </svg>
+                    ),
+                    iconBg: 'radial-gradient(circle, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.2) 100%)',
+                    iconBorder: '1px solid rgba(239,68,68,0.25)'
+                  },
+                  {
+                    label: 'More Exercise → Better Focus',
+                    corr: 'Correlation: 0.81',
+                    color: '#10b981',
+                    glow: 'rgba(16, 185, 129, 0.4)',
+                    boxBg: 'rgba(16, 185, 129, 0.03)',
+                    boxBorder: '1px solid rgba(16, 185, 129, 0.1)',
+                    sparkData: [48, 52, 50, 62, 58, 65, 75],
+                    icon1: (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6.5 6.5l11 11M3 21l3-3M21 3l-3 3M3 14l7-7M14 17l7-7" />
+                      </svg>
+                    ),
+                    icon2: (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2zM14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z" />
+                      </svg>
+                    ),
+                    iconBg: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.2) 100%)',
+                    iconBorder: '1px solid rgba(16,185,129,0.25)'
+                  },
+                  {
+                    label: 'Study Consistency → Higher Mood',
+                    corr: 'Correlation: 0.68',
+                    color: '#fbbf24',
+                    glow: 'rgba(251, 191, 36, 0.4)',
+                    boxBg: 'rgba(251, 191, 36, 0.03)',
+                    boxBorder: '1px solid rgba(251, 191, 36, 0.1)',
+                    sparkData: [45, 50, 47, 58, 55, 62, 70],
+                    icon1: (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                      </svg>
+                    ),
+                    icon2: (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+                      </svg>
+                    ),
+                    iconBg: 'radial-gradient(circle, rgba(251,191,36,0.12) 0%, rgba(251,191,36,0.2) 100%)',
+                    iconBorder: '1px solid rgba(251,191,36,0.25)'
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      background: item.boxBg,
+                      border: item.boxBorder,
+                      borderRadius: 12,
+                      padding: '10px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    {/* Double Icons left side layout */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                      <div
+                        style={{
+                          width: 26,
+                          height: 26,
+                          borderRadius: '50%',
+                          background: item.iconBg,
+                          border: item.iconBorder,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: item.color,
+                          boxShadow: `0 0 6px ${item.glow}`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.icon1}
+                      </div>
+                      <span style={{ fontSize: 10, color: item.color, fontWeight: 800, flexShrink: 0 }}>→</span>
+                      <div
+                        style={{
+                          width: 26,
+                          height: 26,
+                          borderRadius: '50%',
+                          background: item.iconBg,
+                          border: item.iconBorder,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: item.color,
+                          boxShadow: `0 0 6px ${item.glow}`,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.icon2}
+                      </div>
+                    </div>
+
+                    {/* Mid text */}
+                    <div style={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, paddingLeft: 4 }}>
+                      <div style={{ fontSize: 10, color: '#ffffff', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.label}
+                      </div>
+                      <div style={{ fontSize: 8.5, color: '#64748b', fontWeight: 650 }}>
+                        {item.corr}
+                      </div>
+                    </div>
+
+                    {/* Sparkline curve */}
+                    <div style={{ flexShrink: 0, marginLeft: 6 }}>
+                      {(() => {
+                        const points = item.sparkData.map((val, idx) => {
+                          const x = (idx / (item.sparkData.length - 1)) * 44 + 2;
+                          const y = 14 - ((val - 45) / 35) * 10 - 2;
+                          return `${x},${y}`;
+                        });
+                        const peakX = 46;
+                        const peakY = 14 - ((item.sparkData[item.sparkData.length - 1] - 45) / 35) * 10 - 2;
+
+                        return (
+                          <svg width="48" height="14" style={{ overflow: 'visible' }}>
+                            <path
+                              d={`M${points.join(' L')}`}
+                              fill="none"
+                              stroke={item.color}
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              style={{ filter: `drop-shadow(0 0 2px ${item.glow})` }}
+                            />
+                            <circle cx={peakX} cy={peakY} r="1.8" fill="#ffffff" stroke={item.color} strokeWidth="1" />
+                          </svg>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* ════════════════════════════════════════════════════
+              ROW 4 — GHOST MODE TIMELINE (Full Width)
+          ════════════════════════════════════════════════════ */}
+          <div style={{ marginBottom: 16 }}>
             <GhostTimeline
               lifeBalance={lifeBalance}
               healthScore={healthScore}
@@ -1830,15 +2491,12 @@ export default function Dashboard() {
               savingsRate={savingsRate}
               burnoutRisk={burnoutRisk}
               doomMode={doomMode}
-              healthRecords={records?.health || []}
-            />
-          </section>
+            healthRecords={records?.health || []}
+          />
+        </div>
 
-        </div>{/* end scroll container */}
-      </div>{/* end main content */}
-
-
-
-    </div>
-  );
+      </div>{/* end scroll container */}
+    </div>{/* end main content */}
+  </div>
+);
 }
