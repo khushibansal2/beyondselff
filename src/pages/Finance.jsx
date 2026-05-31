@@ -2679,23 +2679,23 @@ export default function Finance() {
             </div>
 
             {/* High-Contrast Transactions Table inside rounded border container */}
-            <div className="w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0d12]/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] mt-6">
+            <div className="w-full overflow-hidden rounded-2xl border border-white/[0.05] bg-[#0c0d12]/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] mt-6">
               <div className="overflow-x-auto w-full">
                 <table className="w-full min-w-[900px] border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-white/[0.06] text-[12.5px] text-[#94a3b8] font-semibold">
-                      <th style={{ paddingLeft: '24px' }} className="py-4.5 select-none cursor-pointer hover:text-white transition-colors w-[16%]">
+                    <tr className="border-b border-white/[0.05] text-[12px] text-[#64748b] font-semibold">
+                      <th style={{ paddingLeft: '24px' }} className="py-3 select-none cursor-pointer hover:text-white transition-colors w-[16%]">
                         <div className="flex items-center gap-1.5">
                           <span>Date</span>
                           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 opacity-60"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
                         </div>
                       </th>
-                      <th className="py-4.5 px-4 w-[26%]">Description</th>
-                      <th className="py-4.5 px-4 w-[16%]">Category</th>
-                      <th className="py-4.5 px-4 w-[14%]">Amount</th>
-                      <th className="py-4.5 px-4 w-[14%]">Type</th>
-                      <th className="py-4.5 px-4 w-[14%]">Source</th>
-                      <th className="py-4.5 w-[4%] text-center"></th>
+                      <th className="py-3 px-4 w-[26%]">Description</th>
+                      <th className="py-3 px-4 w-[16%]">Category</th>
+                      <th className="py-3 px-4 w-[14%]">Amount</th>
+                      <th className="py-3 px-4 w-[14%]">Type</th>
+                      <th className="py-3 px-4 w-[14%]">Source</th>
+                      <th className="py-3 w-[4%] text-center"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.04]">
@@ -2711,125 +2711,183 @@ export default function Finance() {
                         hour12: true
                       });
 
-                      // Category mapping for exact mockup badging
+                      // Category mapping for exact mockup badging with outline vector SVGs
                       let catLabel = tx.category;
-                      let catColor = 'rgba(148, 163, 184, 0.12)';
-                      let catBorder = '1px solid rgba(148, 163, 184, 0.2)';
+                      let catColor = 'rgba(148, 163, 184, 0.08)';
+                      let catBorder = '1px solid rgba(148, 163, 184, 0.15)';
                       let catTextColor = '#94a3b8';
-                      let catIcon = '💰';
+                      let catIcon = (
+                        <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" />
+                        </svg>
+                      );
 
                       if (tx.category === 'Food') {
                         catLabel = 'Food & Dining';
-                        catColor = 'rgba(249, 115, 22, 0.12)';
-                        catBorder = '1px solid rgba(249, 115, 22, 0.2)';
+                        catColor = 'rgba(249, 115, 22, 0.08)';
+                        catBorder = '1px solid rgba(249, 115, 22, 0.15)';
                         catTextColor = '#fb923c';
-                        catIcon = '🍴';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+                            <path d="M7 2v20" />
+                            <path d="M21 15V2v0a5 5 0 0 0-5 5v8" />
+                            <path d="M18 15v7" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Transport') {
                         catLabel = 'Travel';
-                        catColor = 'rgba(59, 130, 246, 0.12)';
-                        catBorder = '1px solid rgba(59, 130, 246, 0.2)';
+                        catColor = 'rgba(59, 130, 246, 0.08)';
+                        catBorder = '1px solid rgba(59, 130, 246, 0.15)';
                         catTextColor = '#60a5fa';
-                        catIcon = '🚗';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                            <circle cx="7" cy="17" r="2" />
+                            <circle cx="17" cy="17" r="2" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Shopping') {
-                        catColor = 'rgba(167, 139, 250, 0.12)';
-                        catBorder = '1px solid rgba(167, 139, 250, 0.2)';
+                        catColor = 'rgba(167, 139, 250, 0.08)';
+                        catBorder = '1px solid rgba(167, 139, 250, 0.15)';
                         catTextColor = '#c084fc';
-                        catIcon = '🛍️';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                            <path d="M3 6h18" />
+                            <path d="M16 10a4 4 0 0 1-8 0" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Entertainment') {
-                        catColor = 'rgba(192, 132, 252, 0.12)';
-                        catBorder = '1px solid rgba(192, 132, 252, 0.2)';
+                        catColor = 'rgba(192, 132, 252, 0.08)';
+                        catBorder = '1px solid rgba(192, 132, 252, 0.15)';
                         catTextColor = '#c084fc';
-                        catIcon = '🎬';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polygon points="10 8 16 12 10 16 10 8" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Income') {
-                        catColor = 'rgba(16, 185, 129, 0.12)';
-                        catBorder = '1px solid rgba(16, 185, 129, 0.2)';
+                        catColor = 'rgba(16, 185, 129, 0.08)';
+                        catBorder = '1px solid rgba(16, 185, 129, 0.15)';
                         catTextColor = '#34d399';
-                        catIcon = '💸';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="16" />
+                            <line x1="8" y1="12" x2="16" y2="12" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Transfer') {
-                        catColor = 'rgba(6, 182, 212, 0.12)';
-                        catBorder = '1px solid rgba(6, 182, 212, 0.2)';
+                        catColor = 'rgba(6, 182, 212, 0.08)';
+                        catBorder = '1px solid rgba(6, 182, 212, 0.15)';
                         catTextColor = '#22d3ee';
-                        catIcon = '📤';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 19V5" />
+                            <path d="M5 12l7-7 7 7" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Groceries') {
-                        catColor = 'rgba(34, 197, 94, 0.12)';
-                        catBorder = '1px solid rgba(34, 197, 94, 0.2)';
+                        catColor = 'rgba(34, 197, 94, 0.08)';
+                        catBorder = '1px solid rgba(34, 197, 94, 0.15)';
                         catTextColor = '#4ade80';
-                        catIcon = '🛒';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="9" cy="21" r="1" />
+                            <circle cx="20" cy="21" r="1" />
+                            <path d="M1 1h4l2.7 12.5a2 2 0 0 0 2 1.5h9.7a2 2 0 0 0 2-1.5L23 6H6" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Bills') {
-                        catColor = 'rgba(6, 182, 212, 0.12)';
-                        catBorder = '1px solid rgba(6, 182, 212, 0.2)';
+                        catColor = 'rgba(6, 182, 212, 0.08)';
+                        catBorder = '1px solid rgba(6, 182, 212, 0.15)';
                         catTextColor = '#22d3ee';
-                        catIcon = '⚡';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Health') {
-                        catColor = 'rgba(16, 185, 129, 0.12)';
-                        catBorder = '1px solid rgba(16, 185, 129, 0.2)';
+                        catColor = 'rgba(16, 185, 129, 0.08)';
+                        catBorder = '1px solid rgba(16, 185, 129, 0.15)';
                         catTextColor = '#34d399';
-                        catIcon = '💊';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                          </svg>
+                        );
                       } else if (tx.category === 'Education') {
-                        catColor = 'rgba(236, 72, 153, 0.12)';
-                        catBorder = '1px solid rgba(236, 72, 153, 0.2)';
+                        catColor = 'rgba(236, 72, 153, 0.08)';
+                        catBorder = '1px solid rgba(236, 72, 153, 0.15)';
                         catTextColor = '#f472b6';
-                        catIcon = '📚';
+                        catIcon = (
+                          <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                          </svg>
+                        );
                       }
 
                       const isCredit = tx.type === 'Credit';
                       const isTransfer = tx.type === 'Transfer';
 
                       return (
-                        <tr key={tx.id} className="hover:bg-white/[0.015] transition-colors group">
-                          {/* Date Column with solid left padding */}
-                          <td style={{ paddingLeft: '24px' }} className="py-5">
+                        <tr key={tx.id} className="hover:bg-white/[0.01] transition-colors group">
+                          {/* Date Column */}
+                          <td style={{ paddingLeft: '24px' }} className="py-3">
                             <div className="flex flex-col">
-                              <span className="text-[13.5px] font-semibold text-slate-100 font-sans">{displayDate}</span>
-                              <span className="text-[12px] text-[#64748b] mt-1 font-sans font-medium">{displayTime}</span>
+                              <span className="text-[13px] font-semibold text-slate-100 font-sans">{displayDate}</span>
+                              <span className="text-[11px] text-[#565a64] mt-0.5 font-sans font-medium">{displayTime}</span>
                             </div>
                           </td>
 
                           {/* Description Column */}
-                          <td className="py-5 px-4">
+                          <td className="py-3 px-4">
                             <div className="flex flex-col">
-                              <span className="text-[13.5px] font-semibold text-slate-100 font-sans">{tx.merchant}</span>
-                              <span className="text-[12px] text-[#64748b] mt-1 font-sans font-medium leading-none">{tx.ref || 'Parsed bank notification'}</span>
+                              <span className="text-[13px] font-semibold text-slate-100 font-sans">{tx.merchant}</span>
+                              <span className="text-[11px] text-[#565a64] mt-0.5 font-sans font-medium leading-none">{tx.ref || 'Parsed bank notification'}</span>
                             </div>
                           </td>
 
                           {/* Category Badge Column */}
-                          <td className="py-5 px-4">
+                          <td className="py-3 px-4">
                             <div 
                               style={{
                                 backgroundColor: catColor,
                                 border: catBorder,
                                 color: catTextColor
                               }}
-                              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full w-max text-[11.5px] font-bold tracking-normal font-sans"
+                              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg w-max text-[11px] font-semibold tracking-normal font-sans"
                             >
-                              <span className="text-[12.5px]">{catIcon}</span>
+                              <span style={{ display: 'flex', alignItems: 'center' }}>{catIcon}</span>
                               <span>{catLabel}</span>
                             </div>
                           </td>
 
                           {/* Amount Column */}
-                          <td className="py-5 px-4">
-                            <span className={`text-[14px] font-semibold font-sans ${isCredit ? 'text-[#34d399]' : 'text-slate-100'}`}>
+                          <td className="py-3 px-4">
+                            <span className={`text-[13px] font-semibold font-sans ${isCredit ? 'text-[#10b981]' : 'text-slate-100'}`}>
                               {isCredit ? '+' : '-'} ₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </td>
 
                           {/* Type Column */}
-                          <td className="py-5 px-4">
+                          <td className="py-3 px-4">
                             <div className="flex items-center">
                               {isCredit ? (
-                                <span className="flex items-center gap-1 text-[13px] font-semibold text-emerald-400 font-sans">
+                                <span className="flex items-center gap-1 text-[12px] font-semibold text-[#10b981] font-sans">
                                   <span>↑</span>
                                   <span>Income</span>
                                 </span>
                               ) : isTransfer ? (
-                                <span className="flex items-center gap-1 text-[13px] font-semibold text-blue-400 font-sans">
+                                <span className="flex items-center gap-1 text-[12px] font-semibold text-blue-400 font-sans">
                                   <span>↑</span>
                                   <span>Transfer</span>
                                 </span>
                               ) : (
-                                <span className="flex items-center gap-1 text-[13px] font-semibold text-rose-400 font-sans">
+                                <span className="flex items-center gap-1 text-[12px] font-semibold text-rose-400 font-sans">
                                   <span>↓</span>
                                   <span>Expense</span>
                                 </span>
@@ -2837,16 +2895,16 @@ export default function Finance() {
                             </div>
                           </td>
 
-                          {/* Source Column with solid right padding */}
-                          <td style={{ paddingRight: '24px' }} className="py-5 px-4">
+                          {/* Source Column */}
+                          <td style={{ paddingRight: '24px' }} className="py-3 px-4">
                             <div className="flex flex-col">
-                              <span className="text-[13.5px] font-semibold text-slate-100 font-sans">{tx.bank}</span>
-                              <span className="text-[12px] text-[#64748b] mt-1 font-sans font-medium">{tx.mask || 'UPI'}</span>
+                              <span className="text-[13px] font-semibold text-slate-100 font-sans">{tx.bank}</span>
+                              <span className="text-[11px] text-[#565a64] mt-0.5 font-sans font-medium">{tx.mask || 'UPI'}</span>
                             </div>
                           </td>
 
-                          {/* Action Action Button (Delete manual transactions) */}
-                          <td className="py-5 text-center relative select-none w-[4%]">
+                          {/* Action Button */}
+                          <td className="py-3 text-center relative select-none w-[4%]">
                             <button
                               onClick={() => {
                                 if (window.confirm(`Are you sure you want to delete the transaction from ${tx.merchant}?`)) {
@@ -2855,10 +2913,10 @@ export default function Finance() {
                                   showToast('Transaction deleted successfully', 'success');
                                 }
                               }}
-                              className="text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-white/5 transition-all cursor-pointer opacity-80 hover:opacity-100"
+                              className="text-slate-600 hover:text-slate-300 p-1.5 rounded-lg hover:bg-white/5 transition-all cursor-pointer opacity-60 hover:opacity-100"
                               title="Delete Transaction"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                             </button>
                           </td>
                         </tr>
@@ -2883,22 +2941,22 @@ export default function Finance() {
 
               {/* Pagination footer bar */}
               {filteredTxs.length > 0 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-5 py-4.5 border-t border-white/[0.06] bg-[#08090d]/60 w-full select-none">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-5 py-4 border-t border-white/[0.05] bg-[#0c0d12]/20 w-full select-none">
                   
-                  {/* Counter: e.g. Showing 1 to 8 of 32 transactions */}
-                  <span className="text-[13px] text-[#64748b] font-medium font-sans">
+                  {/* Counter */}
+                  <span className="text-[12px] text-[#64748b] font-medium font-sans">
                     Showing <span className="text-slate-300 font-semibold">{(txPage - 1) * txPageSize + 1}</span> to <span className="text-slate-300 font-semibold">{Math.min(txPage * txPageSize, filteredTxs.length)}</span> of <span className="text-slate-300 font-semibold">{filteredTxs.length}</span> transactions
                   </span>
 
-                  {/* Navigation Buttons: < 1 2 3 4 > */}
+                  {/* Navigation Buttons */}
                   <div className="flex items-center gap-1.5">
                     {/* Previous chevron */}
                     <button
                       disabled={txPage === 1}
                       onClick={() => setTxPage(prev => Math.max(1, prev - 1))}
-                      className="w-8.5 h-8.5 rounded-lg border border-white/[0.08] flex items-center justify-center text-[#94a3b8] hover:bg-white/5 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="w-7.5 h-7.5 rounded-lg border border-white/[0.06] flex items-center justify-center text-[#64748b] hover:bg-white/5 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <ChevronLeft size={15} />
+                      <ChevronLeft size={14} />
                     </button>
 
                     {/* Page Numbers */}
@@ -2910,10 +2968,10 @@ export default function Finance() {
                           key={pageNum}
                           onClick={() => setTxPage(pageNum)}
                           style={isActive ? { backgroundColor: '#6366f1' } : {}}
-                          className={`w-8.5 h-8.5 rounded-lg flex items-center justify-center text-[12.5px] font-bold transition-all cursor-pointer ${
+                          className={`w-7.5 h-7.5 rounded-lg flex items-center justify-center text-[12px] font-bold transition-all cursor-pointer ${
                             isActive 
-                              ? 'text-white border-none shadow-[0_0_12px_rgba(99,102,241,0.35)]' 
-                              : 'border border-white/[0.08] text-[#94a3b8] hover:bg-white/5 hover:text-white'
+                              ? 'text-white border-none shadow-[0_0_12px_rgba(99,102,241,0.25)]' 
+                              : 'border border-white/[0.06] text-[#64748b] hover:bg-white/5 hover:text-white'
                           }`}
                         >
                           {pageNum}
@@ -2925,9 +2983,9 @@ export default function Finance() {
                     <button
                       disabled={txPage === totalPages}
                       onClick={() => setTxPage(prev => Math.min(totalPages, prev + 1))}
-                      className="w-8.5 h-8.5 rounded-lg border border-white/[0.08] flex items-center justify-center text-[#94a3b8] hover:bg-white/5 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="w-7.5 h-7.5 rounded-lg border border-white/[0.06] flex items-center justify-center text-[#64748b] hover:bg-white/5 hover:text-white transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <ChevronRight size={15} />
+                      <ChevronRight size={14} />
                     </button>
                   </div>
                 </div>
