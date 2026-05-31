@@ -210,7 +210,7 @@ export default function Coach() {
                 <div style={{
                   padding: '12px 16px',
                   borderRadius: isAI ? '4px 16px 16px 16px' : '16px 4px 16px 16px',
-                  fontSize: 13,
+                  fontSize: 11.5,
                   lineHeight: 1.6,
                   whiteSpace: 'pre-line',
                   background: isAI
@@ -313,7 +313,7 @@ export default function Coach() {
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
             placeholder={isListening ? 'Listening… speak your question' : 'Ask about burnout, sleep, finances, career…'}
             disabled={typing}
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: 13, padding: '0 4px' }} />
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#e2e8f0', fontSize: 12, padding: '0 4px' }} />
 
           {/* Send button */}
           <button onClick={() => sendMessage(input)} disabled={!input.trim() || typing}
