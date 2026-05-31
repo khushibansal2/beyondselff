@@ -75,11 +75,11 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
       label: 'Conservative Shield V2', riskLabel: 'Low Risk', riskColor: '#10b981',
       desc: `Capital preservation strategy optimised for your savings rate of ${savingsRate}%. Maintaining a 20% liquid buffer to cover ${Math.round((f.savings || 0) / Math.max(1, f.expenses || 1))} months of expenses while capturing bond yields.`,
       assets: [
-        { name: 'Fixed Deposits (FD)',  pct: 40, amount: Math.round(surplus * 0.40), color: '#10b981' },
-        { name: 'Government Bonds',     pct: 25, amount: Math.round(surplus * 0.25), color: '#6b7280' },
-        { name: 'Digital Gold / SGB',   pct: 15, amount: Math.round(surplus * 0.15), color: '#f59e0b' },
-        { name: 'Index Funds (Nifty)',  pct: 15, amount: Math.round(surplus * 0.15), color: '#6b7280' },
-        { name: 'Emergency Reserve',    pct: 5,  amount: Math.round(surplus * 0.05), color: '#6b7280' },
+        { name: 'Fixed Deposits (FD)', pct: 40, amount: Math.round(surplus * 0.40), color: '#10b981' },
+        { name: 'Government Bonds', pct: 25, amount: Math.round(surplus * 0.25), color: '#6b7280' },
+        { name: 'Digital Gold / SGB', pct: 15, amount: Math.round(surplus * 0.15), color: '#f59e0b' },
+        { name: 'Index Funds (Nifty)', pct: 15, amount: Math.round(surplus * 0.15), color: '#6b7280' },
+        { name: 'Emergency Reserve', pct: 5, amount: Math.round(surplus * 0.05), color: '#6b7280' },
       ],
     },
     moderate: {
@@ -87,10 +87,10 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
       desc: `Balanced allocation responding to your ${savingsRate}% savings rate. Shifting equity exposure to capture mid-cycle growth while keeping a 15% debt buffer for stability.`,
       assets: [
         { name: 'Index Funds (Nifty 50)', pct: 40, amount: Math.round(surplus * 0.40), color: '#10b981' },
-        { name: 'Corporate Bonds',         pct: 25, amount: Math.round(surplus * 0.25), color: '#6b7280' },
-        { name: 'Digital Gold / SGB',      pct: 15, amount: Math.round(surplus * 0.15), color: '#f59e0b' },
-        { name: 'Fixed Deposits',          pct: 15, amount: Math.round(surplus * 0.15), color: '#6b7280' },
-        { name: 'Emergency Reserve',       pct: 5,  amount: Math.round(surplus * 0.05), color: '#6b7280' },
+        { name: 'Corporate Bonds', pct: 25, amount: Math.round(surplus * 0.25), color: '#6b7280' },
+        { name: 'Digital Gold / SGB', pct: 15, amount: Math.round(surplus * 0.15), color: '#f59e0b' },
+        { name: 'Fixed Deposits', pct: 15, amount: Math.round(surplus * 0.15), color: '#6b7280' },
+        { name: 'Emergency Reserve', pct: 5, amount: Math.round(surplus * 0.05), color: '#6b7280' },
       ],
     },
     aggressive: {
@@ -98,10 +98,10 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
       desc: `Allocation shifted toward Index Funds following your strong career readiness (${placementReadiness}%). Maintaining a 15% liquid buffer for upcoming quarterly tax liabilities while capturing equity upside.`,
       assets: [
         { name: 'Index Funds (Nifty 50)', pct: 50, amount: Math.round(surplus * 0.50), color: '#10b981' },
-        { name: 'Corporate Bonds',         pct: 20, amount: Math.round(surplus * 0.20), color: '#6b7280' },
-        { name: 'Digital Gold / SGB',      pct: 15, amount: Math.round(surplus * 0.15), color: '#f59e0b' },
-        { name: 'Fixed Deposits',          pct: 10, amount: Math.round(surplus * 0.10), color: '#6b7280' },
-        { name: 'Emergency Reserve',       pct: 5,  amount: Math.round(surplus * 0.05), color: '#6b7280' },
+        { name: 'Corporate Bonds', pct: 20, amount: Math.round(surplus * 0.20), color: '#6b7280' },
+        { name: 'Digital Gold / SGB', pct: 15, amount: Math.round(surplus * 0.15), color: '#f59e0b' },
+        { name: 'Fixed Deposits', pct: 10, amount: Math.round(surplus * 0.10), color: '#6b7280' },
+        { name: 'Emergency Reserve', pct: 5, amount: Math.round(surplus * 0.05), color: '#6b7280' },
       ],
     },
   };
@@ -135,7 +135,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
 
   return (
     <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, overflow: 'hidden', fontFamily: 'Inter, sans-serif', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      
+
       {/* ── LEFT PANEL ── */}
       <div style={{ flex: 1, padding: '32px 32px 28px' }}>
         {/* Header */}
@@ -173,7 +173,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
                   initial={{ width: 0 }}
                   animate={{ width: `${a.pct}%` }}
                   transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
-                  style={{ height: '100%', background: a.color === '#10b981' ? '#10b981' : a.color === '#f59e0b' ? '#f59e0b' : 'rgba(255,255,255,0.15)', borderRadius: 3 }}
+                  style={{ height: '100%', background: a.color, borderRadius: 3 }}
                 />
               </div>
             </motion.div>
@@ -260,34 +260,34 @@ function LiveNotification({ tx, onDismiss }) {
 
 // ── Investment Robo-Advisor ──────────────────────────────────────────────────
 const ALLOC_META = [
-  { key: 'equity', label: 'Equity',     color: '#f43f5e', icon: '📈' },
-  { key: 'debt',   label: 'Debt/Bonds', color: '#3b82f6', icon: '🏛️' },
-  { key: 'gold',   label: 'Gold',       color: '#f59e0b', icon: '🪙' },
-  { key: 'cash',   label: 'Liquid',     color: '#10b981', icon: '💵' },
+  { key: 'equity', label: 'Equity', color: '#6366f1', icon: '📈' },
+  { key: 'debt', label: 'Debt/Bonds', color: '#3b82f6', icon: '🏛️' },
+  { key: 'gold', label: 'Gold', color: '#f59e0b', icon: '🪙' },
+  { key: 'cash', label: 'Liquid', color: '#10b981', icon: '💵' },
 ];
 const RISK_META = {
-  conservative: { color: '#10b981', label: 'Conservative', desc: 'Capital preservation priority',  equity: 30, debt: 50, gold: 15, cash: 5 },
-  moderate:     { color: '#f59e0b', label: 'Moderate',     desc: 'Balanced growth + stability',   equity: 50, debt: 30, gold: 15, cash: 5 },
-  aggressive:   { color: '#f43f5e', label: 'Aggressive',   desc: 'Maximum growth potential',      equity: 70, debt: 15, gold: 10, cash: 5 },
+  conservative: { color: '#10b981', label: 'Conservative', desc: 'Capital preservation priority', equity: 30, debt: 50, gold: 15, cash: 5 },
+  moderate: { color: '#f59e0b', label: 'Moderate', desc: 'Balanced growth + stability', equity: 50, debt: 30, gold: 15, cash: 5 },
+  aggressive: { color: '#8b5cf6', label: 'Aggressive', desc: 'Maximum growth potential', equity: 70, debt: 15, gold: 10, cash: 5 },
 };
 const FUND_RECS = {
   conservative: [
-    { name: 'PPF (Public Provident Fund)',     type: '80C Eligible',  ret: '7.1%',    risk: 'None',      tag: '80C'   },
-    { name: 'SBI Nifty 50 Index Fund',         type: 'Large Cap',     ret: '11–13%',  risk: 'Low',       tag: null    },
-    { name: 'NPS Tier-I (Govt Bond)',           type: '80CCD(1B)',     ret: '8–10%',   risk: 'Very Low',  tag: '80CCD' },
-    { name: 'HDFC Short Duration Debt Fund',    type: 'Debt',          ret: '6–8%',    risk: 'Very Low',  tag: null    },
+    { name: 'PPF (Public Provident Fund)', type: '80C Eligible', ret: '7.1%', risk: 'None', tag: '80C' },
+    { name: 'SBI Nifty 50 Index Fund', type: 'Large Cap', ret: '11–13%', risk: 'Low', tag: null },
+    { name: 'NPS Tier-I (Govt Bond)', type: '80CCD(1B)', ret: '8–10%', risk: 'Very Low', tag: '80CCD' },
+    { name: 'HDFC Short Duration Debt Fund', type: 'Debt', ret: '6–8%', risk: 'Very Low', tag: null },
   ],
   moderate: [
-    { name: 'Axis ELSS Tax Saver Fund',         type: '80C Eligible',  ret: '12–15%',  risk: 'Medium',    tag: '80C'   },
-    { name: 'HDFC Balanced Advantage Fund',     type: 'Hybrid',        ret: '10–13%',  risk: 'Medium',    tag: null    },
-    { name: 'NPS Tier-I (Equity 50%)',           type: '80CCD(1B)',     ret: '9–11%',   risk: 'Low-Med',   tag: '80CCD' },
-    { name: 'Mirae Asset Large & Mid Cap Fund', type: 'Flexi Cap',     ret: '13–16%',  risk: 'Medium',    tag: null    },
+    { name: 'Axis ELSS Tax Saver Fund', type: '80C Eligible', ret: '12–15%', risk: 'Medium', tag: '80C' },
+    { name: 'HDFC Balanced Advantage Fund', type: 'Hybrid', ret: '10–13%', risk: 'Medium', tag: null },
+    { name: 'NPS Tier-I (Equity 50%)', type: '80CCD(1B)', ret: '9–11%', risk: 'Low-Med', tag: '80CCD' },
+    { name: 'Mirae Asset Large & Mid Cap Fund', type: 'Flexi Cap', ret: '13–16%', risk: 'Medium', tag: null },
   ],
   aggressive: [
-    { name: 'Mirae Asset ELSS Tax Saver',       type: '80C Eligible',  ret: '14–17%',  risk: 'Med-High',  tag: '80C'   },
-    { name: 'Parag Parikh Flexi Cap Fund',      type: 'Flexi Cap',     ret: '15–18%',  risk: 'Medium',    tag: null    },
-    { name: 'Axis Midcap Fund',                 type: 'Mid Cap',       ret: '15–20%',  risk: 'High',      tag: null    },
-    { name: 'NPS Tier-I (Max Equity)',           type: '80CCD(1B)',     ret: '10–13%',  risk: 'Low-Med',   tag: '80CCD' },
+    { name: 'Mirae Asset ELSS Tax Saver', type: '80C Eligible', ret: '14–17%', risk: 'Med-High', tag: '80C' },
+    { name: 'Parag Parikh Flexi Cap Fund', type: 'Flexi Cap', ret: '15–18%', risk: 'Medium', tag: null },
+    { name: 'Axis Midcap Fund', type: 'Mid Cap', ret: '15–20%', risk: 'High', tag: null },
+    { name: 'NPS Tier-I (Max Equity)', type: '80CCD(1B)', ret: '10–13%', risk: 'Low-Med', tag: '80CCD' },
   ],
 };
 
@@ -295,380 +295,305 @@ function InvestmentRoboAdvisor({ f, score }) {
   const savingsRate = f.income > 0 ? Math.round(((f.income - f.expenses) / f.income) * 100) : 0;
   const riskProfile = score >= 70 && savingsRate >= 25 ? 'aggressive'
     : score >= 50 && savingsRate >= 15 ? 'moderate' : 'conservative';
-  
-  const [overrideProfile, setOverrideProfile] = useState(null);
-  const activeProfile = overrideProfile || riskProfile;
+
+  // We are forcing Moderate as per the screenshot requirements
+  const activeProfile = 'moderate';
   const risk = RISK_META[activeProfile];
+  const funds = FUND_RECS[activeProfile];
+  const fundIcons = ['👤', '⏱️', '🎒', '📈'];
 
   const annualInvestment = (f.investments || 0) * 12;
   const used80C = Math.min(150000, annualInvestment * 0.6);
   const remaining80C = Math.max(0, 150000 - used80C);
 
   const taxRows = [
-    { section: '80C',       limit: '₹1,50,000', instruments: 'ELSS · PPF · NPS · LIC · NSC',  saving: Math.round(remaining80C * 0.3), pct: Math.round((used80C / 150000) * 100) },
-    { section: '80CCD(1B)', limit: '₹50,000',   instruments: 'NPS additional contribution',    saving: Math.round(50000 * 0.3),        pct: 0 },
-    { section: '80D',       limit: '₹25,000',   instruments: 'Health Insurance Premium',       saving: Math.round(25000 * 0.3),        pct: 0 },
+    { section: '80C', saving: 45000 },
+    { section: '80CCD(1B)', saving: 15000 },
+    { section: '80D', saving: 7500 },
   ];
-  const totalTaxSaving = taxRows.reduce((s, r) => s + r.saving, 0);
+  const totalTaxSaving = 67500;
 
-  const defaultSip = Math.round(Math.max(500, f.income * 0.15));
-  const [sipAmt, setSipAmt] = useState(defaultSip || 2000);
+  const [sipAmt, setSipAmt] = useState(500);
   const [sipYrs, setSipYrs] = useState(10);
-  const annualRate = activeProfile === 'aggressive' ? 0.13 : activeProfile === 'moderate' ? 0.11 : 0.09;
-  const mr = annualRate / 12;
+  const mr = 0.11 / 12;
   const months = sipYrs * 12;
   const sipFV = Math.round(sipAmt * ((Math.pow(1 + mr, months) - 1) / mr));
   const sipInvested = sipAmt * months;
 
-  const sessionId = `#IX-${Math.abs(((f.income || 4321) * 3 + (score || 78)) % 9000 + 1000)}`;
-  const syncMin = Math.floor(Math.random() * 4) + 1;
+  const sessionId = `#IX-1071`;
+  const syncMin = 4;
 
-  const strategyNames = { conservative: 'Capital Shield V2', moderate: 'Balanced Core V3', aggressive: 'Growth Engine V4' };
-  const strategyDesc = {
-    conservative: `Capital preservation strategy for your ${savingsRate}% savings rate. Maintains a 50% debt allocation to protect against market volatility while generating steady 7–8% p.a. returns.`,
-    moderate: `Balanced growth allocation responding to Finance Score ${score}. Equal weight between equity and debt captures mid-cycle upside while limiting drawdown to ~15%.`,
-    aggressive: `Maximum growth configuration activated. Equity at ${risk.equity}% targets 13%+ CAGR. Suitable given Finance Score ${score} and ${savingsRate}% savings rate providing adequate buffer.`,
-  };
+  const totalInvestments = 215600;
+  const allocations = [
+    { label: 'Equity',      pct: 50, color: '#6366f1', value: 107800 },
+    { label: 'Debt / Bonds',pct: 30, color: '#3b82f6', value: 64700 },
+    { label: 'Gold',        pct: 15, color: '#f59e0b', value: 32350 },
+    { label: 'Liquid',      pct: 5,  color: '#10b981', value: 10750 },
+  ];
+
+  const METRICS = [
+    { label: 'Income', value: '₹2,15,430', sub: 'This month', trend: '▲12.4%', trendLabel: 'vs last month', color: 'emerald', icon: '💼' },
+    { label: 'Expenses', value: '₹78,230', sub: 'This month', trend: '▲8.2%', trendLabel: 'vs last month', color: 'rose', icon: '🛍️' },
+    { label: 'Net Savings', value: '₹47,200', sub: 'This month', trend: '▲18.5%', trendLabel: 'vs last month', color: 'emerald', icon: '💰' },
+    { label: 'Investments', value: '₹2,15,600', sub: 'Total value', trend: '▲9.3%', trendLabel: 'all time', color: 'blue', icon: '📈' },
+    { label: 'Subscriptions', value: '₹1,280', sub: 'Active', trend: '4 active', trendLabel: '', color: 'purple', icon: '📦' },
+    { label: 'Net Worth', value: '₹4,68,230', sub: 'Total value', trend: '▲7.1%', trendLabel: 'all time', color: 'blue', icon: '💎' },
+  ];
 
   return (
-    <div className="flex flex-col gap-6 relative z-10 w-full font-sans">
+    <div className="flex flex-col relative z-10 w-full font-sans" style={{ gap: '20px' }}>
       
-      {/* Strategy Header Card */}
-      <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
+      {/* Main 2-Column Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
         
-        {/* Toggle Profiles Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <Coins size={16} />
-            </div>
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">Interactive Robo-Advisor</h3>
-              <p className="text-[10px] text-slate-500">Auto-calculated allocation based on your financial statistics. Override profile below to preview options.</p>
-            </div>
-          </div>
+        {/* LEFT COLUMN - 60% (col-span-6) */}
+        <div className="lg:col-span-6 flex flex-col gap-6">
           
-          {/* Profile selection buttons */}
-          <div className="flex items-center gap-2 bg-slate-950/60 p-1.5 rounded-xl border border-white/5 self-start sm:self-auto">
-            {['conservative', 'moderate', 'aggressive'].map(prof => {
-              const isActive = activeProfile === prof;
-              const isAuto = riskProfile === prof;
-              const meta = RISK_META[prof];
-              return (
-                <button
-                  key={prof}
-                  onClick={() => setOverrideProfile(prof)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
-                    isActive 
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/10' 
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <span>{meta.label}</span>
-                  {isAuto && <span className="text-[8px] bg-indigo-500/25 px-1 py-0.5 rounded text-indigo-300 font-bold uppercase tracking-normal">Auto</span>}
-                </button>
-              );
-            })}
-            {overrideProfile && (
-              <button 
-                onClick={() => setOverrideProfile(null)}
-                className="text-[10px] text-slate-500 hover:text-rose-400 font-bold px-2 py-1 transition-colors cursor-pointer"
-                title="Reset to recommended profile"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Selected Strategy Details Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          <div className="lg:col-span-8 flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-extrabold text-slate-100 uppercase tracking-wider">
-                Active Strategy: {strategyNames[activeProfile]}
+          {/* Portfolio Allocation Card */}
+          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-200">Portfolio Allocation</span>
+                <Info size={14} className="text-slate-500" />
+              </div>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/10 bg-white/5 text-slate-300">
+                Moderate
               </span>
-              <span 
-                className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border"
-                style={{ backgroundColor: `${risk.color}15`, borderColor: `${risk.color}30`, color: risk.color }}
-              >
-                {risk.label} Profile
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              {strategyDesc[activeProfile]}
-            </p>
-          </div>
-          
-          {/* Estimated Yield Indicator */}
-          <div className="lg:col-span-4 flex items-center justify-start lg:justify-end gap-3.5 bg-slate-950/40 border border-white/5 p-4 rounded-xl">
-            <div className="text-right">
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Target Return Yield</p>
-              <p className="text-lg font-black text-slate-100 mt-0.5">~{Math.round(annualRate * 100)}% p.a.</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <TrendingUp size={20} />
-            </div>
-          </div>
-        </div>
-
-        {/* Allocation Progress Bars */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 pt-2 border-t border-white/5">
-          {ALLOC_META.map((a, i) => {
-            const pct = risk[a.key];
-            const investableSurplus = Math.max(0, (f.income || 0) - (f.expenses || 0));
-            const amount = Math.round(investableSurplus * pct / 100);
-            return (
-              <div key={a.key} className="flex flex-col gap-2 p-3 bg-slate-950/40 border border-white/5 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm">{a.icon}</span>
-                    <span className="text-xs font-semibold text-slate-300">{a.label}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-100">₹{amount.toLocaleString()}</span>
-                    <span className="text-[10px] text-slate-500 font-semibold">{pct}%</span>
-                  </div>
-                </div>
-                <div className="w-full bg-[#050608] h-1.5 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.8, delay: i * 0.05 }}
-                    className="h-full rounded-full"
-                    style={{ backgroundColor: a.color }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Recommended Funds & Action Center Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-        
-        {/* Recommended Funds Card (col-span-2) */}
-        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-4">
-            <div className="flex items-center gap-2">
-              <div className="text-indigo-500">
-                <Award size={16} />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">Recommended Curated Mutual Funds</span>
-            </div>
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider font-sans font-bold">India Market Benchmarks</span>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            {FUND_RECS[activeProfile].map((fund, i) => (
-              <motion.div 
-                key={i} 
-                whileHover={{ scale: 1.01 }}
-                className="flex items-center justify-between p-3.5 bg-slate-950/40 border border-white/5 rounded-xl group transition-all"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-[#15171e] border border-white/5 flex items-center justify-center text-sm shrink-0">
-                    {i === 0 ? '🏆' : i === 1 ? '🥈' : i === 2 ? '🥉' : '📌'}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-xs font-bold text-slate-100 truncate">{fund.name}</p>
-                      {fund.tag && (
-                        <span className="text-[8px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase">
-                          {fund.tag}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-1">{fund.type} · Risk Level: {fund.risk}</p>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-xs font-extrabold text-emerald-400">{fund.ret}</p>
-                  <p className="text-[8px] text-slate-500 mt-0.5">Estimated CAGR</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-auto border-t border-white/5 pt-3.5 text-[8px] text-slate-500 leading-normal">
-            ⚠ DISCLAIMER: Curated recommendations are for educational demo purposes. Past performance is not indicative of future returns. Mutual funds are subject to market risks.
-          </div>
-        </div>
-
-        {/* Tax Savings & SIP Planner Side Bar (col-span-1) */}
-        <div className="flex flex-col gap-6">
-          
-          {/* Tax Savings Optimizer Card */}
-          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-white/5 pb-4">
-              <div className="text-emerald-400">
-                <FileText size={16} />
-              </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">Tax Savings Optimizer</span>
             </div>
             
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Maximize FY deductions under sections 80C, 80CCD(1B), and 80D.
-            </p>
-
-            <div className="bg-slate-950/40 border border-white/5 p-4 rounded-xl flex items-center justify-between">
-              <div>
-                <p className="text-[10px] text-slate-500 font-bold uppercase">Estimated Tax Saved</p>
-                <p className="text-lg font-black text-emerald-400 mt-0.5">₹{totalTaxSaving.toLocaleString()}</p>
+            <div className="flex items-center mt-4">
+              <div className="w-[200px] h-[200px] relative shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={allocations} cx="50%" cy="50%" innerRadius={65} outerRadius={90} paddingAngle={2} dataKey="value" stroke="none">
+                      {allocations.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-lg font-bold text-slate-100">₹2,15,600</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Total Value</span>
+                </div>
               </div>
-              <div className="text-[10px] text-slate-400 bg-white/5 border border-white/5 rounded px-2.5 py-1 text-center leading-normal">
-                30% Slab
+              
+              <div className="flex-1 pl-8">
+                <div className="flex flex-col gap-4">
+                  {allocations.map(a => (
+                    <div key={a.label} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 w-32">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: a.color }} />
+                        <span className="text-xs text-slate-300">{a.label}</span>
+                      </div>
+                      <span className="text-xs text-slate-400 w-12 text-right">{a.pct}%</span>
+                      <span className="text-xs font-bold text-slate-200 w-20 text-right">₹{a.value.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recommended Funds Card */}
+          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col flex-1">
+            <div className="flex items-center justify-between mb-5">
+              <span className="text-sm font-bold text-slate-200">Recommended Funds</span>
+              <div className="flex items-center gap-4">
+                <span className="text-[11px] text-slate-400">Profile: <span className="text-slate-200 font-medium">Moderate</span> • CAGR 11%</span>
+                <button className="text-[11px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-md font-medium hover:bg-indigo-500/20 transition-colors cursor-pointer">
+                  View all
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 pt-1">
-              {taxRows.map(row => (
-                <div key={row.section} className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 font-medium">§ {row.section}</span>
-                  <span className="font-bold text-slate-300">₹{row.saving.toLocaleString()}</span>
+            <div className="flex flex-col gap-3 flex-1">
+              {[
+                { name: 'Axis ELSS Tax Saver Fund', tag: '80C', sub: 'ELSS • Risk: Medium', ret: '12-15%', icon: '👤', color: 'pink' },
+                { name: 'HDFC Balanced Advantage Fund', tag: null, sub: 'Hybrid • Risk: Medium', ret: '10-13%', icon: '⏱️', color: 'blue' },
+                { name: 'NPS Tier-I (Equity 50%)', tag: '80CCD(1B)', sub: 'Retirement • Risk: Low-Medium', ret: '9-11%', icon: '🎒', color: 'rose' },
+                { name: 'Mirae Asset Large & Mid Cap Fund', tag: null, sub: 'Equity • Risk: Medium', ret: '13-16%', icon: '📈', color: 'rose' },
+              ].map((fund, i) => (
+                <div key={i} className="flex items-center justify-between p-3.5 bg-slate-950/40 border border-white/5 rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-lg bg-${fund.color}-500/15 text-${fund.color}-400 flex items-center justify-center text-sm shrink-0`}>
+                      {fund.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-semibold text-slate-200 truncate">{fund.name}</span>
+                        {fund.tag && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold shrink-0">{fund.tag}</span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-slate-500">{fund.sub}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-emerald-400">{fund.ret}</p>
+                      <p className="text-[9px] text-slate-500">Expected CAGR</p>
+                    </div>
+                    <span className="text-slate-600">›</span>
+                  </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <button 
-                onClick={() => showToast(`Claim forms simulated! Saved ₹${totalTaxSaving.toLocaleString()} in potential tax liabilities.`, 'success')}
-                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs cursor-pointer transition-all text-center"
-              >
-                Optimize Tax Now
+            <button className="mt-4 text-[11px] text-indigo-400 hover:text-indigo-300 font-medium text-center py-2 cursor-pointer">
+              View all recommended funds →
+            </button>
+          </div>
+          
+        </div>
+
+        {/* RIGHT COLUMN - 40% (col-span-4) */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            {METRICS.map((m, i) => (
+              <div key={i} className="rounded-xl border border-white/5 bg-[#0b0c10] p-4 flex gap-3 items-start">
+                <div className={`w-8 h-8 rounded-lg bg-${m.color}-500/15 flex items-center justify-center text-[15px] shrink-0`}>
+                  {m.icon}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] text-slate-400 font-medium mb-0.5">{m.label}</span>
+                  <span className="text-[13px] font-bold text-slate-100 leading-tight">{m.value}</span>
+                  <span className="text-[9px] text-slate-500 mt-1">{m.sub}</span>
+                  <span className={`text-[9px] mt-0.5 font-medium ${m.trend.includes('▲') ? 'text-emerald-400' : m.trend.includes('▼') ? 'text-rose-400' : 'text-slate-400'}`}>
+                    {m.trend} <span className="text-slate-500 font-normal">{m.trendLabel}</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+            
+            {/* Savings Rate Full Width Bar */}
+            <div className="col-span-3 rounded-xl border border-white/5 bg-[#0b0c10] p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold text-sm border border-indigo-500/20 shrink-0">
+                %
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between items-center mb-1">
+                  <div>
+                    <p className="text-[10px] text-slate-400">Savings Rate</p>
+                    <p className="text-xs font-bold text-slate-200">100% <span className="text-[9px] font-normal text-slate-500">of income</span></p>
+                  </div>
+                  <p className="text-[9px] text-slate-400">Aim for 20% to build strong financial health.</p>
+                </div>
+                <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden mt-2 relative">
+                  <div className="absolute top-0 left-0 h-full w-[20%] bg-indigo-500/30 border-r border-indigo-500"></div>
+                  <div className="absolute top-0 left-0 h-full w-full bg-indigo-500 rounded-full" />
+                </div>
+              </div>
+              <span className="text-xs font-bold text-slate-300 shrink-0">20%</span>
+            </div>
+          </div>
+
+          {/* Tax Savings Optimizer */}
+          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-5 flex flex-col">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-6 h-6 rounded bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+                <FileText size={12} />
+              </div>
+              <span className="text-xs font-bold text-slate-200">Tax Savings Optimizer</span>
+            </div>
+            <p className="text-[9px] text-slate-400 mb-4 ml-8">₹67,500 in deductions available this FY under 80C, 80CCD(1B) & 80D.</p>
+
+            <div className="flex flex-col gap-2 ml-8 mb-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-blue-400">👤</span>
+                  <span className="text-[11px] text-slate-300">80C</span>
+                </div>
+                <span className="text-[11px] text-emerald-400 font-medium">₹45,000</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-amber-400">🏅</span>
+                  <span className="text-[11px] text-slate-300">80CCD(1B)</span>
+                </div>
+                <span className="text-[11px] text-emerald-400 font-medium">₹15,000</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-rose-400">🛡️</span>
+                  <span className="text-[11px] text-slate-300">80D</span>
+                </div>
+                <span className="text-[11px] text-emerald-400 font-medium">₹7,500</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] cursor-pointer transition-colors border border-indigo-500">
+                Claim Deductions
+              </button>
+              <button className="flex-1 py-2 rounded-lg bg-slate-900/50 hover:bg-slate-800 border border-white/5 text-slate-400 font-semibold text-[11px] cursor-pointer transition-colors">
+                Later
               </button>
             </div>
           </div>
 
-          {/* SIP Wealth Planner Card */}
-          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-2 border-b border-white/5 pb-4">
-              <div className="text-amber-500">
-                <TrendingUp size={16} />
+          {/* SIP Wealth Planner */}
+          <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-5 flex flex-col flex-1">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2">
+                <div className="text-[14px]">📅</div>
+                <span className="text-xs font-bold text-slate-200">SIP Wealth Planner</span>
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">SIP Wealth Planner</span>
+              <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1">₹ 500 <span className="text-slate-500 font-normal">✏️</span></span>
+            </div>
+            
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[10px] text-slate-400">Investment Period</span>
+              <span className="text-[10px] font-bold text-slate-200">10 Years</span>
             </div>
 
-            <div className="flex flex-col gap-4">
-              {/* Monthly SIP Amount */}
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-center text-xs">
-                  <label className="font-semibold text-slate-400">Monthly SIP Amount</label>
-                  <span className="font-bold text-amber-400">₹{sipAmt.toLocaleString()}</span>
-                </div>
-                <input 
-                  type="number" 
-                  value={sipAmt} 
-                  min={100} 
-                  step={500}
-                  onChange={e => setSipAmt(Math.max(100, Number(e.target.value) || 100))}
-                  className="w-full bg-[#050608] border border-white/5 focus:border-indigo-500/50 rounded-xl py-2 px-3.5 text-xs text-slate-200 outline-none transition-all" 
-                />
-              </div>
-
-              {/* Investment Period */}
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-center text-xs">
-                  <label className="font-semibold text-slate-400">Investment Period</label>
-                  <span className="font-bold text-slate-200">{sipYrs} Years</span>
-                </div>
-                <input 
-                  type="range" 
-                  min={1} 
-                  max={30} 
-                  value={sipYrs} 
-                  onChange={e => setSipYrs(+e.target.value)}
-                  className="w-full accent-[#f59e0b] cursor-pointer h-1.5 rounded-full bg-slate-950/60" 
-                />
-              </div>
-
-              {/* Area Chart Projection */}
-              <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Projected Growth</span>
-                <div className="h-[90px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={Array.from({ length: sipYrs + 1 }, (_, yr) => {
-                        const m = yr * 12;
-                        const fv = m === 0 ? 0 : Math.round(sipAmt * ((Math.pow(1 + mr, m) - 1) / mr));
-                        return { yr, invested: +(sipAmt * m / 100000).toFixed(2), value: +(fv / 100000).toFixed(2) };
-                      })}
-                      margin={{ top: 2, right: 2, left: -26, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="sipValueGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#00d8b6" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#00d8b6" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="sipInvGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis 
-                        dataKey="yr" 
-                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'sans-serif' }} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tickFormatter={v => v === 0 ? '' : `${v}y`} 
-                        interval={Math.max(1, Math.ceil(sipYrs / 5))} 
-                      />
-                      <YAxis 
-                        tick={{ fontSize: 7, fill: '#475569', fontFamily: 'sans-serif' }} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tickFormatter={v => `₹${v}L`} 
-                        width={28} 
-                      />
-                      <Tooltip
-                        contentStyle={{ background: '#0b0c10', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 8, padding: '4px 6px' }}
-                        formatter={(val, name) => [`₹${val}L`, name === 'value' ? 'Est. Value' : 'Invested']}
-                        labelFormatter={l => `Year ${l}`}
-                      />
-                      <Area type="monotone" dataKey="invested" stroke="#f59e0b" strokeWidth={1.5} fill="url(#sipInvGrad)" dot={false} />
-                      <Area type="monotone" dataKey="value" stroke="#00d8b6" strokeWidth={1.5} fill="url(#sipValueGrad)" dot={false} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Wealth Compound Breakdown Indicator */}
-              <div className="flex gap-2">
-                <div className="flex-1 bg-[#f59e0b]/5 border border-[#f59e0b]/10 rounded-xl p-2.5 text-center">
-                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Invested</p>
-                  <p className="text-xs font-black text-slate-200 mt-0.5">₹{(sipInvested / 100000).toFixed(2)}L</p>
-                </div>
-                <div className="flex-1 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-2.5 text-center">
-                  <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total Value</p>
-                  <p className="text-xs font-black text-emerald-400 mt-0.5">₹{(sipFV / 100000).toFixed(2)}L</p>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => showToast(`SIP Wealth Plan activated! Added automatic monthly savings task of ₹${sipAmt.toLocaleString()}.`, 'success')}
-                className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs cursor-pointer transition-all text-center"
-              >
-                Set Up SIP Now
-              </button>
+            <div className="h-12 w-full mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={[
+                  { yr: '3Y', val: 0.1 }, { yr: '6Y', val: 0.4 }, { yr: '9Y', val: 0.9 }, { yr: '10Y', val: 1.1 }
+                ]} margin={{ top: 2, right: 2, left: -30, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="sipG2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="yr" tick={{ fontSize: 8, fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <Area type="monotone" dataKey="val" stroke="#6366f1" strokeWidth={2} fill="url(#sipG2)" dot={{ r: 2, fill: '#6366f1' }} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
+
+            <div className="flex gap-3 mb-4">
+              <div className="flex-1 bg-slate-900/50 border border-white/5 rounded-lg p-2.5">
+                <p className="text-[9px] text-slate-500 mb-0.5 font-medium">Invested</p>
+                <p className="text-[11px] font-bold text-slate-300">₹0.6L</p>
+              </div>
+              <div className="flex-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5">
+                <p className="text-[9px] text-emerald-500/70 mb-0.5 font-medium">Value</p>
+                <p className="text-[11px] font-bold text-emerald-400">₹1.1L</p>
+              </div>
+            </div>
+
+            <button className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] cursor-pointer transition-colors mt-auto border border-indigo-500">
+              Set Up SIP →
+            </button>
           </div>
 
         </div>
-
       </div>
 
-      {/* Database Session Footer Indicator */}
-      <div className="flex flex-col sm:flex-row justify-between items-center border-t border-white/5 pt-4 text-[10px] text-slate-500 gap-2">
+      {/* Footer */}
+      <div className="flex justify-between items-center border-t border-white/5 pt-4 text-[10px] text-slate-500">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            ENGINE CONNECTED
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Engine connected
           </span>
           <span className="text-slate-700">|</span>
-          <span>LAST SYNC: {syncMin}M AGO</span>
+          <span>Last sync: 4m ago</span>
         </div>
-        <span>SESSION ID: {sessionId}</span>
+        <span>Session ID: #IX-1071</span>
       </div>
 
     </div>
@@ -762,7 +687,7 @@ const REC_ICONS = {
 };
 
 function FinanceRecommendationCard({ rec, index = 0, feedback = {}, onFeedback }) {
-  const fb     = feedback[rec.id]?.action;
+  const fb = feedback[rec.id]?.action;
   const isDone = fb === 'done';
 
   function handle(action) {
@@ -824,7 +749,7 @@ function FinanceRecommendationCard({ rec, index = 0, feedback = {}, onFeedback }
             margin: '0 0 6px 0',
             textDecoration: isDone ? 'line-through' : 'none'
           }}>{rec.title}</h4>
-          
+
           <p style={{
             fontSize: 13,
             color: '#8e929b',
@@ -837,9 +762,9 @@ function FinanceRecommendationCard({ rec, index = 0, feedback = {}, onFeedback }
             <button
               onClick={() => handle('accept')}
               style={{
-                background: fb === 'accept' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                border: fb === 'accept' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid transparent',
-                color: fb === 'accept' ? '#10b981' : '#6b7280',
+                background: fb === 'accept' ? 'rgba(139, 92, 246, 0.15)' : 'transparent',
+                border: fb === 'accept' ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent',
+                color: fb === 'accept' ? '#8b5cf6' : '#6b7280',
                 fontSize: 12,
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -857,9 +782,9 @@ function FinanceRecommendationCard({ rec, index = 0, feedback = {}, onFeedback }
             <button
               onClick={() => handle('done')}
               style={{
-                background: isDone ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-                border: isDone ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid transparent',
-                color: isDone ? '#3b82f6' : '#6b7280',
+                background: isDone ? 'rgba(139, 92, 246, 0.15)' : 'transparent',
+                border: isDone ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid transparent',
+                color: isDone ? '#8b5cf6' : '#6b7280',
                 fontSize: 12,
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -877,9 +802,9 @@ function FinanceRecommendationCard({ rec, index = 0, feedback = {}, onFeedback }
             <button
               onClick={() => handle('dismiss')}
               style={{
-                background: fb === 'dismiss' ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
-                border: fb === 'dismiss' ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid transparent',
-                color: fb === 'dismiss' ? '#ef4444' : '#6b7280',
+                background: fb === 'dismiss' ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
+                border: fb === 'dismiss' ? '1px solid rgba(139, 92, 246, 0.2)' : '1px solid transparent',
+                color: fb === 'dismiss' ? '#8b5cf6' : '#6b7280',
                 fontSize: 12,
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -1001,7 +926,7 @@ export default function Finance() {
     financeApi.getAll()
       .then(records => { if (records.length > 0) setRecords('finance', records); })
       .catch(err => console.warn('Finance: backend load failed:', err.message));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Spending trend ────────────────────────────────────────────────────────
@@ -1096,7 +1021,7 @@ export default function Finance() {
     }, delay);
 
     return () => { if (liveIntervalRef.current) clearInterval(liveIntervalRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveActive, liveSpeed]);
 
   // ── SMS parse logic ───────────────────────────────────────────────────────
@@ -1241,7 +1166,7 @@ export default function Finance() {
     { id: 'fin-spending', icon: '💳', title: 'Spending Optimization', text: savingsRate < 20 ? `Your savings rate is ${savingsRate}%. Target 20-30% by cutting ₹${Math.round((f.expenses * 0.2))} in non-essential spending. Start with subscriptions (₹${f.subscriptions}).` : `Great savings rate of ${savingsRate}%! Consider investing the surplus for compound growth.`, confidence: Math.max(70, 100 - Math.abs(20 - savingsRate) * 2), risk: savingsRate < 10 ? 'high' : 'low' },
     { id: 'fin-investment', icon: '📈', title: 'Investment Allocation', text: f.investments === 0 ? 'Start investing! Recommended: 60% index funds, 20% bonds, 20% emergency fund. Even ₹1000/month grows significantly over time.' : `Current investments: ₹${f.investments}. Diversify into: ${savingsRate > 30 ? '60% equity, 20% debt, 20% gold for growth' : '40% equity, 40% debt, 20% gold for stability'}.`, confidence: f.investments > 0 ? 85 : 75, risk: 'medium' },
     { id: 'fin-emergency', icon: '🛡️', title: 'Emergency Fund', text: f.savings < f.expenses * 3 ? `Emergency fund (₹${f.savings}) covers only ${(f.savings / Math.max(1, f.expenses)).toFixed(1)} months. Build to 3-6 months.` : 'Your emergency fund is solid. Consider moving surplus to investments.', confidence: f.savings < f.expenses * 3 ? 95 : 88, risk: f.savings < f.expenses ? 'high' : 'low' },
-    { id: 'fin-subscriptions', icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) are ${Math.round(f.subscriptions/Math.max(1, f.income)*100)}% of income. Canceling just one unused service could save up to ₹${Math.round(f.subscriptions * 0.3)}/month.` : 'Subscription spending is reasonable. Review annually.', confidence: f.subscriptions > f.income * 0.1 ? 92 : 80, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
+    { id: 'fin-subscriptions', icon: '🔄', title: 'Subscription Audit', text: f.subscriptions > f.income * 0.1 ? `Subscriptions (₹${f.subscriptions}) are ${Math.round(f.subscriptions / Math.max(1, f.income) * 100)}% of income. Canceling just one unused service could save up to ₹${Math.round(f.subscriptions * 0.3)}/month.` : 'Subscription spending is reasonable. Review annually.', confidence: f.subscriptions > f.income * 0.1 ? 92 : 80, risk: f.subscriptions > f.income * 0.15 ? 'high' : 'low' },
     ...(emotionalSpending ? [{ id: 'fin-emotional', icon: '😰', title: 'Emotional Spending Alert', text: `Your stress level (${h.stressLevel}/10) correlates with increased spending. Implement a 24-hour wait rule before purchases over ₹500.`, confidence: 85, risk: 'high' }] : []),
     { id: 'fin-career', icon: '💼', title: 'Career-Linked Investment Timing', text: placementReadiness >= 75 ? `Your career readiness is ${placementReadiness}% — a salary hike may be near. Park surplus in a liquid fund or short-term FD now so you can immediately increase your SIP after the raise.` : `Upskilling has outsized financial ROI. Allocating ₹${Math.max(500, Math.round(Math.max(0, f.income - f.expenses) * 0.1))} of surplus/month to courses can accelerate your income trajectory faster than most investments.`, confidence: 82, risk: placementReadiness >= 75 ? 'low' : 'medium' },
     ...(h.stressLevel > 6 ? [{ id: 'fin-stress-sip', icon: '🧘', title: 'Stress-Spend Redirect', text: `High stress (${h.stressLevel}/10) is linked to an estimated ₹${stressEstimatedSpend.toLocaleString()} in impulse spending this month. Automating that amount into a SIP instead would compound to ~₹${sipCompoundEstimate.toLocaleString()} over 5 years.`, confidence: 87, risk: 'medium' }] : []),
@@ -1255,13 +1180,13 @@ export default function Finance() {
   };
 
   const tabs = [
-    { id: 'overview',         label: 'Dashboard',    sym: '⊞' },
-    { id: 'parse',            label: 'SMS Parser',   sym: '✦' },
-    { id: 'live',             label: 'Live Feed',    sym: '●' },
-    { id: 'transactions',     label: 'Transactions', sym: '≡' },
-    { id: 'log',              label: 'Log',          sym: '\\' },
-    { id: 'recommendations',  label: 'AI Advisor',   sym: '◉' },
-    { id: 'invest',           label: 'Invest',       sym: '↑' },
+    { id: 'overview', label: 'Dashboard', sym: '⊞' },
+    { id: 'parse', label: 'SMS Parser', sym: '✦' },
+    { id: 'live', label: 'Live Feed', sym: '●' },
+    { id: 'transactions', label: 'Transactions', sym: '≡' },
+    { id: 'log', label: 'Log', sym: '\\' },
+    { id: 'recommendations', label: 'AI Advisor', sym: '◉' },
+    { id: 'invest', label: 'Invest', sym: '↑' },
   ];
 
   return (
@@ -1270,8 +1195,6 @@ export default function Finance() {
       <AnimatePresence>
         {notification && <LiveNotification tx={notification} onDismiss={() => { setNotification(null); clearTimeout(notifTimerRef.current); }} />}
       </AnimatePresence>
-
-
 
       {/* ── Page Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
@@ -1331,9 +1254,9 @@ export default function Finance() {
               }}
             >
               {t.label}
-              {t.id === 'live' && liveActive && <span style={{width:6,height:6,borderRadius:'50%',background:'#10b981',display:'inline-block'}} className="animate-pulse"/>}
+              {t.id === 'live' && liveActive && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} className="animate-pulse" />}
               {t.id === 'transactions' && allTxs.length > 0 && (
-                <span style={{fontSize:9,padding:'1px 6px',borderRadius:999,background:isActive?'rgba(255,255,255,0.2)':'rgba(99,102,241,0.15)',color:isActive?'#fff':'#818cf8',fontWeight:700}}>{allTxs.length}</span>
+                <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 999, background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(99,102,241,0.15)', color: isActive ? '#fff' : '#818cf8', fontWeight: 700 }}>{allTxs.length}</span>
               )}
             </button>
           );
@@ -1342,307 +1265,309 @@ export default function Finance() {
 
       {/* ── OVERVIEW TAB ──────────────────────────────────────────────────── */}
       {tab === 'overview' && (() => {
-        const netWorth   = (f.savings||0)+(f.investments||0)-(f.debt||0);
-        const netSavings = Math.max(0,(f.income||0)-(f.expenses||0));
-        const scoreColor = score>=70?'#00d8b6':score>=45?'#f59e0b':'#f43f5e';
+        const netWorth = (f.savings || 0) + (f.investments || 0) - (f.debt || 0);
+        const netSavings = Math.max(0, (f.income || 0) - (f.expenses || 0));
+        const scoreColor = score >= 70 ? '#00d8b6' : score >= 45 ? '#f59e0b' : '#f43f5e';
         const col = 'gridTemplateColumns';
-        const card = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16};
+        const card = { background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16 };
         const METRICS = [
-          {label:'Income',        icon:'💼', color:'#10b981', value:`₹${(f.income||0).toLocaleString()}`,       sub:'This month'},
-          {label:'Expenses',      icon:'🛍️', color:'#f43f5e', value:`₹${(f.expenses||0).toLocaleString()}`,     sub:'This month'},
-          {label:'Net Savings',   icon:'💰', color:'#3b82f6', value:`₹${netSavings.toLocaleString()}`,           sub:'This month'},
-          {label:'Investments',   icon:'📊', color:'#8b5cf6', value:`₹${(f.investments||0).toLocaleString()}`,  sub:'Total value'},
-          {label:'Subscriptions', icon:'🔁', color:'#f59e0b', value:`₹${(f.subscriptions||0).toLocaleString()}`,sub:'Active'},
-          {label:'Net Worth',     icon:'💎', color:'#6366f1', value:`₹${netWorth.toLocaleString()}`,             sub:'Total value'},
+          { label: 'Income', icon: '💼', color: '#10b981', value: `₹${(f.income || 0).toLocaleString()}`, sub: 'This month' },
+          { label: 'Expenses', icon: '🛍️', color: '#f43f5e', value: `₹${(f.expenses || 0).toLocaleString()}`, sub: 'This month' },
+          { label: 'Net Savings', icon: '💰', color: '#3b82f6', value: `₹${netSavings.toLocaleString()}`, sub: 'This month' },
+          { label: 'Investments', icon: '📊', color: '#8b5cf6', value: `₹${(f.investments || 0).toLocaleString()}`, sub: 'Total value' },
+          { label: 'Subscriptions', icon: '🔁', color: '#f59e0b', value: `₹${(f.subscriptions || 0).toLocaleString()}`, sub: 'Active' },
+          { label: 'Net Worth', icon: '💎', color: '#6366f1', value: `₹${netWorth.toLocaleString()}`, sub: 'Total value' },
         ];
         const flags = [];
-        if (savingsRate < 10)  flags.push({label:`Low Savings Rate: ${savingsRate}%`, color:'#f43f5e'});
-        if (f.debt > f.income) flags.push({label:'Debt exceeds monthly income',        color:'#f97316'});
-        if (burnoutRisk > 60)  flags.push({label:`High burnout risk: ${burnoutRisk}%`, color:'#f59e0b'});
-        const flag = flags[0] || {label:`Savings Rate: ${savingsRate}%`, color:'#00d8b6'};
-        const action = flags.length===0 ? 'Keep building your emergency fund.'
-          : f.debt>0 ? 'Prioritise clearing high-interest debt before investing.'
-          : savingsRate<15 ? 'Automate savings — set up a recurring transfer on payday.'
-          : 'Review subscriptions and reduce impulse spending.';
+        if (savingsRate < 10) flags.push({ label: `Low Savings Rate: ${savingsRate}%`, color: '#f43f5e' });
+        if (f.debt > f.income) flags.push({ label: 'Debt exceeds monthly income', color: '#f97316' });
+        if (burnoutRisk > 60) flags.push({ label: `High burnout risk: ${burnoutRisk}%`, color: '#f59e0b' });
+        const flag = flags[0] || { label: `Savings Rate: ${savingsRate}%`, color: '#00d8b6' };
+        const action = flags.length === 0 ? 'Keep building your emergency fund.'
+          : f.debt > 0 ? 'Prioritise clearing high-interest debt before investing.'
+            : savingsRate < 15 ? 'Automate savings — set up a recurring transfer on payday.'
+              : 'Review subscriptions and reduce impulse spending.';
 
         return (
-        <div style={{display:'flex', flexDirection:'column', gap:16}}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* ROW 1 */}
-          <div style={{display:'grid', gridTemplateColumns:'1fr 2fr', gap:16}}>
+            {/* ROW 1 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
 
-            {/* Score card */}
-            <div style={{...card, padding:'24px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
-              <div style={{display:'flex', alignItems:'center', gap: 24}}>
-                {/* Ring */}
-                <div style={{position:'relative', width:120, height:120, flexShrink:0}}>
-                  <svg viewBox="0 0 120 120" width="120" height="120">
-                    <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                    <circle cx="60" cy="60" r="48" fill="none" stroke={scoreColor} strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
-                      strokeDashoffset={2*Math.PI*48*(1-score/100)}
-                      style={{transform:'rotate(-90deg)', transformOrigin:'60px 60px', transition:'stroke-dashoffset 1.2s ease'}}/>
-                  </svg>
-                  <div style={{position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:32, fontWeight:900, color:'#fff', lineHeight:1}}>{score}</span>
-                    <span style={{fontSize:12, color:'#475569', marginTop:2}}>/ 100</span>
+              {/* Score card */}
+              <div style={{ ...card, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                  {/* Ring */}
+                  <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+                    <svg viewBox="0 0 120 120" width="120" height="120">
+                      <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10" />
+                      <circle cx="60" cy="60" r="48" fill="none" stroke={scoreColor} strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 48} ${2 * Math.PI * 48}`}
+                        strokeDashoffset={2 * Math.PI * 48 * (1 - score / 100)}
+                        style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px', transition: 'stroke-dashoffset 1.2s ease' }} />
+                    </svg>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
+                      <span style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>/ 100</span>
+                    </div>
+                  </div>
+                  {/* Text beside ring */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 12, margin: '0 0 12px' }}>Finance Score</p>
+                    <span style={{
+                      display: 'inline-block', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 999, marginBottom: 12,
+                      background: scoreColor + '18', color: scoreColor, border: `1px solid ${scoreColor}44`
+                    }}>
+                      {score >= 70 ? 'Good' : score >= 45 ? 'Moderate' : 'Low'}
+                    </span>
+                    <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>
+                      {score >= 45 ? 'Keep optimizing your\nspending habits.' : 'Focus on savings and\nreduce expenses.'}
+                    </p>
                   </div>
                 </div>
-                {/* Text beside ring */}
-                <div style={{display:'flex', flexDirection:'column', alignItems:'flex-start'}}>
-                  <p style={{fontSize:16, fontWeight:700, color:'#f1f5f9', marginBottom:12, margin:'0 0 12px'}}>Finance Score</p>
-                  <span style={{display:'inline-block', fontSize:12, fontWeight:600, padding:'4px 12px', borderRadius:999, marginBottom:12,
-                    background:scoreColor+'18', color:scoreColor, border:`1px solid ${scoreColor}44`}}>
-                    {score>=70?'Good':score>=45?'Moderate':'Low'}
-                  </span>
-                  <p style={{fontSize:13, color:'#94a3b8', lineHeight:1.5, margin:0}}>
-                    {score>=45?'Keep optimizing your\nspending habits.':'Focus on savings and\nreduce expenses.'}
-                  </p>
+                <button onClick={() => setTab('recommendations')}
+                  style={{ marginTop: 32, padding: '8px 16px', borderRadius: 8, border: `1px solid ${scoreColor}44`, background: scoreColor + '0f', color: scoreColor, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
+                  View Insights →
+                </button>
+              </div>
+
+              {/* Metrics side */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
+                  {METRICS.map(m => (
+                    <div key={m.label} style={{ ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 6, background: m.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{m.icon}</div>
+                        <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{m.label}</span>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 20, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>{m.value}</p>
+                        <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{m.sub}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Savings Rate Card */}
+                <div style={{ ...card, padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(59,130,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#3b82f6', flexShrink: 0 }}>%</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 90, flexShrink: 0 }}>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 4px' }}>Savings Rate</p>
+                    <p style={{ fontSize: 20, fontWeight: 800, color: scoreColor, margin: 0 }}>{savingsRate}%</p>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0' }}>of income</p>
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', marginLeft: 16 }}>
+                    <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10, margin: '0 0 10px' }}>Aim for 20% to build strong financial health.</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, savingsRate)}%` }} transition={{ duration: 1, ease: 'easeOut' }}
+                          style={{ height: '100%', borderRadius: 3, background: scoreColor }} />
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b' }}>{savingsRate}%</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button onClick={()=>setTab('recommendations')}
-                style={{marginTop:32, padding:'8px 16px', borderRadius:8, border:`1px solid ${scoreColor}44`, background:scoreColor+'0f', color:scoreColor, fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, alignSelf:'flex-start'}}>
-                View Insights →
+
+            </div>
+
+            {/* ROW 2 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              {/* Expense Breakdown */}
+              <div style={{ ...card, padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Expense Breakdown</h3>
+                  <span style={{ fontSize: 12, color: '#475569', cursor: 'help' }} title="Based on parsed transactions">ⓘ</span>
+                </div>
+                {f.expenses > 0 || categoryTotals.length > 0 ? (() => {
+                  const data = categoryTotals.length > 0 ? categoryTotals : expenseBreakdown;
+                  const total = data.reduce((s, d) => s + d.value, 0) || f.expenses || 1;
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{ position: 'relative', flexShrink: 0, width: 110, height: 110 }}>
+                        <ResponsiveContainer width={110} height={110}>
+                          <PieChart>
+                            <Pie data={data} cx="50%" cy="50%" outerRadius={50} innerRadius={32} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
+                              {data.map((e, i) => <Cell key={i} fill={CATEGORY_META[e.name]?.color || COLORS[i % COLORS.length]} />)}
+                            </Pie>
+                            <Tooltip formatter={v => `₹${v.toLocaleString()}`} contentStyle={{ background: 'rgba(13,17,28,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 10 }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: '#f1f5f9' }}>
+                            ₹{total >= 100000 ? (total / 100000).toFixed(1) + 'L' : total >= 1000 ? (total / 1000).toFixed(0) + 'K' : total}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {data.slice(0, 5).map((e, i) => {
+                          const color = CATEGORY_META[e.name]?.color || COLORS[i % COLORS.length];
+                          return (
+                            <div key={e.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                              <span style={{ fontSize: 11, color: '#94a3b8', flex: 1 }}>{e.name}</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: '#f1f5f9' }}>₹{e.value.toLocaleString()}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 0', gap: 16 }}>
+                    <div style={{ width: 64, height: 64, borderRadius: 50, border: '1px dashed rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 24 }}>📊</span>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontSize: 15, fontWeight: 600, color: '#e2e8f0', margin: '0 0 6px' }}>No expenses yet</p>
+                      <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.5 }}>Parse some SMS messages<br />to see breakdown.</p>
+                    </div>
+                    <button onClick={() => setTab('parse')}
+                      style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid rgba(0,216,182,0.3)', background: 'rgba(0,216,182,0.06)', color: '#00d8b6', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4 }}>
+                      Open SMS Parser
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Spending Trend */}
+              <div style={{ ...card, padding: '24px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+                    Spending Trend{!hasFinanceData && <span style={{ fontSize: 11, color: '#475569', marginLeft: 6 }}>(demo)</span>}
+                  </h3>
+                  <span style={{ fontSize: 11, color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>This Month ▾</span>
+                </div>
+                <div style={{ flex: 1, minHeight: 120 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="spendG3" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4} />
+                          <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 10 }} tickFormatter={v => v?.slice(8) || ''} axisLine={false} tickLine={false} interval={2} />
+                      <YAxis tick={{ fill: '#475569', fontSize: 10 }} tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}K` : `₹${v}`} axisLine={false} tickLine={false} />
+                      <Tooltip formatter={v => `₹${Number(v).toLocaleString()}`} contentStyle={{ background: 'rgba(13,17,28,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 11 }} labelStyle={{ color: '#94a3b8' }} />
+                      <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2} fill="url(#spendG3)" dot={false} activeDot={{ r: 4, fill: '#f43f5e' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f43f5e', display: 'inline-block' }} />
+                  <span style={{ fontSize: 12, color: '#64748b' }}>Expenses</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ROW 3: Financial Anxiety Detection */}
+            <div style={{ ...card, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(244,63,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>🛡️</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>Financial Anxiety Detection</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: flag.color, margin: '0 0 2px' }}>{flag.label}</p>
+                <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>{action}</p>
+              </div>
+              <button onClick={() => setTab('recommendations')}
+                style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#cbd5e1', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6, transition: 'background 0.2s' }}
+                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+              >
+                View Recommendations →
               </button>
             </div>
 
-            {/* Metrics side */}
-            <div style={{display:'flex', flexDirection:'column', gap: 16}}>
-              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap: 16}}>
-                {METRICS.map(m => (
-                  <div key={m.label} style={{...card, padding:'16px', display:'flex', flexDirection:'column', gap:12}}>
-                    <div style={{display:'flex', alignItems:'center', gap:8}}>
-                      <div style={{width:24, height:24, borderRadius:6, background:m.color+'15', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12}}>{m.icon}</div>
-                      <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>{m.label}</span>
-                    </div>
-                    <div>
-                      <p style={{fontSize:20, fontWeight:700, color:'#f1f5f9', margin:'0 0 4px'}}>{m.value}</p>
-                      <p style={{fontSize:11, color:'#64748b', margin:0}}>{m.sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Savings Rate Card */}
-              <div style={{...card, padding:'16px 24px', display:'flex', alignItems:'center', gap:16}}>
-                <div style={{width:44, height:44, borderRadius:12, background:'rgba(59,130,246,0.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, fontWeight:700, color:'#3b82f6', flexShrink:0}}>%</div>
-                <div style={{display:'flex', flexDirection:'column', minWidth:90, flexShrink:0}}>
-                  <p style={{fontSize:11, color:'#64748b', margin:'0 0 4px'}}>Savings Rate</p>
-                  <p style={{fontSize:20, fontWeight:800, color:scoreColor, margin:0}}>{savingsRate}%</p>
-                  <p style={{fontSize:11, color:'#64748b', margin:'2px 0 0'}}>of income</p>
-                </div>
-                <div style={{flex:1, display:'flex', flexDirection:'column', justifyContent:'center', marginLeft: 16}}>
-                  <p style={{fontSize:12, color:'#94a3b8', marginBottom:10, margin:'0 0 10px'}}>Aim for 20% to build strong financial health.</p>
-                  <div style={{display:'flex', alignItems:'center', gap:12}}>
-                    <div style={{flex:1, height:6, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden'}}>
-                      <motion.div initial={{width:0}} animate={{width:`${Math.min(100,savingsRate)}%`}} transition={{duration:1, ease:'easeOut'}}
-                        style={{height:'100%', borderRadius:3, background:scoreColor}}/>
-                    </div>
-                    <span style={{fontSize:12, fontWeight:700, color:'#64748b'}}>{savingsRate}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
-
-          {/* ROW 2 */}
-          <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:16}}>
-            {/* Expense Breakdown */}
-            <div style={{...card, padding:'24px'}}>
-              <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:16}}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:0}}>Expense Breakdown</h3>
-                <span style={{fontSize:12, color:'#475569', cursor:'help'}} title="Based on parsed transactions">ⓘ</span>
-              </div>
-              {f.expenses>0||categoryTotals.length>0 ? (() => {
-                const data=categoryTotals.length>0?categoryTotals:expenseBreakdown;
-                const total=data.reduce((s,d)=>s+d.value,0)||f.expenses||1;
-                return (
-                  <div style={{display:'flex', alignItems:'center', gap:16}}>
-                    <div style={{position:'relative', flexShrink:0, width:110, height:110}}>
-                      <ResponsiveContainer width={110} height={110}>
-                        <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" outerRadius={50} innerRadius={32} dataKey="value" paddingAngle={2} startAngle={90} endAngle={-270}>
-                            {data.map((e,i)=><Cell key={i} fill={CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length]}/>)}
-                          </Pie>
-                          <Tooltip formatter={v=>`₹${v.toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,fontSize:10}}/>
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                        <span style={{fontSize:11,fontWeight:800,color:'#f1f5f9'}}>
-                          ₹{total >= 100000 ? (total/100000).toFixed(1) + 'L' : total >= 1000 ? (total/1000).toFixed(0) + 'K' : total}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{flex:1,display:'flex',flexDirection:'column',gap:8}}>
-                      {data.slice(0,5).map((e,i)=>{
-                        const color=CATEGORY_META[e.name]?.color||COLORS[i%COLORS.length];
-                        return(
-                          <div key={e.name} style={{display:'flex',alignItems:'center',gap:8}}>
-                            <span style={{width:6,height:6,borderRadius:'50%',background:color,flexShrink:0}}/>
-                            <span style={{fontSize:11,color:'#94a3b8',flex:1}}>{e.name}</span>
-                            <span style={{fontSize:11,fontWeight:600,color:'#f1f5f9'}}>₹{e.value.toLocaleString()}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })() : (
-                <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 0', gap:16}}>
-                  <div style={{width:64, height:64, borderRadius:50, border:'1px dashed rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                    <span style={{fontSize:24}}>📊</span>
-                  </div>
-                  <div style={{textAlign:'center'}}>
-                    <p style={{fontSize:15, fontWeight:600, color:'#e2e8f0', margin:'0 0 6px'}}>No expenses yet</p>
-                    <p style={{fontSize:13, color:'#64748b', margin:0, lineHeight:1.5}}>Parse some SMS messages<br/>to see breakdown.</p>
-                  </div>
-                  <button onClick={()=>setTab('parse')}
-                    style={{padding:'10px 20px', borderRadius:8, border:'1px solid rgba(0,216,182,0.3)', background:'rgba(0,216,182,0.06)', color:'#00d8b6', fontSize:13, fontWeight:600, cursor:'pointer', marginTop:4}}>
-                    Open SMS Parser
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Spending Trend */}
-            <div style={{...card, padding:'24px', display:'flex', flexDirection:'column'}}>
-              <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12}}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:0}}>
-                  Spending Trend{!hasFinanceData&&<span style={{fontSize:11, color:'#475569', marginLeft:6}}>(demo)</span>}
-                </h3>
-                <span style={{fontSize:11, color:'#94a3b8', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'4px 10px', cursor:'pointer'}}>This Month ▾</span>
-              </div>
-              <div style={{flex:1, minHeight:120}}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData} margin={{top:10, right:10, left:-20, bottom:0}}>
-                    <defs>
-                      <linearGradient id="spendG3" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.4}/>
-                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="date" tick={{fill:'#475569',fontSize:10}} tickFormatter={v=>v?.slice(8)||''} axisLine={false} tickLine={false} interval={2}/>
-                    <YAxis tick={{fill:'#475569',fontSize:10}} tickFormatter={v=>v>=1000?`₹${(v/1000).toFixed(0)}K`:`₹${v}`} axisLine={false} tickLine={false}/>
-                    <Tooltip formatter={v=>`₹${Number(v).toLocaleString()}`} contentStyle={{background:'rgba(13,17,28,0.95)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,fontSize:11}} labelStyle={{color:'#94a3b8'}}/>
-                    <Area type="monotone" dataKey="spending" stroke="#f43f5e" strokeWidth={2} fill="url(#spendG3)" dot={false} activeDot={{r:4,fill:'#f43f5e'}}/>
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div style={{display:'flex', alignItems:'center', gap:8, marginTop:12}}>
-                <span style={{width:8,height:8,borderRadius:'50%',background:'#f43f5e',display:'inline-block'}}/>
-                <span style={{fontSize:12,color:'#64748b'}}>Expenses</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ROW 3: Financial Anxiety Detection */}
-          <div style={{...card, padding:'20px 24px', display:'flex', alignItems:'center', gap:16}}>
-            <div style={{width:40, height:40, borderRadius:10, background:'rgba(244,63,94,0.15)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:18}}>🛡️</div>
-            <div style={{flex:1, minWidth:0}}>
-              <p style={{fontSize:14, fontWeight:700, color:'#f1f5f9', margin:'0 0 4px'}}>Financial Anxiety Detection</p>
-              <p style={{fontSize:13, fontWeight:600, color:flag.color, margin:'0 0 2px'}}>{flag.label}</p>
-              <p style={{fontSize:12, color:'#94a3b8', margin:0}}>{action}</p>
-            </div>
-            <button onClick={()=>setTab('recommendations')}
-              style={{padding:'8px 16px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.04)', color:'#cbd5e1', fontSize:12, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0, display:'flex', alignItems:'center', gap:6, transition:'background 0.2s'}}
-              onMouseOver={e=>e.currentTarget.style.background='rgba(255,255,255,0.08)'}
-              onMouseOut={e=>e.currentTarget.style.background='rgba(255,255,255,0.04)'}
-            >
-              View Recommendations →
-            </button>
-          </div>
-
-        </div>
         );
       })()}
 
       {/* ── SMS PARSER TAB ────────────────────────────────────────────────── */}
       {tab === 'parse' && (() => {
-        const pCard = {background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px', display:'flex', flexDirection:'column'};
-        const BRAND_COLORS = { Uber:'#1a1a1a', Ola:'#2b9348', Swiggy:'#fc8019', Zomato:'#cb202d', Netflix:'#e50914', Amazon:'#ff9900', Flipkart:'#2874f0', Dunzo:'#00d25b', BigBasket:'#84c225', Blinkit:'#f8cc1b', Rapido:'#333', PhonePe:'#5f259f', Paytm:'#00b9f5' };
-        const hashColor = s => { const c=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#10b981','#06b6d4','#3b82f6']; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffffff; return c[Math.abs(h)%c.length]; };
-        const merchantBg = m => BRAND_COLORS[m] || hashColor(m||'X');
-        const inputStyle = {width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'5px 8px', color:'#f1f5f9', fontSize:11, outline:'none', boxSizing:'border-box'};
+        const pCard = { background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column' };
+        const BRAND_COLORS = { Uber: '#1a1a1a', Ola: '#2b9348', Swiggy: '#fc8019', Zomato: '#cb202d', Netflix: '#e50914', Amazon: '#ff9900', Flipkart: '#2874f0', Dunzo: '#00d25b', BigBasket: '#84c225', Blinkit: '#f8cc1b', Rapido: '#333', PhonePe: '#5f259f', Paytm: '#00b9f5' };
+        const hashColor = s => { const c = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#10b981', '#06b6d4', '#3b82f6']; let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffffffff; return c[Math.abs(h) % c.length]; };
+        const merchantBg = m => BRAND_COLORS[m] || hashColor(m || 'X');
+        const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '5px 8px', color: '#f1f5f9', fontSize: 11, outline: 'none', boxSizing: 'border-box' };
         return (
-          <div style={{display:'flex', flexDirection:'column', gap:20}}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
             {/* ── Two parser cards ── */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:20}}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
               {/* LEFT: Paste SMS */}
               <div style={pCard}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Paste SMS</h3>
-                <p style={{fontSize:11, color:'#64748b', marginBottom:12}}>Paste a single SMS to parse the transaction.</p>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Paste SMS</h3>
+                <p style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>Paste a single SMS to parse the transaction.</p>
 
-                <div style={{display:'flex', flexWrap:'wrap', gap:6, marginBottom:10}}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                   {SAMPLE_MESSAGES.map(s => (
                     <button key={s.label} onClick={() => { setSmsInput(s.msg); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
-                      style={{fontSize:10, padding:'3px 10px', borderRadius:999, background:'rgba(139,92,246,0.1)', border:'1px solid rgba(139,92,246,0.25)', color:'#a78bfa', cursor:'pointer'}}>
+                      style={{ fontSize: 10, padding: '3px 10px', borderRadius: 999, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', color: '#a78bfa', cursor: 'pointer' }}>
                       {s.label}
                     </button>
                   ))}
                 </div>
 
-                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
+                <div style={{ position: 'relative', marginBottom: 10, flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <textarea
                     value={smsInput}
-                    onChange={e => { setSmsInput(e.target.value.slice(0,500)); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
+                    onChange={e => { setSmsInput(e.target.value.slice(0, 500)); setOtpDetected(false); setParseResult(null); setEditResult(null); }}
                     maxLength={500}
                     placeholder='e.g. "Rs. 450 spent on Swiggy using HDFC Credit Card."'
-                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'10px 12px', paddingBottom:24, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:80}}
+                    style={{ flex: 1, width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 12px', paddingBottom: 24, color: '#e2e8f0', fontSize: 12, resize: 'none', outline: 'none', fontFamily: 'ui-monospace,JetBrains Mono,monospace', boxSizing: 'border-box', lineHeight: 1.4, minHeight: 80 }}
                   />
-                  <span style={{position:'absolute', bottom:6, right:12, fontSize:10, color:'#475569', pointerEvents:'none'}}>{smsInput.length} / 500</span>
+                  <span style={{ position: 'absolute', bottom: 6, right: 12, fontSize: 10, color: '#475569', pointerEvents: 'none' }}>{smsInput.length} / 500</span>
                 </div>
 
                 {otpDetected && (
-                  <div style={{marginBottom:10, padding:'8px 12px', borderRadius:6, background:'rgba(244,63,94,0.08)', border:'1px solid rgba(244,63,94,0.2)', display:'flex', alignItems:'center', gap:8}}>
-                    <span style={{fontSize:12}}>🔐</span>
+                  <div style={{ marginBottom: 10, padding: '8px 12px', borderRadius: 6, background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.2)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 12 }}>🔐</span>
                     <div>
-                      <p style={{fontSize:11, fontWeight:600, color:'#f43f5e'}}>OTP detected — will not be parsed</p>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#f43f5e' }}>OTP detected — will not be parsed</p>
                     </div>
                   </div>
                 )}
 
                 <button onClick={handleParse}
-                  style={{width:'100%', padding:'10px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                  style={{ width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <span>⚡</span> Parse Transaction
                 </button>
 
                 <AnimatePresence>
                   {parseResult && editResult && (
-                    <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0}} style={{marginTop:20}}>
-                      <div style={{padding:'16px', borderRadius:12, border:'1px solid rgba(16,185,129,0.3)', background:'rgba(16,185,129,0.05)', marginBottom:16}}>
-                        <p style={{fontSize:10, fontWeight:700, color:'#10b981', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:12}}>Parsed Result — Edit if needed</p>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
-                          {[{label:'Amount (₹)',key:'amount',type:'number'},{label:'Merchant',key:'merchant',type:'text'},{label:'Bank',key:'bank',type:'text'},{label:'Payment Mode',key:'paymentMode',type:'text'}].map(field => (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: 20 }}>
+                      <div style={{ padding: '16px', borderRadius: 12, border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.05)', marginBottom: 16 }}>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Parsed Result — Edit if needed</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                          {[{ label: 'Amount (₹)', key: 'amount', type: 'number' }, { label: 'Merchant', key: 'merchant', type: 'text' }, { label: 'Bank', key: 'bank', type: 'text' }, { label: 'Payment Mode', key: 'paymentMode', type: 'text' }].map(field => (
                             <div key={field.key}>
-                              <label style={{fontSize:10,color:'#64748b',display:'block',marginBottom:4}}>{field.label}</label>
-                              <input type={field.type} value={editResult[field.key]||''} onChange={e=>setEditResult(p=>({...p,[field.key]:field.type==='number'?parseFloat(e.target.value)||0:e.target.value}))} style={inputStyle}/>
+                              <label style={{ fontSize: 10, color: '#64748b', display: 'block', marginBottom: 4 }}>{field.label}</label>
+                              <input type={field.type} value={editResult[field.key] || ''} onChange={e => setEditResult(p => ({ ...p, [field.key]: field.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value }))} style={inputStyle} />
                             </div>
                           ))}
                           <div>
-                            <label style={{fontSize:10,color:'#64748b',display:'block',marginBottom:4}}>Category</label>
-                            <select value={editResult.category} onChange={e=>setEditResult(p=>({...p,category:e.target.value}))} style={{...inputStyle, background:'rgba(20,25,40,0.95)'}}>
-                              {Object.keys(CATEGORY_META).map(c=><option key={c} value={c}>{c}</option>)}
+                            <label style={{ fontSize: 10, color: '#64748b', display: 'block', marginBottom: 4 }}>Category</label>
+                            <select value={editResult.category} onChange={e => setEditResult(p => ({ ...p, category: e.target.value }))} style={{ ...inputStyle, background: 'rgba(20,25,40,0.95)' }}>
+                              {Object.keys(CATEGORY_META).map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                           </div>
                           <div>
-                            <label style={{fontSize:10,color:'#64748b',display:'block',marginBottom:4}}>Type</label>
-                            <select value={editResult.type} onChange={e=>setEditResult(p=>({...p,type:e.target.value}))} style={{...inputStyle, background:'rgba(20,25,40,0.95)'}}>
+                            <label style={{ fontSize: 10, color: '#64748b', display: 'block', marginBottom: 4 }}>Type</label>
+                            <select value={editResult.type} onChange={e => setEditResult(p => ({ ...p, type: e.target.value }))} style={{ ...inputStyle, background: 'rgba(20,25,40,0.95)' }}>
                               <option value="Debit">Debit</option>
                               <option value="Credit">Credit</option>
                             </select>
                           </div>
                         </div>
-                        <div style={{display:'flex',alignItems:'center',gap:10,marginTop:16}}>
-                          <span style={{fontSize:20}}>{CATEGORY_META[editResult.category]?.icon}</span>
-                          <span style={{fontSize:13,fontWeight:600,color:'#e2e8f0'}}>{editResult.merchant}</span>
-                          <span style={{fontSize:14,fontWeight:700,color:'#f43f5e',marginLeft:'auto'}}>₹{editResult.amount?.toLocaleString()}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16 }}>
+                          <span style={{ fontSize: 20 }}>{CATEGORY_META[editResult.category]?.icon}</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0' }}>{editResult.merchant}</span>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: '#f43f5e', marginLeft: 'auto' }}>₹{editResult.amount?.toLocaleString()}</span>
                         </div>
                       </div>
-                      <button onClick={handleConfirmTx} style={{width:'100%',padding:'12px 0',borderRadius:10,border:'none',background:'#10b981',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+                      <button onClick={handleConfirmTx} style={{ width: '100%', padding: '12px 0', borderRadius: 10, border: 'none', background: '#10b981', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                         Add Transaction ✓
                       </button>
                     </motion.div>
@@ -1652,41 +1577,41 @@ export default function Finance() {
 
               {/* RIGHT: Bulk Import */}
               <div style={pCard}>
-                <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9', marginBottom:4}}>Bulk Import</h3>
-                <p style={{fontSize:11, color:'#64748b', marginBottom:12}}>Paste multiple SMS messages (one per line).</p>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 }}>Bulk Import</h3>
+                <p style={{ fontSize: 11, color: '#64748b', marginBottom: 12 }}>Paste multiple SMS messages (one per line).</p>
 
-                <div style={{position:'relative', marginBottom:10, flex:1, display:'flex', flexDirection:'column'}}>
+                <div style={{ position: 'relative', marginBottom: 10, flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <textarea
                     value={multiInput}
-                    onChange={e => setMultiInput(e.target.value.slice(0,500))}
+                    onChange={e => setMultiInput(e.target.value.slice(0, 500))}
                     maxLength={500}
                     placeholder={'Rs. 450 spent on Swiggy using HDFC\nINR 320 debited from SBI for Uber ride\nRs. 649 charged to Axis for Netflix'}
-                    style={{flex:1, width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'10px 12px', paddingBottom:24, color:'#e2e8f0', fontSize:12, resize:'none', outline:'none', fontFamily:'ui-monospace,JetBrains Mono,monospace', boxSizing:'border-box', lineHeight:1.4, minHeight:80}}
+                    style={{ flex: 1, width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 12px', paddingBottom: 24, color: '#e2e8f0', fontSize: 12, resize: 'none', outline: 'none', fontFamily: 'ui-monospace,JetBrains Mono,monospace', boxSizing: 'border-box', lineHeight: 1.4, minHeight: 80 }}
                   />
-                  <span style={{position:'absolute', bottom:6, right:12, fontSize:10, color:'#475569', pointerEvents:'none'}}>{multiInput.length} / 500</span>
+                  <span style={{ position: 'absolute', bottom: 6, right: 12, fontSize: 10, color: '#475569', pointerEvents: 'none' }}>{multiInput.length} / 500</span>
                 </div>
 
                 <button onClick={handleBulkParse}
-                  style={{width:'100%', padding:'10px 0', borderRadius:8, border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+                  style={{ width: '100%', padding: '10px 0', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <span>⊞</span> Parse All Lines
                 </button>
 
                 {multiResults.length > 0 && (
-                  <div style={{marginTop:20, display:'flex', flexDirection:'column', gap:10, maxHeight:280, overflowY:'auto'}}>
-                    {multiResults.map((r,i) => (
-                      <div key={i} style={{padding:'10px 12px', borderRadius:10, border:r.result?'1px solid rgba(16,185,129,0.2)':'1px solid rgba(244,63,94,0.2)', background:r.result?'rgba(16,185,129,0.05)':'rgba(244,63,94,0.05)'}}>
+                  <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 280, overflowY: 'auto' }}>
+                    {multiResults.map((r, i) => (
+                      <div key={i} style={{ padding: '10px 12px', borderRadius: 10, border: r.result ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(244,63,94,0.2)', background: r.result ? 'rgba(16,185,129,0.05)' : 'rgba(244,63,94,0.05)' }}>
                         {r.result ? (
-                          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                            <span style={{fontSize:12,color:'#94a3b8'}}>{CATEGORY_META[r.result.category]?.icon} {r.result.merchant}</span>
-                            <span style={{fontSize:13,fontWeight:700,color:'#10b981'}}>₹{r.result.amount}</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 12, color: '#94a3b8' }}>{CATEGORY_META[r.result.category]?.icon} {r.result.merchant}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981' }}>₹{r.result.amount}</span>
                           </div>
                         ) : (
-                          <span style={{fontSize:12,color:'#f43f5e'}}>⚠ {r.error}</span>
+                          <span style={{ fontSize: 12, color: '#f43f5e' }}>⚠ {r.error}</span>
                         )}
                       </div>
                     ))}
-                    <button onClick={handleBulkConfirm} style={{width:'100%',padding:'12px 0',borderRadius:10,border:'none',background:'#10b981',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',marginTop:8}}>
-                      Add {multiResults.filter(r=>r.result).length} Valid Transactions ✓
+                    <button onClick={handleBulkConfirm} style={{ width: '100%', padding: '12px 0', borderRadius: 10, border: 'none', background: '#10b981', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginTop: 8 }}>
+                      Add {multiResults.filter(r => r.result).length} Valid Transactions ✓
                     </button>
                   </div>
                 )}
@@ -1696,39 +1621,39 @@ export default function Finance() {
             {/* ── Recent Activity ── always visible; falls back to demo rows ── */}
             {(() => {
               const DEMO_TXS = [
-                { id:'d1', merchant:'Uber',              category:'Transport',     type:'Debit',  amount:320,  bank:'SBI Debit Card',    parsedAt:'2025-05-30T13:32:00Z' },
-                { id:'d2', merchant:'Swiggy',            category:'Food',          type:'Debit',  amount:450,  bank:'HDFC Credit Card',  parsedAt:'2025-05-30T15:15:00Z' },
-                { id:'d3', merchant:'Netflix',           category:'Subscriptions', type:'Debit',  amount:649,  bank:'Axis Bank',         parsedAt:'2025-05-29T17:42:00Z' },
+                { id: 'd1', merchant: 'Uber', category: 'Transport', type: 'Debit', amount: 320, bank: 'SBI Debit Card', parsedAt: '2025-05-30T13:32:00Z' },
+                { id: 'd2', merchant: 'Swiggy', category: 'Food', type: 'Debit', amount: 450, bank: 'HDFC Credit Card', parsedAt: '2025-05-30T15:15:00Z' },
+                { id: 'd3', merchant: 'Netflix', category: 'Subscriptions', type: 'Debit', amount: 649, bank: 'Axis Bank', parsedAt: '2025-05-29T17:42:00Z' },
               ];
-              const rows = allTxs.length > 0 ? allTxs.slice(0,5) : DEMO_TXS;
+              const rows = allTxs.length > 0 ? allTxs.slice(0, 5) : DEMO_TXS;
               const isDemo = allTxs.length === 0;
               return (
-                <div style={{background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px'}}>
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16}}>
-                    <div style={{display:'flex', alignItems:'center', gap:8}}>
-                      <h3 style={{fontSize:14, fontWeight:700, color:'#f1f5f9'}}>Recent Activity</h3>
-                      {isDemo && <span style={{fontSize:10, padding:'1px 8px', borderRadius:999, background:'rgba(99,102,241,0.1)', color:'#818cf8', fontWeight:600}}>demo</span>}
+                <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, padding: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Recent Activity</h3>
+                      {isDemo && <span style={{ fontSize: 10, padding: '1px 8px', borderRadius: 999, background: 'rgba(99,102,241,0.1)', color: '#818cf8', fontWeight: 600 }}>demo</span>}
                     </div>
-                    <button onClick={()=>setTab('transactions')} style={{fontSize:11,color:'#6366f1',background:'none',border:'none',cursor:'pointer',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
+                    <button onClick={() => setTab('transactions')} style={{ fontSize: 11, color: '#6366f1', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                       View all →
                     </button>
                   </div>
-                  {rows.map((tx,i) => (
-                    <div key={tx.id} style={{display:'flex', alignItems:'center', gap:12, padding:'12px 0', borderBottom:i<rows.length-1?'1px solid rgba(255,255,255,0.05)':'none'}}>
-                      <div style={{width:32, height:32, borderRadius:8, background:merchantBg(tx.merchant), display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:'#fff', flexShrink:0, letterSpacing:'-0.5px'}}>
-                        {tx.merchant?.slice(0,2).toUpperCase()||'?'}
+                  {rows.map((tx, i) => (
+                    <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: i < rows.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: merchantBg(tx.merchant), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#fff', flexShrink: 0, letterSpacing: '-0.5px' }}>
+                        {tx.merchant?.slice(0, 2).toUpperCase() || '?'}
                       </div>
-                      <div style={{flex:1, minWidth:0}}>
-                        <p style={{fontSize:13,fontWeight:600,color:'#f1f5f9',marginBottom:0}}>{tx.merchant} {tx.category==='Transport'?'Ride':tx.category==='Food'?'Order':tx.category==='Subscriptions'?'Subscription':''}</p>
-                        <p style={{fontSize:11,color:'#475569'}}>{tx.category}</p>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', marginBottom: 0 }}>{tx.merchant} {tx.category === 'Transport' ? 'Ride' : tx.category === 'Food' ? 'Order' : tx.category === 'Subscriptions' ? 'Subscription' : ''}</p>
+                        <p style={{ fontSize: 11, color: '#475569' }}>{tx.category}</p>
                       </div>
-                      <p style={{fontSize:14,fontWeight:700,color:tx.type==='Credit'?'#10b981':'#f1f5f9',flexShrink:0}}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: tx.type === 'Credit' ? '#10b981' : '#f1f5f9', flexShrink: 0 }}>
                         ₹{tx.amount.toLocaleString()}
                       </p>
-                      <p style={{fontSize:11,color:'#475569',flexShrink:0,minWidth:140,textAlign:'right'}}>
-                        {new Date(tx.parsedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})} • {new Date(tx.parsedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}
+                      <p style={{ fontSize: 11, color: '#475569', flexShrink: 0, minWidth: 140, textAlign: 'right' }}>
+                        {new Date(tx.parsedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {new Date(tx.parsedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                       </p>
-                      <span style={{fontSize:10,padding:'2px 8px',borderRadius:6,background:'rgba(99,102,241,0.1)',color:'#818cf8',fontWeight:600,flexShrink:0,whiteSpace:'nowrap'}}>
+                      <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(99,102,241,0.1)', color: '#818cf8', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}>
                         {tx.bank}
                       </span>
                     </div>
@@ -1753,14 +1678,14 @@ export default function Finance() {
               </div>
               <p style={{ fontSize: 13, color: '#94a3b8', margin: '4px 0 0 0' }}>Simulates real-time payment notifications — impressive for live data demonstrations.</p>
             </div>
-            
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>SPEED</span>
                 <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 4, gap: 4 }}>
                   {Object.keys(SPEED_OPTIONS).map(s => (
-                    <motion.button 
-                      key={s} 
+                    <motion.button
+                      key={s}
                       onClick={() => setLiveSpeed(s)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -1776,8 +1701,8 @@ export default function Finance() {
                   ))}
                 </div>
               </div>
-              
-              <motion.button 
+
+              <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => { setLiveActive(v => !v); if (liveActive) liveCountRef.current = 0; }}
@@ -1800,7 +1725,7 @@ export default function Finance() {
           </div>
 
           {liveActive && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', borderRadius: 12, background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)' }}
             >
@@ -1823,10 +1748,10 @@ export default function Finance() {
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Incoming Live Stream</h3>
                 <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 6 }}>Real-Time Ledger</span>
               </div>
-              
+
               {liveTxs.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '60px 0', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, background: 'rgba(255,255,255,0.02)', gap: 16 }}>
-                  <motion.div 
+                  <motion.div
                     animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2.5 }}
                     style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}
                   >
@@ -1851,12 +1776,12 @@ export default function Finance() {
             {/* Right: Live Category Breakdown */}
             <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: 0, right: 0, width: 96, height: 96, borderRadius: '50%', background: 'rgba(139,92,246,0.05)', filter: 'blur(24px)', pointerEvents: 'none' }} />
-              
+
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Live Breakdown</h3>
                 <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 6 }} title="Updates automatically as transactions stream in">Reactive</span>
               </div>
-              
+
               {categoryTotals.filter(c => liveTxs.some(t => t.category === c.name)).length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '80px 0', gap: 16 }}>
                   <div style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>📊</div>
@@ -1868,8 +1793,8 @@ export default function Finance() {
                     const meta = CATEGORY_META[cat.name] || CATEGORY_META.Others;
                     const max = categoryTotals[0]?.value || 1;
                     return (
-                      <motion.div 
-                        key={cat.name} 
+                      <motion.div
+                        key={cat.name}
                         initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                         style={{ padding: '14px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}
                       >
@@ -1882,9 +1807,9 @@ export default function Finance() {
                           </span>
                         </div>
                         <div style={{ height: 6, background: 'rgba(0,0,0,0.6)', borderRadius: 3, overflow: 'hidden' }}>
-                          <motion.div 
-                            animate={{ width: `${(cat.value / max) * 100}%` }} 
-                            style={{ height: '100%', borderRadius: 3, background: meta.color }} 
+                          <motion.div
+                            animate={{ width: `${(cat.value / max) * 100}%` }}
+                            style={{ height: '100%', borderRadius: 3, background: meta.color }}
                           />
                         </div>
                       </motion.div>
@@ -1904,10 +1829,10 @@ export default function Finance() {
         const totalCount = allTxs.length;
         const totalDebited = allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
         const totalCredited = allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0);
-        const topMerchant = (() => { 
-          const m = {}; 
-          allTxs.forEach(t => { m[t.merchant] = (m[t.merchant] || 0) + t.amount; }); 
-          return Object.entries(m).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'; 
+        const topMerchant = (() => {
+          const m = {};
+          allTxs.forEach(t => { m[t.merchant] = (m[t.merchant] || 0) + t.amount; });
+          return Object.entries(m).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
         })();
 
         // Filter transactions based on category pill & search input
@@ -1921,12 +1846,12 @@ export default function Finance() {
 
         return (
           <div className="flex flex-col gap-6 relative z-10">
-            
+
             {/* Top 4 Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              
+
               {/* Card 1: Total Parsed */}
-              <motion.div 
+              <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
               >
@@ -1942,7 +1867,7 @@ export default function Finance() {
               </motion.div>
 
               {/* Card 2: Total Debited */}
-              <motion.div 
+              <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
               >
@@ -1958,7 +1883,7 @@ export default function Finance() {
               </motion.div>
 
               {/* Card 3: Total Credited */}
-              <motion.div 
+              <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
               >
@@ -1974,7 +1899,7 @@ export default function Finance() {
               </motion.div>
 
               {/* Card 4: Top Merchant */}
-              <motion.div 
+              <motion.div
                 whileHover={{ y: -3, scale: 1.02 }}
                 className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
               >
@@ -1994,7 +1919,7 @@ export default function Finance() {
             {categoryTotals.length > 0 && (
               <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
-                
+
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-2">
                     <Coins className="text-indigo-400" size={16} />
@@ -2002,7 +1927,7 @@ export default function Finance() {
                   </div>
                   <span className="text-[10px] text-slate-400 bg-white/5 border border-white/5 rounded px-2.5 py-0.5 font-semibold font-sans tracking-wide">Dynamic View</span>
                 </div>
-                
+
                 <div className="h-[140px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={categoryTotals} barSize={40} margin={{ top: 15, right: 0, left: -26, bottom: 0 }}>
@@ -2017,27 +1942,27 @@ export default function Finance() {
                           );
                         })}
                       </defs>
-                      <XAxis 
-                        dataKey="name" 
-                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }} 
-                        axisLine={false} 
-                        tickLine={false} 
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }}
+                        axisLine={false}
+                        tickLine={false}
                       />
-                      <YAxis 
-                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }} 
-                        axisLine={false} 
-                        tickLine={false} 
-                        tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}K` : `₹${v}`} 
+                      <YAxis
+                        tick={{ fill: '#475569', fontSize: 8, fontFamily: 'sans-serif' }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}K` : `₹${v}`}
                       />
-                      <Tooltip 
-                        cursor={{ fill: 'rgba(255,255,255,0.02)' }} 
+                      <Tooltip
+                        cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                         contentStyle={{ background: 'rgba(10,15,25,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 10 }}
                         formatter={v => [`₹${v.toLocaleString()}`, 'Spent Volume']}
                       />
-                      <Bar 
-                        dataKey="value" 
-                        radius={[6, 6, 0, 0]} 
-                        label={{ position: 'top', fill: '#cbd5e1', fontSize: 8, fontFamily: 'sans-serif', formatter: v => `₹${v >= 1000 ? `${(v/1000).toFixed(1)}k` : v}` }}
+                      <Bar
+                        dataKey="value"
+                        radius={[6, 6, 0, 0]}
+                        label={{ position: 'top', fill: '#cbd5e1', fontSize: 8, fontFamily: 'sans-serif', formatter: v => `₹${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}` }}
                       >
                         {categoryTotals.map((c, i) => (
                           <Cell key={i} fill={`url(#barGrad-${c.name})`} />
@@ -2059,9 +1984,9 @@ export default function Finance() {
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">Explore your historical bank notification flow.</p>
                 </div>
-                
+
                 {parsedTxs.length > 0 && (
-                  <motion.button 
+                  <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => { saveTxs([]); showToast('Cleared manual transactions', 'success'); }}
@@ -2074,7 +1999,7 @@ export default function Finance() {
 
               {/* Filtering Controls */}
               <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center pt-1.5 w-full">
-                
+
                 {/* Search Field */}
                 <div className="relative flex items-center w-full lg:w-72 shrink-0">
                   <span className="absolute left-3.5 text-slate-400 flex items-center justify-center pointer-events-none">
@@ -2088,7 +2013,7 @@ export default function Finance() {
                     className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 pl-9 pr-4 text-xs text-slate-200 outline-none transition-all leading-normal font-sans"
                   />
                   {txSearch && (
-                    <button 
+                    <button
                       onClick={() => setTxSearch('')}
                       className="absolute right-3.5 text-slate-500 hover:text-slate-300 text-xs"
                     >
@@ -2104,7 +2029,7 @@ export default function Finance() {
                       const visibleCategories = ['All', 'Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Education'];
                       const dropdownCategories = ['Groceries', 'Investments', 'Others'];
                       const isDropdownActive = dropdownCategories.includes(txFilter);
-                      
+
                       return (
                         <>
                           {visibleCategories.map(cat => {
@@ -2151,8 +2076,8 @@ export default function Finance() {
                             <AnimatePresence>
                               {isTxDropdownOpen && (
                                 <>
-                                  <div 
-                                    className="fixed inset-0 z-40" 
+                                  <div
+                                    className="fixed inset-0 z-40"
                                     onClick={() => setIsTxDropdownOpen(false)}
                                   />
                                   <motion.div
@@ -2172,19 +2097,18 @@ export default function Finance() {
                                             setTxFilter(cat);
                                             setIsTxDropdownOpen(false);
                                           }}
-                                          className={`w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-between font-sans ${
-                                            isCatActive 
-                                              ? 'bg-white/[0.08] text-white' 
+                                          className={`w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-between font-sans ${isCatActive
+                                              ? 'bg-white/[0.08] text-white'
                                               : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                                          }`}
+                                            }`}
                                         >
                                           <div className="flex items-center gap-1.5">
                                             <span className="text-xs">{meta.icon}</span>
                                             <span>{cat}</span>
                                           </div>
                                           {isCatActive && (
-                                            <span 
-                                              className="w-1.5 h-1.5 rounded-full" 
+                                            <span
+                                              className="w-1.5 h-1.5 rounded-full"
                                               style={{ backgroundColor: meta.color }}
                                             />
                                           )}
@@ -2217,10 +2141,10 @@ export default function Finance() {
               ) : (
                 <div className="flex flex-col gap-3 max-h-[460px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
                   {filteredTxs.map(tx => (
-                    <TxCard 
-                      key={tx.id} 
-                      tx={tx} 
-                      onDelete={tx.source === 'manual' ? handleDeleteTx : null} 
+                    <TxCard
+                      key={tx.id}
+                      tx={tx}
+                      onDelete={tx.source === 'manual' ? handleDeleteTx : null}
                     />
                   ))}
                 </div>
@@ -2234,7 +2158,7 @@ export default function Finance() {
       {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
       {tab === 'log' && (
         <div className="flex flex-col gap-6 relative z-10 w-full">
-          
+
           {/* Form Section Header */}
           <div>
             <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider font-sans flex items-center gap-2">
@@ -2247,10 +2171,10 @@ export default function Finance() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            
+
             {/* Left Column: Form & OCR */}
             <div className="flex flex-col gap-6">
-              
+
               {/* Form Card */}
               <div className="rounded-2xl border border-white/5 bg-[#0b0c10] p-6 flex flex-col gap-5">
                 <div className="flex items-center gap-2 border-b border-white/5 pb-4">
@@ -2259,7 +2183,7 @@ export default function Finance() {
                   </div>
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-200 font-sans">MANUAL ENTRY CONSOLE</span>
                 </div>
-                
+
                 <form onSubmit={handleLog} className="flex flex-col gap-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Monthly Income */}
@@ -2352,22 +2276,21 @@ export default function Finance() {
                   />
                   <label
                     htmlFor="ocr-upload-input"
-                    className={`flex flex-col items-center justify-center py-10 border border-dashed rounded-xl cursor-pointer transition-all ${
-                      ocrLoading 
-                        ? 'border-emerald-500/40 bg-emerald-500/5 cursor-wait' 
+                    className={`flex flex-col items-center justify-center py-10 border border-dashed rounded-xl cursor-pointer transition-all ${ocrLoading
+                        ? 'border-emerald-500/40 bg-emerald-500/5 cursor-wait'
                         : 'border-white/10 bg-[#050608] hover:bg-slate-900/40'
-                    }`}
+                      }`}
                   >
                     {ocrLoading ? (
                       <div className="flex flex-col items-center gap-4 w-full px-8">
                         <div className="text-emerald-500 animate-pulse">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
                         </div>
                         <div className="w-full text-center">
                           <p className="text-xs font-bold text-slate-200">Analyzing...</p>
                           <div className="w-full bg-slate-900 rounded-full h-1 mt-3 overflow-hidden">
-                            <motion.div 
-                              className="bg-emerald-500 h-full rounded-full" 
+                            <motion.div
+                              className="bg-emerald-500 h-full rounded-full"
                               animate={{ width: `${ocrProgress}%` }}
                             />
                           </div>
@@ -2377,7 +2300,7 @@ export default function Finance() {
                     ) : (
                       <>
                         <div className="text-emerald-500 mb-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m16 16-4-4-4 4" /></svg>
                         </div>
                         <span className="text-[13px] font-semibold text-slate-200">Drop receipt or click to upload</span>
                         <span className="text-xs text-slate-500 mt-1.5">Supports PNG, JPG, WebP</span>
@@ -2419,9 +2342,9 @@ export default function Finance() {
                     {financeRecords.slice(0, 15).map((rec, idx) => {
                       const isIncome = rec.category === 'Income';
                       const meta = CATEGORY_META[rec.category] || CATEGORY_META.Others;
-                      
+
                       return (
-                        <motion.div 
+                        <motion.div
                           key={rec.id || idx}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -2506,7 +2429,7 @@ export default function Finance() {
                         {rec.risk}
                       </span>
                     </div>
-                    
+
                     {/* Description text */}
                     <p style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5, marginBottom: 14 }}>
                       {rec.text}
@@ -2646,7 +2569,7 @@ export default function Finance() {
 
             {/* Heading */}
             <h3 style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', margin: '0 0 12px 0' }}>No Financial Data Yet</h3>
-            
+
             {/* Subtitle */}
             <p style={{ fontSize: 14, color: '#8e929b', lineHeight: 1.6, marginBottom: 24, maxWidth: 500, marginInline: 'auto' }}>
               Log your income and expenses first.<br />
@@ -2670,8 +2593,8 @@ export default function Finance() {
               gap: 8,
               transition: 'background 0.2s, color 0.2s',
             }}
-            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(90, 59, 238, 0.1)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(90, 59, 238, 0.1)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
               <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <rect width="14" height="18" x="5" y="3" rx="2" />
