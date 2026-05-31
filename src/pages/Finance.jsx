@@ -1653,7 +1653,7 @@ export default function Finance() {
               </div>
               
               {/* Chart container */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 24, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 32, flex: 1 }}>
                 {/* Donut Chart */}
                 <div style={{position:'relative', flexShrink:0, width:130, height:130}}>
                   <ResponsiveContainer width={130} height={130}>
@@ -1666,12 +1666,14 @@ export default function Finance() {
                   </ResponsiveContainer>
                 </div>
                 
-                {/* Legends */}
-                <div style={{flex:1, display:'flex', flexDirection:'column', gap:10}}>
+                {/* Legends stacked compactly next to chart to match mockup */}
+                <div style={{width: '180px', display:'flex', flexDirection:'column', gap:10, shrink: 0}}>
                   {groupedData.map(e => (
-                    <div key={e.name} style={{display:'flex', alignItems:'center', gap:10}}>
-                      <span style={{width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0}}/>
-                      <span style={{fontSize:12, color:'#94a3b8', fontWeight:500, flex:1}}>{e.name}</span>
+                    <div key={e.name} style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, width:'100%'}}>
+                      <div style={{display:'flex', alignItems:'center', gap:8}}>
+                        <span style={{width:10, height:10, borderRadius:'50%', background:e.color, flexShrink:0}}/>
+                        <span style={{fontSize:12, color:'#94a3b8', fontWeight:500}}>{e.name}</span>
+                      </div>
                       <span style={{fontSize:12, fontWeight:700, color: '#f1f5f9'}}>{e.percentage}%</span>
                     </div>
                   ))}
