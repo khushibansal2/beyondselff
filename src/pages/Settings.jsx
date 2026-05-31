@@ -192,7 +192,7 @@ export default function Settings() {
       maxWidth: 860,
       margin: '0 auto',
       paddingBottom: 60,
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'var(--font-primary)',
       position: 'relative'
     }}>
       

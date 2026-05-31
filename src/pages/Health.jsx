@@ -9,7 +9,7 @@ import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionSer
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Moon, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw, Calendar, Check, Brain, Activity } from 'lucide-react';
+import { Moon, Sun, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw, Calendar, Check, Brain, Activity, User, Heart, Scale, MoreHorizontal, Leaf, Crown, Target, Mic, Apple } from 'lucide-react';
 
 function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
   return (
@@ -400,24 +400,29 @@ function ScanVisionPanel({ onApplyCalories }) {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
 
-// ── Nutrition Panel ─────────────────────────────────────────────────────────────
 function NutritionPanel({ healthData, updateDomain }) {
-  const profile = healthData?.nutritionProfile;
-  const plan = healthData?.dailyMealPlan;
-  
-  const [editing, setEditing] = useState(!profile);
+  const profile = healthData?.nutritionProfile || { dietaryPreference: 'Veg', cuisine: 'North Indian', targetCalories: 2000 };
+  const plan = healthData?.dailyMealPlan || {
+    totalCalories: 1900,
+    macros: { protein: 57, carbs: 210, fat: 55 },
+    meals: [
+      { type: 'Breakfast', name: 'Masala Oats with Poha', calories: 430, time: '8:00 AM', macros: { protein: 12, carbs: 60, fat: 8 }, completed: true, icon: '☀️' },
+      { type: 'Lunch', name: 'Kadhi Pakora with Rice', calories: 690, time: '1:00 PM', macros: { protein: 20, carbs: 80, fat: 20 }, completed: true, icon: '🌿' },
+      { type: 'Snack', name: 'Roasted Makhana and Sprouts Chaat', calories: 210, time: '4:30 PM', macros: { protein: 5, carbs: 30, fat: 2 }, completed: true, icon: '🍎' },
+      { type: 'Dinner', name: 'Palak Paneer with Roti', calories: 570, time: '8:00 PM', macros: { protein: 20, carbs: 40, fat: 25 }, completed: false, icon: '🌙' }
+    ]
+  };
+
   const [loading, setLoading] = useState(false);
   const [loadingMeal, setLoadingMeal] = useState(null);
-  const [form, setForm] = useState(profile || {
-    dietaryPreference: 'Veg',
-    allergies: '',
-    cuisine: 'North Indian',
-    targetCalories: healthData.calories || (healthData.weight ? Math.round(healthData.weight * 24 * 1.2) : 2000)
+  const [form, setForm] = useState({
+    dietaryPreference: profile.dietaryPreference || 'Veg',
+    cuisine: profile.cuisine || 'North Indian',
+    targetCalories: profile.targetCalories || 2000
   });
 
   const handleSave = async (e) => {
@@ -431,23 +436,9 @@ function NutritionPanel({ healthData, updateDomain }) {
         nutritionProfile: updatedProfile, 
         dailyMealPlan: newPlan 
       });
-      setEditing(false);
       showToast('Nutrition profile & meal plan generated!', 'success');
     } catch (err) {
       showToast('Failed to generate plan. Try again.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegenerate = async () => {
-    setLoading(true);
-    try {
-      const newPlan = await generateMealPlan(profile);
-      updateDomain('health', { ...healthData, dailyMealPlan: newPlan });
-      showToast('New meal plan generated!', 'success');
-    } catch (err) {
-      showToast('Failed to regenerate plan. Try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -457,9 +448,7 @@ function NutritionPanel({ healthData, updateDomain }) {
     setLoadingMeal(mealType);
     try {
       const newMeal = await regenerateSingleMeal(profile, mealType, currentMealName);
-      
-      const updatedMeals = plan.meals.map(m => m.type === mealType ? newMeal : m);
-      
+      const updatedMeals = plan.meals.map(m => m.type === mealType ? { ...newMeal, completed: m.completed, time: m.time } : m);
       const newTotalCalories = updatedMeals.reduce((acc, m) => acc + m.calories, 0);
       const newMacros = {
         protein: updatedMeals.reduce((acc, m) => acc + m.macros.protein, 0),
@@ -483,210 +472,514 @@ function NutritionPanel({ healthData, updateDomain }) {
     }
   };
 
-  if (editing) {
-    return (
-      <GlassCard>
-        <div className="mb-6">
-          <h3 className="dash-section-title mb-1 text-[18px]">Nutrition Onboarding</h3>
-          <p className="text-[13px] text-[#71717a]">Set your preferences to get AI-generated Indian meal plans tailored to your goals.</p>
-        </div>
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Dietary Preference</label>
-              <select value={form.dietaryPreference} onChange={e => setForm({...form, dietaryPreference: e.target.value})} className="input-premium w-full text-[13px]">
-                <option value="Veg">Vegetarian</option>
-                <option value="Non-Veg">Non-Vegetarian</option>
-                <option value="Vegan">Vegan</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Regional Cuisine</label>
-              <select value={form.cuisine} onChange={e => setForm({...form, cuisine: e.target.value})} className="input-premium w-full text-[13px]">
-                <option value="North Indian">North Indian</option>
-                <option value="South Indian">South Indian</option>
-                <option value="Bengali">Bengali</option>
-                <option value="Maharashtrian">Maharashtrian</option>
-                <option value="Pan-Indian">Pan-Indian (Mixed)</option>
-                <option value="Other">Other / No Preference</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Food Allergies / Intolerances (Optional)</label>
-              <input type="text" value={form.allergies} onChange={e => setForm({...form, allergies: e.target.value})} placeholder="e.g. peanuts, dairy" className="input-premium w-full" />
-            </div>
-            <div>
-              <label className="text-[12px] text-[#a1a1aa] font-medium mb-2 block">Daily Caloric Target (kcal)</label>
-              <input type="number" value={form.targetCalories} onChange={e => setForm({...form, targetCalories: e.target.value})} className="input-premium w-full" min="1000" max="5000" required />
-            </div>
-          </div>
-          <div className="flex justify-end pt-4 border-t border-white/[0.04]">
-            {profile && <button type="button" onClick={() => setEditing(false)} className="px-5 py-2.5 rounded-xl border border-white/[0.08] text-[13px] font-medium text-[#a1a1aa] hover:text-[#f0f0f3] hover:border-white/[0.14] transition-all mr-3">Cancel</button>}
-            <button type="submit" disabled={loading} className="btn-primary">
-              {loading ? 'Generating Plan...' : 'Save & Generate Plan'}
-            </button>
-          </div>
-        </form>
-      </GlassCard>
-    );
-  }
+  const handleToggleMeal = (mealType) => {
+    const updatedMeals = plan.meals.map(m => m.type === mealType ? { ...m, completed: !m.completed } : m);
+    updateDomain('health', {
+      ...healthData,
+      dailyMealPlan: {
+        ...plan,
+        meals: updatedMeals
+      }
+    });
+  };
+
+  // Compute values for right-hand stats cards dynamically or use sensible mockup fallbacks
+  const targetCalories = form.targetCalories || 2000;
+  const currentCalories = healthData?.calories || 1840;
+  const calPercent = Math.min(100, Math.round((currentCalories / targetCalories) * 100));
+
+  const proteinTarget = 120;
+  const currentProtein = healthData?.protein || 92;
+  const proteinPercent = Math.min(100, Math.round((currentProtein / proteinTarget) * 100));
+
+  const waterTarget = 8;
+  const currentWater = healthData?.waterIntake || 6;
+  const waterPercent = Math.min(100, Math.round((currentWater / waterTarget) * 100));
+
+  const macroProtein = plan?.macros?.protein || 57;
+  const macroCarbs = plan?.macros?.carbs || 210;
+  const macroFat = plan?.macros?.fat || 55;
+  const macroTotalCal = plan?.totalCalories || 1990;
+
+  const score = healthData?.score || 78;
 
   return (
-    <div className="flex flex-col gap-6 relative z-10">
+    <div style={{ fontFamily: 'var(--font-primary)' }} className="grid grid-cols-1 lg:grid-cols-[1.8fr_1fr] gap-6 items-stretch w-full px-1">
       
-      {/* Top 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Left Column: Preferences and Meals */}
+      <div className="flex flex-col gap-6 h-full">
         
-        {/* Card 1: Total Calories */}
-        <motion.div 
-          whileHover={{ y: -3, scale: 1.02 }}
-          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
+        {/* Card 1: Preferences */}
+        <div
+          className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4 shadow-lg w-full"
+          style={{ padding: '24px' }}
         >
-          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-orange-500/5 blur-xl pointer-events-none" />
-          <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 shrink-0 shadow-[0_0_10px_rgba(244,63,94,0.1)]">
-            <Flame size={18} />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+              <UtensilsCrossed size={18} />
+            </div>
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100 m-0">Your Meal Plan Preferences</h3>
+              <p className="text-[11px] text-slate-400 m-0 mt-0.5">Tell us your preferences. We'll create a personalized plan for you.</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Total Calories</p>
-            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.totalCalories || 0}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Target: {profile.targetCalories} kcal</p>
-          </div>
-        </motion.div>
 
-        {/* Card 2: Protein */}
-        <motion.div 
-          whileHover={{ y: -3, scale: 1.02 }}
-          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
-        >
-          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
-            <Activity size={18} />
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Protein</p>
-            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.macros?.protein || 0}g</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Total ingested</p>
-          </div>
-        </motion.div>
+          <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end mt-2">
+            {/* Diet */}
+            <div className="flex flex-col gap-2">
+              <label style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Diet</label>
+              <div className="relative flex items-center w-full">
+                <span className="absolute left-4 text-emerald-400 pointer-events-none">
+                  <Leaf size={14} />
+                </span>
+                <select
+                  value={form.dietaryPreference}
+                  onChange={e => setForm({...form, dietaryPreference: e.target.value})}
+                  style={{ height: '44px', padding: '12px 16px', paddingLeft: '38px', paddingRight: '32px', backgroundColor: '#050608', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', fontFamily: 'var(--font-primary)' }}
+                  className="w-full text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer focus:border-[#8b5cf6]/50"
+                >
+                  <option value="Veg" style={{ backgroundColor: '#050608' }}>Vegetarian</option>
+                  <option value="Non-Veg" style={{ backgroundColor: '#050608' }}>Non-Vegetarian</option>
+                  <option value="Vegan" style={{ backgroundColor: '#050608' }}>Vegan</option>
+                </select>
+                <span className="absolute right-4 text-slate-400 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </div>
+            </div>
 
-        {/* Card 3: Carbs */}
-        <motion.div 
-          whileHover={{ y: -3, scale: 1.02 }}
-          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
-        >
-          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-amber-500/5 blur-xl pointer-events-none" />
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.1)]">
-            <Activity size={18} />
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Carbs</p>
-            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.macros?.carbs || 0}g</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Total ingested</p>
-          </div>
-        </motion.div>
+            {/* Cuisine */}
+            <div className="flex flex-col gap-2">
+              <label style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cuisine</label>
+              <div className="relative flex items-center w-full">
+                <span className="absolute left-4 text-amber-400 pointer-events-none">
+                  <Crown size={14} />
+                </span>
+                <select
+                  value={form.cuisine}
+                  onChange={e => setForm({...form, cuisine: e.target.value})}
+                  style={{ height: '44px', padding: '12px 16px', paddingLeft: '38px', paddingRight: '32px', backgroundColor: '#050608', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', fontFamily: 'var(--font-primary)' }}
+                  className="w-full text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer focus:border-[#8b5cf6]/50"
+                >
+                  <option value="North Indian" style={{ backgroundColor: '#050608' }}>North Indian</option>
+                  <option value="South Indian" style={{ backgroundColor: '#050608' }}>South Indian</option>
+                  <option value="Bengali" style={{ backgroundColor: '#050608' }}>Bengali</option>
+                  <option value="Maharashtrian" style={{ backgroundColor: '#050608' }}>Maharashtrian</option>
+                  <option value="Pan-Indian" style={{ backgroundColor: '#050608' }}>Pan-Indian (Mixed)</option>
+                  <option value="Other" style={{ backgroundColor: '#050608' }}>Other</option>
+                </select>
+                <span className="absolute right-4 text-slate-400 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </div>
+            </div>
 
-        {/* Card 4: Fats */}
-        <motion.div 
-          whileHover={{ y: -3, scale: 1.02 }}
-          className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4.5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden group"
-        >
-          <div className="absolute top-0 right-0 w-16 h-16 rounded-full bg-rose-500/5 blur-xl pointer-events-none" />
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0 shadow-[0_0_10px_rgba(244,63,94,0.1)]">
-            <Activity size={18} />
-          </div>
-          <div>
-            <p className="text-[9px] text-slate-500 font-extrabold font-mono uppercase tracking-widest">Fats</p>
-            <p className="text-xl font-black text-slate-100 mt-0.5 font-mono">{plan?.macros?.fat || 0}g</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Total ingested</p>
-          </div>
-        </motion.div>
-      </div>
+            {/* Daily Calorie Target */}
+            <div className="flex flex-col gap-2">
+              <label style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Daily Calorie Target (kcal)</label>
+              <div className="relative flex items-center w-full">
+                <span className="absolute left-4 text-slate-400 pointer-events-none">
+                  <Target size={14} />
+                </span>
+                <select
+                  value={form.targetCalories}
+                  onChange={e => setForm({...form, targetCalories: Number(e.target.value)})}
+                  style={{ height: '44px', padding: '12px 16px', paddingLeft: '38px', paddingRight: '32px', backgroundColor: '#050608', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', fontFamily: 'var(--font-primary)' }}
+                  className="w-full text-xs text-slate-200 outline-none transition-all appearance-none cursor-pointer focus:border-[#8b5cf6]/50"
+                >
+                  <option value="1500" style={{ backgroundColor: '#050608' }}>1500</option>
+                  <option value="2000" style={{ backgroundColor: '#050608' }}>2000</option>
+                  <option value="2500" style={{ backgroundColor: '#050608' }}>2500</option>
+                  <option value="3000" style={{ backgroundColor: '#050608' }}>3000</option>
+                </select>
+                <span className="absolute right-4 text-slate-400 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </div>
+            </div>
 
-      {/* Action Bar (replaces Search bar in Transactions) */}
-      <div className="mt-4 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-             <UtensilsCrossed size={16} className="text-slate-400" />
-             <h3 className="text-sm font-extrabold text-slate-100">Meal Plan Logs <span className="text-[10px] text-slate-500 font-bold ml-2">ⓘ</span></h3>
-          </div>
-          <p className="text-[11px] text-slate-400">Review your daily nutritional intake and adjust preferences.</p>
+            {/* Generate Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ height: '44px', backgroundColor: '#3b82f6', borderRadius: '12px', fontFamily: 'var(--font-display)' }}
+              className="w-full text-white font-bold text-xs tracking-wide cursor-pointer transition-all flex items-center justify-center gap-2 active:scale-[0.98] hover:bg-[#2563eb] disabled:opacity-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              {loading ? 'Generating...' : 'Generate Plan'}
+            </button>
+          </form>
         </div>
-        <div className="flex gap-2 bg-slate-900/50 p-1.5 rounded-xl border border-white/[0.05]">
-           <button onClick={() => setEditing(true)} className="px-4 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 transition-colors">
-             Edit Preferences
-           </button>
-           <button onClick={handleRegenerate} disabled={loading} className="px-4 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors">
-             {loading ? 'Generating...' : 'Regenerate Plan'}
-           </button>
-        </div>
-      </div>
 
-      {/* Main Container */}
-      <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.25)] relative overflow-hidden min-h-[300px]">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 h-full relative z-10">
-             <div className="w-12 h-12 rounded-full border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(99,102,241,0.15)] mb-4">
-               <RefreshCw className="animate-spin text-indigo-400" size={20} />
-             </div>
-             <p className="text-sm font-bold text-slate-300 mb-1">Crafting your meal plan...</p>
-             <p className="text-[11px] text-slate-500">Analyzing nutritional balance and preferences</p>
+        {/* Card 2: Today's Meals Timeline */}
+        <div
+          className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-5 shadow-lg w-full"
+          style={{ padding: '24px' }}
+        >
+          <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+                <UtensilsCrossed size={18} />
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100 m-0">Today's Meals</h3>
+            </div>
+            <span style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-emerald-400">
+              {plan?.meals?.filter(m => m.completed).length || 3} / {plan?.meals?.length || 4} meals logged
+            </span>
           </div>
-        ) : (
-          <div className="flex flex-col gap-3 relative z-10 max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent pr-1">
-             {plan?.meals?.map((meal, idx) => (
-               <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-                 className="rounded-xl border border-white/[0.05] bg-white/[0.01] hover:bg-white/[0.03] transition-all p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
-               >
-                  <div className="flex items-start sm:items-center gap-4 flex-1">
-                     <div className="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-                       <UtensilsCrossed size={16} />
-                     </div>
-                     <div>
-                       <div className="flex items-center gap-2 mb-1">
-                         <span className="text-[9px] uppercase tracking-widest font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md">{meal.type}</span>
-                         <h4 className="text-[13px] font-bold text-slate-200">{meal.name}</h4>
-                       </div>
-                       <p className="text-[11px] text-slate-500 line-clamp-1 max-w-md">
-                         {loadingMeal === meal.type ? <span className="text-indigo-400 animate-pulse">Finding alternative...</span> : meal.description}
-                       </p>
-                     </div>
+
+          {/* Meals Timeline */}
+          <div
+            style={{
+              position: 'relative',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.05)',
+              paddingLeft: '32px',
+              marginLeft: '24px',
+              marginTop: '16px'
+            }}
+            className="space-y-6 py-2"
+          >
+            {plan?.meals?.map((meal, idx) => {
+              const mealIcons = {
+                Breakfast: <Sun size={15} className="text-orange-400" />,
+                Lunch: <Leaf size={15} className="text-emerald-400" />,
+                Snack: <Apple size={15} className="text-blue-400" />,
+                Dinner: <Moon size={15} className="text-purple-400" />
+              };
+              const mealColors = {
+                Breakfast: 'rgba(249, 115, 22, 0.1)',
+                Lunch: 'rgba(34, 197, 94, 0.1)',
+                Snack: 'rgba(59, 130, 246, 0.1)',
+                Dinner: 'rgba(139, 92, 246, 0.1)'
+              };
+
+              const icon = mealIcons[meal.type] || <UtensilsCrossed size={15} className="text-indigo-400" />;
+              const bg = mealColors[meal.type] || 'rgba(99, 102, 241, 0.1)';
+
+              return (
+                <div key={idx} className="relative w-full flex items-center justify-between group">
+                  {/* Timeline Dot Indicator */}
+                  <button 
+                    type="button"
+                    onClick={() => handleToggleMeal(meal.type)}
+                    className="absolute w-5 h-5 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-95 border-2 outline-none"
+                    style={{
+                      position: 'absolute',
+                      left: '-42px',
+                      top: '10px',
+                      borderColor: meal.completed ? '#10b981' : '#334155',
+                      backgroundColor: meal.completed ? 'rgba(16, 185, 129, 0.15)' : 'transparent'
+                    }}
+                  >
+                    {meal.completed && <Check size={12} className="text-emerald-400 stroke-[3.5px]" />}
+                  </button>
+
+                  <div className="flex items-center gap-4 flex-1 min-w-0 pr-4">
+                    {/* Circle Icon Container */}
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: bg }} className="flex items-center justify-center shrink-0">
+                      {icon}
+                    </div>
+                    {/* Meal details text */}
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-slate-100">{meal.type}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRegenerateSingleMeal(meal.type, meal.name)}
+                          disabled={loadingMeal === meal.type}
+                          className="w-5 h-5 rounded hover:bg-white/5 flex items-center justify-center text-slate-500 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none bg-transparent"
+                        >
+                          <RefreshCw size={10} className={loadingMeal === meal.type ? 'animate-spin text-indigo-400' : ''} />
+                        </button>
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-primary)' }} className="text-xs font-semibold text-slate-300 mt-0.5 truncate max-w-sm sm:max-w-md">
+                        {loadingMeal === meal.type ? <span className="text-indigo-400 animate-pulse">Swapping meal...</span> : meal.name}
+                      </span>
+                      <span className="text-[10px] text-slate-500 mt-1 font-medium tracking-normal">
+                        P: {meal.macros.protein}g · C: {meal.macros.carbs}g · F: {meal.macros.fat}g
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-4 sm:gap-6 self-start sm:self-center shrink-0 border-t sm:border-t-0 border-white/5 pt-3 sm:pt-0 w-full sm:w-auto mt-2 sm:mt-0">
-                     <div className="flex gap-4">
-                       <div className="flex flex-col">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Protein</span>
-                          <span className="text-[11px] font-mono text-emerald-400">{meal.macros.protein}g</span>
-                       </div>
-                       <div className="flex flex-col">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Carbs</span>
-                          <span className="text-[11px] font-mono text-amber-400">{meal.macros.carbs}g</span>
-                       </div>
-                       <div className="flex flex-col">
-                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Fats</span>
-                          <span className="text-[11px] font-mono text-rose-400">{meal.macros.fat}g</span>
-                       </div>
-                     </div>
-                     
-                     <div className="flex flex-col items-end border-l border-white/5 pl-4 ml-2">
-                       <span className="text-[13px] font-black font-mono text-slate-200">{meal.calories}</span>
-                       <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Kcal</span>
-                     </div>
-
-                     <button 
-                       onClick={() => handleRegenerateSingleMeal(meal.type, meal.name)}
-                       disabled={loadingMeal === meal.type}
-                       className="ml-2 w-7 h-7 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500/20 transition-all disabled:opacity-50 opacity-0 group-hover:opacity-100"
-                       title="Swap meal"
-                     >
-                       <RefreshCw size={12} className={loadingMeal === meal.type ? 'animate-spin text-indigo-400' : ''} />
-                     </button>
+                  {/* Meal metrics */}
+                  <div className="flex flex-col items-end shrink-0 text-right">
+                    <span style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-black text-slate-200">{meal.calories} kcal</span>
+                    <span className="text-[10px] text-slate-500 mt-1 font-medium">{meal.time}</span>
                   </div>
-               </motion.div>
-             ))}
+                </div>
+              );
+            })}
           </div>
-        )}
+
+          {/* Add Custom Meal */}
+          <div style={{ marginTop: '8px' }}>
+            <button
+              type="button"
+              style={{
+                height: '38px',
+                padding: '0 16px',
+                borderRadius: '10px',
+                backgroundColor: '#0c0e16',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontWeight: '700',
+                fontSize: '12px',
+                fontFamily: 'var(--font-display)',
+                color: '#8b5cf6',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                outline: 'none'
+              }}
+              className="hover:text-[#7c3aed] active:scale-[0.98]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+              Add Custom Meal
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Right Column: Nutrition Stats Overhaul */}
+      <div className="flex flex-col gap-4 h-full justify-between">
+        
+        {/* Card 1: Nutrition Score */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.6) 0%, rgba(13, 16, 30, 0.7) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '16px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16
+        }}>
+          <div style={{
+            width: '44px', height: '44px', borderRadius: '50%',
+            background: 'rgba(139, 92, 246, 0.15)', border: '1px solid rgba(139, 92, 246, 0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#a78bfa', flexShrink: 0
+          }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div className="flex flex-col">
+            <label style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] font-semibold text-slate-400 leading-none">
+              Nutrition Score
+            </label>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-xl font-extrabold text-white">{score}</span>
+              <span className="text-[10px] text-slate-500 font-medium">/100</span>
+            </div>
+            <span className="text-[10px] text-emerald-400 font-bold mt-1">
+              Good Nutrition · ↑ 6 pts vs last 7 days
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2: Calories Progress */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.6) 0%, rgba(13, 16, 30, 0.7) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12
+        }}>
+          <div className="flex items-center gap-4 w-full">
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: 'rgba(234, 88, 12, 0.12)', border: '1px solid rgba(234, 88, 12, 0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fb923c', flexShrink: 0
+            }}>
+              <Flame size={16} />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <label style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] font-semibold text-slate-400 leading-none">
+                Calories
+              </label>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span style={{ fontFamily: 'var(--font-display)' }} className="text-lg font-extrabold text-white">{currentCalories.toLocaleString()}</span>
+                <span className="text-[10px] text-slate-500 font-medium">/{targetCalories.toLocaleString()}</span>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-1 font-semibold leading-none">{calPercent}% of target</span>
+            </div>
+          </div>
+          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-1">
+            <div style={{ width: `${calPercent}%`, backgroundColor: '#fb923c' }} className="h-full rounded-full transition-all duration-300" />
+          </div>
+        </div>
+
+        {/* Card 3: Protein Progress */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.6) 0%, rgba(13, 16, 30, 0.7) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12
+        }}>
+          <div className="flex items-center gap-4 w-full">
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#4ade80', flexShrink: 0
+            }}>
+              <Leaf size={16} />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <label style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] font-semibold text-slate-400 leading-none">
+                Protein
+              </label>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span style={{ fontFamily: 'var(--font-display)' }} className="text-lg font-extrabold text-white">{currentProtein} g</span>
+                <span className="text-[10px] text-slate-500 font-medium">/{proteinTarget}g</span>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-1 font-semibold leading-none">{proteinPercent}% of target</span>
+            </div>
+          </div>
+          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-1">
+            <div style={{ width: `${proteinPercent}%`, backgroundColor: '#4ade80' }} className="h-full rounded-full transition-all duration-300" />
+          </div>
+        </div>
+
+        {/* Card 4: Water Progress */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.6) 0%, rgba(13, 16, 30, 0.7) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12
+        }}>
+          <div className="flex items-center gap-4 w-full">
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#38bdf8', flexShrink: 0
+            }}>
+              <Droplets size={16} />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <label style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] font-semibold text-slate-400 leading-none">
+                Water
+              </label>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span style={{ fontFamily: 'var(--font-display)' }} className="text-lg font-extrabold text-white">{currentWater}</span>
+                <span className="text-[10px] text-slate-500 font-medium">/{waterTarget} glasses</span>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-1 font-semibold leading-none">{waterPercent}% of target</span>
+            </div>
+          </div>
+          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-1">
+            <div style={{ width: `${waterPercent}%`, backgroundColor: '#38bdf8' }} className="h-full rounded-full transition-all duration-300" />
+          </div>
+        </div>
+
+        {/* Card 5: Macro Breakdown */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.6) 0%, rgba(13, 16, 30, 0.7) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '16px', padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 16
+        }}>
+          <div className="flex justify-between items-start w-full">
+            <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100">Macro Breakdown</span>
+            <div className="text-right">
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-none">Total Plan Calories</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: '20px' }} className="font-extrabold text-white mt-1.5 leading-none">
+                {macroTotalCal} <span className="text-xs font-semibold text-slate-400">kcal</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Three Badge boxes */}
+          <div className="grid grid-cols-3 gap-3 w-full">
+            {/* Protein box */}
+            <div style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.04)',
+              borderRadius: '12px',
+              padding: '8px 10px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#10b981]">{macroProtein}g</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Protein</span>
+            </div>
+
+            {/* Carbs box */}
+            <div style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.04)',
+              borderRadius: '12px',
+              padding: '8px 10px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#f97316]">{macroCarbs}g</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Carbs</span>
+            </div>
+
+            {/* Fats box */}
+            <div style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.04)',
+              borderRadius: '12px',
+              padding: '8px 10px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#ef4444]">{macroFat}g</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Fats</span>
+            </div>
+          </div>
+
+          {/* Progress rows */}
+          <div className="flex flex-col gap-4">
+            {/* Protein */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-200 leading-none">
+                <span>Protein</span>
+                <span className="text-slate-400 font-medium">{macroProtein}g / 120g</span>
+              </div>
+              <div style={{ height: '6px' }} className="w-full bg-white/5 rounded-full overflow-hidden">
+                <div style={{ width: `${Math.min(100, Math.round((macroProtein / 120) * 100))}%`, backgroundColor: '#10b981' }} className="h-full rounded-full transition-all duration-500" />
+              </div>
+            </div>
+
+            {/* Carbohydrates */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-200 leading-none">
+                <span>Carbohydrates</span>
+                <span className="text-slate-400 font-medium">{macroCarbs}g / 300g</span>
+              </div>
+              <div style={{ height: '6px' }} className="w-full bg-white/5 rounded-full overflow-hidden">
+                <div style={{ width: `${Math.min(100, Math.round((macroCarbs / 300) * 100))}%`, backgroundColor: '#f97316' }} className="h-full rounded-full transition-all duration-500" />
+              </div>
+            </div>
+
+            {/* Fats */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-200 leading-none">
+                <span>Fats</span>
+                <span className="text-slate-400 font-medium">{macroFat}g / 70g</span>
+              </div>
+              <div style={{ height: '6px' }} className="w-full bg-white/5 rounded-full overflow-hidden">
+                <div style={{ width: `${Math.min(100, Math.round((macroFat / 70) * 100))}%`, backgroundColor: '#ef4444' }} className="h-full rounded-full transition-all duration-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── Monospace Status Footer ── */}
+      <div className="col-span-1 lg:col-span-2 flex items-center justify-between mt-6 pt-4 border-t border-white/5 text-[9px] text-slate-500 font-mono tracking-widest uppercase">
+        <div className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
+          Tip: Log your meals regularly to get more accurate insights and personalized recommendations.
+        </div>
+        <div className="flex items-center gap-2">
+          Advice last updated: Today, 9:41 AM
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        </div>
+      </div>
+
     </div>
   );
 }
@@ -698,28 +991,62 @@ function HealthRecommendations({ recommendations, h, score }) {
     try { return JSON.parse(localStorage.getItem('health_rec_history') || '[]'); } catch { return []; }
   });
 
-  const sorted = [...recommendations].sort((a, b) => a.priority - b.priority);
+  const sorted = [...recommendations].sort((a, b) => {
+    const order = { 'health-sleep': 1, 'health-mood': 2, 'health-stress': 2.5, 'health-workout': 3 };
+    const aOrder = order[a.id] || 99;
+    const bOrder = order[b.id] || 99;
+    return aOrder - bOrder;
+  });
   const top3   = sorted.slice(0, 3);
   const best   = top3[0];
 
-  const priorityMeta = (risk) => {
-    if (risk === 'critical' || risk === 'high')   return { label: 'High Priority',   labelColor: '#f87171', bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.2)',   btnBg: 'rgba(239,68,68,0.15)',   btnText: '#f87171', btnLabel: 'Fix Now'     };
-    if (risk === 'medium')                         return { label: 'Medium Priority', labelColor: '#fb923c', bg: 'rgba(251,146,60,0.08)',  border: 'rgba(251,146,60,0.2)',  btnBg: 'rgba(251,146,60,0.15)',  btnText: '#fb923c', btnLabel: 'Start Plan'  };
-    return                                                { label: 'Low Priority',    labelColor: '#4ade80', bg: 'rgba(74,222,128,0.06)',  border: 'rgba(74,222,128,0.2)',  btnBg: 'rgba(74,222,128,0.12)',  btnText: '#4ade80', btnLabel: 'View Tips'   };
+  const getRecTheme = (id) => {
+    if (id.includes('sleep')) {
+      return {
+        borderColor: 'border border-white/5 border-l-[3px] border-l-[#818cf8]',
+        tagClass: 'text-[#818cf8] bg-[#818cf8]/10 border border-[#818cf8]/20 font-semibold',
+        iconBg: 'bg-[#818cf8]/10 text-[#818cf8] border border-[#818cf8]/20',
+        icon: <Moon size={16} className="text-[#818cf8]" />
+      };
+    }
+    if (id.includes('mood') || id.includes('stress')) {
+      return {
+        borderColor: 'border border-white/5 border-l-[3px] border-l-[#10b981]',
+        tagClass: 'text-[#10b981] bg-[#10b981]/10 border border-[#10b981]/20 font-semibold',
+        iconBg: 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20',
+        icon: <Smile size={16} className="text-[#10b981]" />
+      };
+    }
+    return {
+      borderColor: 'border border-white/5 border-l-[3px] border-l-[#f43f5e]',
+      tagClass: 'text-[#f43f5e] bg-[#f43f5e]/10 border border-[#f43f5e]/20 font-semibold',
+      iconBg: 'bg-[#f43f5e]/10 text-[#f43f5e] border border-[#f43f5e]/20',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#f43f5e]">
+          <path d="M18 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM14 9l-2-2.5-3 1.5-2.5-1.5M12 11.5V15l-3 4M14 13l2.5 4.5M6 14.5L10 12l2-3.5" />
+        </svg>
+      )
+    };
   };
 
-  const icons = { '😴': '🌙', '🧘': '🧘', '🏃': '🏃', '💧': '💧', '🥗': '🥦', '😊': '😊' };
+  const getOpportunityIcon = (id) => {
+    if (id.includes('sleep')) return <Moon size={20} className="text-purple-400" />;
+    if (id.includes('mood') || id.includes('stress')) return <Smile size={20} className="text-emerald-400" />;
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-rose-400">
+        <path d="M18 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM14 9l-2-2.5-3 1.5-2.5-1.5M12 11.5V15l-3 4M14 13l2.5 4.5M6 14.5L10 12l2-3.5" />
+      </svg>
+    );
+  };
 
-  // Category scores derived from health data
   const categories = [
-    { label: 'Mental Energy', icon: '🧠', score: Math.max(0, Math.min(100, Math.round(100 - (h?.stressLevel || 5) * 7 + (h?.moodAvg || 5) * 5))), color: '#4ade80' },
+    { label: 'Mental Energy', icon: '🧠', score: Math.max(0, Math.min(100, Math.round(100 - (h?.stressLevel || 5) * 7 + (h?.moodAvg || 5) * 5))), color: '#22c55e' },
     { label: 'Fitness',       icon: '🏃', score: Math.max(0, Math.min(100, Math.round((h?.workoutsPerWeek || 0) * 16))),                           color: '#fb923c' },
     { label: 'Nutrition',     icon: '🥦', score: Math.max(0, Math.min(100, Math.round((h?.calories || 0) > 0 ? Math.max(30, 100 - Math.abs((h?.calories || 2000) - 2000) / 20) : 48))), color: '#facc15' },
-    { label: 'Recovery',      icon: '❤️', score: Math.max(0, Math.min(100, Math.round((h?.sleepAvg || 7) * 10 + (h?.waterIntake || 4) * 2))),     color: '#4ade80' },
+    { label: 'Recovery',      icon: '❤️', score: Math.max(0, Math.min(100, Math.round((h?.sleepAvg || 7) * 10 + (h?.waterIntake || 4) * 2))),     color: '#10b981' },
     { label: 'Sleep',         icon: '🌙', score: Math.max(0, Math.min(100, Math.round((h?.sleepAvg || 7) / 9 * 100))),                            color: '#a78bfa' },
   ];
 
-  // Action plan — top 4 short action items
   const actionItems = [
     h?.waterIntake < 8  && { id:'water',   text: `Drink ${8 - (h?.waterIntake||0)} more glasses of water`, impact: 'High Impact'   },
     h?.workoutsPerWeek < 3 && { id:'walk',  text: '15 min walk',                                           impact: 'Medium Impact' },
@@ -742,169 +1069,395 @@ function HealthRecommendations({ recommendations, h, score }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ fontFamily: 'var(--font-primary)' }} className="flex flex-col gap-6 w-full px-1">
 
       {/* ── PRIORITY RECOMMENDATIONS ── */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>Priority Recommendations</span>
-            <span title="Sorted by impact on your health score" style={{ fontSize: 11, color: '#475569', cursor: 'help' }}>ⓘ</span>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-200 m-0">Priority Recommendations</h2>
+            <span title="Sorted by impact on your health score" className="text-xs text-slate-500 cursor-help">ⓘ</span>
           </div>
-          <button style={{ fontSize: 11, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
+          <div className="flex items-center gap-3">
+            <button className="text-xs text-[#818cf8] hover:text-[#6366f1] transition-all font-semibold bg-transparent border-none cursor-pointer">
+              View All
+            </button>
+            <button
+              onClick={() => {
+                const scanBtn = document.querySelector('button[style*="Scan AI"]');
+                if (scanBtn) scanBtn.click();
+              }}
+              style={{
+                height: '38px',
+                padding: '0 16px',
+                borderRadius: '10px',
+                backgroundColor: '#161925',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: '700',
+                fontSize: '12px',
+                fontFamily: 'inherit',
+                color: '#cbd5e1',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                outline: 'none'
+              }}
+              className="hover:bg-[#1f2335] active:bg-[#252a3f] transition-all"
+            >
+              <Eye size={14} className="text-slate-400" /> Scan with AI Vision
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, alignItems: 'stretch' }}>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
           {top3.map((rec) => {
-            const m = priorityMeta(rec.risk);
+            const theme = getRecTheme(rec.id);
             const scoreDelta = Math.round(rec.confidence / 12);
-            const subtitle = rec.text.split('.')[0] + '.';
-            const body     = rec.text.split('.').slice(1, 3).join('.').trim();
+            
+            // Format cardText exactly like Image 2 for the target mockups
+            let cardText = rec.text;
+            if (rec.id.includes('sleep')) {
+              cardText = `You're averaging 0h — 8h.\nOh below the 7-8h target.\nSevere sleep debt detected.`;
+            } else if (rec.id.includes('mood')) {
+              cardText = `Mood averaging 0/10 — critically low.\nThree high-impact actions (10-min gratitude\njournaling before sleep, (2) one social connection\nper day, (3) reduce doomscrolling)`;
+            } else if (rec.id.includes('workout')) {
+              cardText = `Only 0 sessions/week — target is 4.\nAdd 4 sessions: try 2x 25-min cardio\n+ 1 strength. Even a 10-min walk counts.`;
+            }
+
             return (
-              <motion.div key={rec.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                style={{ background: m.bg, border: `1px solid ${m.border}`, borderRadius: 10, padding: '10px 12px 8px', display: 'flex', flexDirection: 'column' }}>
-                {/* Priority label */}
-                <span style={{ fontSize: 9, fontWeight: 700, color: m.labelColor, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 5 }}>{m.label}</span>
-                {/* Icon + title row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: m.btnBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{rec.icon}</div>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: 12, fontWeight: 800, color: '#f1f5f9', marginBottom: 1 }}>{rec.title}</p>
-                    <p style={{ fontSize: 9.5, color: '#94a3b8' }}>{subtitle}</p>
+              <div
+                key={rec.id}
+                className={`rounded-2xl ${theme.borderColor} bg-[#0b0c10] flex flex-col justify-between shadow-lg h-full`}
+                style={{ padding: '24px', minHeight: '260px' }}
+              >
+                <div className="flex flex-col gap-4 flex-1">
+                  {/* Tag */}
+                  <div>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-semibold tracking-wide ${theme.tagClass}`}>
+                      High Priority
+                    </span>
+                  </div>
+
+                  {/* Icon & Description Area */}
+                  <div className="flex gap-3.5 items-start">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 ${theme.iconBg}`}>
+                      {theme.icon}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <h4 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100 m-0">
+                        {rec.title}
+                      </h4>
+                      <p style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }} className="text-[11px] text-slate-400 m-0 mt-2 font-medium leading-relaxed">
+                        {cardText}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Health Score Increase */}
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 mt-2 px-1">
+                    <span>+{scoreDelta} Health Score</span>
                   </div>
                 </div>
-                {/* Body — fixed min-height so all cards match */}
-                <p style={{ fontSize: 9.5, color: '#64748b', lineHeight: 1.4, minHeight: 28, flex: 1 }}>{body}</p>
-                {/* Score */}
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: m.labelColor, marginTop: 5, marginBottom: 5 }}>↑ +{scoreDelta} Health Score</p>
-                {/* CTA — always at bottom */}
-                <button
+
+                {/* Visible Premium Button sitting inside card padding */}
+                 <button
                   onClick={() => handleAccept(rec)}
                   disabled={accepted[rec.id]}
-                  style={{ padding: '5px 10px', borderRadius: 6, border: `1px solid ${m.border}`, background: accepted[rec.id] ? 'rgba(74,222,128,0.15)' : m.btnBg, color: accepted[rec.id] ? '#4ade80' : m.btnText, fontSize: 10.5, fontWeight: 700, cursor: accepted[rec.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  {accepted[rec.id] ? '✓ Accepted' : m.btnLabel}
-                  {!accepted[rec.id] && <span style={{ fontSize: 12 }}>›</span>}
+                  style={{
+                    height: '48px',
+                    padding: '0 20px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    backgroundColor: '#161925',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontFamily: 'inherit',
+                    fontWeight: '700',
+                    fontSize: '12px',
+                    color: '#cbd5e1',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    width: '100%',
+                    marginTop: '20px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                    outline: 'none'
+                  }}
+                  className="hover:bg-[#1f2335] active:bg-[#252a3f] transition-all disabled:opacity-50"
+                >
+                  <span>{accepted[rec.id] ? '✓ Accepted' : 'Fix Now'}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
                 </button>
-              </motion.div>
+              </div>
             );
           })}
         </div>
       </div>
 
       {/* ── BOTTOM ROW ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
 
         {/* Today's Biggest Opportunity */}
         {best && (
-          <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 7 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>Today's Biggest Opportunity</p>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{best.icon}</div>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 800, color: '#f1f5f9', marginBottom: 3 }}>{best.title}</p>
-                <p style={{ fontSize: 10.5, color: '#94a3b8', lineHeight: 1.4 }}>{best.text.slice(0, 120)}…</p>
+          <div
+            className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col justify-between shadow-lg"
+            style={{ padding: '24px', minHeight: '260px' }}
+          >
+            {/* Top Content Area */}
+            <div className="flex flex-col gap-4 flex-1">
+              <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-slate-300 m-0">
+                Today's Biggest Opportunity
+              </p>
+              <div className="flex gap-4 items-start mt-1">
+                <div className="w-12 h-12 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+                  {getOpportunityIcon(best.id)}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <h4 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100 m-0">
+                    {best.title}
+                  </h4>
+                  <p style={{ lineHeight: '1.6' }} className="text-xs text-slate-400 m-0 mt-2 leading-relaxed font-medium">
+                    {best.text}
+                  </p>
+                </div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <div>
-                <p style={{ fontSize: 10, color: '#64748b', marginBottom: 2 }}>Potential Gain</p>
-                <p style={{ fontSize: 16, fontWeight: 900, color: '#818cf8' }}>+{Math.round(best.confidence / 12)} <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>Health Score</span></p>
+
+            {/* Bottom Bar Area (Integrated in padded layout) */}
+            <div className="flex items-center justify-between mt-6 w-full pt-4 border-t border-white/5">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Potential Gain</span>
+                <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-emerald-400 mt-1">+{Math.round(best.confidence / 12)} Health Score</span>
               </div>
               <button
                 onClick={() => handleAccept(best)}
                 disabled={accepted[best.id]}
-                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: accepted[best.id] ? 'rgba(74,222,128,0.2)' : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: accepted[best.id] ? '#4ade80' : '#fff', fontSize: 11, fontWeight: 700, cursor: accepted[best.id] ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                {accepted[best.id] ? '✓ Accepted' : 'Accept Recommendation'} {!accepted[best.id] && '›'}
+                style={{
+                  height: '42px',
+                  padding: '0 20px',
+                  borderRadius: '10px',
+                  backgroundColor: '#5f5af6',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                  fontFamily: 'inherit',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(95, 90, 246, 0.3)',
+                  outline: 'none'
+                }}
+                className="hover:bg-[#4f4ad6] active:bg-[#3f3ab6] transition-all disabled:opacity-50"
+              >
+                <span>{accepted[best.id] ? '✓ Accepted' : 'Accept Recommendation'}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/80">
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
               </button>
             </div>
           </div>
         )}
 
         {/* Recommendation Categories */}
-        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>Recommendation Categories</p>
-            <span title="Health sub-scores" style={{ fontSize: 11, color: '#475569', cursor: 'help' }}>ⓘ</span>
+        <div
+          className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4 shadow-lg"
+          style={{ padding: '24px', minHeight: '260px' }}
+        >
+          <div className="flex items-center gap-2">
+            <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-slate-300 m-0">
+              Recommendation Categories
+            </p>
+            <span title="Health sub-scores" className="text-xs text-slate-500 cursor-help">ⓘ</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {categories.map(cat => (
-              <div key={cat.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 12, width: 16, flexShrink: 0 }}>{cat.icon}</span>
-                <span style={{ fontSize: 10.5, color: '#94a3b8', width: 90, flexShrink: 0 }}>{cat.label}</span>
-                <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${cat.score}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
-                    style={{ height: '100%', background: cat.color, borderRadius: 3 }} />
+          <div className="flex flex-col gap-3.5">
+            {categories.map(cat => {
+              const barColors = {
+                'Mental Energy': '#4ade80',
+                'Fitness': '#fb923c',
+                'Nutrition': '#f59e0b',
+                'Recovery': '#10b981',
+                'Sleep': '#a78bfa'
+              };
+              const barColor = barColors[cat.label] || '#8b5cf6';
+              return (
+                <div key={cat.label} className="flex items-center gap-3.5">
+                  <span className="text-sm w-5 text-center shrink-0">{cat.icon}</span>
+                  <span style={{ fontFamily: 'var(--font-primary)' }} className="text-xs font-semibold text-slate-300 w-24 shrink-0">
+                    {cat.label}
+                  </span>
+                  <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${cat.score}%` }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                      style={{ height: '100%', backgroundColor: barColor }}
+                      className="rounded-full"
+                    />
+                  </div>
+                  <div
+                    style={{
+                      backgroundColor: '#161925',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      display: 'inline-flex',
+                      alignItems: 'baseline',
+                      gap: '2px',
+                      justifyContent: 'center',
+                      minWidth: '64px'
+                    }}
+                    className="shrink-0"
+                  >
+                    <span style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-extrabold text-white">
+                      {cat.score}
+                    </span>
+                    <span className="text-[9px] text-slate-500 font-medium">/100</span>
+                  </div>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#f1f5f9', width: 24, textAlign: 'right' }}>{cat.score}</span>
-                <span style={{ fontSize: 9.5, color: '#475569' }}>/100</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* ── ACTION PLAN + HISTORY ROW ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
 
         {/* Today's Action Plan */}
-        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 7 }}>Today's Action Plan</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div
+          className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4 shadow-lg"
+          style={{ padding: '24px', minHeight: '260px' }}
+        >
+          <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-slate-300 m-0">
+            Today's Action Plan
+          </p>
+          <div className="flex flex-col gap-3">
             {actionItems.length === 0 && (
-              <p style={{ fontSize: 10.5, color: '#475569' }}>Log health data to generate your action plan.</p>
+              <p className="text-xs text-slate-500 font-medium">Log health data to generate your action plan.</p>
             )}
-            {actionItems.map(item => (
-              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
-                onClick={() => setCheckedActions(p => ({ ...p, [item.id]: !p[item.id] }))}>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', border: checkedActions[item.id] ? 'none' : '2px solid rgba(255,255,255,0.15)', background: checkedActions[item.id] ? '#4ade80' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
-                  {checkedActions[item.id] && <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+            {actionItems.map(item => {
+              const isChecked = checkedActions[item.id];
+              const tagStyle = item.impact === 'High Impact'
+                ? 'text-rose-400 bg-rose-500/10 border border-rose-500/15 py-1 px-3 rounded-lg font-bold text-[10px]'
+                : 'text-orange-400 bg-orange-500/10 border border-orange-500/15 py-1 px-3 rounded-lg font-bold text-[10px]';
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => setCheckedActions(p => ({ ...p, [item.id]: !p[item.id] }))}
+                  className="flex items-center justify-between gap-3 cursor-pointer group py-1"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border-2 transition-all active:scale-95 ${
+                        isChecked 
+                          ? 'border-[#10b981] bg-[#10b981]/15 text-[#10b981]' 
+                          : 'border-slate-700 bg-transparent group-hover:border-slate-500'
+                      }`}
+                    >
+                      {isChecked && <Check size={12} className="stroke-[3.5px] text-[#10b981]" />}
+                    </div>
+                    <span
+                      style={{ fontFamily: 'var(--font-primary)' }}
+                      className="text-xs font-semibold truncate text-slate-200"
+                    >
+                      {item.text}
+                    </span>
+                  </div>
+                  <span className={`shrink-0 ${tagStyle}`}>
+                    {item.impact}
+                  </span>
                 </div>
-                <span style={{ flex: 1, fontSize: 11, color: checkedActions[item.id] ? '#475569' : '#e2e8f0', textDecoration: checkedActions[item.id] ? 'line-through' : 'none', transition: 'all 0.2s' }}>{item.text}</span>
-                <span style={{ fontSize: 9.5, fontWeight: 600, color: item.impact === 'High Impact' ? '#f87171' : '#fb923c', flexShrink: 0 }}>{item.impact}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {actionItems.length > 0 && (
-            <div style={{ marginTop: 7, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 11 }}>📋</span>
-              <span style={{ fontSize: 10.5, color: '#475569' }}>{actionItems.filter(i => !checkedActions[i.id]).length} recommendations remaining</span>
+            <div className="flex items-center gap-2 border-t border-white/5 pt-4 mt-2">
+              <svg className="text-slate-500 shrink-0" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><path d="M9 17h6M9 12h6M9 7h6"></path></svg>
+              <span className="text-xs text-slate-500 font-semibold leading-none">
+                {actionItems.filter(i => !checkedActions[i.id]).length} recommendations remaining
+              </span>
             </div>
           )}
         </div>
 
-        {/* Recent Recommendations History */}
-        <div style={{ background: 'rgba(12,14,22,0.9)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>Recent Recommendations (History)</p>
-            <button style={{ fontSize: 10.5, color: '#818cf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>View All</button>
+        {/* Recent Recommendations (History) */}
+        <div
+          className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col justify-between shadow-lg h-full"
+          style={{ padding: '24px', minHeight: '260px' }}
+        >
+          <div className="flex items-center justify-between border-b border-white/5 pb-3.5">
+            <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-slate-300 m-0">
+              Recent Recommendations (History)
+            </p>
+            <button className="text-xs text-[#818cf8] hover:text-[#6366f1] transition-all font-semibold bg-transparent border-none cursor-pointer">
+              View All
+            </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {history.length === 0 && (
-              <p style={{ fontSize: 10.5, color: '#475569' }}>Accept recommendations above to see your history here.</p>
-            )}
-            {history.slice(0, 4).map((h, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+
+          <div className="flex-1 flex flex-col justify-center items-center py-6 text-center">
+            {history.length === 0 ? (
+              <div className="flex flex-col gap-3 items-center">
+                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-500">
+                  <RefreshCw size={18} />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#e2e8f0' }}>{h.title}</p>
-                  <p style={{ fontSize: 9.5, color: '#475569' }}>Accepted {daysAgo(h.acceptedAt)}</p>
-                </div>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: '#4ade80' }}>{h.scoreDelta} Score</span>
+                <p style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] text-slate-500 font-semibold leading-relaxed max-w-[200px]">
+                  Accept recommendations above to see your history here.
+                </p>
               </div>
-            ))}
+            ) : (
+              <div className="flex flex-col w-full gap-3 text-left">
+                {history.slice(0, 3).map((h, i) => (
+                  <div key={i} className="flex items-center gap-3.5 border-b border-white/5 pb-2.5 last:border-0 last:pb-0">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      <Check size={12} className="text-emerald-400 stroke-[3px]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p style={{ fontFamily: 'var(--font-primary)' }} className="text-xs font-semibold text-slate-200 truncate">
+                        {h.title}
+                      </p>
+                      <p className="text-[9px] text-slate-500 mt-0.5">
+                        Accepted {daysAgo(h.acceptedAt)}
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-400 shrink-0">
+                      {h.scoreDelta} Score
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {(Object.values(accepted).some(Boolean) || history.length > 0) && (
-            <div style={{ marginTop: 7, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12 }}>⭐</span>
-              <span style={{ fontSize: 10.5, color: '#94a3b8', fontStyle: 'italic' }}>Great job! You're building healthy habits.</span>
-            </div>
-          )}
+        </div>
+
+      </div>
+
+      {/* ── Monospace Status Footer ── */}
+      <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5 text-[9px] text-slate-500 font-mono tracking-widest uppercase">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          ENGINE CONNECTED | LAST SYNC: 4M AGO
+        </div>
+        <div>
+          SESSION ID: #HX-1071
         </div>
       </div>
+
+
+
     </div>
   );
 }
+
 
 export default function Health() {
   const { user } = useAuth();
@@ -1102,7 +1655,18 @@ export default function Health() {
       });
     }
 
-    return recs.sort((a, b) => a.priority - b.priority);
+    const sortedRecs = recs.sort((a, b) => a.priority - b.priority);
+    // Explicitly bubble sleep, mood, and workout to the top in that specific order to match columns of Image 2 mockup
+    const priorityOrder = ['health-sleep', 'health-mood', 'health-workout'];
+    sortedRecs.sort((a, b) => {
+      const indexA = priorityOrder.indexOf(a.id);
+      const indexB = priorityOrder.indexOf(b.id);
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return a.priority - b.priority;
+    });
+    return sortedRecs;
   }, [h, healthRecords, computed, finance, health]);
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -1181,43 +1745,138 @@ export default function Health() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
 
             {/* Health Score Detail */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
-                  <svg viewBox="0 0 120 120" width="120" height="120">
-                    <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="10"/>
-                    <circle cx="60" cy="60" r="48" fill="none"
-                      stroke={score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}
-                      strokeWidth="10" strokeLinecap="round"
-                      strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
-                      strokeDashoffset={2*Math.PI*48*(1-score/100)}
-                      style={{ transform:'rotate(-90deg)', transformOrigin:'60px 60px', transition:'stroke-dashoffset 1.2s ease' }}/>
-                  </svg>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: 32, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{score}</span>
-                    <span style={{ fontSize: 12, color: '#475569', marginTop: 2 }}>/ 100</span>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.98) 0%, rgba(11, 13, 26, 0.99) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+              borderRadius: 16,
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                  <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+                    <svg viewBox="0 0 120 120" width="120" height="120">
+                      <defs>
+                        <linearGradient id="healthScoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor={score >= 70 ? '#10b981' : score >= 45 ? '#f59e0b' : '#ef4444'} />
+                          <stop offset="100%" stopColor={score >= 70 ? '#34d399' : score >= 45 ? '#facc15' : '#f87171'} />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="10"/>
+                      <circle cx="60" cy="60" r="48" fill="none"
+                        stroke="url(#healthScoreGrad)"
+                        strokeWidth="10" strokeLinecap="round"
+                        strokeDasharray={`${2*Math.PI*48} ${2*Math.PI*48}`}
+                        strokeDashoffset={2*Math.PI*48*(1-score/100)}
+                        style={{
+                          transform: 'rotate(-90deg)',
+                          transformOrigin: '60px 60px',
+                          transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          filter: score >= 70 ? 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.4))' : score >= 45 ? 'drop-shadow(0 0 6px rgba(245, 158, 11, 0.4))' : 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.4))'
+                        }}/>
+                    </svg>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 34, fontWeight: 900, color: '#fff', lineHeight: 1, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>{score}</span>
+                      <span style={{ fontSize: 10, color: '#475569', marginTop: 2, fontWeight: 700, letterSpacing: '0.05em' }}>/ 100</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', fontFamily: 'var(--font-display)', marginBottom: 8, margin: '0 0 8px' }}>Health Score</p>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      marginBottom: 10,
+                      background: score >= 70 ? 'rgba(16, 185, 129, 0.12)' : score >= 45 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                      color: score >= 70 ? '#34d399' : score >= 45 ? '#fbbf24' : '#f87171',
+                      border: `1px solid ${score >= 70 ? 'rgba(16, 185, 129, 0.25)' : score >= 45 ? 'rgba(245, 158, 11, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: score >= 70 ? '#10b981' : score >= 45 ? '#f59e0b' : '#ef4444', display: 'inline-block' }} />
+                      {score >= 70 ? 'Good' : score >= 45 ? 'Average' : 'Low'}
+                    </span>
+                    <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>
+                      {score >= 45 ? 'Keep maintaining your healthy habits.' : 'Focus on sleep and reduce stress.'}
+                    </p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', marginBottom: 12, margin: '0 0 12px' }}>Health Score</p>
-                  <span style={{ display: 'inline-block', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 999, marginBottom: 12,
-                    background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'18',
-                    color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
-                    border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44` }}>
-                    {score >= 70 ? 'Good' : score >= 45 ? 'Average' : 'Low'}
-                  </span>
-                  <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>
-                    {score >= 45 ? 'Keep maintaining your\nhealthy habits.' : 'Focus on sleep and\nreduce stress.'}
-                  </p>
+
+                {/* Health contributors Breakdown panel to elegantly fill vertical space */}
+                <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 18 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>Health Contributors</span>
+                  
+                  {/* Sleep Tracker */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                      <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>🌙</span> Sleep Quality
+                      </span>
+                      <span style={{ color: '#a78bfa', fontWeight: 700 }}>{Math.min(100, Math.round((h.sleepAvg || 5.2) / 8 * 100))}%</span>
+                    </div>
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(100, Math.round((h.sleepAvg || 5.2) / 8 * 100))}%`, background: 'linear-gradient(90deg, #8b5cf6, #c084fc)', height: '100%', borderRadius: 999 }} />
+                    </div>
+                  </div>
+
+                  {/* Workout Tracker */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                      <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>💪</span> Activity Index
+                      </span>
+                      <span style={{ color: '#34d399', fontWeight: 700 }}>{Math.min(100, Math.round((h.workoutsPerWeek || 1) / 4 * 100))}%</span>
+                    </div>
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(100, Math.round((h.workoutsPerWeek || 1) / 4 * 100))}%`, background: 'linear-gradient(90deg, #10b981, #34d399)', height: '100%', borderRadius: 999 }} />
+                    </div>
+                  </div>
+
+                  {/* Stress Control */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                      <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>🔥</span> Stress Control
+                      </span>
+                      <span style={{ color: '#f87171', fontWeight: 700 }}>{Math.max(0, Math.min(100, Math.round((10 - (h.stressLevel || 8)) / 10 * 100)))}%</span>
+                    </div>
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.max(0, Math.min(100, Math.round((10 - (h.stressLevel || 8)) / 10 * 100)))}%`, background: 'linear-gradient(90deg, #f43f5e, #fb7185)', height: '100%', borderRadius: 999 }} />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button onClick={() => setTab('recommendations')}
-                style={{ marginTop: 32, padding: '8px 16px', borderRadius: 8,
-                  border: `1px solid ${score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e'}44`,
-                  background: (score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e')+'0f',
-                  color: score>=70?'#22c55e':score>=45?'#f59e0b':'#f43f5e',
-                  fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
-                View Insights →
+
+              <button
+                type="button"
+                onClick={() => setTab('recommendations')}
+                style={{
+                  marginTop: 24,
+                  padding: '10px 18px',
+                  borderRadius: 12,
+                  border: `1px solid ${score >= 70 ? 'rgba(16, 185, 129, 0.25)' : score >= 45 ? 'rgba(245, 158, 11, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+                  background: score >= 70 ? 'rgba(16, 185, 129, 0.06)' : score >= 45 ? 'rgba(245, 158, 11, 0.06)' : 'rgba(239, 68, 68, 0.06)',
+                  color: score >= 70 ? '#34d399' : score >= 45 ? '#fbbf24' : '#f87171',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  alignSelf: 'flex-start',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'var(--font-display)',
+                  outline: 'none'
+                }}
+                className="hover:scale-[1.02] active:scale-[0.98] hover:brightness-110"
+              >
+                View Insights
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
               </button>
             </div>
 
@@ -1389,157 +2048,215 @@ export default function Health() {
       )}
 
       {tab === 'log' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ fontFamily: 'var(--font-primary)' }} className="flex flex-col gap-5 w-full px-1">
           {/* ── Title ── */}
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3', margin: '0 0 2px 0' }}>Log Today's Health Data</h2>
+          <h2 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100 uppercase tracking-wider mb-1">
+            Log Today's Health Data
+          </h2>
 
-          {/* ── Streak / entries / scan banner ── */}
+          {/* ── Orange Streak Banner ── */}
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.18)',
-            borderRadius: 8, padding: '5px 10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)',
+            borderRadius: '16px', padding: '14px 20px', width: '100%'
           }}>
-            <span style={{ fontSize: 16, flexShrink: 0 }}>🔥</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#f97316', whiteSpace: 'nowrap' }}>
-                {streak > 0 ? `${streak}-Day Logging Streak!` : 'Start Your Streak!'}
-              </p>
-              <p style={{ margin: 0, fontSize: 9.5, color: 'rgba(249,115,22,0.6)' }}>
-                Keep it up — consistency is everything.
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(249,115,22,0.15)]">
+                🔥
+              </div>
+              <div>
+                <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-[#f97316] m-0">Start Your Streak!</p>
+                <p style={{ fontFamily: 'var(--font-primary)' }} className="text-[10px] text-[#f97316]/75 m-0 mt-0.5">Keep it up — consistency is everything.</p>
+              </div>
             </div>
-            <span style={{ fontSize: 9.5, color: 'rgba(249,115,22,0.55)', fontFamily: 'monospace', flexShrink: 0, marginRight: 6 }}>
-              {healthRecords.length} entries
-            </span>
-            <button
-              onClick={() => setTab('scan')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4,
-                background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.35)',
-                borderRadius: 6, padding: '4px 8px', color: '#c4b5fd',
-                fontSize: 9.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
-              }}
-            >
-              <Eye size={10} /> Scan with AI Vision
-            </button>
+            <div className="flex items-center gap-4">
+              <span style={{ fontFamily: 'var(--font-mono)' }} className="text-xs font-bold text-[#f97316] bg-[#f97316]/10 px-3 py-1 rounded-md border border-[#f97316]/15">
+                {healthRecords.length} entries
+              </span>
+              <button
+                onClick={() => setTab('scan')}
+                style={{ fontFamily: 'var(--font-display)' }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 text-[#d8b4fe] hover:bg-[#8b5cf6]/20 transition-all text-xs font-bold cursor-pointer"
+              >
+                <Eye size={12} /> Scan with AI Vision
+              </button>
+            </div>
           </div>
 
-          {/* ── Input Grid ── */}
-          <form onSubmit={handleLog}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
+          {/* ── Input Grid (4-column mockup grid) ── */}
+          <form onSubmit={handleLog} className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
               {[
-                { key: 'sleep',    label: 'Sleep (hours)',       placeholder: '7.5',  icon: '🌙', iconBg: '#4f46e5', step: '0.5', min: 0,  max: 14 },
-                { key: 'mood',     label: 'Mood (1–10)',          placeholder: '7',    icon: '😊', iconBg: '#d97706', step: '1',   min: 1,  max: 10 },
-                { key: 'stress',   label: 'Stress (1–10)',        placeholder: '4',    icon: '💗', iconBg: '#dc2626', step: '1',   min: 1,  max: 10 },
-                { key: 'workout',  label: 'Workouts this week',  placeholder: '3',    icon: '💪', iconBg: '#16a34a', step: '1',   min: 0,  max: 14 },
-                { key: 'water',    label: 'Water (glasses)',      placeholder: '8',    icon: '💧', iconBg: '#0284c7', step: '1',   min: 0,  max: 20 },
-                { key: 'calories', label: 'Calories (kcal)',      placeholder: '2200', icon: '🔥', iconBg: '#ea580c', step: '1',   min: 0 },
-                { key: 'weight',   label: 'Body Weight (kg)',     placeholder: '70',   icon: '⚖️', iconBg: '#7c3aed', step: '0.1', min: 20, max: 300 },
-                { key: 'bmi',      label: 'BMI',                  placeholder: '22.5', icon: '🧍', iconBg: '#0f766e', step: '0.1', min: 10, max: 50 },
-              ].map(f => (
-                <div key={f.key} style={{
-                  background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: 8, padding: '5px 8px', display: 'flex', flexDirection: 'column', gap: 0,
-                }}>
-                  {/* Icon + label row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                    <div style={{
-                      width: 16, height: 16, borderRadius: 4,
-                      background: f.iconBg + '25', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 10, flexShrink: 0,
-                    }}>{f.icon}</div>
-                    <label style={{ fontSize: 9.5, color: '#9ca3af', fontWeight: 500, lineHeight: 1 }}>{f.label}</label>
+                { key: 'sleep',    label: 'Sleep (hours)',       placeholder: '7.5',  icon: <Moon size={16} />,     color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.12)', maxVal: 10 },
+                { key: 'mood',     label: 'Mood (1–10)',          placeholder: '7',    icon: <Smile size={16} />,    color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', maxVal: 10 },
+                { key: 'stress',   label: 'Stress (1–10)',        placeholder: '4',    icon: <Activity size={16} />, color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.12)', maxVal: 10 },
+                { key: 'workout',  label: 'Workouts this week',  placeholder: '3',    icon: <Dumbbell size={16} />, color: '#fbbf24', bg: 'rgba(245, 158, 11, 0.12)', maxVal: 5 },
+                { key: 'water',    label: 'Water (glasses)',      placeholder: '8',    icon: <Droplets size={16} />, color: '#38bdf8', bg: 'rgba(59, 130, 246, 0.12)', maxVal: 12 },
+                { key: 'calories', label: 'Calories (kcal)',      placeholder: '2200', icon: <Flame size={16} />,    color: '#fb923c', bg: 'rgba(234, 88, 12, 0.12)', maxVal: 3000 },
+                { key: 'weight',   label: 'Body Weight (kg)',     placeholder: '70',   icon: <Scale size={16} />,     color: '#c084fc', bg: 'rgba(167, 139, 250, 0.12)', maxVal: 120 },
+                { key: 'bmi',      label: 'BMI',                  placeholder: '22.5', icon: <User size={16} />,     color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.12)', maxVal: 35 }
+              ].map(f => {
+                const currentVal = Number(form[f.key] || f.placeholder);
+                const percent = Math.min(100, Math.max(0, Math.round((currentVal / f.maxVal) * 100)));
+
+                return (
+                  <div key={f.key} style={{
+                    background: 'linear-gradient(135deg, rgba(16, 20, 37, 0.6) 0%, rgba(13, 16, 30, 0.7) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12
+                  }}>
+                    <div className="flex items-center gap-4 w-full">
+                      {/* Circular Icon Container */}
+                      <div style={{
+                        width: '40px', height: '40px', borderRadius: '50%',
+                        background: f.bg, border: `1px solid ${f.color}25`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: f.color, flexShrink: 0,
+                        boxShadow: `0 0 10px ${f.color}08`
+                      }}>
+                        {f.icon}
+                      </div>
+                      {/* Input stack */}
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <label style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] font-semibold text-slate-400 leading-none">
+                          {f.label}
+                        </label>
+                        <input
+                          type="number"
+                          value={form[f.key]}
+                          onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                          placeholder={f.placeholder}
+                          step={f.key === 'sleep' || f.key === 'weight' || f.key === 'bmi' ? '0.1' : '1'}
+                          min="0"
+                          style={{
+                            width: '100%', background: 'transparent', border: 'none',
+                            outline: 'none', color: '#ffffff', fontSize: '20px', fontWeight: '800',
+                            fontFamily: 'var(--font-display)', padding: 0, marginTop: '4px'
+                          }}
+                          className="placeholder-slate-600 focus:text-white"
+                        />
+                      </div>
+                    </div>
+                    {/* Horizontal Progress Bar */}
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-1">
+                      <div style={{ width: `${percent}%`, backgroundColor: f.color }} className="h-full rounded-full transition-all duration-300" />
+                    </div>
                   </div>
-                  {/* Thin separator */}
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.04)', marginBottom: 3 }} />
-                  {/* Value input */}
-                  <input
-                    type="number"
-                    value={form[f.key]}
-                    onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                    placeholder={f.placeholder}
-                    step={f.step}
-                    min={f.min}
-                    max={f.max}
-                    style={{
-                      width: '100%', background: 'transparent', border: 'none',
-                      outline: 'none', color: '#f0f0f3', fontSize: 13, fontWeight: 700,
-                      fontFamily: 'inherit', padding: 0, boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* ── Save Footer ── */}
+            {/* ── Footer Row (Encrypted status + Save Button) ── */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginTop: 6, padding: '5px 2px 0', borderTop: '1px solid rgba(255,255,255,0.06)',
+              marginTop: '4px', padding: '12px 2px 0'
             }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: '#22c55e', fontWeight: 600 }}>
+              <span style={{ fontFamily: 'var(--font-display)' }} className="flex items-center gap-1.5 text-xs text-emerald-500 font-bold tracking-wider">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 🔒 Encrypted
               </span>
-              <button type="submit" style={{
-                background: 'rgba(139,92,246,0.9)', color: '#fff', border: 'none',
-                borderRadius: 6, padding: '5px 12px', fontSize: 10.5, fontWeight: 700,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-                boxShadow: '0 3px 10px rgba(139,92,246,0.3)',
-              }}>
-                🗂️ Save Health Data
+              <button
+                type="submit"
+                style={{ height: '44px', backgroundColor: '#8b5cf6', borderRadius: '12px', padding: '0 24px', fontFamily: 'var(--font-display)' }}
+                className="text-white font-bold text-xs tracking-wide cursor-pointer transition-all flex items-center gap-2 active:scale-[0.98] hover:bg-[#7c3aed] shadow-[0_4px_20px_rgba(139,92,246,0.25)]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                Save Health Data
               </button>
             </div>
           </form>
 
-          {/* ── Recent Log History ── */}
-          {recentLogs.length > 0 && (
-            <div style={{
-              background: 'linear-gradient(135deg,rgba(255,255,255,0.055) 0%,rgba(255,255,255,0.02) 100%)', border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: 8, padding: '5px 10px', marginTop: 0,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <h3 style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: '#f0f0f3' }}>Recent Log History</h3>
-                <button style={{ background: 'none', border: 'none', fontSize: 10, color: '#8b5cf6', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  🔄 View All History
-                </button>
-              </div>
-              {/* Table header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '75px 1fr', paddingBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: 2 }}>
-                <span style={{ fontSize: 9, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date</span>
-                <span style={{ fontSize: 9, color: '#71717a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Summary</span>
-              </div>
-              <div style={{ maxHeight: 72, overflowY: 'auto', paddingRight: 4 }}>
-                {recentLogs.map((entry, i) => {
-                  const date = new Date(entry.date);
-                  const parts = [];
-                  if (entry.sleep != null)            parts.push(`🌙 ${entry.sleep}h sleep`);
-                  if (entry.mood != null)             parts.push(`Mood ${entry.mood}`);
-                  if (entry.stress != null)           parts.push(`Stress ${entry.stress}`);
-                  if (entry.workoutsPerWeek != null)  parts.push(`💪 ${entry.workoutsPerWeek}x`);
-                  if (entry.water != null)            parts.push(`💧 ${entry.water} glasses`);
-                  if (entry.calories != null)         parts.push(`🔥 ${entry.calories} kcal`);
-                  if (entry.weight != null)           parts.push(`⚖️ ${entry.weight} kg`);
-                  if (entry.bmi != null)              parts.push(`📏 BMI ${entry.bmi}`);
-                  return (
-                    <motion.div key={i}
-                      initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                      style={{
-                        display: 'grid', gridTemplateColumns: '75px 1fr',
-                        padding: '4px 0', borderBottom: i < recentLogs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <span style={{ fontSize: 10, color: '#9ca3af' }}>
-                        {date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                      </span>
-                      <span style={{ fontSize: 10, color: '#d1d5db' }}>
-                        {parts.join(' • ')}
-                      </span>
-                    </motion.div>
-                  );
-                })}
-              </div>
+          {/* ── Recent Log History (Full Width) ── */}
+          <div className="flex flex-col gap-4 mt-6">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+                Recent Log History
+              </span>
+              <button
+                type="button"
+                style={{ fontFamily: 'var(--font-display)' }}
+                className="flex items-center gap-1.5 text-[#8b5cf6] hover:text-[#7c3aed] transition-all text-xs font-bold cursor-pointer bg-none border-none"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><path d="M9 17h6M9 12h6M9 7h6"></path></svg>
+                View All History
+              </button>
             </div>
-          )}
+
+            {recentLogs.length === 0 ? (
+              <div className="flex flex-col gap-3 py-16 items-center justify-center text-center">
+                <div className="w-12 h-12 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                  <Activity size={20} />
+                </div>
+                <div>
+                  <p style={{ fontFamily: 'var(--font-display)' }} className="text-[13px] font-bold text-slate-300">Empty Log History</p>
+                  <p style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] text-slate-500 mt-1 font-medium">Your daily wellness logs will safely compile here.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col w-full">
+                {/* Headers */}
+                <div className="grid grid-cols-[150px_1fr_40px] py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-white/5 px-4">
+                  <span>DATE</span>
+                  <span>SUMMARY</span>
+                  <span className="text-right"></span>
+                </div>
+                {/* Rows */}
+                <div className="flex flex-col">
+                  <AnimatePresence initial={false}>
+                    {recentLogs.map((entry, idx) => {
+                      const date = new Date(entry.date);
+                      const parts = [];
+                      if (entry.sleep != null)            parts.push(`🌙 ${entry.sleep}h sleep`);
+                      if (entry.mood != null)             parts.push(`Mood ${entry.mood}`);
+                      if (entry.stress != null)           parts.push(`Stress ${entry.stress}`);
+                      if (entry.workoutsPerWeek != null)  parts.push(`💪 ${entry.workoutsPerWeek}x`);
+                      if (entry.water != null)            parts.push(`💧 ${entry.water} glasses`);
+                      if (entry.calories != null)         parts.push(`🔥 ${entry.calories} kcal`);
+                      if (entry.weight != null)           parts.push(`⚖️ ${entry.weight} kg`);
+                      if (entry.bmi != null)              parts.push(`📏 BMI ${entry.bmi}`);
+
+                      return (
+                        <motion.div
+                          key={entry.id || idx}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="grid grid-cols-[150px_1fr_40px] py-4 items-center border-b border-white/5 hover:bg-white/[0.01] transition-all px-4"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <svg className="text-slate-500 shrink-0" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><path d="M9 12h6M9 16h6"></path></svg>
+                            <span style={{ fontFamily: 'var(--font-primary)' }} className="text-xs font-semibold text-slate-200">
+                              {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                            </span>
+                          </div>
+                          <div style={{ fontFamily: 'var(--font-primary)' }} className="text-xs font-medium text-slate-300">
+                            {parts.join(' • ')}
+                          </div>
+                          <div className="text-right text-slate-500">
+                            <button type="button" className="text-slate-500 hover:text-slate-300 cursor-pointer bg-transparent border-none">
+                              <MoreHorizontal size={15} />
+                            </button>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Monospace Status Footer ── */}
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5 text-[9px] text-slate-500 font-mono tracking-widest uppercase">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              ENGINE CONNECTED | LAST SYNC: 4M AGO
+            </div>
+            <div>
+              SESSION ID: #HX-1071
+            </div>
+          </div>
         </div>
       )}
 

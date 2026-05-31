@@ -136,7 +136,7 @@ export default function Coach() {
     <div style={{
       height: '100vh', display: 'flex', flexDirection: 'column',
       background: 'linear-gradient(160deg, #080d18 0%, #0c1120 60%, #0f172a 100%)',
-      fontFamily: 'Inter, sans-serif', boxSizing: 'border-box', overflow: 'hidden',
+      fontFamily: 'var(--font-primary)', boxSizing: 'border-box', overflow: 'hidden',
     }}>
 
       {/* ── Header ─────────────────────────────────────────────────── */}
