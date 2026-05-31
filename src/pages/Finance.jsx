@@ -1940,10 +1940,10 @@ export default function Finance() {
               </div>
 
               {/* Filtering Controls */}
-              <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center pt-1.5">
+              <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center pt-1.5 w-full">
                 
                 {/* Search Field */}
-                <div className="relative flex items-center w-full md:w-72">
+                <div className="relative flex items-center w-full lg:w-72 shrink-0">
                   <span className="absolute left-3.5 text-slate-400 flex items-center justify-center pointer-events-none">
                     <Search size={14} />
                   </span>
@@ -1952,7 +1952,7 @@ export default function Finance() {
                     placeholder="Search merchant name..."
                     value={txSearch}
                     onChange={e => setTxSearch(e.target.value)}
-                    className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 pl-9 pr-4 text-xs text-slate-200 outline-none transition-all leading-normal"
+                    className="w-full bg-slate-950/60 border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 pl-9 pr-4 text-xs text-slate-200 outline-none transition-all leading-normal font-sans"
                   />
                   {txSearch && (
                     <button 
@@ -1965,106 +1965,108 @@ export default function Finance() {
                 </div>
 
                 {/* Category Pills */}
-                <div className="flex flex-wrap gap-2 items-center max-w-full overflow-x-auto no-scrollbar py-0.5">
-                  {(() => {
-                    const visibleCategories = ['All', 'Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Education'];
-                    const dropdownCategories = ['Groceries', 'Investments', 'Others'];
-                    const isDropdownActive = dropdownCategories.includes(txFilter);
-                    
-                    return (
-                      <>
-                        {visibleCategories.map(cat => {
-                          const isActive = txFilter === cat;
-                          const meta = CATEGORY_META[cat] || { color: '#6366f1' };
-                          return (
+                <div className="flex-grow min-w-0 flex items-center justify-start lg:justify-end overflow-hidden">
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full">
+                    {(() => {
+                      const visibleCategories = ['All', 'Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Health', 'Education'];
+                      const dropdownCategories = ['Groceries', 'Investments', 'Others'];
+                      const isDropdownActive = dropdownCategories.includes(txFilter);
+                      
+                      return (
+                        <>
+                          {visibleCategories.map(cat => {
+                            const isActive = txFilter === cat;
+                            const meta = CATEGORY_META[cat] || { color: '#6366f1' };
+                            return (
+                              <motion.button
+                                key={cat}
+                                onClick={() => {
+                                  setTxFilter(cat);
+                                  setIsTxDropdownOpen(false);
+                                }}
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.97 }}
+                                style={{
+                                  backgroundColor: isActive ? (meta.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
+                                  borderColor: isActive ? 'transparent' : 'rgba(255,255,255,0.08)',
+                                  color: isActive ? '#ffffff' : '#94a3b8'
+                                }}
+                                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all shrink-0 font-sans"
+                              >
+                                {cat}
+                              </motion.button>
+                            );
+                          })}
+
+                          {/* Collapsed Dropdown Pill */}
+                          <div className="relative shrink-0">
                             <motion.button
-                              key={cat}
-                              onClick={() => {
-                                setTxFilter(cat);
-                                setIsTxDropdownOpen(false);
-                              }}
+                              onClick={() => setIsTxDropdownOpen(!isTxDropdownOpen)}
                               whileHover={{ scale: 1.03 }}
                               whileTap={{ scale: 0.97 }}
                               style={{
-                                backgroundColor: isActive ? (meta.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
-                                borderColor: isActive ? 'transparent' : 'rgba(255,255,255,0.08)',
-                                color: isActive ? '#ffffff' : '#94a3b8'
+                                backgroundColor: isDropdownActive ? (CATEGORY_META[txFilter]?.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
+                                borderColor: isDropdownActive ? 'transparent' : 'rgba(255,255,255,0.08)',
+                                color: isDropdownActive ? '#ffffff' : '#94a3b8'
                               }}
-                              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all"
+                              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all flex items-center gap-1 shrink-0 font-sans"
                             >
-                              {cat}
+                              <span>{isDropdownActive ? `${txFilter}` : 'More'}</span>
+                              <ChevronDown size={12} className={`transition-transform duration-200 ${isTxDropdownOpen ? 'rotate-180' : ''}`} />
                             </motion.button>
-                          );
-                        })}
 
-                        {/* Collapsed Dropdown Pill */}
-                        <div className="relative">
-                          <motion.button
-                            onClick={() => setIsTxDropdownOpen(!isTxDropdownOpen)}
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
-                            style={{
-                              backgroundColor: isDropdownActive ? (CATEGORY_META[txFilter]?.color || '#6366f1') : 'rgba(15, 23, 42, 0.4)',
-                              borderColor: isDropdownActive ? 'transparent' : 'rgba(255,255,255,0.08)',
-                              color: isDropdownActive ? '#ffffff' : '#94a3b8'
-                            }}
-                            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide border cursor-pointer transition-all flex items-center gap-1"
-                          >
-                            <span>{isDropdownActive ? `${txFilter}` : 'More'}</span>
-                            <ChevronDown size={12} className={`transition-transform duration-200 ${isTxDropdownOpen ? 'rotate-180' : ''}`} />
-                          </motion.button>
-
-                          <AnimatePresence>
-                            {isTxDropdownOpen && (
-                              <>
-                                <div 
-                                  className="fixed inset-0 z-40" 
-                                  onClick={() => setIsTxDropdownOpen(false)}
-                                />
-                                <motion.div
-                                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                                  transition={{ duration: 0.12 }}
-                                  className="absolute right-0 mt-2 w-40 rounded-xl border border-white/[0.08] bg-slate-900/95 backdrop-blur-xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col gap-0.5"
-                                >
-                                  {dropdownCategories.map(cat => {
-                                    const isCatActive = txFilter === cat;
-                                    const meta = CATEGORY_META[cat] || { color: '#6366f1' };
-                                    return (
-                                      <button
-                                        key={cat}
-                                        onClick={() => {
-                                          setTxFilter(cat);
-                                          setIsTxDropdownOpen(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-between ${
-                                          isCatActive 
-                                            ? 'bg-white/[0.08] text-white' 
-                                            : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-1.5">
-                                          <span className="text-xs">{meta.icon}</span>
-                                          <span>{cat}</span>
-                                        </div>
-                                        {isCatActive && (
-                                          <span 
-                                            className="w-1.5 h-1.5 rounded-full" 
-                                            style={{ backgroundColor: meta.color }}
-                                          />
-                                        )}
-                                      </button>
-                                    );
-                                  })}
-                                </motion.div>
-                              </>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      </>
-                    );
-                  })()}
+                            <AnimatePresence>
+                              {isTxDropdownOpen && (
+                                <>
+                                  <div 
+                                    className="fixed inset-0 z-40" 
+                                    onClick={() => setIsTxDropdownOpen(false)}
+                                  />
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                                    transition={{ duration: 0.12 }}
+                                    className="absolute right-0 mt-2 w-40 rounded-xl border border-white/[0.08] bg-slate-900/95 backdrop-blur-xl p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-50 flex flex-col gap-0.5"
+                                  >
+                                    {dropdownCategories.map(cat => {
+                                      const isCatActive = txFilter === cat;
+                                      const meta = CATEGORY_META[cat] || { color: '#6366f1' };
+                                      return (
+                                        <button
+                                          key={cat}
+                                          onClick={() => {
+                                            setTxFilter(cat);
+                                            setIsTxDropdownOpen(false);
+                                          }}
+                                          className={`w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center justify-between font-sans ${
+                                            isCatActive 
+                                              ? 'bg-white/[0.08] text-white' 
+                                              : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-xs">{meta.icon}</span>
+                                            <span>{cat}</span>
+                                          </div>
+                                          {isCatActive && (
+                                            <span 
+                                              className="w-1.5 h-1.5 rounded-full" 
+                                              style={{ backgroundColor: meta.color }}
+                                            />
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                  </motion.div>
+                                </>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
 
