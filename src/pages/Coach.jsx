@@ -63,18 +63,20 @@ export default function Coach() {
     else             { recognitionRef.current.start(); setIsListening(true); }
   };
 
+  const GREETING_VERSION = 'v2';
   useEffect(() => {
-    if (!aiCache.coachHistory || aiCache.coachHistory.length === 0) {
+    const cachedVersion = aiCache.greetingVersion;
+    if (!aiCache.coachHistory || aiCache.coachHistory.length === 0 || cachedVersion !== GREETING_VERSION) {
       const scoreIntro = computed?.hasData
         ? `\n\nYour Digital Twin metrics:\n• 💚 Health ${hs}/100  • 💰 Finance ${fs}/100  • 🎯 Career ${cs}/100  • ⚖️ Balance ${bal}/100  • 🔥 Burnout ${burnoutRisk}% (${burnoutLevel})`
         : '\n\nLog some metrics in Health, Finance, or Career to unlock personalized insights.';
       const initialMessage = {
         role: 'ai',
-        text: `Hello ${user?.name || 'there'}! 👋 I'm your AI Life Coach — powered by your Digital Twin's deterministic intelligence.${scoreIntro}\n\nWhat would you like to explore today?`,
+        text: `Hey ${user?.name || 'there'} 👋\n\nI'm your AI Life Coach — built into your Digital Twin. I don't give generic advice. Every insight I share is grounded in your actual health, finance, and career data.${scoreIntro}\n\nI can help you understand what's really driving your scores, catch patterns you might have missed, and figure out your highest-leverage next move.\n\nWhat's on your mind?`,
         timestamp: new Date().toISOString(),
       };
       setMessages([initialMessage]);
-      updateAICache({ coachHistory: [initialMessage] });
+      updateAICache({ coachHistory: [initialMessage], greetingVersion: GREETING_VERSION });
     } else if (messages.length === 0) {
       setMessages(aiCache.coachHistory);
     }
