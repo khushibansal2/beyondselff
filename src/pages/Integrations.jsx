@@ -937,7 +937,7 @@ const AmazonLogo = () => (
 const MOCK_TOP_MATCHES = [
   {
     name: 'Priya Sharma', degree: '2nd',
-    avatar: 'https://i.pravatar.cc/150?u=priya',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150',
     role: 'Software Engineer @ Google',
     company: 'Google',
     location: 'Bengaluru, India',
@@ -947,7 +947,7 @@ const MOCK_TOP_MATCHES = [
   },
   {
     name: 'Arjun Mehta', degree: '2nd',
-    avatar: 'https://i.pravatar.cc/150?u=arjun',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150&h=150',
     role: 'Product Manager @ Microsoft',
     company: 'Microsoft',
     location: 'Mumbai, India',
@@ -957,7 +957,7 @@ const MOCK_TOP_MATCHES = [
   },
   {
     name: 'Rahul Gupta', degree: '3rd+',
-    avatar: 'https://i.pravatar.cc/150?u=rahul',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150',
     role: 'Data Scientist @ Amazon',
     company: 'Amazon',
     location: 'Hyderabad, India',
@@ -1058,7 +1058,7 @@ function LinkedInPanel() {
     : 'text-amber-400 bg-amber-500/10 border-amber-500/25';
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Search */}
       <GlassCard className="!p-5">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -1147,8 +1147,8 @@ function LinkedInPanel() {
 
       {/* Empty State / Top Matches */}
       {!profile && !loading && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: 16 }}>
-          <GlassCard style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 18px', textAlign: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '32px', width: '100%', minWidth: 0 }}>
+          <GlassCard style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 18px', textAlign: 'center', marginTop: 16 }}>
             {/* Top Graphic Area */}
             <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}>
               
@@ -1313,89 +1313,88 @@ function LinkedInPanel() {
             </div>
           </GlassCard>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <GlassCard className="p-0 overflow-hidden animate-fadeIn">
-              <div className="flex items-center justify-between py-3 px-6 border-b border-white/[0.06]">
-                <h3 className="text-[16px] font-semibold text-[#f0f0f3]">Top Matches</h3>
-                <button className="text-[14px] text-[#58a6ff] hover:underline flex items-center gap-1 transition-colors font-medium">
-                  View all <ChevronRight size={16} />
-                </button>
-              </div>
-              <div className="divide-y divide-white/[0.06]">
-                {MOCK_TOP_MATCHES.map(match => (
-                  <div key={match.name} className="flex items-center py-3 px-6 hover:bg-white/[0.01] transition-colors cursor-pointer group" onClick={() => { setSearchInput(match.name); handleSearch(); }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 8, paddingRight: 8, marginBottom: 14, minWidth: 0 }}>
+              <h3 className="text-[17px] font-bold text-white tracking-tight" style={{ margin: 0 }}>Top Matches</h3>
+              <button className="text-[13px] text-[#ab7df8] hover:text-[#c084fc] hover:underline flex items-center gap-1.5 transition-colors font-semibold" style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                View all <ChevronRight size={14} />
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }} className="animate-fadeIn">
+              {MOCK_TOP_MATCHES.map(match => (
+                <div 
+                  key={match.name} 
+                  className="flex items-center bg-[#121826]/40 hover:bg-[#182030]/60 border border-white/[0.04] hover:border-white/[0.08] rounded-2xl transition-all duration-300 cursor-pointer group shadow-lg"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '24px 24px',
+                    width: '100%',
+                    minWidth: 0
+                  }}
+                  onClick={() => { setSearchInput(match.name); handleSearch(); }}
+                >
                   {/* Avatar & Info */}
-                  <div className="flex items-center gap-5 w-[38%]">
-                    <div className="relative flex-shrink-0">
-                      <img src={match.avatar} className="w-14 h-14 rounded-full border border-white/[0.08]" alt={match.name} />
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#56d364] border-2 border-[#0d1423] rounded-full"></div>
+                  <div className="flex items-center gap-4.5 w-[38%]" style={{ display: 'flex', alignItems: 'center', gap: 18, width: '38%', minWidth: 0 }}>
+                    <div className="relative flex-shrink-0" style={{ position: 'relative', flexShrink: 0 }}>
+                      <img src={match.avatar} className="rounded-full border border-white/[0.08] object-cover" style={{ width: 56, height: 56, display: 'block', borderRadius: '50%' }} alt={match.name} />
+                      <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-[#22c55e] border-2 border-[#0e1322] rounded-full shadow-md"></div>
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2.5">
-                        <h4 className="text-[16px] font-bold text-[#f0f0f3] truncate">{match.name}</h4>
-                        <span className="text-[11px] font-semibold text-[#8b949e] bg-white/[0.04] border border-white/[0.08] px-2 py-0.5 rounded-md flex-shrink-0">{match.degree}</span>
+                    <div className="min-w-0 flex flex-col gap-1.5" style={{ display: 'flex', flexDirection: 'column', gap: 9, minWidth: 0, flex: 1 }}>
+                      <div className="flex items-center gap-2.5" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                        <h4 className="text-[15px] font-bold text-white tracking-wide leading-none truncate" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.name}</h4>
+                        <span className="text-[10px] font-bold text-[#8b949e] bg-[#222730] border border-white/[0.06] px-2 py-0.5 rounded-md flex-shrink-0 select-none">{match.degree}</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1.5 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0 text-[#94a3b8] text-[13px] leading-tight" style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                         {match.company === 'Google' && <GoogleLogo />}
                         {match.company === 'Microsoft' && <MicrosoftLogo />}
                         {match.company === 'Amazon' && <AmazonLogo />}
-                        <p className="text-[14px] text-[#8b949e] truncate">{match.role}</p>
+                        <span className="truncate pl-0.5" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.role}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 mt-1.5 text-[#8b949e]">
-                        <MapPin size={12} className="flex-shrink-0" />
-                        <span className="text-[13px]">{match.location}</span>
+                      <div className="flex items-center gap-1.5 text-[#8b949e] text-[12.5px] leading-none mt-0.5" style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                        <MapPin size={12} className="flex-shrink-0 text-[#6e7681]" />
+                        <span className="truncate" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.location}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Experience */}
-                  <div className="w-[13%]">
-                    <p className="text-[12px] text-[#8b949e] uppercase tracking-wider font-semibold">Experience</p>
-                    <p className="text-[15px] font-bold text-[#f0f0f3] mt-1.5">{match.experience}</p>
+                  <div className="w-[11%] flex flex-col gap-1.5 pl-1" style={{ width: '11%', display: 'flex', flexDirection: 'column', gap: 9, paddingLeft: 4, minWidth: 0 }}>
+                    <span className="text-[12px] text-[#8b949e] font-normal select-none truncate" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Experience</span>
+                    <span className="text-[14px] font-bold text-white mt-0.5 truncate" style={{ fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.experience}</span>
                   </div>
 
                   {/* Followers */}
-                  <div className="w-[13%]">
-                    <p className="text-[12px] text-[#8b949e] uppercase tracking-wider font-semibold">Followers</p>
-                    <p className="text-[15px] font-bold text-[#f0f0f3] mt-1.5">{match.followers}</p>
+                  <div className="w-[11%] flex flex-col gap-1.5 pl-1" style={{ width: '11%', display: 'flex', flexDirection: 'column', gap: 9, paddingLeft: 4, minWidth: 0 }}>
+                    <span className="text-[12px] text-[#8b949e] font-normal select-none truncate" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Followers</span>
+                    <span className="text-[14px] font-bold text-white mt-0.5 truncate" style={{ fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.followers}</span>
                   </div>
 
                   {/* Skills */}
-                  <div className="w-[19%] pr-4">
-                    <p className="text-[12px] text-[#8b949e] uppercase tracking-wider font-semibold">Skills</p>
-                    <p className="text-[14px] text-[#8b949e] mt-1.5 truncate leading-relaxed">{match.skills}</p>
+                  <div className="w-[21%] flex flex-col gap-1.5 pr-2" style={{ width: '21%', display: 'flex', flexDirection: 'column', gap: 9, paddingRight: 8, minWidth: 0 }}>
+                    <span className="text-[12px] text-[#8b949e] font-normal select-none truncate" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Skills</span>
+                    <span className="text-[13px] font-normal text-[#c9d1d9] leading-relaxed block mt-0.5 truncate" style={{ fontSize: 13, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={match.skills}>{match.skills}</span>
                   </div>
 
                   {/* Activity Score */}
-                  <div className="w-[14%] flex flex-col items-center">
-                    <p className="text-[12px] text-[#8b949e] uppercase tracking-wider font-semibold mb-1.5 whitespace-nowrap">Activity Score</p>
-                    <div className="relative w-12 h-12 flex items-center justify-center mt-1">
-                      <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                        <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4" />
-                        <circle cx="24" cy="24" r="20" fill="none" stroke={match.scoreColor} strokeWidth="4" strokeDasharray={2 * Math.PI * 20} strokeDashoffset={(2 * Math.PI * 20) * (1 - match.score / 100)} strokeLinecap="round" />
+                  <div className="w-[15%] flex flex-col items-center justify-center gap-1" style={{ width: '15%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 9, minWidth: 0 }}>
+                    <span className="text-[12px] text-[#8b949e] font-normal select-none text-center truncate" style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Activity Score</span>
+                    <div className="relative w-[44px] h-[44px] flex items-center justify-center mt-1 select-none" style={{ position: 'relative', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svg className="absolute inset-0 w-full h-full transform -rotate-90" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+                        <circle cx="22" cy="22" r="18.5" fill="none" stroke={`${match.scoreColor || '#ab7df8'}20`} strokeWidth="3" />
+                        <circle cx="22" cy="22" r="18.5" fill="none" stroke={match.scoreColor || '#ab7df8'} strokeWidth="3" strokeDasharray={2 * Math.PI * 18.5} strokeDashoffset={(2 * Math.PI * 18.5) * (1 - match.score / 100)} strokeLinecap="round" />
                       </svg>
-                      <span className="text-[15px] font-black text-[#f0f0f3]">{match.score}</span>
+                      <span className="text-[14px] font-black text-white" style={{ fontSize: 14, fontWeight: 900 }}>{match.score}</span>
                     </div>
-                    <span className="text-[12px] font-semibold mt-2 text-[#56d364]">{match.scoreLabel}</span>
+                    <span className="text-[11.5px] font-bold mt-0.5 text-[#22c55e] tracking-tight truncate" style={{ fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.scoreLabel}</span>
                   </div>
 
                   {/* Arrow */}
-                  <div className="w-[3%] flex justify-end">
-                    <ChevronRight size={20} className="text-[#8b949e] group-hover:text-white transition-colors" />
+                  <div className="w-[4%] flex justify-end items-center" style={{ width: '4%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexShrink: 0 }}>
+                    <ChevronRight size={18} className="text-[#8b949e] group-hover:text-white transition-colors" />
                   </div>
                 </div>
               ))}
-            </div>
-            </GlassCard>
-
-            <div className="flex items-center justify-between text-[#8b949e] text-[13px] px-2 py-1">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={18} className="text-[#8b949e]" />
-                <span>We use OAuth 2.0 for secure authentication. Your data is private and never stored.</span>
-              </div>
-              <a href="#" className="flex items-center gap-1.5 hover:text-white transition-colors font-medium">
-                Learn more about LinkedIn Integration <ExternalLink size={15} />
-              </a>
             </div>
           </div>
         </div>
@@ -2849,7 +2848,7 @@ export default function Integrations() {
   const [tab, setTab] = useState('github');
 
   return (
-    <div className="page-container min-h-screen pb-2 relative pt-6" style={{ zIndex: 1 }}>
+    <div className="page-container min-h-screen pb-2 relative pt-6 px-8" style={{ zIndex: 1, paddingLeft: '32px', paddingRight: '32px', boxSizing: 'border-box' }}>
       
       {/* ── Cybernetic CSS Keyframes & Overrides ── */}
       <style>{`
