@@ -234,6 +234,7 @@ export default function DigitalTwin() {
   const [whatIfH, setWhatIfH] = useState(65);
   const [whatIfF, setWhatIfF] = useState(60);
   const [whatIfC, setWhatIfC] = useState(68);
+  const [whatIfInited, setWhatIfInited] = useState(false);
 
   const handleBorn = useCallback(() => {
     sessionStorage.setItem(BIRTH_KEY, '1');
@@ -246,10 +247,21 @@ export default function DigitalTwin() {
   const burnout   = computed?.burnout?.risk       ?? 25;
   const balance   = computed?.balance             ?? 63;
 
+  // Initialise What-If Lab from real scores once computed is ready
+  useEffect(() => {
+    if (!whatIfInited && (hScore !== 62 || fScore !== 60 || cScore !== 68)) {
+      setWhatIfH(hScore);
+      setWhatIfF(fScore);
+      setWhatIfC(cScore);
+      setWhatIfInited(true);
+    }
+  }, [hScore, fScore, cScore, whatIfInited]);
+
   const stateName = useMemo(() => computeStateName(hScore, fScore, cScore, burnout), [hScore, fScore, cScore, burnout]);
   const meta      = STATE_META[stateName];
 
-  const whatIfState = useMemo(() => computeStateName(whatIfH, whatIfF, whatIfC, 20), [whatIfH, whatIfF, whatIfC]);
+  // What-If burnout defaults to user's real burnout as baseline
+  const whatIfState = useMemo(() => computeStateName(whatIfH, whatIfF, whatIfC, Math.max(10, burnout - 10)), [whatIfH, whatIfF, whatIfC, burnout]);
   const whatIfMeta  = STATE_META[whatIfState];
 
   // Spring display for life score

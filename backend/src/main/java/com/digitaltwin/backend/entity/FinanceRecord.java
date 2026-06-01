@@ -23,7 +23,8 @@ public class FinanceRecord {
     private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(name = "fk_finance_records_user_id"))
     @JsonIgnore
     private User user;
 
@@ -41,7 +42,8 @@ public class FinanceRecord {
     private Long importId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "import_id", insertable = false, updatable = false)
+    @JoinColumn(name = "import_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(name = "fk_finance_records_import_id"))
     @JsonIgnore
     private ImportHistory importBatch;
 

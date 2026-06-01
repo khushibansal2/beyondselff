@@ -1013,7 +1013,7 @@ function PeersPanel({ userScores, codename }) {
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', margin: '16px 0 12px' }} />
           </div>
           
-          {/* Sparkline Chart */}
+          {/* Sparkline Chart — driven by real rawPts (user score trend) */}
           <div style={{flex:1, minHeight:46, display: 'flex', alignItems: 'flex-end', marginTop: 4}}>
             <svg width="100%" height="46" viewBox="0 0 200 46" preserveAspectRatio="none" style={{overflow: 'visible'}}>
               <defs>
@@ -1022,20 +1022,20 @@ function PeersPanel({ userScores, codename }) {
                   <stop offset="100%" stopColor="#818cf8" stopOpacity="0"/>
                 </linearGradient>
               </defs>
-              {/* Polygon area below the line */}
-              <polygon points={`0,46 ${[36, 26, 26, 16, 17, 20, 11, 6].map((v, i) => `${(i/7)*200},${v}`).join(' ')} 200,46`} fill="url(#spkG)"/>
-              {/* Sparkline stroke */}
-              <polyline points={[36, 26, 26, 16, 17, 20, 11, 6].map((v, i) => `${(i/7)*200},${v}`).join(' ')} fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              {/* Circular data points */}
-              {[36, 26, 26, 16, 17, 20, 11, 6].map((v, i) => (
-                <circle key={i} cx={(i/7)*200} cy={v} r="3.5" fill="#ffffff" stroke="#818cf8" strokeWidth="2" />
+              <polygon points={`0,46 ${sparkCoords} 200,46`} fill="url(#spkG)"/>
+              <polyline points={sparkCoords} fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              {rawPts.map((v, i) => (
+                <circle key={i} cx={(i/6)*200} cy={norm(v)} r="3.5" fill="#ffffff" stroke="#818cf8" strokeWidth="2" />
               ))}
             </svg>
           </div>
-          
-          {/* +4 this week label */}
+
+          {/* Real weekly gain label */}
           <div style={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 12}}>
-            <p style={{fontSize:12.5, fontWeight:600, color:'#22c55e', margin: 0}}>{`+4 this week`}</p>
+            {(() => {
+              const gain = rawPts[rawPts.length-1] - rawPts[0];
+              return <p style={{fontSize:12.5, fontWeight:600, color: gain >= 0 ? '#22c55e' : '#ef4444', margin: 0}}>{gain >= 0 ? '+' : ''}{gain} pts this week</p>;
+            })()}
           </div>
         </div>
       </div>
@@ -1461,10 +1461,9 @@ export default function Gamification() {
 
   // Use backend badges or fallback to demo locked badges
   const badges = useMemo(() => {
-    const earned = gamification?.badges || [];
+    const earned = (gamification?.badges || []).filter(b => typeof b === 'object' && b !== null);
     const earnedIds = new Set(earned.map(b => b.badgeId));
-    
-    // Map earned badges to the UI format
+
     const earnedMapped = earned.map(b => ({
       id: b.badgeId,
       name: b.badgeName,

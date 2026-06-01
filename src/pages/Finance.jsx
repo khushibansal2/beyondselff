@@ -1395,12 +1395,38 @@ export default function Finance() {
     setTxPage(1);
   }, [txFilter, txSearch]);
 
-  const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
+  // Sanitise: clamp any field that exceeds ₹10 crore/month (prevents corruption from bad tx accumulation)
+  const MAX_SANE = 10_000_000;
+  const sanitiseFinance = (raw) => {
+    if (!raw) return {};
+    const out = { ...raw };
+    ['income','expenses','savings','investments','subscriptions','debt'].forEach(k => {
+      const v = Number(out[k]);
+      if (!isFinite(v) || v > MAX_SANE || v < 0) out[k] = 0;
+      else out[k] = v;
+    });
+    return out;
+  };
+  const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...sanitiseFinance(finance) };
   const h = { sleepAvg: 7, stressLevel: 5, workoutsPerWeek: 2, ...(health || {}) };
   const c = { studyHoursDaily: 0, codingHoursDaily: 0, dsaPractice: 0, projectsCompleted: 0, skills: [], gpa: 0, ...(career || {}) };
   const score = computed?.financeScore?.score || 0;
   const financeRecords = records?.finance || [];
   const hasFinanceData = f.income > 0 || f.expenses > 0 || f.savings > 0;
+
+  // Auto-heal: if stored finance data was corrupted, persist the sanitised version
+  useEffect(() => {
+    if (!finance) return;
+    const needsHeal = ['income','expenses','savings','investments','subscriptions','debt'].some(k => {
+      const v = Number(finance[k]);
+      return !isFinite(v) || v > MAX_SANE || v < 0;
+    });
+    if (needsHeal) {
+      updateDomain('finance', f);
+      showToast('Finance data was corrupted and has been reset to safe values.', 'warning');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load finance records from backend on mount (for real users) and auto-seed if empty
   useEffect(() => {
@@ -1449,6 +1475,15 @@ export default function Finance() {
   const [parsedTxs, setParsedTxs] = useState(() => loadTxsLocal());
   const saveTxs = useCallback((txs) => { setParsedTxs(txs); saveTxsLocal(txs); }, []);
 
+  // Listen for voice-logged transactions from VoiceLogger (same-tab real-time update)
+  useEffect(() => {
+    const handler = (e) => {
+      setParsedTxs(prev => [e.detail, ...prev]);
+    };
+    window.addEventListener('voice-finance-tx', handler);
+    return () => window.removeEventListener('voice-finance-tx', handler);
+  }, []);
+
   // ── SMS Parser state ──────────────────────────────────────────────────────
   const [smsInput, setSmsInput] = useState('');
   const [parseResult, setParseResult] = useState(null);
@@ -1467,7 +1502,27 @@ export default function Finance() {
   const liveCountRef = useRef(0);
 
   // ── Derived analytics ─────────────────────────────────────────────────────
-  const allTxs = useMemo(() => [...liveTxs, ...parsedTxs].sort((a, b) => new Date(b.parsedAt) - new Date(a.parsedAt)), [liveTxs, parsedTxs]);
+  // Normalise voice-logged DataContext records into the same shape as parsedTxs.
+  // Only records with source:'voice' are included here to avoid duplicating
+  // SMS-parsed transactions that Finance.jsx already adds to both lists.
+  const voiceTxs = useMemo(() =>
+    financeRecords
+      .filter(r => r.source === 'voice' && r.amount > 0)
+      .map(r => ({
+        id: 'voice-' + r.date,
+        merchant: r.merchant || 'Voice Log',
+        category: r.category ? r.category.charAt(0).toUpperCase() + r.category.slice(1) : 'Others',
+        type: 'Debit',
+        amount: r.amount,
+        bank: null,
+        mask: null,
+        parsedAt: r.date,
+        ref: '🎤 Voice Log',
+        source: 'voice',
+      })),
+  [financeRecords]);
+
+  const allTxs = useMemo(() => [...liveTxs, ...parsedTxs, ...voiceTxs].sort((a, b) => new Date(b.parsedAt) - new Date(a.parsedAt)), [liveTxs, parsedTxs, voiceTxs]);
 
   const categoryTotals = useMemo(() => {
     const map = {};
@@ -1496,11 +1551,10 @@ export default function Finance() {
       setNotification(tx);
       notifTimerRef.current = setTimeout(() => setNotification(null), 4200);
 
-      // Update finance domain every 5 live transactions to avoid thrashing
+      // Update categoryTotals every 5 live transactions — never touch f.expenses (monthly budget)
       if (liveCountRef.current % 5 === 0) {
         updateDomain('finance', {
           ...f,
-          expenses: (f.expenses || 0) + tx.amount,
           categoryTotals: { ...(f.categoryTotals || {}), [tx.category]: ((f.categoryTotals || {})[tx.category] || 0) + tx.amount },
         });
         addRecords('finance', [{ date: new Date().toISOString(), amount: tx.amount, category: tx.category }]);
@@ -1524,24 +1578,22 @@ export default function Finance() {
 
   const handleConfirmTx = async () => {
     if (!editResult) return;
-    const confirmed = { ...editResult, id: Date.now(), source: 'manual', parsedAt: new Date().toISOString() };
-    const updated = [confirmed, ...parsedTxs];
-    saveTxs(updated);
-    // Sync to finance domain
+    const amt = Math.abs(Number(editResult.amount) || 0);
+    if (amt <= 0 || amt > 10_000_000) { showToast('Invalid amount — must be ₹1 to ₹1,00,00,000', 'error'); return; }
+    const confirmed = { ...editResult, amount: amt, id: Date.now(), source: 'manual', parsedAt: new Date().toISOString() };
+    saveTxs([confirmed, ...parsedTxs]);
+    // Only update categoryTotals — never touch f.expenses here (that's the monthly budget field)
     updateDomain('finance', {
       ...f,
-      expenses: (f.expenses || 0) + confirmed.amount,
-      categoryTotals: { ...(f.categoryTotals || {}), [confirmed.category]: ((f.categoryTotals || {})[confirmed.category] || 0) + confirmed.amount },
+      categoryTotals: { ...(f.categoryTotals || {}), [confirmed.category]: ((f.categoryTotals || {})[confirmed.category] || 0) + amt },
     });
-    addRecords('finance', [{ date: new Date().toISOString(), amount: confirmed.amount, category: confirmed.category }]);
-    addTimelineEvent({ type: 'Transaction Parsed', text: `₹${confirmed.amount} at ${confirmed.merchant} (${confirmed.category})`, sentiment: 'neutral', domain: 'finance' });
-    showToast(`Added: ${confirmed.merchant} ₹${confirmed.amount}`, 'success');
+    addRecords('finance', [{ date: new Date().toISOString(), amount: amt, category: confirmed.category }]);
+    addTimelineEvent({ type: 'Transaction Parsed', text: `₹${amt} at ${confirmed.merchant} (${confirmed.category})`, sentiment: 'neutral', domain: 'finance' });
+    showToast(`Added: ${confirmed.merchant} ₹${amt}`, 'success');
     setSmsInput(''); setParseResult(null); setEditResult(null);
-    // Persist to backend
     if (financeApi.isEnabled()) {
-      try {
-        await financeApi.create({ date: new Date().toISOString(), amount: confirmed.amount, category: confirmed.category, merchant: confirmed.merchant, transactionType: confirmed.type === 'Credit' ? 'credit' : 'debit', description: confirmed.bank });
-      } catch (err) { console.warn('Finance: backend save failed:', err.message); }
+      try { await financeApi.create({ date: new Date().toISOString(), amount: amt, category: confirmed.category, merchant: confirmed.merchant, transactionType: confirmed.type === 'Credit' ? 'credit' : 'debit' }); }
+      catch (err) { console.warn('Finance: backend save failed:', err.message); }
     }
   };
 
@@ -1557,32 +1609,34 @@ export default function Finance() {
   };
 
   const handleBulkConfirm = async () => {
-    const valid = multiResults.filter(r => r.result).map(r => ({ ...r.result, id: Date.now() + Math.random(), source: 'manual', parsedAt: new Date().toISOString() }));
+    const valid = multiResults.filter(r => r.result)
+      .map(r => ({ ...r.result, amount: Math.abs(Number(r.result.amount) || 0), id: Date.now() + Math.random(), source: 'manual', parsedAt: new Date().toISOString() }))
+      .filter(t => t.amount > 0 && t.amount <= 10_000_000);
     if (!valid.length) { showToast('No valid transactions to add', 'error'); return; }
-    const updated = [...valid, ...parsedTxs];
-    saveTxs(updated);
-    const totalAmount = valid.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
-    updateDomain('finance', { ...f, expenses: (f.expenses || 0) + totalAmount });
+    saveTxs([...valid, ...parsedTxs]);
+    // Only update categoryTotals — never touch f.expenses here
+    const catDelta = valid.reduce((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, { ...(f.categoryTotals || {}) });
+    updateDomain('finance', { ...f, categoryTotals: catDelta });
     addRecords('finance', valid.map(t => ({ date: new Date().toISOString(), amount: t.amount, category: t.category })));
     showToast(`Added ${valid.length} transaction${valid.length !== 1 ? 's' : ''}`, 'success');
     setMultiInput(''); setMultiResults([]);
-    // Persist to backend
     if (financeApi.isEnabled()) {
-      try {
-        await Promise.all(valid.map(t => financeApi.create({ date: new Date().toISOString(), amount: t.amount, category: t.category, merchant: t.merchant, transactionType: t.type === 'Credit' ? 'credit' : 'debit' })));
-      } catch (err) { console.warn('Finance: bulk backend save failed:', err.message); }
+      try { await Promise.all(valid.map(t => financeApi.create({ date: new Date().toISOString(), amount: t.amount, category: t.category, merchant: t.merchant, transactionType: t.type === 'Credit' ? 'credit' : 'debit' }))); }
+      catch (err) { console.warn('Finance: bulk backend save failed:', err.message); }
     }
   };
 
   const handleDeleteTx = async (id) => {
     const tx = parsedTxs.find(t => t.id === id);
-    const updated = parsedTxs.filter(t => t.id !== id);
-    saveTxs(updated);
-    // Reverse domain impact
-    if (tx && tx.type !== 'Credit') {
-      updateDomain('finance', { ...f, expenses: Math.max(0, (f.expenses || 0) - tx.amount) });
+    saveTxs(parsedTxs.filter(t => t.id !== id));
+    // Remove from categoryTotals only — don't touch f.expenses
+    if (tx?.amount > 0) {
+      const cat = f.categoryTotals || {};
+      updateDomain('finance', { ...f, categoryTotals: { ...cat, [tx.category]: Math.max(0, (cat[tx.category] || 0) - tx.amount) } });
     }
-    // Persist deletion to backend
     if (financeApi.isEnabled() && tx?.backendId) {
       try { await financeApi.delete(tx.backendId); } catch (err) { console.warn('Finance: backend delete failed:', err.message); }
     }

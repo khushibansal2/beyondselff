@@ -22,7 +22,8 @@ public class HealthRecord {
     private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(name = "fk_health_records_user_id"))
     @JsonIgnore
     private User user;
 
@@ -43,7 +44,8 @@ public class HealthRecord {
     private Long importId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "import_id", insertable = false, updatable = false)
+    @JoinColumn(name = "import_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(name = "fk_health_records_import_id"))
     @JsonIgnore
     private ImportHistory importBatch;
 

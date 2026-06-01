@@ -189,37 +189,24 @@ export default function CascadeMap() {
     return null; // use default
   };
 
-  // Detected cascades from the real engine
-  const activeCascades = crossDomain.length > 0 ? crossDomain : [
-    {
-      id: 'sleep-productivity', type: 'negative', from: 'health', to: 'career',
-      trigger: 'Sleep at 6.2h/night',
-      effect: '~22% reduction in study efficiency',
-      severity: 'warning',
-      mechanism: 'Sleep deficit reduces cognitive consolidation and working memory, lowering effective study hours.',
-    },
-    {
-      id: 'stress-spending', type: 'negative', from: 'health', to: 'finance',
-      trigger: 'Stress level at 7/10',
-      effect: 'Estimated ₹2,400 in stress-related spending/month',
-      severity: 'warning',
-      mechanism: 'High cortisol reduces impulse control, increasing likelihood of comfort spending.',
-    },
-  ];
+  // Real cascade data only — no mock fallback
+  const activeCascades = crossDomain;
+  const hasCascades = activeCascades.length > 0;
 
   const selectedEdgeData = EDGES.find(e => e.id === selectedEdge && e.kind === 'cross');
 
-  // SVG gradient defs for cross-domain edges
+  // SVG gradient defs for cross-domain edges — guard against missing nodes
   const gradientDefs = EDGES.filter(e => e.kind === 'cross').map(e => {
     const n1 = nodeById(e.from), n2 = nodeById(e.to);
+    if (!n1 || !n2) return null;
     return (
       <linearGradient key={e.id} id={`g-${e.id}`}
         x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stopColor={DC[n1.domain].p} />
-        <stop offset="100%" stopColor={DC[n2.domain].p} />
+        <stop offset="0%"   stopColor={DC[n1.domain]?.p || '#6366f1'} />
+        <stop offset="100%" stopColor={DC[n2.domain]?.p || '#8b5cf6'} />
       </linearGradient>
     );
-  });
+  }).filter(Boolean);
 
   return (
     <div className="min-h-screen pb-24" style={{ background: '#0a0a0f', padding:'20px 24px 0' }}>
@@ -484,8 +471,12 @@ export default function CascadeMap() {
           {activeCascades.length === 0 ? (
             <div style={{ padding:'20px', borderRadius:12, textAlign:'center', background:'rgba(16,185,129,0.06)', border:'1px solid rgba(16,185,129,0.15)' }}>
               <CheckCircle size={20} style={{color:'#10b981', margin:'0 auto 8px'}}/>
-              <p style={{ fontSize:13, fontWeight:700, color:'#10b981' }}>No active cascades detected</p>
-              <p style={{ fontSize:12, color:'#64748b', marginTop:4 }}>Your domains are in balance. Keep it up.</p>
+              <p style={{ fontSize:13, fontWeight:700, color:'#10b981' }}>No active cascades</p>
+              <p style={{ fontSize:12, color:'#64748b', marginTop:4 }}>
+                {(healthScore > 0 || financeScore > 0 || careerScore > 0)
+                  ? 'Your domains are in balance. Keep it up.'
+                  : 'Log health, finance & career data to detect cross-domain effects.'}
+              </p>
             </div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>

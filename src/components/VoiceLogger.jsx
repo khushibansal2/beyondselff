@@ -194,7 +194,7 @@ export default function VoiceLogger() {
       // ── Finance ─────────────────────────────────────────────────────
       if (domain === 'finance') {
         const amount = entities.amount || 0;
-        if (action === 'expense') {
+        if (action === 'expense' && amount > 0) {
           const cat = (entities.category || 'Others').toLowerCase();
           updateDomain('finance', {
             expenses: (finance?.expenses || 0) + amount,
@@ -203,10 +203,31 @@ export default function VoiceLogger() {
               [cat]: ((finance?.categoryTotals || {})[cat] || 0) + amount,
             },
           });
-          addRecords('finance', [{ date: now, amount, category: cat }]);
+          addRecords('finance', [{ date: now, amount, category: cat, merchant: entities.merchant || 'Voice Log', source: 'voice' }]);
           addTimelineEvent({ type: 'Voice: Expense', text: humanReadable, sentiment: 'neutral', domain: 'finance' });
-        } else if (action === 'income') {
-          updateDomain('finance', { income: amount });
+
+          // Also write to Finance page's parsedTxs localStorage so it appears in the
+          // transaction list immediately (same-tab) via the custom event below.
+          try {
+            const TX_KEY = 'finance_parsed_transactions';
+            const existing = JSON.parse(localStorage.getItem(TX_KEY) || '[]');
+            const voiceTx = {
+              id: 'voice-' + now,
+              merchant: entities.merchant || 'Voice Log',
+              category: cat.charAt(0).toUpperCase() + cat.slice(1),
+              type: 'Debit',
+              amount,
+              bank: null,
+              mask: null,
+              parsedAt: now,
+              ref: '🎤 Voice Log',
+              source: 'voice',
+            };
+            localStorage.setItem(TX_KEY, JSON.stringify([voiceTx, ...existing].slice(0, 200)));
+            window.dispatchEvent(new CustomEvent('voice-finance-tx', { detail: voiceTx }));
+          } catch { /* non-critical */ }
+        } else if (action === 'income' && amount > 0) {
+          updateDomain('finance', { income: (finance?.income || 0) + amount });
           addTimelineEvent({ type: 'Voice: Income', text: humanReadable, sentiment: 'positive', domain: 'finance' });
         }
       }
@@ -214,9 +235,12 @@ export default function VoiceLogger() {
       // ── Health ──────────────────────────────────────────────────────
       if (domain === 'health') {
         const healthUpdate = {};
-        if (action === 'workout' && entities.durationMinutes) {
+        if (action === 'workout') {
+          // Always increment workout count; only update activeMinutes if duration was extracted
           healthUpdate.workoutsPerWeek = Math.min(7, (health?.workoutsPerWeek || 0) + 1);
-          healthUpdate.activeMinutes = (health?.activeMinutes || 0) + entities.durationMinutes;
+          if (entities.durationMinutes) {
+            healthUpdate.activeMinutes = (health?.activeMinutes || 0) + entities.durationMinutes;
+          }
         }
         if (action === 'sleep' && entities.sleepHours) {
           healthUpdate.sleepAvg = entities.sleepHours;
@@ -266,12 +290,14 @@ export default function VoiceLogger() {
       const newXP = currentXP + xp;
       const newLevel = Math.floor(newXP / 100) + 1;
 
-      // Badge logic
+      // Badge logic — store as backend-compatible objects ({ badgeId, badgeName, icon, earnedAt })
       const badges = [...(gamification?.badges || [])];
-      if (newXP >= 100 && !badges.includes('First Century')) badges.push('First Century');
-      if (domain === 'health' && action === 'workout' && !badges.includes('Workout Warrior')) badges.push('Workout Warrior');
-      if (domain === 'finance' && !badges.includes('Budget Tracker')) badges.push('Budget Tracker');
-      if (domain === 'career' && !badges.includes('Scholar')) badges.push('Scholar');
+      const hasBadge = (id) => badges.some(b => (typeof b === 'string' ? b : b.badgeId) === id);
+      const mkBadge = (id, name, icon) => ({ badgeId: id, badgeName: name, icon, earnedAt: now });
+      if (newXP >= 100 && !hasBadge('first_century')) badges.push(mkBadge('first_century', 'First Century', '💯'));
+      if (domain === 'health' && action === 'workout' && !hasBadge('workout_warrior')) badges.push(mkBadge('workout_warrior', 'Workout Warrior', '💪'));
+      if (domain === 'finance' && !hasBadge('budget_tracker')) badges.push(mkBadge('budget_tracker', 'Budget Tracker', '💰'));
+      if (domain === 'career' && !hasBadge('scholar')) badges.push(mkBadge('scholar', 'Scholar', '📚'));
 
       updateGamification({ xp: newXP, level: newLevel, badges });
 

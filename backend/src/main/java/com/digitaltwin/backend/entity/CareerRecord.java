@@ -24,7 +24,8 @@ public class CareerRecord {
     private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(name = "fk_career_records_user_id"))
     @JsonIgnore
     private User user;
 
@@ -39,21 +40,24 @@ public class CareerRecord {
     // 1NF fix: multi-valued attributes in their own tables instead of delimited strings
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "career_record_languages",
-            joinColumns = @JoinColumn(name = "career_record_id"))
+            joinColumns = @JoinColumn(name = "career_record_id",
+                         foreignKey = @ForeignKey(name = "fk_career_record_languages_record")))
     @Column(name = "language")
     @Builder.Default
     private List<String> languages = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "career_record_skills",
-            joinColumns = @JoinColumn(name = "career_record_id"))
+            joinColumns = @JoinColumn(name = "career_record_id",
+                         foreignKey = @ForeignKey(name = "fk_career_record_skills_record")))
     @Column(name = "skill", length = 200)
     @Builder.Default
     private List<String> extractedSkills = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "career_record_projects",
-            joinColumns = @JoinColumn(name = "career_record_id"))
+            joinColumns = @JoinColumn(name = "career_record_id",
+                         foreignKey = @ForeignKey(name = "fk_career_record_projects_record")))
     @Column(name = "project_title", length = 500)
     @Builder.Default
     private List<String> extractedProjects = new ArrayList<>();
@@ -64,7 +68,8 @@ public class CareerRecord {
     private Long importId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "import_id", insertable = false, updatable = false)
+    @JoinColumn(name = "import_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(name = "fk_career_records_import_id"))
     @JsonIgnore
     private ImportHistory importBatch;
 

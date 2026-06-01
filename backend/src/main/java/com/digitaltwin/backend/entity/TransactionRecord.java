@@ -24,7 +24,8 @@ public class TransactionRecord {
     private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false,
+                foreignKey = @ForeignKey(name = "fk_transaction_records_user_id"))
     @JsonIgnore
     private User user;
 

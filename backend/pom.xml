@@ -110,6 +110,17 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Flyway — managed schema migrations (replaces ddl-auto=update) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!-- Flyway 10+ requires an explicit PostgreSQL module -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
