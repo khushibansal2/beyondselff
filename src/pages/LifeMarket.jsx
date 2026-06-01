@@ -12,8 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
-const STORAGE_KEY = 'life_market_contracts_v2';
-const GROQ_URL    = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 // Obsidian Slate palette
 const C = {
@@ -98,11 +97,6 @@ function computeHLV(hs, fs, cs) {
   const c = Math.round(cs * 1.8);
   return { health: h, finance: f, career: c, total: h + f + c };
 }
-
-function loadContracts() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
-}
-function saveContracts(c) { localStorage.setItem(STORAGE_KEY, JSON.stringify(c)); }
 
 function daysUntil(iso) {
   return Math.max(0, Math.floor((new Date(iso) - Date.now()) / 86_400_000));
@@ -817,18 +811,18 @@ function ContractWizard({ onSign, onClose }) {
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LifeMarket() {
-  const { computed } = useData();
+  const { computed, lifeMarket, updateDomain } = useData();
   const healthScore  = computed?.healthScore?.score  || 0;
   const financeScore = computed?.financeScore?.score || 0;
   const careerScore  = computed?.careerScore?.score  || 0;
   const hlv = useMemo(() => computeHLV(healthScore, financeScore, careerScore), [healthScore, financeScore, careerScore]);
 
   const [tab, setTab]               = useState('market');
-  const [contracts, setContracts]   = useState(loadContracts);
+  const [contracts, setContracts]   = useState(() => lifeMarket?.contracts || []);
   const [showWizard, setShowWizard] = useState(false);
   const [signing, setSigning]       = useState(null);
 
-  useEffect(() => { saveContracts(contracts); }, [contracts]);
+  useEffect(() => { updateDomain('lifeMarket', { contracts }); }, [contracts]);
 
   const active    = contracts.filter(c => c.status === 'active');
   const done      = contracts.filter(c => c.status === 'completed');

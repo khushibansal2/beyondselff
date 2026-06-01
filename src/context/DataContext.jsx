@@ -35,6 +35,12 @@ const EMPTY_STATE = {
     career: [],
   },
 
+  // Sustainability tracking
+  sustainability: { carbonFootprint: { transport: 0, energy: 0, food: 0 }, ecoActions: [] },
+
+  // LifeMarket contracts
+  lifeMarket: { contracts: [] },
+
   // Gamification
   gamification: {
     xp: 0,
@@ -277,6 +283,8 @@ function migrateSchema(data) {
   }
   
   if (!migrated.simulatorState) migrated.simulatorState = { selected: [], months: 3 };
+  if (!migrated.sustainability) migrated.sustainability = { carbonFootprint: { transport: 0, energy: 0, food: 0 }, ecoActions: [] };
+  if (!migrated.lifeMarket) migrated.lifeMarket = { contracts: [] };
 
   return migrated;
 }

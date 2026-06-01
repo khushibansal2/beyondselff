@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { showToast } from '../components/ui/Components';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, ReferenceLine, CartesianGrid } from 'recharts';
@@ -52,11 +51,19 @@ const ChartTooltip = ({ active, payload, label }) => {
 };
 
 export default function Sustainability() {
-  const { user } = useAuth();
-  const { updateDomain } = useData();
+  const { sustainability, updateDomain } = useData();
   const [tab, setTab] = useState('dashboard');
-  
-  const sustainData = user?.sustainability || { carbonFootprint: { transport: 112, energy: 98, food: 70 }, ecoActions: [] };
+
+  // Use real data if any carbon has been tracked; fall back to demo values for new users
+  const hasCarbonData = (sustainability?.carbonFootprint?.transport || 0) +
+    (sustainability?.carbonFootprint?.energy || 0) +
+    (sustainability?.carbonFootprint?.food || 0) > 0;
+  const sustainData = {
+    carbonFootprint: hasCarbonData
+      ? sustainability.carbonFootprint
+      : { transport: 112, energy: 98, food: 70 },
+    ecoActions: sustainability?.ecoActions || [],
+  };
   const totalCarbon = (sustainData.carbonFootprint?.transport || 0) + (sustainData.carbonFootprint?.energy || 0) + (sustainData.carbonFootprint?.food || 0);
 
   const targetCarbon = 238; 
@@ -77,10 +84,10 @@ export default function Sustainability() {
   ];
 
   const handleLogAction = (action, carbonSaved) => {
-    const updated = { ...sustainData };
-    if (!updated.ecoActions) updated.ecoActions = [];
-    updated.ecoActions.unshift({ action, points: carbonSaved, date: new Date().toISOString() });
-    updateDomain('sustainability', updated);
+    const newEntry = { action, points: carbonSaved, date: new Date().toISOString() };
+    updateDomain('sustainability', {
+      ecoActions: [newEntry, ...(sustainability?.ecoActions || [])],
+    });
     showToast(`Logged: "${action}". Saved ${carbonSaved}kg CO2!`, 'success');
   };
 
