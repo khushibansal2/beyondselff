@@ -1,18 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { showToast } from '../components/ui/Components';
 import { computeGoalProgress, METRIC_OPTIONS } from '../engines/goalProgressEngine';
 import { goalsApi } from '../services/backendApi';
-
-const aiGoalSuggestions = [
-  { title: 'Sleep 7.5h Every Night',   domain: 'health',  milestones: 'Sleep by 11pm, No screens after 10pm, Morning routine, 7+ hours consistently', icon: '😴', targetMetric: 'sleepAvg',         targetValue: 7.5   },
-  { title: 'Build Emergency Fund ₹1L', domain: 'finance', milestones: '₹10K saved, ₹25K saved, ₹50K saved, 3-month expenses buffer',                  icon: '🏦', targetMetric: 'savings',          targetValue: 100000 },
-  { title: 'Crack FAANG Interview',    domain: 'career',  milestones: '200 DSA problems, System Design basics, 3 Projects, Mock interviews, Apply',    icon: '🎯', targetMetric: 'dsaPractice',      targetValue: 5     },
-  { title: 'Workout 5x Per Week',      domain: 'health',  milestones: 'Walk daily, Gym 3x, Gym 4x, Gym 5x, Maintain streak',                           icon: '🏃', targetMetric: 'workoutsPerWeek',  targetValue: 5     },
-  { title: 'Cut Expenses to ₹10000',   domain: 'finance', milestones: 'List all subscriptions, Identify unused, Cancel 3+, Review monthly',            icon: '✂️', targetMetric: 'expenses',         targetValue: 10000 },
-  { title: 'Complete 5 Projects',      domain: 'career',  milestones: 'Project 1, Project 2, Project 3, Project 4, Project 5',                         icon: '🏗️', targetMetric: 'projectsCompleted', targetValue: 5    },
-];
 
 const EMPTY_FORM = { title: '', domain: 'health', deadline: '', milestones: '', priority: 'medium', targetMetric: '', targetValue: '' };
 
@@ -42,6 +33,34 @@ export default function Goals() {
     const computed = computeGoalProgress(g, health || {}, finance || {}, career || {});
     return { ...g, _computed: computed };
   });
+
+  // Dynamic AI suggestions — driven by real user scores, filtered against existing goals
+  const aiGoalSuggestions = useMemo(() => {
+    const h = { sleepAvg: 7, stressLevel: 5, workoutsPerWeek: 3, waterIntake: 6, moodAvg: 7, ...health };
+    const f = { savings: 0, expenses: 0, income: 0, debt: 0, ...finance };
+    const c = { dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, ...career };
+    const existingTitles = (goals || []).map(g => g.title?.toLowerCase().trim());
+    const candidates = [
+      h.sleepAvg < 7    && { title: 'Sleep 7.5h Every Night',    domain: 'health',  icon: '😴', targetMetric: 'sleepAvg',         targetValue: 7.5,   milestones: 'Sleep by 11pm, No screens after 10pm, Morning routine, 7+ hours consistently' },
+      h.workoutsPerWeek < 4 && { title: `Workout ${Math.min(5, (h.workoutsPerWeek||0)+2)}x Per Week`, domain: 'health', icon: '🏃', targetMetric: 'workoutsPerWeek', targetValue: Math.min(5, (h.workoutsPerWeek||0)+2), milestones: 'Walk daily, Gym 3x, Gym 4x, Maintain streak' },
+      h.stressLevel > 6 && { title: 'Lower Stress to 5/10',     domain: 'health',  icon: '🧘', targetMetric: 'stressLevel',      targetValue: 5,     milestones: 'Daily meditation, Reduce workload, Evening routine, Consistent 5/10' },
+      h.waterIntake < 7 && { title: 'Drink 8 Glasses Daily',    domain: 'health',  icon: '💧', targetMetric: 'waterIntake',      targetValue: 8,     milestones: '4 glasses by noon, 6 by 6pm, 8 by 9pm, Daily habit' },
+      f.savings < 100000 && { title: 'Build Emergency Fund ₹1L', domain: 'finance', icon: '🏦', targetMetric: 'savings',          targetValue: 100000, milestones: '₹10K saved, ₹25K saved, ₹50K saved, 3-month expenses buffer' },
+      f.debt > 0        && { title: `Clear Debt ₹${Math.round(f.debt/1000)}K`,     domain: 'finance', icon: '💳', targetMetric: 'debt', targetValue: 0, milestones: 'List debts, Pay highest-interest first, 50% cleared, Debt-free' },
+      f.income > 0 && (f.expenses/f.income) > 0.8 && { title: 'Save 20% of Income', domain: 'finance', icon: '✂️', targetMetric: 'expenses', targetValue: Math.round(f.income * 0.8), milestones: 'Track expenses, Cut subscriptions, Automate savings, Hit 20%' },
+      c.dsaPractice < 3 && { title: 'Crack FAANG Interview',    domain: 'career',  icon: '🎯', targetMetric: 'dsaPractice',      targetValue: 5,     milestones: '200 DSA problems, System Design basics, 3 Projects, Mock interviews, Apply' },
+      c.projectsCompleted < 5 && { title: 'Complete 5 Projects', domain: 'career', icon: '🏗️', targetMetric: 'projectsCompleted', targetValue: 5,    milestones: 'Project 1, Project 2, Project 3, Project 4, Project 5' },
+      c.studyHoursDaily < 3 && { title: 'Study 3+ Hours Daily', domain: 'career',  icon: '📚', targetMetric: 'studyHoursDaily',  targetValue: 3,     milestones: '1h daily, 2h routine, 3h consistent, 30-day streak' },
+    ].filter(Boolean).filter(s => !existingTitles.includes(s.title.toLowerCase().trim()));
+    // Always include at least 3 fallbacks if not enough data-driven ones
+    const fallbacks = [
+      { title: 'Sleep 7.5h Every Night',   domain: 'health',  icon: '😴', targetMetric: 'sleepAvg',         targetValue: 7.5,   milestones: 'Sleep by 11pm, No screens after 10pm, Morning routine, 7+ hours' },
+      { title: 'Build Emergency Fund ₹1L', domain: 'finance', icon: '🏦', targetMetric: 'savings',          targetValue: 100000, milestones: '₹10K saved, ₹25K saved, ₹50K saved, 3-month expenses buffer' },
+      { title: 'Crack FAANG Interview',    domain: 'career',  icon: '🎯', targetMetric: 'dsaPractice',      targetValue: 5,     milestones: '200 DSA problems, System Design, 3 Projects, Mock interviews' },
+    ].filter(s => !existingTitles.includes(s.title.toLowerCase().trim()));
+    const merged = [...candidates, ...fallbacks.filter(f2 => !candidates.find(c2 => c2.title === f2.title))];
+    return merged.slice(0, 6);
+  }, [health, finance, career, goals]);
 
   useEffect(() => {
     if (goalsApi.isEnabled()) goalsApi.getAll().then(data => updateGoals(data)).catch(console.error);

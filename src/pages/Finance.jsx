@@ -166,7 +166,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
   ].filter(a => !dismissed[a.id]);
 
   const sessionId = `#AX-${Math.abs(((f.income || 1234) * 7 + (f.expenses || 567)) % 9000 + 1000)}`;
-  const syncMin = Math.floor(Math.random() * 5) + 1;
+  const syncMin = score > 0 ? 'Live' : 'Not synced';
 
   return (
     <div style={{ background: '#12141a', border: '1px solid #20222a', borderRadius: 16, overflow: 'hidden', fontFamily: 'var(--font-primary)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -224,7 +224,7 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
             ENGINE CONNECTED
           </span>
           <span style={{ color: '#334155' }}>|</span>
-          <span>LAST SYNC: {syncMin}M AGO</span>
+          <span>DATA: {score > 0 ? 'LIVE' : 'DEMO MODE'}</span>
         </div>
         <span style={{ fontSize: 10, color: '#334155', fontFamily: 'JetBrains Mono, monospace' }}>SESSION ID: {sessionId}</span>
       </div>
@@ -242,7 +242,7 @@ function TxCard({ tx, onDelete }) {
       <span className="text-xl">{meta.icon}</span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-200 truncate">{tx.merchant}</p>
-        <p className="text-[10px] text-slate-500">{tx.category} · {tx.bank} · {tx.paymentMode}</p>
+        <p className="text-[10px] text-slate-500">{tx.category}{tx.bank ? ` · ${tx.bank}` : ''}{tx.paymentMode ? ` · ${tx.paymentMode}` : tx.source ? ` · ${tx.source}` : ''}</p>
       </div>
       <div className="text-right shrink-0">
         <p className={`text-sm font-bold ${tx.type === 'Credit' ? 'text-emerald-400' : meta.text}`}>
@@ -369,7 +369,7 @@ function InvestmentRoboAdvisor({ f, score }) {
   ];
   const totalTaxSaving = taxRows.reduce((s, r) => s + r.saving, 0);
 
-  const [sipAmt, setSipAmt] = useState(500); // starts with 500 to match mockup exactly!
+  const [sipAmt, setSipAmt] = useState(() => Math.max(500, Math.round((f.income || 0) * 0.1 / 500) * 500) || 500);
   const [sipYrs, setSipYrs] = useState(10);
   const annualRate = activeProfile === 'aggressive' ? 0.13 : activeProfile === 'moderate' ? 0.11 : 0.09;
   const mr = annualRate / 12;
@@ -378,7 +378,12 @@ function InvestmentRoboAdvisor({ f, score }) {
   const sipInvested = sipAmt * months;
 
   const sessionId = `#IX-${Math.abs(((dispIncome) * 3 + (dispScore)) % 9000 + 1000)}`;
-  const syncMin = 4; // exact mockup shows 4m ago!
+  const syncMin = useMemo(() => {
+    if (financeRecords.length === 0) return null;
+    const last = financeRecords[financeRecords.length - 1];
+    const diff = Math.floor((Date.now() - new Date(last.date || Date.now())) / 60000);
+    return diff < 1 ? 'just now' : diff < 60 ? `${diff}m ago` : `${Math.floor(diff/60)}h ago`;
+  }, [financeRecords]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', fontFamily: 'var(--font-primary)' }}>
@@ -640,7 +645,7 @@ function InvestmentRoboAdvisor({ f, score }) {
               <div>
                 <div style={{ fontSize: '10px', color: '#8e929b', fontWeight: 500 }}>Savings Rate</div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '1px' }}>
-                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff' }}>100%</span>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff' }}>{Math.max(0, savingsRate)}%</span>
                   <span style={{ fontSize: '9px', color: '#565a64' }}>of income</span>
                 </div>
               </div>
@@ -652,9 +657,9 @@ function InvestmentRoboAdvisor({ f, score }) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ flex: 1, height: '6px', background: '#050608', borderRadius: '3px', overflow: 'hidden', position: 'relative' }}>
-                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg, #8b5cf6, #d946ef)', borderRadius: '3px' }} />
+                  <div style={{ width: `${Math.min(100, Math.max(0, savingsRate))}%`, height: '100%', background: 'linear-gradient(90deg, #8b5cf6, #d946ef)', borderRadius: '3px', transition: 'width 1s ease' }} />
                 </div>
-                <span style={{ fontSize: '11px', color: '#8e929b', fontWeight: 600 }}>20%</span>
+                <span style={{ fontSize: '11px', color: '#8e929b', fontWeight: 600 }}>Target 20%</span>
               </div>
             </div>
           </div>
@@ -1062,9 +1067,9 @@ function InvestmentRoboAdvisor({ f, score }) {
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} className="animate-pulse" />
             ENGINE CONNECTED
           </span>
-          <span>LAST SYNC: {syncMin}M AGO</span>
+          <span>STATUS: {syncMin}</span>
         </div>
-        <span>SESSION ID: {sessionId}</span>
+        <span>SESSION: {sessionId}</span>
       </div>
 
     </div>
@@ -1551,20 +1556,36 @@ export default function Finance() {
     setMultiResults(results);
   };
 
-  const handleBulkConfirm = () => {
-    const valid = multiResults.filter(r => r.result).map(r => ({ ...r.result, source: 'manual' }));
+  const handleBulkConfirm = async () => {
+    const valid = multiResults.filter(r => r.result).map(r => ({ ...r.result, id: Date.now() + Math.random(), source: 'manual', parsedAt: new Date().toISOString() }));
     if (!valid.length) { showToast('No valid transactions to add', 'error'); return; }
     const updated = [...valid, ...parsedTxs];
     saveTxs(updated);
-    const totalAmount = valid.reduce((s, t) => s + t.amount, 0);
+    const totalAmount = valid.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
     updateDomain('finance', { ...f, expenses: (f.expenses || 0) + totalAmount });
-    showToast(`Added ${valid.length} transactions`, 'success');
+    addRecords('finance', valid.map(t => ({ date: new Date().toISOString(), amount: t.amount, category: t.category })));
+    showToast(`Added ${valid.length} transaction${valid.length !== 1 ? 's' : ''}`, 'success');
     setMultiInput(''); setMultiResults([]);
+    // Persist to backend
+    if (financeApi.isEnabled()) {
+      try {
+        await Promise.all(valid.map(t => financeApi.create({ date: new Date().toISOString(), amount: t.amount, category: t.category, merchant: t.merchant, transactionType: t.type === 'Credit' ? 'credit' : 'debit' })));
+      } catch (err) { console.warn('Finance: bulk backend save failed:', err.message); }
+    }
   };
 
-  const handleDeleteTx = (id) => {
+  const handleDeleteTx = async (id) => {
+    const tx = parsedTxs.find(t => t.id === id);
     const updated = parsedTxs.filter(t => t.id !== id);
     saveTxs(updated);
+    // Reverse domain impact
+    if (tx && tx.type !== 'Credit') {
+      updateDomain('finance', { ...f, expenses: Math.max(0, (f.expenses || 0) - tx.amount) });
+    }
+    // Persist deletion to backend
+    if (financeApi.isEnabled() && tx?.backendId) {
+      try { await financeApi.delete(tx.backendId); } catch (err) { console.warn('Finance: backend delete failed:', err.message); }
+    }
   };
 
   // ── Legacy handlers ───────────────────────────────────────────────────────
@@ -2466,11 +2487,41 @@ export default function Finance() {
 
       {/* ── TRANSACTIONS TAB ──────────────────────────────────────────────── */}
       {tab === 'transactions' && (() => {
-        // Compute stats for all transactions
-        const totalCount = allTxs.length;
-        const totalSpent = allTxs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
-        const totalIncome = allTxs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0);
-        const netSavings = totalIncome - totalSpent;
+        const now = new Date();
+        const msPerDay = 86400000;
+        const cutoff30 = new Date(now - 30 * msPerDay);
+        const cutoff60 = new Date(now - 60 * msPerDay);
+
+        // Current 30-day window
+        const recent = allTxs.filter(t => new Date(t.parsedAt) >= cutoff30);
+        const prev   = allTxs.filter(t => { const d = new Date(t.parsedAt); return d >= cutoff60 && d < cutoff30; });
+
+        const sumSpent  = txs => txs.filter(t => t.type !== 'Credit').reduce((s, t) => s + t.amount, 0);
+        const sumIncome = txs => txs.filter(t => t.type === 'Credit').reduce((s, t) => s + t.amount, 0);
+
+        const totalCount  = allTxs.length;
+        const totalSpent  = sumSpent(recent);
+        const totalIncome = sumIncome(recent);
+        const netSavings  = totalIncome - totalSpent;
+
+        const prevSpent  = sumSpent(prev);
+        const prevIncome = sumIncome(prev);
+        const prevNet    = prevIncome - prevSpent;
+
+        const pctChange = (curr, prev2) => {
+          if (!prev2 || prev2 === 0) return null;
+          const delta = ((curr - prev2) / prev2) * 100;
+          return { pct: Math.abs(delta).toFixed(1), up: delta >= 0 };
+        };
+        const spentTrend  = pctChange(totalSpent,  prevSpent);
+        const incomeTrend = pctChange(totalIncome, prevIncome);
+        const netTrend    = pctChange(netSavings,  prevNet);
+
+        // Date range label
+        const fmt = d => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        const dateRangeLabel = recent.length > 0
+          ? `${fmt(cutoff30)} – ${fmt(now)}`
+          : allTxs.length > 0 ? `${fmt(new Date(allTxs[allTxs.length-1].parsedAt))} – ${fmt(now)}` : 'No transactions';
 
         // Filter transactions based on category pill & search input
         const filteredTxs = allTxs.filter(tx => {
@@ -2523,9 +2574,8 @@ export default function Finance() {
                 <div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans">Total Spent</p>
                   <p className="text-[25px] font-bold text-slate-100 mt-1 font-sans leading-none tracking-tight">₹{Math.round(totalSpent).toLocaleString('en-IN')}</p>
-                  <p className="text-[11.5px] text-[#10b981] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
-                    <span>↓ 8.3%</span>
-                    <span className="text-slate-500 font-normal">vs last 30 days</span>
+                  <p className={`text-[11.5px] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none ${spentTrend ? (spentTrend.up ? 'text-[#ef4444]' : 'text-[#10b981]') : 'text-slate-500'}`}>
+                    {spentTrend ? <><span>{spentTrend.up ? '↑' : '↓'} {spentTrend.pct}%</span><span className="text-slate-500 font-normal">vs prev 30d</span></> : <span className="text-slate-500 font-normal">Last 30 days</span>}
                   </p>
                 </div>
               </motion.div>
@@ -2562,9 +2612,8 @@ export default function Finance() {
                 <div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans">Total Income</p>
                   <p className="text-[25px] font-bold text-slate-100 mt-1 font-sans leading-none tracking-tight">₹{Math.round(totalIncome).toLocaleString('en-IN')}</p>
-                  <p className="text-[11.5px] text-[#10b981] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
-                    <span>↑ 12.6%</span>
-                    <span className="text-slate-500 font-normal">vs last 30 days</span>
+                  <p className={`text-[11.5px] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none ${incomeTrend ? (incomeTrend.up ? 'text-[#10b981]' : 'text-[#ef4444]') : 'text-slate-500'}`}>
+                    {incomeTrend ? <><span>{incomeTrend.up ? '↑' : '↓'} {incomeTrend.pct}%</span><span className="text-slate-500 font-normal">vs prev 30d</span></> : <span className="text-slate-500 font-normal">Last 30 days</span>}
                   </p>
                 </div>
               </motion.div>
@@ -2601,9 +2650,8 @@ export default function Finance() {
                 <div>
                   <p className="text-[13px] text-slate-400 font-medium font-sans">Net Savings</p>
                   <p className="text-[25px] font-bold text-slate-100 mt-1 font-sans leading-none tracking-tight">₹{Math.round(netSavings).toLocaleString('en-IN')}</p>
-                  <p className="text-[11.5px] text-[#10b981] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none">
-                    <span>↑ 18.9%</span>
-                    <span className="text-slate-500 font-normal">vs last 30 days</span>
+                  <p className={`text-[11.5px] font-semibold flex items-center gap-1 mt-1.5 font-sans leading-none ${netTrend ? (netTrend.up ? 'text-[#10b981]' : 'text-[#ef4444]') : 'text-slate-500'}`}>
+                    {netTrend ? <><span>{netTrend.up ? '↑' : '↓'} {netTrend.pct}%</span><span className="text-slate-500 font-normal">vs prev 30d</span></> : <span className="text-slate-500 font-normal">Last 30 days</span>}
                   </p>
                 </div>
               </motion.div>
@@ -2679,7 +2727,7 @@ export default function Finance() {
                 {/* Styled date range container */}
                 <div className="flex items-center gap-2 bg-[#111219]/60 border border-white/[0.08] rounded-xl px-4 py-2 text-[13px] text-slate-200 cursor-pointer hover:bg-white/[0.02] transition-all">
                   <Calendar size={14} className="text-slate-400" />
-                  <span>May 23 - May 29, 2025</span>
+                  <span>{dateRangeLabel}</span>
                   <ChevronDown size={14} className="text-slate-400 ml-1" />
                 </div>
 

@@ -253,15 +253,32 @@ function Eyes({ type, geo, isTired }) {
     );
   }
 
-  // open
+  // open — iris + pupil + specular highlight
+  const irisR = pupilR * 1.18;
   return (
     <g className="avatar-eye-blink">
+      {/* Sclera */}
       <ellipse cx={eyeLX} cy={eyeY} rx={eyeRad} ry={eyeRad * 1.15} fill="white" />
       <ellipse cx={eyeRX} cy={eyeY} rx={eyeRad} ry={eyeRad * 1.15} fill="white" />
-      <circle cx={eyeLX} cy={eyeY} r={pupilR} fill="#1a1a2e" />
-      <circle cx={eyeRX} cy={eyeY} r={pupilR} fill="#1a1a2e" />
-      <circle cx={eyeLX + glintR} cy={eyeY - glintR} r={glintR} fill="white" opacity="0.9" />
-      <circle cx={eyeRX + glintR} cy={eyeY - glintR} r={glintR} fill="white" opacity="0.9" />
+      {/* Iris */}
+      <circle cx={eyeLX} cy={eyeY} r={irisR} fill="#6b4c2a" />
+      <circle cx={eyeRX} cy={eyeY} r={irisR} fill="#6b4c2a" />
+      {/* Iris ring */}
+      <circle cx={eyeLX} cy={eyeY} r={irisR} fill="none" stroke="#4a3018" strokeWidth="0.8" opacity="0.7" />
+      <circle cx={eyeRX} cy={eyeY} r={irisR} fill="none" stroke="#4a3018" strokeWidth="0.8" opacity="0.7" />
+      {/* Pupil */}
+      <circle cx={eyeLX} cy={eyeY} r={pupilR * 0.58} fill="#0f0f1a" />
+      <circle cx={eyeRX} cy={eyeY} r={pupilR * 0.58} fill="#0f0f1a" />
+      {/* Specular highlights */}
+      <circle cx={eyeLX + glintR * 0.8} cy={eyeY - glintR * 0.9} r={glintR} fill="white" opacity="0.95" />
+      <circle cx={eyeRX + glintR * 0.8} cy={eyeY - glintR * 0.9} r={glintR} fill="white" opacity="0.95" />
+      <circle cx={eyeLX - glintR * 0.6} cy={eyeY + glintR * 0.5} r={glintR * 0.55} fill="white" opacity="0.45" />
+      <circle cx={eyeRX - glintR * 0.6} cy={eyeY + glintR * 0.5} r={glintR * 0.55} fill="white" opacity="0.45" />
+      {/* Upper eyelid shadow */}
+      <path d={`M${eyeLX - eyeRad} ${eyeY - eyeRad * 0.4} Q${eyeLX} ${eyeY - eyeRad * 1.5} ${eyeLX + eyeRad} ${eyeY - eyeRad * 0.4}`}
+        fill="rgba(20,15,35,0.22)" />
+      <path d={`M${eyeRX - eyeRad} ${eyeY - eyeRad * 0.4} Q${eyeRX} ${eyeY - eyeRad * 1.5} ${eyeRX + eyeRad} ${eyeY - eyeRad * 0.4}`}
+        fill="rgba(20,15,35,0.22)" />
     </g>
   );
 }
@@ -553,12 +570,11 @@ export function LifeAvatar({
           )}
         </AnimatePresence>
 
-        <motion.svg viewBox="0 0 160 200" className="w-full h-full drop-shadow-2xl cursor-pointer"
+        <motion.svg viewBox="0 0 160 200" className="w-full h-full drop-shadow-2xl"
           xmlns="http://www.w3.org/2000/svg"
           key={stateKey}
           initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.35 }}
-          onClick={() => !showCamera && !showEditor && setShowEditor(v => !v)}
         >
           <defs>
             <linearGradient id="roomGrad" x1="0" y1="0" x2="0" y2="1">
@@ -569,6 +585,17 @@ export function LifeAvatar({
               <stop offset="0%" stopColor={s.badge} stopOpacity="0.3" />
               <stop offset="100%" stopColor={s.badge} stopOpacity="0" />
             </radialGradient>
+            {/* Face lighting — top-left highlight, bottom-right shadow for 3D depth */}
+            <radialGradient id="faceShade" cx="34%" cy="28%" r="72%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="white" stopOpacity="0.16" />
+              <stop offset="50%"  stopColor="white" stopOpacity="0"    />
+              <stop offset="100%" stopColor="black" stopOpacity="0.20" />
+            </radialGradient>
+            {/* Neck shadow */}
+            <linearGradient id="neckShade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="black" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="black" stopOpacity="0"    />
+            </linearGradient>
           </defs>
 
           {/* Room */}
@@ -699,6 +726,16 @@ export function LifeAvatar({
 
             {/* Hair (on top of head) */}
             <Hair style={persona.style} color={persona.hair} rx={geo.rx} ry={geo.ry} isBurnout={isBurnout} />
+            {/* Hair specular highlight */}
+            <ellipse cx={CX - geo.rx * 0.12} cy={CY - geo.ry * 0.94} rx={geo.rx * 0.38} ry={geo.ry * 0.16}
+              fill="white" opacity="0.09" style={{ filter: 'blur(1.5px)' }} />
+
+            {/* Face depth shading overlay */}
+            <ellipse cx={CX} cy={CY} rx={geo.rx} ry={geo.ry} fill="url(#faceShade)" />
+
+            {/* Jawline / chin shadow */}
+            <ellipse cx={CX} cy={CY + geo.ry * 0.72} rx={geo.rx * 0.62} ry={geo.ry * 0.18}
+              fill="black" opacity="0.09" />
 
             {/* Eyebrows */}
             {s.eye !== 'x' && (
@@ -794,20 +831,26 @@ export function LifeAvatar({
             <rect x="0" y="0" width="160" height="200" rx="16" fill="rgba(180,0,0,0.05)" style={{ mixBlendMode: 'overlay' }} />
           )}
 
-          <motion.text x={CX} y="193" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.2)"
-            animate={{ opacity: [0.15, 0.4, 0.15] }} transition={{ duration: 3, repeat: Infinity }}>
-            tap to personalise
-          </motion.text>
-        </motion.svg>
+          </motion.svg>
 
-        {/* Camera button */}
+        {/* Camera button — top-right */}
         <button
-          onClick={e => { e.stopPropagation(); setShowEditor(false); setShowCamera(true); }}
+          onClick={e => { e.stopPropagation(); setShowEditor(false); setShowCamera(v => !v); }}
           className="absolute top-1 right-1 w-7 h-7 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 z-30"
-          style={{ background: 'rgba(99,102,241,0.25)', border: '1px solid rgba(99,102,241,0.4)' }}
-          title="Snap your face to personalise"
+          style={{ background: showCamera ? 'rgba(239,68,68,0.35)' : 'rgba(99,102,241,0.25)', border: `1px solid ${showCamera ? 'rgba(239,68,68,0.5)' : 'rgba(99,102,241,0.4)'}` }}
+          title="Camera — snap to auto-set skin, hair & face"
         >
-          📷
+          {showCamera ? '✕' : '📷'}
+        </button>
+
+        {/* Personalize button — top-left */}
+        <button
+          onClick={e => { e.stopPropagation(); setShowCamera(false); setShowEditor(v => !v); }}
+          className="absolute top-1 left-1 w-7 h-7 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 z-30"
+          style={{ background: showEditor ? 'rgba(239,68,68,0.35)' : 'rgba(99,102,241,0.25)', border: `1px solid ${showEditor ? 'rgba(239,68,68,0.5)' : 'rgba(99,102,241,0.4)'}` }}
+          title="Personalise — choose skin tone, hair colour & style"
+        >
+          {showEditor ? '✕' : '🎨'}
         </button>
       </div>
 

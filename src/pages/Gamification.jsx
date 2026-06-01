@@ -626,6 +626,9 @@ function GrindRoomPanel({ onXP }) {
   const [running,      setRunning]      = useState(false);
   const [done,         setDone]         = useState(false);
   const [sessions,     setSessions]     = useState(0);
+  const [reactions,    setReactions]    = useState(() => {
+    try { return JSON.parse(localStorage.getItem('grind_reactions') || '{}'); } catch { return {}; }
+  });
   const intervalRef = useRef(null);
   const phantoms = useMemo(() => PHANTOM_USERS.sort(() => Math.random() - 0.5).slice(0, 6), []);
 
@@ -845,10 +848,19 @@ function GrindRoomPanel({ onXP }) {
             )}
           </div>
           <div className="flex gap-4 mt-3">
-            {['🔥','⚡','👏'].map(r => (
-              <button key={r} onClick={() => showToast(`${r} sent to the room`, 'success')}
-                className="text-[13px] hover:scale-125 transition-transform">{r}</button>
-            ))}
+            {['🔥','⚡','👏'].map(r => {
+              const count = reactions[r] || 0;
+              return (
+                <button key={r} onClick={() => {
+                  const next = { ...reactions, [r]: (reactions[r] || 0) + 1 };
+                  setReactions(next);
+                  try { localStorage.setItem('grind_reactions', JSON.stringify(next)); } catch {}
+                  showToast(`${r} sent to the room`, 'success');
+                }} className="flex items-center gap-1 text-[13px] hover:scale-125 transition-transform">
+                  {r}{count > 0 && <span className="text-[9px] text-slate-500">{count}</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
       </GlassCard>

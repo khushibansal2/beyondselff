@@ -128,7 +128,7 @@ function PatternCard({ pattern, index }) {
 /* ─── Insight Card (Cross-Domain Insights section) ───────────────── */
 function InsightRow({ insight, index }) {
   const domainColors = { Health: '#10b981', Finance: '#3b82f6', Career: '#8b5cf6' };
-  const pct = insight.strength != null ? Math.round(insight.strength * 100) : Math.round(60 + Math.random() * 30);
+  const pct = insight.strength != null ? Math.round(insight.strength * 100) : insight.confidence != null ? Math.round(insight.confidence) : 75;
 
   return (
     <motion.div

@@ -278,7 +278,7 @@ export default function NeuralCore() {
                 background: 'rgba(255,255,255,0.03)',
               }}
             >
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', margin: '0 0 10px' }}>{2026 + years - 1} Outlook</p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', margin: '0 0 10px' }}>{new Date().getFullYear() + years - 1} Outlook</p>
               <h2 style={{ fontSize: 32, fontWeight: 800, color: '#10b981', margin: '0 0 2px', lineHeight: 1 }}>
                 {endStability}%
               </h2>
@@ -392,7 +392,7 @@ export default function NeuralCore() {
                       </div>
                       {stabilityDelta !== null && (
                         <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>{2026 + years - 1} impact</p>
+                          <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>{new Date().getFullYear() + years - 1} impact</p>
                           <p style={{ fontSize: 18, fontWeight: 700, color: '#10b981', margin: 0 }}>
                             {stabilityDelta > 0 ? '+' : ''}{stabilityDelta}%
                           </p>

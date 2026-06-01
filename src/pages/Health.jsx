@@ -1468,6 +1468,7 @@ export default function Health() {
   const score = Number(computed?.healthScore?.score) || 0;
   const burnout = computed?.burnout?.risk || 0;
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
+  const [planChecked, setPlanChecked] = useState({});
 
   // Load health records from backend on mount (for real users)
   useEffect(() => {
@@ -1929,39 +1930,84 @@ export default function Health() {
           {/* ── Row 2: Today's Plan + 7-Day Trends ── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
 
-            {/* Today's Plan */}
-            <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={14} color="#a1a1aa" />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Today's Plan</span>
-                </div>
-                <span style={{ fontSize: 12, color: '#71717a' }}>3 / 4 completed</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {[
-                  { text: 'Drink 8 glasses of water', time: '7:30 AM', done: true },
-                  { text: '30 min workout',           time: '8:00 AM', done: true },
-                  { text: 'Eat a healthy meal',       time: '1:00 PM', done: true },
-                  { text: 'Meditate for 10 min',      time: '9:30 PM', done: false },
-                ].map((task, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {task.done
-                        ? <CheckCircle size={14} color="#22c55e" />
-                        : <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid #52525b' }} />}
-                      <span style={{ fontSize: 13, color: task.done ? '#f0f0f3' : '#a1a1aa' }}>{task.text}</span>
+            {/* Today's Plan — data-driven from health profile + interactive checkboxes */}
+            {(() => {
+              const todayPlan = [
+                {
+                  id: 'water',
+                  text: h.waterIntake >= 8
+                    ? `Hydrated ✓  (${h.waterIntake} glasses)`
+                    : `Drink ${Math.max(1, 8 - (h.waterIntake||0))} more glasses (${h.waterIntake||0}/8)`,
+                  time: '7:30 AM',
+                  autoDone: h.waterIntake >= 8,
+                  icon: '💧',
+                },
+                {
+                  id: 'workout',
+                  text: h.workoutsPerWeek >= 3
+                    ? `Active ✓  (${h.workoutsPerWeek} sessions/week)`
+                    : `Log a workout (${h.workoutsPerWeek||0}/3 this week)`,
+                  time: '8:00 AM',
+                  autoDone: h.workoutsPerWeek >= 3,
+                  icon: '💪',
+                },
+                {
+                  id: 'calories',
+                  text: h.calories > 0
+                    ? `Nutrition tracked (${h.calories.toLocaleString()} kcal)`
+                    : 'Log today\'s meals',
+                  time: '1:00 PM',
+                  autoDone: h.calories > 0,
+                  icon: '🥗',
+                },
+                {
+                  id: 'sleep',
+                  text: h.sleepAvg >= 7
+                    ? `Sleep goal met ✓  (${h.sleepAvg}h avg)`
+                    : `Sleep target 7h (avg ${h.sleepAvg||0}h)`,
+                  time: '10:00 PM',
+                  autoDone: h.sleepAvg >= 7,
+                  icon: '🌙',
+                },
+              ];
+              const doneCount = todayPlan.filter(t => t.autoDone || !!planChecked[t.id]).length;
+              return (
+                <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Calendar size={14} color="#a1a1aa" />
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3' }}>Today's Plan</span>
                     </div>
-                    <span style={{ fontSize: 11, color: '#71717a' }}>{task.time}</span>
+                    <span style={{ fontSize: 12, color: doneCount === todayPlan.length ? '#22c55e' : '#71717a' }}>{doneCount} / {todayPlan.length} done</span>
                   </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
-                <button style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
-                  View full plan →
-                </button>
-              </div>
-            </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {todayPlan.map(task => {
+                      const done = task.autoDone || !!planChecked[task.id];
+                      return (
+                        <div key={task.id}
+                          onClick={() => !task.autoDone && setPlanChecked(p => ({ ...p, [task.id]: !p[task.id] }))}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: task.autoDone ? 'default' : 'pointer' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {done
+                              ? <CheckCircle size={14} color="#22c55e" />
+                              : <div style={{ width: 14, height: 14, borderRadius: '50%', border: '1.5px solid #52525b', transition: 'border-color 0.2s' }} />}
+                            <span style={{ fontSize: 13, color: done ? '#f0f0f3' : '#a1a1aa', textDecoration: done ? 'none' : 'none' }}>
+                              {task.icon} {task.text}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: 11, color: '#71717a', flexShrink: 0 }}>{task.time}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.04)', textAlign: 'center' }}>
+                    <button onClick={() => setTab('log')} style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
+                      + Log today's health →
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 7-Day Health Trends */}
             <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column' }}>
@@ -2251,10 +2297,10 @@ export default function Health() {
           <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5 text-[9px] text-slate-500 font-mono tracking-widest uppercase">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              ENGINE CONNECTED | LAST SYNC: 4M AGO
+              ENGINE CONNECTED | {healthRecords.length > 0 ? `${healthRecords.length} RECORDS LOADED` : 'DEMO MODE'}
             </div>
             <div>
-              SESSION ID: #HX-1071
+              STREAK: {streak} DAY{streak !== 1 ? 'S' : ''}
             </div>
           </div>
         </div>

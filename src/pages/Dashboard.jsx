@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { generateNarrative } from '../services/aiService';
+import { generateNarrative, chatWithAI } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
 import { GhostTimeline } from '../components/ui/GhostTimeline';
@@ -968,6 +968,13 @@ export default function Dashboard() {
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkedTasks, setCheckedTasks] = useState({});
+  const [checkedGoals, setCheckedGoals] = useState({});
+  const [futureSelfOpen, setFutureSelfOpen] = useState(false);
+  const [futureSelfMessages, setFutureSelfMessages] = useState([]);
+  const [futureSelfInput, setFutureSelfInput] = useState('');
+  const [futureSelfAge, setFutureSelfAge] = useState(null);
+  const [futureSelfLoading, setFutureSelfLoading] = useState(false);
+  const futureChatRef = useRef(null);
   const [doomMode, setDoomMode] = useState(false);
   const [doomShake, setDoomShake] = useState(false);
   const [hoveredDomain, setHoveredDomain] = useState(null);
@@ -1240,6 +1247,26 @@ export default function Dashboard() {
   const currentYear = new Date().getFullYear();
   const futureYear = currentYear + 5;
   const userAge = user?.age ? user.age + 5 : 31;
+  const futureSelfDisplayAge = futureSelfAge ?? userAge;
+
+  const sendFutureSelfMessage = useCallback(async () => {
+    if (!futureSelfInput.trim() || futureSelfLoading) return;
+    const msg = futureSelfInput.trim();
+    setFutureSelfInput('');
+    setFutureSelfMessages(prev => [...prev, { role: 'user', text: msg }]);
+    setFutureSelfLoading(true);
+    setTimeout(() => futureChatRef.current?.scrollTo({ top: 9999, behavior: 'smooth' }), 50);
+    try {
+      const wrappedMsg = `[FUTURE SELF MODE] You are the user's future self at age ${futureSelfDisplayAge} (year ${currentYear + (futureSelfDisplayAge - (user?.age || 22))}), speaking warmly to your ${user?.age || 22}-year-old past self. Their current scores: Health ${healthScore}/100, Finance ${financeScore}/100, Career ${careerScore}/100, Burnout Risk ${burnoutRisk}%. Respond to: "${msg}" — be personal, insightful, 2-3 sentences, first-person older self to younger self.`;
+      const { response } = await chatWithAI(wrappedMsg, computed || {}, futureSelfMessages);
+      setFutureSelfMessages(prev => [...prev, { role: 'future', text: response }]);
+    } catch {
+      setFutureSelfMessages(prev => [...prev, { role: 'future', text: `Future you (age ${futureSelfDisplayAge}): Every choice you make right now compounds. Trust the process — it leads somewhere beautiful.` }]);
+    } finally {
+      setFutureSelfLoading(false);
+      setTimeout(() => futureChatRef.current?.scrollTo({ top: 9999, behavior: 'smooth' }), 100);
+    }
+  }, [futureSelfInput, futureSelfLoading, futureSelfMessages, futureSelfDisplayAge, computed, healthScore, financeScore, careerScore, burnoutRisk, user, currentYear]);
 
   const C = {
     bg: theme === 'dark' ? '#07090e' : '#f8fafc',
@@ -1327,13 +1354,14 @@ export default function Dashboard() {
                 { label: 'Finance', score: financeScore, trend: '▼ 3% this week', color: '#fbbf24', icon: '💰', points: [72, 70, 68, 65, 67, 66, financeScore] },
                 { label: 'Career', score: careerScore, trend: '▲ 11% this week', color: '#a78bfa', icon: '🎯', points: [25, 30, 28, 35, 32, 40, careerScore] },
                 { label: 'Mindset', score: mindScore, trend: '▲ 10% this week', color: '#c084fc', icon: '🧠', points: [55, 60, 58, 64, 62, 70, mindScore] },
-                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#818cf8', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance] },
+                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#818cf8', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance], ringKey: 'Balance' },
               ].map((card) => {
-                const isActive = !!openRings[card.label];
+                const rk = card.ringKey || card.label;
+                const isActive = !!openRings[rk];
                 return (
                   <div
                     key={card.label}
-                    onClick={() => toggleRing(card.label)}
+                    onClick={() => toggleRing(rk)}
                     style={{
                       background: '#111827',
                       border: `1px solid ${isActive ? card.color : 'rgba(255,255,255,0.06)'}`,
@@ -1361,6 +1389,24 @@ export default function Dashboard() {
 
                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
                       <MiniSparkline data={card.points} color={card.color} width={80} height={16} />
+                    </div>
+
+                    {/* Why this score? dropdown trigger */}
+                    <div style={{
+                      borderTop: '1px solid rgba(255,255,255,0.06)',
+                      marginTop: 8, paddingTop: 6,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                    }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: isActive ? card.color : '#4b5563', transition: 'color 0.2s' }}>
+                        Why this score?
+                      </span>
+                      <motion.span
+                        animate={{ rotate: isActive ? 180 : 0 }}
+                        transition={{ duration: 0.25 }}
+                        style={{ fontSize: 8, color: isActive ? card.color : '#4b5563', display: 'inline-block', lineHeight: 1 }}
+                      >
+                        ▼
+                      </motion.span>
                     </div>
                   </div>
                 );
@@ -1621,183 +1667,239 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Life Bloom reactive SVG */}
+              {/* Life Bloom reactive SVG — goals-driven lotus flower */}
               <div style={{ flex: 1, minHeight: 0 }}>
                 {(() => {
-                  const treeTasks = todayPlan.slice(0, 7);
-                  const doneCount = treeTasks.filter(t => !!checkedTasks[t.id]).length;
-                  const totalCount = treeTasks.length;
-                  const pct = totalCount > 0 ? doneCount / totalCount : 0;
-                  const th = pct === 0    ? {a:'#78716c',b:'#a8a29e',bg:'rgba(120,113,108,0.15)'}
-                           : pct < 0.35   ? {a:'#22c55e',b:'#4ade80',bg:'rgba(34,197,94,0.18)'}
-                           : pct < 0.7    ? {a:'#10b981',b:'#34d399',bg:'rgba(16,185,129,0.18)'}
-                           : pct < 1.0    ? {a:'#ec4899',b:'#f9a8d4',bg:'rgba(236,72,153,0.18)'}
-                           :                {a:'#f59e0b',b:'#fbbf24',bg:'rgba(245,158,11,0.22)'};
-                  const label = doneCount === 0 ? '🌰 Seed' : pct < 0.35 ? '🌱 Sprouting' : pct < 0.7 ? '🌿 Growing' : pct < 1 ? '🌸 Blooming' : '🌳 Thriving!';
-                  const W=240,H=290,CX=120,GY=272,maxH=210;
-                  const trunkH = totalCount > 0 ? pct * maxH : 0;
-                  const topY = GY - trunkH;
-                  const sp = totalCount > 1 ? maxH / totalCount : maxH * 0.7;
-                  const leafPath = "M 0 0 C -13 -3 -17 -17 0 -26 C 17 -17 13 -3 0 0 Z";
+                  const bloomGoals = goals.slice(0, 12);
+                  const N = bloomGoals.length;
+                  const completedCount = bloomGoals.filter(g => !!checkedGoals[g.id || g.title]).length;
+                  const pct = N > 0 ? completedCount / N : 0;
+
+                  const th = N === 0 || pct < 0.01
+                    ? {a:'#78716c',b:'#a8a29e',bg:'rgba(120,113,108,0.15)'}
+                    : pct < 0.35 ? {a:'#22c55e',b:'#4ade80',bg:'rgba(34,197,94,0.18)'}
+                    : pct < 0.7  ? {a:'#10b981',b:'#34d399',bg:'rgba(16,185,129,0.18)'}
+                    : pct < 1.0  ? {a:'#ec4899',b:'#f9a8d4',bg:'rgba(236,72,153,0.18)'}
+                    :              {a:'#f59e0b',b:'#fbbf24',bg:'rgba(245,158,11,0.22)'};
+
+                  const label = N === 0           ? '🌰 No Goals'
+                              : completedCount === 0 ? '🌱 Dormant'
+                              : pct < 0.35         ? '🌱 Budding'
+                              : pct < 0.7          ? '🌸 Blooming'
+                              : pct < 1            ? '✨ Flourishing'
+                              :                      '🌺 Full Bloom!';
+
+                  const BW = 240, BH = 240, CX = 120, CY = 116;
+
+                  const domainColor = (domain) => {
+                    if (!domain) return ['#f59e0b','#fbbf24'];
+                    const d = String(domain).toLowerCase();
+                    if (d.includes('health'))              return ['#22c55e','#4ade80'];
+                    if (d.includes('financ'))              return ['#3b82f6','#60a5fa'];
+                    if (d.includes('career'))              return ['#a855f7','#c084fc'];
+                    if (d.includes('personal'))            return ['#ec4899','#f9a8d4'];
+                    return ['#f59e0b','#fbbf24'];
+                  };
+
+                  // Local-space petal paths — positioned via SVG transform, scaled via Framer Motion
+                  // transformOrigin '50% 100%' + fill-box = scale from base (flower center)
+                  const PETAL = "M 0 0 C -14 -15.68 -5.6 -49.28 0 -56 C 5.6 -49.28 14 -15.68 0 0 Z";
+                  const INNER_PETAL = "M 0 0 C -8 -8.4 -3.2 -26.4 0 -30 C 3.2 -26.4 8 -8.4 0 0 Z";
 
                   return (
-                    <div style={{ background:'linear-gradient(180deg,#070c14 0%,#0d1320 50%,#111827 100%)', border:`1px solid ${th.a}30`, borderRadius:12, padding:'10px 12px 8px', overflow:'hidden', position:'relative', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ background:'linear-gradient(180deg,#070c14 0%,#0d1320 50%,#111827 100%)', border:`1px solid ${th.a}30`, borderRadius:12, padding:'10px 12px 8px', overflow:'hidden', position:'relative', height:'100%', boxSizing:'border-box', display:'flex', flexDirection:'column' }}>
                       {/* Twinkling stars */}
                       {[{l:'10%',tp:'8%',d:0},{l:'80%',tp:'6%',d:0.9},{l:'62%',tp:'17%',d:1.6},{l:'28%',tp:'22%',d:0.4},{l:'90%',tp:'28%',d:1.2},{l:'48%',tp:'4%',d:0.7}].map((s,i)=>(
                         <motion.div key={i} style={{position:'absolute',left:s.l,top:s.tp,width:1.5,height:1.5,borderRadius:'50%',background:'#93c5fd',pointerEvents:'none',zIndex:0}}
                           animate={{opacity:[0.05,0.65,0.05],scale:[0.5,1.3,0.5]}}
                           transition={{duration:2.4+i*0.5,repeat:Infinity,delay:parseFloat(s.d)}}/>
                       ))}
-                      <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'65%',height:55,background:`radial-gradient(ellipse,${th.a}28 0%,transparent 70%)`,pointerEvents:'none',zIndex:0}}/>
+                      <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'70%',height:50,background:`radial-gradient(ellipse,${th.a}22 0%,transparent 70%)`,pointerEvents:'none',zIndex:0}}/>
 
                       {/* Header */}
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4,position:'relative',zIndex:1}}>
                         <div>
                           <div style={{fontSize:12,fontWeight:700,color:'#e2e8f0'}}>Life Bloom</div>
-                          <div style={{fontSize:8,color:'#4b5563'}}>Check tasks above → branches grow</div>
+                          <div style={{fontSize:8,color:'#4b5563'}}>{N===0 ? 'Add goals to start blooming' : `${N} petal${N!==1?'s':''} · complete goals to bloom`}</div>
                         </div>
                         <span style={{fontSize:9,fontWeight:700,color:th.a,background:th.bg,border:`1px solid ${th.a}40`,padding:'2px 9px',borderRadius:999}}>{label}</span>
                       </div>
 
-                      {/* Tree SVG */}
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
-                        <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'100%',maxHeight:210,display:'block',position:'relative',zIndex:1}}>
+                      {/* Lotus Flower SVG */}
+                      <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',minHeight:0}}>
+                        <svg viewBox={`0 0 ${BW} ${BH}`} style={{width:'100%',height:'100%',maxHeight:210,display:'block',position:'relative',zIndex:1}}>
                           <defs>
-                            <radialGradient id="lb_sg" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor={th.a} stopOpacity={Math.min(0.35,0.05+pct*0.3)}/>
+                            {bloomGoals.map((_,i)=>{
+                              const [c1,c2] = domainColor(bloomGoals[i].domain||bloomGoals[i].category);
+                              return (
+                                <linearGradient key={i} id={`lb_petal_${i}`} x1="0%" y1="100%" x2="0%" y2="0%">
+                                  <stop offset="0%" stopColor={c1} stopOpacity="0.95"/>
+                                  <stop offset="100%" stopColor={c2} stopOpacity="0.65"/>
+                                </linearGradient>
+                              );
+                            })}
+                            <radialGradient id="lb_cg" cx="50%" cy="50%" r="50%">
+                              <stop offset="0%" stopColor={th.b} stopOpacity="0.95"/>
+                              <stop offset="55%" stopColor={th.a} stopOpacity="0.5"/>
                               <stop offset="100%" stopColor={th.a} stopOpacity="0"/>
                             </radialGradient>
-                            <linearGradient id="lb_lf" x1="0%" y1="100%" x2="0%" y2="0%">
-                              <stop offset="0%" stopColor={th.a}/><stop offset="100%" stopColor={th.b}/>
-                            </linearGradient>
-                            <linearGradient id="lb_tr" x1="0%" y1="0%" x2="100%" y2="0%">
-                              <stop offset="0%" stopColor="#3d2010"/><stop offset="50%" stopColor="#6b3e22"/><stop offset="100%" stopColor="#4a2a14"/>
-                            </linearGradient>
-                            <filter id="lb_gl" x="-50%" y="-50%" width="200%" height="200%">
-                              <feGaussianBlur stdDeviation="4" result="b"/>
+                            <radialGradient id="lb_bg" cx="50%" cy="50%" r="50%">
+                              <stop offset="0%" stopColor={th.a} stopOpacity={0.07+pct*0.14}/>
+                              <stop offset="100%" stopColor={th.a} stopOpacity="0"/>
+                            </radialGradient>
+                            <filter id="lb_glow" x="-60%" y="-60%" width="220%" height="220%">
+                              <feGaussianBlur stdDeviation="5" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
-                            <filter id="lb_sg2" x="-30%" y="-30%" width="160%" height="160%">
+                            <filter id="lb_soft" x="-40%" y="-40%" width="180%" height="180%">
                               <feGaussianBlur stdDeviation="2.5" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
                           </defs>
 
-                          {/* Soil glow */}
-                          <ellipse cx={CX} cy={GY+2} rx="90" ry="20" fill="url(#lb_sg)"/>
-                          {/* Swaying grass */}
-                          {[-36,-24,-14,-4,4,14,24,36].map((dx,i)=>(
-                            <motion.path key={i} d={`M${CX+dx} ${GY-3} Q${CX+dx+(i%2?2.5:-2.5)} ${GY-11} ${CX+dx+(i%2?1.5:-1.5)} ${GY-18}`}
-                              fill="none" stroke={pct>0?th.a:'#1c3a1c'} strokeWidth="1.8" strokeLinecap="round"
-                              opacity={pct>0?0.55:0.2}
-                              animate={{rotate:[-1.5,1.5,-1.5]}} transition={{duration:2.2+i*0.25,repeat:Infinity,ease:'easeInOut',delay:i*0.18}}
-                              style={{transformOrigin:`${CX+dx}px ${GY}px`,transformBox:'fill-box'}}/>
-                          ))}
-                          {/* Soil layers */}
-                          <ellipse cx={CX} cy={GY+4} rx="76" ry="14" fill="#2c1a0a" opacity="0.98"/>
-                          <ellipse cx={CX} cy={GY+1} rx="70" ry="10" fill="#3d2410" opacity="0.9"/>
-                          <ellipse cx={CX} cy={GY-2} rx="62" ry="7" fill="#5c3a1e" opacity="0.75"/>
+                          {/* Ambient bloom glow */}
+                          <circle cx={CX} cy={CY} r={82+pct*18} fill="url(#lb_bg)"/>
 
-                          {/* Seed (nothing checked) */}
-                          {doneCount === 0 && (
+                          {N === 0 ? (
+                            /* No goals — dormant seed */
                             <g>
-                              <motion.ellipse cx={CX} cy={GY-16} rx="12" ry="15" fill="#8b6030"
-                                animate={{scale:[1,1.04,1]}} transition={{duration:2.2,repeat:Infinity}}
-                                style={{transformOrigin:`${CX}px ${GY-16}px`,transformBox:'fill-box'}}/>
-                              <ellipse cx={CX} cy={GY-16} rx="7" ry="9" fill="#c4a26a" opacity="0.5"/>
-                              <motion.line x1={CX} y1={GY-31} x2={CX} y2={GY-40} stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"
-                                animate={{scaleY:[1,1.15,1],opacity:[0.7,1,0.7]}} transition={{duration:1.8,repeat:Infinity}}
-                                style={{transformOrigin:`${CX}px ${GY-31}px`,transformBox:'fill-box'}}/>
+                              <motion.circle cx={CX} cy={CY+14} r="15" fill="#8b6030"
+                                animate={{scale:[1,1.06,1]}} transition={{duration:2.2,repeat:Infinity}}
+                                style={{transformOrigin:`${CX}px ${CY+14}px`,transformBox:'fill-box'}}/>
+                              <ellipse cx={CX} cy={CY+14} rx="9" ry="10" fill="#c4a26a" opacity="0.4"/>
+                              <motion.path d={`M ${CX} ${CY} Q ${CX-9} ${CY-16} ${CX} ${CY-30}`} fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"
+                                animate={{pathLength:[0.3,1,0.3],opacity:[0.4,1,0.4]}} transition={{duration:2.5,repeat:Infinity,ease:'easeInOut'}}/>
+                              <motion.path d={`M ${CX} ${CY-13} Q ${CX+15} ${CY-24} ${CX+19} ${CY-34}`} fill="none" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round"
+                                animate={{pathLength:[0,1,0],opacity:[0,0.85,0]}} transition={{duration:2.8,repeat:Infinity,ease:'easeInOut',delay:0.55}}/>
+                              <text x={CX} y={CY+52} textAnchor="middle" fontSize="8.5" fill="#6b7280" fontWeight="600">Create goals to bloom ✦</text>
+                            </g>
+                          ) : (
+                            <g>
+                              {/* All petals: ghost outline + inner ring + main animated petal */}
+                              {bloomGoals.map((goal, i) => {
+                                const angleDeg = (360/N)*i - 90;
+                                const rad = angleDeg * Math.PI / 180;
+                                const gKey = goal.id || goal.title;
+                                const isComplete = !!checkedGoals[gKey];
+                                const [c1, c2] = domainColor(goal.domain||goal.category);
+                                // Tip at full scale in global coords (for tip effects)
+                                const tipX = CX + 56 * Math.sin(rad);
+                                const tipY = CY - 56 * Math.cos(rad);
+                                const innerScale = Math.max(0.28, 0.28 + pct * 0.32);
+
+                                return (
+                                  <g key={`pg_${goal.id||i}`}>
+                                    {/* Ghost petal — full-size faint outline showing potential */}
+                                    <g transform={`translate(${CX},${CY}) rotate(${angleDeg})`}>
+                                      <path d={PETAL} fill={c1} opacity="0.06"/>
+                                    </g>
+
+                                    {/* Inner decorative ring petal (offset by half-step) */}
+                                    {N >= 2 && (
+                                      <g transform={`translate(${CX},${CY}) rotate(${angleDeg+(180/N)})`}>
+                                        <motion.path d={INNER_PETAL} fill={th.b}
+                                          initial={{scale:0,opacity:0}}
+                                          animate={{scale:innerScale,opacity:0.14+pct*0.26}}
+                                          transition={{delay:i*0.06,duration:0.6}}
+                                          style={{transformOrigin:`${CX}px ${CY}px`}}/>
+                                      </g>
+                                    )}
+
+                                    {/* Main petal — CSS transition; origin at flower center (CX,CY) in SVG viewport coords */}
+                                    <g transform={`translate(${CX},${CY}) rotate(${angleDeg})`}>
+                                      <path d={PETAL}
+                                        fill={`url(#lb_petal_${i})`}
+                                        style={{
+                                          transform: `scale(${isComplete ? 1 : 0.35})`,
+                                          opacity: isComplete ? 0.9 : 0.22,
+                                          transition: 'transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease',
+                                          transformOrigin: `${CX}px ${CY}px`,
+                                        }}/>
+                                      <line x1="0" y1="-2" x2="0" y2={isComplete ? -49 : -18}
+                                        stroke={c2} strokeWidth="0.9" strokeLinecap="round"
+                                        opacity={isComplete ? 0.38 : 0.12}
+                                        style={{ transition: 'all 0.5s ease' }}/>
+                                    </g>
+
+                                    {/* Tip glow + particles + checkmark — only when completed */}
+                                    {isComplete && (<>
+                                      <motion.circle cx={tipX} cy={tipY} r={4.5} fill={c2}
+                                        animate={{r:[3.5,6.5,3.5],opacity:[0.45,1,0.45]}}
+                                        transition={{duration:2,repeat:Infinity,delay:i*0.28}}
+                                        filter="url(#lb_soft)"/>
+                                      {[{ox:5,oy:-9,d:0},{ox:-7,oy:-5,d:0.65},{ox:8,oy:4,d:1.3}].map((p,j)=>(
+                                        <motion.circle key={j} cx={tipX+p.ox} cy={tipY+p.oy} r={1.6} fill={c2}
+                                          animate={{y:[0,-11,0],opacity:[0.05,0.85,0.05],scale:[0.4,1.3,0.4]}}
+                                          transition={{duration:2.1+j*0.45,repeat:Infinity,delay:p.d+i*0.18}}/>
+                                      ))}
+                                      <text x={CX+(56+12)*Math.sin(rad)} y={CY-(56+12)*Math.cos(rad)+3}
+                                        textAnchor={Math.sin(rad)>0.3?'start':Math.sin(rad)<-0.3?'end':'middle'}
+                                        fontSize="7" fill={c2} fontWeight="800" opacity="0.9">✓</text>
+                                    </>)}
+                                  </g>
+                                );
+                              })}
+
+                              {/* Pollen ring around center */}
+                              {bloomGoals.map((_, i) => {
+                                const angleDeg = (360/N)*i - 90;
+                                const rad = angleDeg * Math.PI / 180;
+                                const pr = 18 + pct * 7;
+                                return (
+                                  <motion.circle key={`poll_${i}`}
+                                    cx={CX + pr*Math.sin(rad)} cy={CY - pr*Math.cos(rad)}
+                                    r={1.9} fill={th.b}
+                                    animate={{opacity:[0.25,0.95,0.25],scale:[0.6,1.4,0.6]}}
+                                    transition={{duration:1.8+i*0.2,repeat:Infinity,delay:i*0.16}}/>
+                                );
+                              })}
+
+                              {/* Center stamen layers */}
+                              <motion.circle cx={CX} cy={CY} r={20+pct*10} fill="url(#lb_cg)" filter="url(#lb_glow)"
+                                animate={{r:[20+pct*10,24+pct*10,20+pct*10],opacity:[0.5,0.9,0.5]}}
+                                transition={{duration:2.8,repeat:Infinity,ease:'easeInOut'}}/>
+                              <circle cx={CX} cy={CY} r={13+pct*6} fill={th.a} opacity={0.5+pct*0.4}/>
+                              <circle cx={CX} cy={CY} r={8+pct*3} fill={th.b} opacity={0.85}/>
+                              <circle cx={CX} cy={CY} r={3.8} fill="#fff" opacity="0.92"/>
+
+                              {/* Full bloom sparkles */}
+                              {pct === 1 && (
+                                [{x:CX-50,y:CY-44,d:0},{x:CX+50,y:CY-42,d:0.5},{x:CX-56,y:CY+10,d:1.0},{x:CX+54,y:CY+8,d:1.5},{x:CX,y:CY-74,d:0.8},{x:CX,y:CY+72,d:1.3}]
+                                .map((p,i)=>(
+                                  <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle" fill={th.b}
+                                    animate={{y:[p.y,p.y-14,p.y],opacity:[0.05,1,0.05]}}
+                                    transition={{duration:2.5,repeat:Infinity,delay:p.d}}>✦</motion.text>
+                                ))
+                              )}
                             </g>
                           )}
-
-                          {/* Ghost future branches */}
-                          {treeTasks.map((task,i)=>{
-                            const bY=GY-(i+1)*sp; const iL=i%2===0;
-                            const tX=iL?CX-50:CX+50; const tY=bY-28;
-                            return(
-                              <g key={`gh-${task.id||i}`} opacity="0.15">
-                                <path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
-                                  fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeDasharray="3 4" strokeLinecap="round"/>
-                                <circle cx={tX} cy={tY-4} r="9" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="2 3"/>
-                              </g>
-                            );
-                          })}
-
-                          {/* Trunk */}
-                          {trunkH > 3 && (<>
-                            <motion.path d={`M${CX-6} ${GY} C${CX-9} ${GY-trunkH*0.35} ${CX-3} ${GY-trunkH*0.72} ${CX} ${topY}`}
-                              fill="none" stroke="url(#lb_tr)" strokeWidth="12" strokeLinecap="round"
-                              initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut'}}/>
-                            <motion.path d={`M${CX+3} ${GY} C${CX+5} ${GY-trunkH*0.35} ${CX+2} ${GY-trunkH*0.72} ${CX} ${topY}`}
-                              fill="none" stroke="#8b5a34" strokeWidth="3.5" strokeLinecap="round" opacity="0.38"
-                              initial={{pathLength:0}} animate={{pathLength:1}} transition={{duration:0.85,ease:'easeOut',delay:0.06}}/>
-                          </>)}
-
-                          {/* Live branches */}
-                          {treeTasks.map((task,i)=>{
-                            const done=!!checkedTasks[task.id];
-                            if(!done) return null;
-                            const bY=GY-(i+1)*sp; const iL=i%2===0;
-                            const tX=iL?CX-50:CX+50; const tY=bY-28;
-                            const dl=i*0.08;
-                            return(
-                              <g key={`br-${task.id||i}`}>
-                                <motion.path d={`M${CX} ${bY} C${CX+(iL?-18:18)} ${bY-8} ${tX+(iL?16:-16)} ${tY+10} ${tX} ${tY}`}
-                                  fill="none" stroke="#6b3e22" strokeWidth="4" strokeLinecap="round"
-                                  initial={{pathLength:0,opacity:0}} animate={{pathLength:1,opacity:1}}
-                                  transition={{delay:dl,duration:0.55,ease:'easeOut'}}/>
-                                <motion.g filter="url(#lb_sg2)"
-                                  initial={{scale:0,opacity:0}} animate={{scale:1,opacity:1}}
-                                  transition={{delay:dl+0.2,type:'spring',stiffness:200,damping:13}}
-                                  style={{transformOrigin:`${tX}px ${tY}px`,transformBox:'fill-box'}}>
-                                  <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(-38)`} opacity="0.92"/>
-                                  <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(0)`}/>
-                                  <path d={leafPath} fill="url(#lb_lf)" transform={`translate(${tX} ${tY}) rotate(38)`} opacity="0.92"/>
-                                  <path d={leafPath} fill={th.b} transform={`translate(${iL?tX-11:tX+11} ${tY+6}) rotate(${iL?65:-65}) scale(0.55)`} opacity="0.75"/>
-                                  <motion.circle cx={tX} cy={tY-14} r={3.5} fill={th.b}
-                                    animate={{r:[3,5,3],opacity:[0.6,1,0.6]}} transition={{duration:2.2,repeat:Infinity,delay:i*0.35}}/>
-                                </motion.g>
-                                {[{ox:-10,oy:-8,d:0},{ox:8,oy:-14,d:0.5},{ox:16,oy:-4,d:1.0}].map((p,j)=>(
-                                  <motion.circle key={j} cx={tX+p.ox} cy={tY+p.oy} r={1.8} fill={th.b}
-                                    animate={{y:[0,-7,0],opacity:[0.15,0.9,0.15],scale:[0.5,1.4,0.5]}}
-                                    transition={{duration:1.9+j*0.4,repeat:Infinity,delay:dl+p.d}}/>
-                                ))}
-                                <text x={iL?tX-22:tX+22} y={tY+5} textAnchor={iL?'end':'start'} fontSize="7" fill={th.b} fontWeight="600" opacity="0.85">
-                                  {(task.text||'').slice(0,11)}
-                                </text>
-                              </g>
-                            );
-                          })}
-
-                          {doneCount>0 && doneCount<totalCount && (
-                            <motion.circle cx={CX} cy={topY} r={5} fill={th.b} filter="url(#lb_gl)"
-                              animate={{r:[4,8,4],opacity:[0.35,1,0.35]}} transition={{duration:1.6,repeat:Infinity}}/>
-                          )}
-
-                          {doneCount===totalCount && totalCount>0 && (
-                            <g filter="url(#lb_gl)">
-                              {[{cx:CX,cy:topY-10,r:34},{cx:CX-26,cy:topY+16,r:24},{cx:CX+26,cy:topY+16,r:24},{cx:CX,cy:topY+8,r:30},{cx:CX-12,cy:topY-28,r:18},{cx:CX+14,cy:topY-26,r:16}]
-                                .map((c,i)=>(<motion.circle key={i} cx={c.cx} cy={c.cy} r={c.r} fill={i%2===0?th.a:th.b} opacity={0.88}
-                                  initial={{scale:0}} animate={{scale:1}} transition={{delay:i*0.07,type:'spring',stiffness:130,damping:10}}
-                                  style={{transformOrigin:`${c.cx}px ${c.cy}px`,transformBox:'fill-box'}}/>))}
-                              {[{x:CX-16,y:topY+4},{x:CX+14,y:topY-2},{x:CX-26,y:topY+24},{x:CX+24,y:topY+20}].map((f,i)=>(
-                                <motion.circle key={i} cx={f.x} cy={f.y} r={4} fill="#f87171" opacity="0.9"
-                                  initial={{scale:0}} animate={{scale:1}} transition={{delay:0.5+i*0.1,type:'spring'}}
-                                  style={{transformOrigin:`${f.x}px ${f.y}px`,transformBox:'fill-box'}}/>
-                              ))}
-                            </g>
-                          )}
-
-                          {doneCount===totalCount && totalCount>0 &&
-                            [{x:68,y:topY-32,d:0},{x:172,y:topY-26,d:0.5},{x:52,y:topY+6,d:1.0},{x:188,y:topY+2,d:1.5}]
-                            .map((p,i)=>(
-                              <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle" fill={th.b}
-                                animate={{y:[p.y,p.y-14,p.y],opacity:[0.1,1,0.1]}} transition={{duration:2.5,repeat:Infinity,delay:p.d}}>✦</motion.text>
-                            ))
-                          }
                         </svg>
                       </div>
+
+                      {/* Goal checkboxes */}
+                      {N > 0 && (
+                        <div style={{position:'relative',zIndex:1,maxHeight:54,overflowY:'auto',marginBottom:5}}>
+                          <div style={{display:'flex',flexWrap:'wrap',gap:'4px 6px'}}>
+                            {bloomGoals.map((goal) => {
+                              const gKey = goal.id || goal.title;
+                              const done = !!checkedGoals[gKey];
+                              const [c1, c2] = domainColor(goal.domain||goal.category);
+                              return (
+                                <div key={gKey}
+                                  onClick={() => setCheckedGoals(p => ({ ...p, [gKey]: !p[gKey] }))}
+                                  style={{ display:'flex', alignItems:'center', gap:4, cursor:'pointer', background: done ? `${c1}22` : 'rgba(255,255,255,0.04)', border:`1px solid ${done ? c1+'55' : 'rgba(255,255,255,0.08)'}`, borderRadius:99, padding:'2px 7px 2px 4px', transition:'all 0.2s' }}>
+                                  <div style={{ width:10, height:10, borderRadius:'50%', border: done ? 'none' : `1.5px solid ${c1}55`, background: done ? c1 : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.2s' }}>
+                                    {done && <svg width="5" height="5" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>}
+                                  </div>
+                                  <span style={{ fontSize:8, color: done ? c2 : '#6b7280', fontWeight: done ? 700 : 500, whiteSpace:'nowrap', maxWidth:55, overflow:'hidden', textOverflow:'ellipsis' }}>
+                                    {(goal.title || 'Goal').slice(0, 10)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Progress bar */}
                       <div style={{position:'relative',zIndex:1}}>
@@ -1806,8 +1908,8 @@ export default function Dashboard() {
                             style={{height:'100%',background:`linear-gradient(90deg,${th.a},${th.b})`,borderRadius:999}}/>
                         </div>
                         <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
-                          <span style={{fontSize:8,color:'#4b5563'}}>{totalCount===0?'Complete tasks to grow':'each ✓ = one branch'}</span>
-                          <span style={{fontSize:8,color:th.a,fontWeight:700}}>{doneCount}/{totalCount}</span>
+                          <span style={{fontSize:8,color:'#4b5563'}}>{N===0?'No goals yet · add goals to bloom':`${N-completedCount} goal${(N-completedCount)!==1?'s':''} left to full bloom`}</span>
+                          <span style={{fontSize:8,color:th.a,fontWeight:700}}>{completedCount}/{N}</span>
                         </div>
                       </div>
                     </div>
@@ -1816,55 +1918,94 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* COLUMN 3: Future Self Card (Full height) */}
-            <div style={{ background: 'linear-gradient(160deg, rgba(109,40,217,0.18) 0%, #111827 60%)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 12, padding: '16px 14px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
+            {/* COLUMN 3: Future Self Card — inline AI chat */}
+            <div style={{ background: 'linear-gradient(160deg, rgba(109,40,217,0.18) 0%, #111827 60%)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50, background: 'linear-gradient(180deg, rgba(139,92,246,0.12) 0%, transparent 100%)', pointerEvents: 'none' }} />
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+              {/* Header with editable age */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span>✨</span> Future Self
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 5 }}>✨ Future Self</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                    <span style={{ fontSize: 9, color: '#a78bfa' }}>Age</span>
+                    <input
+                      type="number" min="18" max="99"
+                      value={futureSelfDisplayAge}
+                      onChange={e => setFutureSelfAge(Number(e.target.value))}
+                      style={{ width: 30, fontSize: 9, color: '#c084fc', fontWeight: 700, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(167,139,250,0.4)', outline: 'none', textAlign: 'center', padding: '0 2px' }}
+                    />
+                    <span style={{ fontSize: 9, color: '#6b7280' }}>· {currentYear + Math.max(0, futureSelfDisplayAge - (user?.age || 22))}</span>
                   </div>
-                  <div style={{ fontSize: 9, color: '#a78bfa', marginTop: 1 }}>{futureYear} · Age {userAge}</div>
                 </div>
                 <span style={{ fontSize: 9, fontWeight: 700, color: '#a78bfa', background: 'rgba(139,92,246,0.18)', border: '1px solid rgba(139,92,246,0.3)', padding: '2px 7px', borderRadius: 6 }}>AI</span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '14px 0' }}>
-                <div style={{ position: 'relative', width: 90, height: 90, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <motion.div
-                    animate={{ scale: [1.02, 1.12, 1.02], opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '2px solid rgba(167, 139, 250, 0.4)', filter: 'blur(1px)' }}
+              {/* Avatar + intro (collapsed when chat open) */}
+              {!futureSelfOpen && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+                    <div style={{ position: 'relative', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <motion.div animate={{ scale: [1.02, 1.14, 1.02], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 3, repeat: Infinity }}
+                        style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '2px solid rgba(167,139,250,0.4)', filter: 'blur(1px)' }}/>
+                      <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}>👦</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#cbd5e1', lineHeight: 1.55, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '8px 10px', marginBottom: 10, flex: 1 }}>
+                    {aiNarrative
+                      ? `I'm you, age ${futureSelfDisplayAge}. ${aiNarrative.slice(0, 140)}${aiNarrative.length > 140 ? '...' : ''}`
+                      : `I'm you, age ${futureSelfDisplayAge}, in ${currentYear + Math.max(0, futureSelfDisplayAge - (user?.age || 22))}. Life balance: ${lifeBalance}/100. Talk to me — I have things to tell you.`}
+                  </div>
+                </>
+              )}
+
+              {/* Inline chat when open */}
+              {futureSelfOpen && (
+                <div ref={futureChatRef} style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8, paddingRight: 2 }}>
+                  {futureSelfMessages.length === 0 && (
+                    <div style={{ fontSize: 9, color: '#6b7280', textAlign: 'center', marginTop: 8 }}>
+                      👆 Ask your age-{futureSelfDisplayAge} self anything
+                    </div>
+                  )}
+                  {futureSelfMessages.map((m, i) => (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                      {m.role !== 'user' && <span style={{ fontSize: 8, color: '#7c3aed', marginBottom: 2, marginLeft: 4 }}>✨ Age {futureSelfDisplayAge}</span>}
+                      <div style={{ background: m.role === 'user' ? 'rgba(99,102,241,0.22)' : 'rgba(124,58,237,0.12)', border: `1px solid ${m.role === 'user' ? 'rgba(99,102,241,0.35)' : 'rgba(124,58,237,0.2)'}`, borderRadius: m.role === 'user' ? '10px 10px 3px 10px' : '10px 10px 10px 3px', padding: '5px 8px', fontSize: 9.5, color: '#e2e8f0', lineHeight: 1.5, maxWidth: '90%' }}>
+                        {m.text}
+                      </div>
+                    </div>
+                  ))}
+                  {futureSelfLoading && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ fontSize: 8, color: '#7c3aed' }}>✨ Age {futureSelfDisplayAge}</span>
+                      <div style={{ display: 'flex', gap: 2 }}>
+                        {[0,1,2].map(i => <motion.div key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: '#a78bfa' }} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 0.9, repeat: Infinity, delay: i*0.2 }}/>)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action row */}
+              {futureSelfOpen ? (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    value={futureSelfInput}
+                    onChange={e => setFutureSelfInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && sendFutureSelfMessage()}
+                    placeholder="Ask your future self..."
+                    style={{ flex: 1, fontSize: 9, color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 8px', outline: 'none' }}
                   />
-                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, boxShadow: '0 0 20px rgba(124, 58, 237, 0.4)' }}>
-                    👦
-                  </div>
+                  <button onClick={sendFutureSelfMessage} disabled={futureSelfLoading || !futureSelfInput.trim()}
+                    style={{ width: 28, height: 28, borderRadius: 8, background: futureSelfLoading ? 'rgba(99,102,241,0.2)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)', border: 'none', color: '#fff', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    →
+                  </button>
                 </div>
-              </div>
-
-              <div style={{ fontSize: 11, color: '#cbd5e1', lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '10px 12px', marginBottom: 12, flex: 1, display: 'flex', alignItems: 'center' }}>
-                {aiNarrative
-                  ? `I'm you, age ${userAge}, in ${futureYear}. ${aiNarrative.slice(0, 160)}${aiNarrative.length > 160 ? '...' : ''}`
-                  : `I'm you, age ${userAge}, in ${futureYear}. Your life balance score is ${lifeBalance}/100. Career (${careerScore}/100) is currently your area needing the most attention.`}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <button onClick={() => window.location.href = '/coach'}
-                  style={{ flex: 1, fontSize: 10, color: '#fff', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', border: 'none', padding: '7px 14px', borderRadius: 999, cursor: 'pointer', fontWeight: 600, boxShadow: '0 4px 10px rgba(124, 58, 237, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                  <span>✨</span> Ask Future Self
+              ) : (
+                <button onClick={() => setFutureSelfOpen(true)}
+                  style={{ width: '100%', fontSize: 10, color: '#fff', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', border: 'none', padding: '7px 14px', borderRadius: 999, cursor: 'pointer', fontWeight: 600, boxShadow: '0 4px 10px rgba(124,58,237,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <span>✨</span> Talk to Future Self
                 </button>
-                
-                <div onClick={() => window.location.href = '/coach'} style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#a78bfa', fontSize: 10, cursor: 'pointer', fontWeight: 600 }}>
-                  <span>Voice Log</span>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 10 }}>
-                    <motion.div animate={{ height: [3, 8, 3] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.1 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
-                    <motion.div animate={{ height: [4, 10, 4] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
-                    <motion.div animate={{ height: [3, 7, 3] }} transition={{ duration: 0.9, repeat: Infinity, delay: 0.5 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
-                    <motion.div animate={{ height: [2, 5, 2] }} transition={{ duration: 0.7, repeat: Infinity, delay: 0.2 }} style={{ width: 1.5, background: '#a78bfa', borderRadius: 1 }} />
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
           </div>
@@ -1895,21 +2036,33 @@ export default function Dashboard() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 6, boxSizing: 'border-box' }}>
-              {[
-                { date: 'May 30', day: 'Fri', status: 'completed' },
-                { date: 'May 31', day: 'Sat', status: 'completed' },
-                { date: 'Jun 01', day: 'Sun', status: 'completed' },
-                { date: 'Jun 02', day: 'Mon', status: 'completed' },
-                { date: 'Jun 03', day: 'Tue', status: 'partial' },
-                { date: 'Jun 04', day: 'Wed', status: 'completed' },
-                { date: 'Jun 05', day: 'Thu', status: 'completed' },
-                { date: 'Jun 06', day: 'Fri', status: 'missed' },
-                { date: 'Jun 07', day: 'Sat', status: 'completed' },
-                { date: 'Jun 08', day: 'Sun', status: 'partial' },
-                { date: 'Jun 10', day: 'Mon', status: 'completed' },
-                { date: 'Jun 10', day: 'Tue', status: 'missed' },
-                { date: 'Jun 12', day: 'Thu', status: 'missed' },
-              ].map((item, idx) => (
+              {(() => {
+                const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                const today = new Date();
+                // Build last 13 days
+                const days = Array.from({ length: 13 }, (_, i) => {
+                  const d = new Date(today); d.setDate(today.getDate() - (12 - i));
+                  const dateStr = d.toISOString().split('T')[0];
+                  // Check if any timeline entry exists for this day
+                  const entries = (timeline || []).filter(e => e.date === dateStr);
+                  const posCount = entries.filter(e => e.sentiment === 'positive').length;
+                  const negCount = entries.filter(e => e.sentiment === 'negative').length;
+                  let status = 'missed';
+                  if (entries.length === 0) status = i >= 12 ? 'today' : 'missed';
+                  else if (posCount > negCount) status = 'completed';
+                  else if (posCount > 0) status = 'partial';
+                  else status = 'missed';
+                  return {
+                    date: `${MONTHS[d.getMonth()]} ${d.getDate()}`,
+                    day: DAYS[d.getDay()],
+                    status,
+                    isToday: i === 12,
+                    entries,
+                  };
+                });
+                return days;
+              })().map((item, idx) => (
                 <div
                   key={idx}
                   style={{
@@ -2000,78 +2153,65 @@ export default function Dashboard() {
           ════════════════════════════════════════════════════ */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
             
-            {/* Column 1: Daily Intelligence */}
+            {/* Column 1: Daily Intelligence — real data from health/career context */}
             <div style={{ ...S('#111827'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0', marginBottom: 12, textTransform: 'none', letterSpacing: 0.2 }}>Daily Intelligence</div>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
+                {(() => {
+                  const waterActual = Math.min(h.waterIntake || 0, 8);
+                  const waterTarget = 8;
+                  const studyActual = Math.round((c.studyHoursDaily || 0) * 60);
+                  const studyTarget = 60;
+                  const sleepActual = h.sleepAvg || 0;
+                  const workoutActual = Math.round((h.workoutsPerWeek || 0) / 7 * 30);
+                  const workoutTarget = 30;
+                  return [
                   {
-                    label: 'Drink 5 more glasses of water',
-                    detail: '3 / 5 glasses',
-                    pct: 60,
+                    label: waterActual >= waterTarget ? '✅ Water goal met today!' : `Drink ${waterTarget - waterActual} more glass${waterTarget - waterActual !== 1 ? 'es' : ''} of water`,
+                    detail: `${waterActual} / ${waterTarget} glasses`,
+                    pct: Math.round((waterActual / waterTarget) * 100),
                     pts: '+2 pts',
                     color: '#3b82f6',
-                    glow: 'rgba(59,130,246,0.4)',
-                    icon: (
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-                      </svg>
-                    ),
+                    icon: (<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></svg>),
                     iconBg: 'radial-gradient(circle, rgba(59,130,246,0.18) 0%, rgba(29,78,216,0.25) 100%)',
                     iconBorder: '1px solid rgba(59,130,246,0.3)',
                     iconShadow: '0 0 10px rgba(59,130,246,0.2)'
                   },
                   {
-                    label: '+1h study today',
-                    detail: '20 / 60 mins',
-                    pct: 33,
+                    label: studyActual >= studyTarget ? '✅ Study goal hit!' : `Study ${Math.round((studyTarget - studyActual) / 60 * 10) / 10}h more today`,
+                    detail: `${Math.round(studyActual)} / ${studyTarget} mins`,
+                    pct: Math.min(100, Math.round((studyActual / studyTarget) * 100)),
                     pts: '+3 pts',
                     color: '#a855f7',
-                    glow: 'rgba(168,85,247,0.4)',
-                    icon: (
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                      </svg>
-                    ),
+                    icon: (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>),
                     iconBg: 'radial-gradient(circle, rgba(168,85,247,0.18) 0%, rgba(109,40,217,0.25) 100%)',
                     iconBorder: '1px solid rgba(168,85,247,0.3)',
                     iconShadow: '0 0 10px rgba(168,85,247,0.2)'
                   },
                   {
-                    label: 'Sleep before 11 PM',
-                    detail: 'Target 11:00 PM',
-                    pct: 40,
+                    label: sleepActual >= 7 ? `✅ Good sleep (${sleepActual.toFixed(1)}h avg)` : `Sleep target: 7h (avg ${sleepActual.toFixed(1)}h)`,
+                    detail: `Target 7h · avg ${sleepActual.toFixed(1)}h`,
+                    pct: Math.min(100, Math.round((sleepActual / 7) * 100)),
                     pts: '+4 pts',
                     color: '#f97316',
-                    glow: 'rgba(249,115,22,0.4)',
-                    icon: (
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.1 22c-5.5 0-10-4.5-10-10 0-4.3 2.7-8.1 6.8-9.5.5-.2 1.1.1 1.3.6.2.5.1 1.1-.4 1.4-3.5 1.7-5.7 5.3-5.7 9.5 0 4.4 3.6 8 8 8 4.2 0 7.8-2.2 9.5-5.7.2-.5.8-.7 1.4-.4.5.2.7.8.6 1.3-1.4 4.1-5.2 6.8-9.5 6.8z" />
-                      </svg>
-                    ),
+                    icon: (<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.1 22c-5.5 0-10-4.5-10-10 0-4.3 2.7-8.1 6.8-9.5.5-.2 1.1.1 1.3.6.2.5.1 1.1-.4 1.4-3.5 1.7-5.7 5.3-5.7 9.5 0 4.4 3.6 8 8 8 4.2 0 7.8-2.2 9.5-5.7.2-.5.8-.7 1.4-.4.5.2.7.8.6 1.3-1.4 4.1-5.2 6.8-9.5 6.8z" /></svg>),
                     iconBg: 'radial-gradient(circle, rgba(249,115,22,0.18) 0%, rgba(194,65,12,0.25) 100%)',
                     iconBorder: '1px solid rgba(249,115,22,0.3)',
                     iconShadow: '0 0 10px rgba(249,115,22,0.2)'
                   },
                   {
-                    label: 'Walk 15 minutes',
-                    detail: '5 / 15 mins',
-                    pct: 33,
+                    label: workoutActual >= workoutTarget ? '✅ Workout done!' : `Move ${workoutTarget - workoutActual} more minutes`,
+                    detail: `${workoutActual} / ${workoutTarget} mins active`,
+                    pct: Math.min(100, Math.round((workoutActual / workoutTarget) * 100)),
                     pts: '+2 pts',
                     color: '#10b981',
-                    glow: 'rgba(16,185,129,0.4)',
-                    icon: (
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 10.2l-.6 3c-.1.7.4 1.3 1.1 1.4h.2c.6 0 1.1-.4 1.2-1l.7-3.8 2.1-.8 1.6 2.3v5.4c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-6.2c0-.5-.2-1-.7-1.3l-2.4-2.4c-.4-.4-1-.7-1.6-.7-1.1 0-2.1.7-2.4 1.7l-.5 1.7-2.3 1.1c-.7.3-1.1 1.1-.8 1.8.3.7 1.1 1.1 1.8.8l2.9-1.4z" />
-                      </svg>
-                    ),
+                    icon: (<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 10.2l-.6 3c-.1.7.4 1.3 1.1 1.4h.2c.6 0 1.1-.4 1.2-1l.7-3.8 2.1-.8 1.6 2.3v5.4c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5v-6.2c0-.5-.2-1-.7-1.3l-2.4-2.4c-.4-.4-1-.7-1.6-.7-1.1 0-2.1.7-2.4 1.7l-.5 1.7-2.3 1.1c-.7.3-1.1 1.1-.8 1.8.3.7 1.1 1.1 1.8.8l2.9-1.4z" /></svg>),
                     iconBg: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(4,120,87,0.25) 100%)',
                     iconBorder: '1px solid rgba(16,185,129,0.3)',
                     iconShadow: '0 0 10px rgba(16,185,129,0.2)'
                   },
-                ].map((item, i) => (
+                ];})().map((item, i) => (
                   <div
                     key={i}
                     style={{
@@ -2117,7 +2257,7 @@ export default function Dashboard() {
                             width: `${item.pct}%`,
                             background: item.color,
                             borderRadius: 99,
-                            boxShadow: `0 0 6px ${item.glow}`,
+                            boxShadow: `0 0 6px ${item.color}66`,
                           }}
                         />
                       </div>
@@ -2217,7 +2357,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0 14px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontSize: 9.5, color: '#94a3b8', fontWeight: 600 }}>Current Career Score</div>
-                  <div style={{ fontSize: 26, fontWeight: 900, color: '#818cf8', marginTop: 4 }}>36</div>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: '#818cf8', marginTop: 4 }}>{careerScore}</div>
                 </div>
                 
                 <div style={{
@@ -2235,7 +2375,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                   <div style={{ fontSize: 9.5, color: '#94a3b8', fontWeight: 600 }}>Projected in 6 months</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 4 }}>
-                    <span style={{ fontSize: 26, fontWeight: 900, color: '#22c55e' }}>{36 + whatIfHours * 8}</span>
+                    <span style={{ fontSize: 26, fontWeight: 900, color: '#22c55e' }}>{Math.min(100, careerScore + whatIfHours * 8)}</span>
                     <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 2 }}>
                       <span>↑</span><span>{whatIfHours * 8}</span>
                     </span>
@@ -2312,89 +2452,43 @@ export default function Dashboard() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
-                  {
-                    label: 'Low Sleep → Higher Spending',
-                    corr: 'Correlation: 0.73',
-                    color: '#ef4444',
-                    glow: 'rgba(239, 68, 68, 0.4)',
-                    boxBg: 'rgba(239, 68, 68, 0.03)',
-                    boxBorder: '1px solid rgba(239, 68, 68, 0.1)',
-                    sparkData: [45, 52, 48, 60, 58, 68, 75],
-                    icon1: (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.1 22c-5.5 0-10-4.5-10-10 0-4.3 2.7-8.1 6.8-9.5.5-.2 1.1.1 1.3.6.2.5.1 1.1-.4 1.4-3.5 1.7-5.7 5.3-5.7 9.5 0 4.4 3.6 8 8 8 4.2 0 7.8-2.2 9.5-5.7.2-.5.8-.7 1.4-.4.5.2.7.8.6 1.3-1.4 4.1-5.2 6.8-9.5 6.8z" />
-                      </svg>
-                    ),
-                    icon2: (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="9" cy="21" r="1" fill="currentColor" />
-                        <circle cx="20" cy="21" r="1" fill="currentColor" />
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                      </svg>
-                    ),
-                    iconBg: 'radial-gradient(circle, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.2) 100%)',
-                    iconBorder: '1px solid rgba(239,68,68,0.25)'
-                  },
-                  {
-                    label: 'More Exercise → Better Focus',
-                    corr: 'Correlation: 0.81',
-                    color: '#10b981',
-                    glow: 'rgba(16, 185, 129, 0.4)',
-                    boxBg: 'rgba(16, 185, 129, 0.03)',
-                    boxBorder: '1px solid rgba(16, 185, 129, 0.1)',
-                    sparkData: [48, 52, 50, 62, 58, 65, 75],
-                    icon1: (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6.5 6.5l11 11M3 21l3-3M21 3l-3 3M3 14l7-7M14 17l7-7" />
-                      </svg>
-                    ),
-                    icon2: (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2zM14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z" />
-                      </svg>
-                    ),
-                    iconBg: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.2) 100%)',
-                    iconBorder: '1px solid rgba(16,185,129,0.25)'
-                  },
-                  {
-                    label: 'Study Consistency → Higher Mood',
-                    corr: 'Correlation: 0.68',
-                    color: '#fbbf24',
-                    glow: 'rgba(251, 191, 36, 0.4)',
-                    boxBg: 'rgba(251, 191, 36, 0.03)',
-                    boxBorder: '1px solid rgba(251, 191, 36, 0.1)',
-                    sparkData: [45, 50, 47, 58, 55, 62, 70],
-                    icon1: (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                      </svg>
-                    ),
-                    icon2: (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
-                      </svg>
-                    ),
-                    iconBg: 'radial-gradient(circle, rgba(251,191,36,0.12) 0%, rgba(251,191,36,0.2) 100%)',
-                    iconBorder: '1px solid rgba(251,191,36,0.25)'
-                  },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: item.boxBg,
-                      border: item.boxBorder,
-                      borderRadius: 12,
-                      padding: '10px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                      boxSizing: 'border-box',
-                    }}
-                  >
+                {(() => {
+                  const domainIcon = {
+                    health: <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12.1 22c-5.5 0-10-4.5-10-10 0-4.3 2.7-8.1 6.8-9.5.5-.2 1.1.1 1.3.6.2.5.1 1.1-.4 1.4-3.5 1.7-5.7 5.3-5.7 9.5 0 4.4 3.6 8 8 8 4.2 0 7.8-2.2 9.5-5.7.2-.5.8-.7 1.4-.4.5.2.7.8.6 1.3-1.4 4.1-5.2 6.8-9.5 6.8z"/></svg>,
+                    finance: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1" fill="currentColor"/><circle cx="20" cy="21" r="1" fill="currentColor"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>,
+                    career: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2zM14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z"/></svg>,
+                  };
+                  const domainClr = { health: '#f97316', finance: '#3b82f6', career: '#a855f7' };
+                  const rawCross = computed?.crossDomain || [];
+                  const items = rawCross.slice(0, 3).map(cd => {
+                    const isNeg = cd.type === 'negative';
+                    const col = isNeg ? '#ef4444' : '#10b981';
+                    const label = `${cd.trigger} → ${cd.effect}`.slice(0, 55) + ((`${cd.trigger} → ${cd.effect}`).length > 55 ? '…' : '');
+                    const corr = cd.mechanism ? cd.mechanism.slice(0, 48) + '…' : `${cd.from} → ${cd.to} cascade`;
+                    const base = isNeg ? 65 : 38;
+                    const sparkData = Array.from({ length: 7 }, (_, k) => Math.max(20, Math.min(95, base + (isNeg ? k * 4 : -k * 3) + (Math.random() * 6 - 3))));
+                    return { label, corr, color: col, glow: `${col}66`, boxBg: `${col}08`, boxBorder: `1px solid ${col}18`, sparkData, icon1: domainIcon[cd.from] || domainIcon.health, icon2: domainIcon[cd.to] || domainIcon.career, iconBg: `radial-gradient(circle, ${col}1e 0%, ${col}33 100%)`, iconBorder: `1px solid ${col}40` };
+                  });
+                  if (items.length === 0) return (
+                    <div style={{ color: '#6b7280', fontSize: 10, textAlign: 'center', padding: '20px 0', lineHeight: 1.6 }}>
+                      Add health, finance & career data<br/>to see real cross-domain insights.
+                    </div>
+                  );
+                  return items.map((item, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: item.boxBg,
+                        border: item.boxBorder,
+                        borderRadius: 12,
+                        padding: '10px 12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                        boxSizing: 'border-box',
+                      }}
+                    >
                     {/* Double Icons left side layout */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                       <div
@@ -2472,7 +2566,8 @@ export default function Dashboard() {
                       })()}
                     </div>
                   </div>
-                ))}
+                  ));
+                })()}
               </div>
             </div>
 

@@ -910,8 +910,8 @@ function JobsTab({ userSkills }) {
           {filtered.map(job => <JobCard key={job.id} job={job} userSkills={userSkills || []} />)}
 
           {filtered.length > 0 && (
-            <button style={{ padding: '12px', borderRadius: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', color: '#818cf8', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
-              View all jobs →
+            <button onClick={() => window.open('https://www.linkedin.com/jobs/', '_blank')} style={{ padding: '12px', borderRadius: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', color: '#818cf8', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+              View all jobs on LinkedIn →
             </button>
           )}
         </div>
@@ -951,7 +951,7 @@ function JobsTab({ userSkills }) {
                 </div>
               </>
             )}
-            <button style={{ marginTop: 'auto', width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <button onClick={() => setTab('roadmap')} style={{ marginTop: 'auto', width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               Create Learning Plan →
             </button>
           </div>
@@ -2539,6 +2539,23 @@ export default function Career() {
           (totalStudyH > 0 ? Math.min(20, totalStudyH) : 0)
         ));
 
+        // Compute peak study hour from real sessions
+        const peakStudyTime = (() => {
+          if (!sessions.length) return null;
+          const hourBuckets = {};
+          sessions.forEach(s => {
+            const d = new Date(s.createdAt || s.sessionDate || Date.now());
+            const h = d.getHours();
+            const bucket = Math.floor(h / 2) * 2; // 2-hour buckets
+            hourBuckets[bucket] = (hourBuckets[bucket] || 0) + 1;
+          });
+          const peakHour = Object.entries(hourBuckets).sort((a,b) => b[1]-a[1])[0]?.[0];
+          if (peakHour == null) return null;
+          const h = Number(peakHour);
+          const fmt = hr => { const ampm = hr < 12 ? 'AM' : 'PM'; const h12 = hr === 0 ? 12 : hr > 12 ? hr-12 : hr; return `${h12} ${ampm}`; };
+          return `${fmt(h)} – ${fmt(h+2)}`;
+        })();
+
         const INSIGHTS = [
           { 
             icon: (
@@ -2549,8 +2566,8 @@ export default function Career() {
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
             ), 
-            label: 'Most Productive Day', 
-            value: heatmapData.bestDay || 'Tuesday',   
+            label: 'Most Productive Day',
+            value: heatmapData.bestDay || (sessions.length ? 'Computing…' : 'Log sessions'),
             bg: 'rgba(99,102,241,0.12)',  
             ic: '#818cf8' 
           },
@@ -2560,8 +2577,8 @@ export default function Career() {
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
             ), 
-            label: 'Peak Study Time',     
-            value: '8 PM – 10 PM',                      
+            label: 'Peak Study Time',
+            value: peakStudyTime || (sessions.length ? 'Computing…' : 'Log sessions'),
             bg: 'rgba(99,102,241,0.12)',  
             ic: '#818cf8' 
           },
@@ -2591,6 +2608,24 @@ export default function Career() {
         // Build 6-month study hours trend from sessions
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const now = new Date();
+
+        // Real monthly deltas
+        const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        const lastMonthDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+        const lastMonthKey = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth()+1).padStart(2,'0')}`;
+        const sessionKey = s => { const d = new Date(s.createdAt||s.sessionDate||Date.now()); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
+        const thisMoSessions = sessions.filter(s => sessionKey(s) === thisMonthKey);
+        const lastMoSessions = sessions.filter(s => sessionKey(s) === lastMonthKey);
+        const thisMoHrs  = Math.round(thisMoSessions.reduce((s2,s) => s2+(s.durationMinutes||0)/60, 0));
+        const lastMoHrs  = Math.round(lastMoSessions.reduce((s2,s) => s2+(s.durationMinutes||0)/60, 0));
+        const deltaHrs   = thisMoHrs - lastMoHrs;
+        const deltaSess  = thisMoSessions.length - lastMoSessions.length;
+        const thisMoXP   = thisMoSessions.reduce((s2,s) => s2+(s.xpEarned||10), 0);
+        const lastMoXP   = lastMoSessions.reduce((s2,s) => s2+(s.xpEarned||10), 0);
+        const deltaXP    = thisMoXP - lastMoXP;
+        const deltaHrsStr  = deltaHrs  >= 0 ? `+${deltaHrs}h this month`  : `${deltaHrs}h this month`;
+        const deltaSessStr = deltaSess >= 0 ? `+${deltaSess} this month`   : `${deltaSess} this month`;
+        const deltaXPStr   = deltaXP   >= 0 ? `+${deltaXP} this month`    : `${deltaXP} this month`;
         const trendData = Array.from({length:6},(_,i)=>{
           const d = new Date(now.getFullYear(), now.getMonth()-5+i, 1);
           const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
@@ -2610,8 +2645,8 @@ export default function Career() {
                 {
                   icon: <svg style={{ width: 20, height: 20 }} fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
                   label: 'Total XP',         
-                  value: (heatmapData.totalXP||0).toLocaleString(), 
-                  sub: '+180 this month', 
+                  value: (heatmapData.totalXP||0).toLocaleString(),
+                  sub: sessions.length > 0 ? deltaXPStr : 'Log sessions to track',
                   color: '#818cf8',
                   bg: 'rgba(99, 102, 241, 0.12)',
                   border: 'rgba(99, 102, 241, 0.25)',
@@ -2620,8 +2655,8 @@ export default function Career() {
                 {
                   icon: <svg style={{ width: 20, height: 20 }} fill="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
                   label: 'Current Streak',   
-                  value: `${statsData.streak||0} Days`,              
-                  sub: `Best: ${statsData.streak||0} Days`, 
+                  value: `${statsData.streak||0} Days`,
+                  sub: (statsData.streak||0) > 0 ? `Keep it up!` : 'Start logging to build streak',
                   color: '#f97316',
                   bg: 'rgba(249, 115, 22, 0.12)',
                   border: 'rgba(249, 115, 22, 0.25)',
@@ -2630,8 +2665,8 @@ export default function Career() {
                 {
                   icon: <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
                   label: 'Total Study Time', 
-                  value: `${totalStudyH}h`,                          
-                  sub: '+24h this month', 
+                  value: `${totalStudyH}h`,
+                  sub: sessions.length > 0 ? deltaHrsStr : 'Log sessions to track',
                   color: '#3b82f6',
                   bg: 'rgba(59, 130, 246, 0.12)',
                   border: 'rgba(59, 130, 246, 0.25)',
@@ -2640,8 +2675,8 @@ export default function Career() {
                 {
                   icon: <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>,
                   label: 'Sessions Completed',
-                  value: statsData.totalSessions||0,                
-                  sub: '+9 this month', 
+                  value: statsData.totalSessions||0,
+                  sub: sessions.length > 0 ? deltaSessStr : 'Log sessions to track',
                   color: '#a855f7',
                   bg: 'rgba(168, 85, 247, 0.12)',
                   border: 'rgba(168, 85, 247, 0.25)',
@@ -2778,7 +2813,15 @@ export default function Career() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <p style={{ fontSize: 12, color: '#10b981', marginTop: 12, fontWeight: 600, margin: '12px 0 0' }}>↑ 34% more study hours compared to last 5 months</p>
+                {(() => {
+                  const older = trendData.slice(0, 4);
+                  const newer = trendData.slice(4);
+                  const oldAvg = older.length ? older.reduce((s,d) => s+d.hours, 0)/older.length : 0;
+                  const newAvg = newer.length ? newer.reduce((s,d) => s+d.hours, 0)/newer.length : 0;
+                  if (!oldAvg) return <p style={{ fontSize: 12, color: '#64748b', marginTop: 12, margin: '12px 0 0' }}>Log sessions to see your trend</p>;
+                  const pct = Math.round(((newAvg - oldAvg) / Math.max(1, oldAvg)) * 100);
+                  return <p style={{ fontSize: 12, color: pct >= 0 ? '#10b981' : '#ef4444', marginTop: 12, fontWeight: 600, margin: '12px 0 0' }}>{pct >= 0 ? '↑' : '↓'} {Math.abs(pct)}% study hours vs previous period</p>;
+                })()}
               </div>
             </div>
           </div>

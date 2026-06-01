@@ -181,7 +181,7 @@ export default function Coach() {
           {crossDomain.slice(0, 2).map((cd, i) => (
             <div key={i} style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 10, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', fontSize: 10, color: '#fbbf24', maxWidth: 200 }}>
               <span style={{ flexShrink: 0 }}>🔗</span>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cd.id.replace(/-/g, ' ')}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(cd.id || cd.trigger || 'cascade').replace(/-/g, ' ')}</span>
             </div>
           ))}
         </div>
