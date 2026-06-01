@@ -3832,25 +3832,23 @@ export default function Integrations() {
       <div style={{ position: 'absolute', top: '15%', left: '10%', width: 280, height: 280, background: 'rgba(99,102,241,0.06)', filter: 'blur(100px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(6,182,212,0.05)', filter: 'blur(120px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
 
-      {/* ── Glowing Brand Header ── */}
-      <div className="mb-4 pt-2 flex flex-col gap-1" style={{ position: 'relative', zIndex: 2 }}>
-        {/* Breadcrumbs Path */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#64748b', fontWeight: 600, marginBottom: 8, textTransform: 'none' }}>
-          <span style={{ color: '#64748b' }}>BeyondSelf</span>
-          <span style={{ fontSize: 9.5 }}>/</span>
-          <span style={{ color: '#94a3b8' }}>Integrations</span>
+      {/* ── Page Header ── */}
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        {/* ── Breadcrumbs ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
+          <span>BeyondSelf</span>
+          <span style={{ color: '#475569' }}>/</span>
+          <span style={{ color: '#ffffff' }}>Integrations</span>
         </div>
 
-        {/* Title block */}
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/5">
-            <Link size={20} className="text-[#818cf8]" />
+        {/* ── Page Header Title ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.15)', color: '#818cf8', flexShrink: 0 }}>
+            <Link size={18} />
           </div>
-          <div>
-            <h1 className="text-[26px] font-black text-white leading-tight tracking-tight">API Integrations</h1>
-            <p className="text-[13px] text-slate-400 mt-1">Connect external platforms to enrich your digital twin with real-world data.</p>
-          </div>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>API Integrations</h1>
         </div>
+        <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>Connect external platforms to enrich your digital twin with real-world data.</p>
       </div>
 
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
