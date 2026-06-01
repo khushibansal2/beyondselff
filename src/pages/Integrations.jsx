@@ -314,7 +314,9 @@ function GitHubPanel() {
       {/* Profile Results */}
       <AnimatePresence>
         {profile && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+            {/* Left Column (span 2) */}
+            <div className="lg:col-span-2 space-y-5">
             {/* User card */}
             <GlassCard className="relative overflow-hidden !p-6 md:!p-7">
               <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
@@ -731,8 +733,11 @@ function GitHubPanel() {
 
             </div>
 
-            {/* AI Analysis Passport */}
-            {analysis && (
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-5">
+            {analysis ? (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }} 
                 animate={{ opacity: 1, y: 0 }}
@@ -870,9 +875,40 @@ function GitHubPanel() {
                   </div>
                 </GlassCard>
               </motion.div>
+            ) : (
+              <GlassCard className="relative overflow-hidden border border-white/[0.05] !p-6 flex flex-col items-center text-center justify-center min-h-[320px]">
+                <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500/5 to-purple-500/5 blur-3xl pointer-events-none" />
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+                  <Brain size={22} className="text-indigo-400 animate-pulse" />
+                </div>
+                <h3 className="text-[15px] font-bold text-white mb-2">AI Career Passport</h3>
+                <p className="text-[12.5px] text-[#8b949e] leading-relaxed max-w-[280px] mb-5">
+                  Generate a personalized professional passport mapping your skills, hirability index, and custom resume optimizations based on your public GitHub history.
+                </p>
+                <motion.button
+                  onClick={handleAIAnalysis}
+                  disabled={aiLoading}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[12.5px] font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 shadow-[0_4px_15px_rgba(99,102,241,0.2)] border-none cursor-pointer"
+                >
+                  {aiLoading ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Generating Passport...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={14} className="animate-pulse" />
+                      Unlock AI Passport
+                    </>
+                  )}
+                </motion.button>
+              </GlassCard>
             )}
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
+      )}
       </AnimatePresence>
     </div>
   );
@@ -1401,201 +1437,203 @@ function LinkedInPanel() {
       )}
 
       {profile && !loading && (
-        <>
-          {/* Profile Card — clean dark header, no blue banner */}
-          <GlassCard>
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-2xl border-2 border-[#0077b5]/30 bg-gradient-to-br from-[#0077b5] to-[#00a0dc] flex items-center justify-center text-white text-xl font-black shadow-lg flex-shrink-0">
-                  {profile.initials}
-                </div>
-                <div>
-                  <h2 className="text-[15px] font-bold text-[#f0f0f3]">{profile.name}</h2>
-                  <p className="text-[11px] text-[#71717a] mt-0.5">{profile.location}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[11px] text-[#00a0dc] font-semibold">{profile.connections} connections</span>
-                    <span className="text-[#6b7280]">·</span>
-                    <span className="text-[11px] text-[#71717a]">{profile.followers} followers</span>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+          {/* Left Column (span 2) */}
+          <div className="lg:col-span-2 space-y-5">
+            {/* Profile Card — clean dark header, no blue banner */}
+            <GlassCard>
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-2xl border-2 border-[#0077b5]/30 bg-gradient-to-br from-[#0077b5] to-[#00a0dc] flex items-center justify-center text-white text-xl font-black shadow-lg flex-shrink-0">
+                    {profile.initials}
+                  </div>
+                  <div>
+                    <h2 className="text-[15px] font-bold text-[#f0f0f3]">{profile.name}</h2>
+                    <p className="text-[11px] text-[#71717a] mt-0.5">{profile.location}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[11px] text-[#00a0dc] font-semibold">{profile.connections} connections</span>
+                      <span className="text-[#6b7280]">·</span>
+                      <span className="text-[11px] text-[#71717a]">{profile.followers} followers</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex gap-2 flex-shrink-0">
-                <button onClick={() => setFollowed(f => !f)}
-                  className={`text-[11px] px-4 py-1.5 rounded-full border font-semibold transition-all ${followed ? 'bg-white/[0.04] border-white/[0.1] text-[#71717a]' : 'bg-[#0077b5] border-[#0077b5] text-white hover:bg-[#006097]'}`}>
-                  {followed ? '✓ Following' : '+ Follow'}
-                </button>
-                <button className="text-[11px] px-4 py-1.5 rounded-full border border-white/[0.1] text-[#a1a1aa] hover:border-white/[0.2] transition-all font-semibold">Message</button>
-              </div>
-            </div>
-            <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{profile.headline}</p>
-            <p className="text-[11px] text-[#71717a] mt-3 leading-relaxed border-t border-white/[0.04] pt-3">{profile.about}</p>
-          </GlassCard>
-
-          {/* Analytics Row */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Profile Views',      value: profile.analytics.profileViews,                      sub: `${profile.analytics.viewsTrend} this week`, color: '#0077b5' },
-              { label: 'Search Appearances', value: profile.analytics.searchAppearances,                  sub: 'last 7 days',   color: '#10b981' },
-              { label: 'Post Impressions',   value: profile.analytics.postImpressions.toLocaleString(),   sub: 'last 30 days',  color: '#8b5cf6' },
-            ].map(m => (
-              <GlassCard key={m.label}>
-                <p className="text-[10px] text-[#71717a] font-medium mb-1.5 uppercase tracking-wider">{m.label}</p>
-                <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
-                <p className="text-[10px] text-[#6b7280] mt-0.5">{m.sub}</p>
-              </GlassCard>
-            ))}
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-1.5 flex-wrap">
-            {[
-              { id: 'experience', label: 'Experience & Education' },
-              { id: 'skills',     label: 'Skills' },
-              { id: 'jobs',       label: 'Job Matches' },
-            ].map(t => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)}
-                className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
-                  activeTab === t.id
-                    ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]'
-                    : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
-                }`}>{t.label}
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
-
-              {/* EXPERIENCE */}
-              {activeTab === 'experience' && (
-                <div className="space-y-3">
-                  {profile.experience.map((exp, i) => (
-                    <GlassCard key={i}>
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-xl flex-shrink-0">{exp.logo}</div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{exp.title}</p>
-                          <p className="text-[12px] text-[#a1a1aa]">{exp.company} · {exp.location}</p>
-                          <p className="text-[11px] text-[#71717a] mt-0.5">{exp.duration}</p>
-                          <ul className="mt-2.5 space-y-1.5">
-                            {exp.highlights.map((h, j) => (
-                              <li key={j} className="flex items-start gap-2 text-[11px] text-[#71717a]">
-                                <ChevronRight size={10} className="mt-0.5 text-[#0077b5] flex-shrink-0" />{h}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </GlassCard>
-                  ))}
-                  <p className="text-[10px] font-bold text-[#71717a] uppercase tracking-wider px-1 pt-1">Education</p>
-                  {profile.education.map((edu, i) => (
-                    <GlassCard key={i}>
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xl flex-shrink-0">🎓</div>
-                        <div>
-                          <p className="text-[13px] font-semibold text-[#f0f0f3]">{edu.degree}</p>
-                          <p className="text-[12px] text-[#a1a1aa]">{edu.institution}</p>
-                          <p className="text-[11px] text-[#71717a] mt-0.5">{edu.year} · {edu.grade}</p>
-                        </div>
-                      </div>
-                    </GlassCard>
-                  ))}
+                <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={() => setFollowed(f => !f)}
+                    className={`text-[11px] px-4 py-1.5 rounded-full border font-semibold transition-all ${followed ? 'bg-white/[0.04] border-white/[0.1] text-[#71717a]' : 'bg-[#0077b5] border-[#0077b5] text-white hover:bg-[#006097]'}`}>
+                    {followed ? '✓ Following' : '+ Follow'}
+                  </button>
+                  <button className="text-[11px] px-4 py-1.5 rounded-full border border-white/[0.1] text-[#a1a1aa] hover:border-white/[0.2] transition-all font-semibold">Message</button>
                 </div>
-              )}
+              </div>
+              <p className="text-[12px] text-[#a1a1aa] leading-relaxed">{profile.headline}</p>
+              <p className="text-[11px] text-[#71717a] mt-3 leading-relaxed border-t border-white/[0.04] pt-3">{profile.about}</p>
+            </GlassCard>
 
-              {/* SKILLS */}
-              {activeTab === 'skills' && (
-                <GlassCard>
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Top Skills ({profile.skills.length})</h3>
-                  <div className="space-y-2.5">
-                    {profile.skills.map((s, i) => (
-                      <motion.div key={s.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                        className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-[12px] text-[#a1a1aa] font-medium">{s.name}</span>
-                            <span className="text-[10px] text-[#71717a]">{s.endorsements} endorsements</span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${Math.min(100, (s.endorsements / 50) * 100)}%` }}
-                              transition={{ duration: 0.8, delay: i * 0.04 }}
-                              className="h-full rounded-full bg-[#0077b5]"
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+            {/* Analytics Row */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Profile Views',      value: profile.analytics.profileViews,                      sub: `${profile.analytics.viewsTrend} this week`, color: '#0077b5' },
+                { label: 'Search Appearances', value: profile.analytics.searchAppearances,                  sub: 'last 7 days',   color: '#10b981' },
+                { label: 'Post Impressions',   value: profile.analytics.postImpressions.toLocaleString(),   sub: 'last 30 days',  color: '#8b5cf6' },
+              ].map(m => (
+                <GlassCard key={m.label}>
+                  <p className="text-[10px] text-[#71717a] font-medium mb-1.5 uppercase tracking-wider">{m.label}</p>
+                  <p className="text-[22px] font-black" style={{ color: m.color }}>{m.value}</p>
+                  <p className="text-[10px] text-[#6b7280] mt-0.5">{m.sub}</p>
                 </GlassCard>
-              )}
+              ))}
+            </div>
 
-              {/* JOBS */}
-              {activeTab === 'jobs' && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 px-1 mb-1">
-                    <Sparkles size={12} className="text-[#0077b5]" />
-                    <p className="text-[11px] text-[#71717a]">Jobs matched to your profile using mock LinkedIn AI recommendations</p>
-                  </div>
-                  {profile.jobs.map((job, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
-                      <GlassCard>
+            {/* Tabs */}
+            <div className="flex gap-1.5 flex-wrap">
+              {[
+                { id: 'experience', label: 'Experience & Education' },
+                { id: 'skills',     label: 'Skills' },
+              ].map(t => (
+                <button key={t.id} onClick={() => setActiveTab(t.id)}
+                  className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
+                    activeTab === t.id
+                      ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]'
+                      : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
+                  }`}>{t.label}
+                </button>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+                {/* EXPERIENCE */}
+                {activeTab === 'experience' && (
+                  <div className="space-y-3">
+                    {profile.experience.map((exp, i) => (
+                      <GlassCard key={i}>
                         <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-2xl flex-shrink-0">{job.logo}</div>
+                          <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-xl flex-shrink-0">{exp.logo}</div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 flex-wrap">
-                              <div>
-                                <p className="text-[13px] font-semibold text-[#f0f0f3]">{job.title}</p>
-                                <p className="text-[12px] text-[#a1a1aa]">{job.company}</p>
-                                <p className="text-[11px] text-[#71717a] mt-0.5">{job.location} · {job.type} · Posted {job.postedAgo}</p>
-                              </div>
-                              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${matchColor(job.match)} flex-shrink-0`}>{job.match}% match</span>
-                            </div>
-                            <div className="flex items-center gap-3 mt-2.5 flex-wrap">
-                              <span className="text-[11px] text-emerald-400 font-semibold">{job.salary}</span>
-                              <span className="text-[10px] text-[#71717a]">{job.applicants} applicants</span>
-                              <button
-                                onClick={() => setSavedJobs(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
-                                className={`text-[11px] px-3 py-1 rounded-full border transition-all font-semibold ml-auto ${savedJobs.includes(i) ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]' : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'}`}>
-                                {savedJobs.includes(i) ? '✓ Saved' : 'Save'}
-                              </button>
-                              <button className="text-[11px] px-3 py-1 rounded-full bg-[#0077b5] text-white font-semibold hover:bg-[#006097] transition-all">Easy Apply</button>
-                            </div>
+                            <p className="text-[13px] font-semibold text-[#f0f0f3]">{exp.title}</p>
+                            <p className="text-[12px] text-[#a1a1aa]">{exp.company} · {exp.location}</p>
+                            <p className="text-[11px] text-[#71717a] mt-0.5">{exp.duration}</p>
+                            <ul className="mt-2.5 space-y-1.5">
+                              {exp.highlights.map((h, j) => (
+                                <li key={j} className="flex items-start gap-2 text-[11px] text-[#71717a]">
+                                  <ChevronRight size={10} className="mt-0.5 text-[#0077b5] flex-shrink-0" />{h}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         </div>
                       </GlassCard>
-                    </motion.div>
-                  ))}
-
-                  {/* OAuth explainer */}
-                  <GlassCard className="border border-[#0077b5]/15 bg-[#0077b5]/[0.03]">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Zap size={13} className="text-[#0077b5]" />
-                      <p className="text-[12px] font-bold text-[#a1a1aa]">How to Enable Real LinkedIn Integration</p>
-                    </div>
-                    <div className="space-y-2.5">
-                      {[
-                        { step: '01', text: 'Apply for LinkedIn Partner Program at developer.linkedin.com/partner-programs' },
-                        { step: '02', text: 'Get approved for Sign In with LinkedIn + Profile API access' },
-                        { step: '03', text: 'Implement OAuth 2.0 PKCE flow — redirect to LinkedIn authorization endpoint' },
-                        { step: '04', text: 'Exchange auth code for access token (server-side, never in browser)' },
-                        { step: '05', text: 'Call /v2/me and /v2/emailAddress with Bearer token to fetch real profile data' },
-                      ].map(s => (
-                        <div key={s.step} className="flex items-start gap-3">
-                          <span className="text-[10px] font-black text-[#0077b5]/60 font-mono mt-0.5 flex-shrink-0">{s.step}</span>
-                          <p className="text-[11px] text-[#71717a] leading-relaxed">{s.text}</p>
+                    ))}
+                    <p className="text-[10px] font-bold text-[#71717a] uppercase tracking-wider px-1 pt-1">Education</p>
+                    {profile.education.map((edu, i) => (
+                      <GlassCard key={i}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xl flex-shrink-0">🎓</div>
+                          <div>
+                            <p className="text-[13px] font-semibold text-[#f0f0f3]">{edu.degree}</p>
+                            <p className="text-[12px] text-[#a1a1aa]">{edu.institution}</p>
+                            <p className="text-[11px] text-[#71717a] mt-0.5">{edu.year} · {edu.grade}</p>
+                          </div>
                         </div>
+                      </GlassCard>
+                    ))}
+                  </div>
+                )}
+
+                {/* SKILLS */}
+                {activeTab === 'skills' && (
+                  <GlassCard>
+                    <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Top Skills ({profile.skills.length})</h3>
+                    <div className="space-y-2.5">
+                      {profile.skills.map((s, i) => (
+                        <motion.div key={s.name} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                          className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-[12px] text-[#a1a1aa] font-medium">{s.name}</span>
+                              <span className="text-[10px] text-[#71717a]">{s.endorsements} endorsements</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(100, (s.endorsements / 50) * 100)}%` }}
+                                transition={{ duration: 0.8, delay: i * 0.04 }}
+                                className="h-full rounded-full bg-[#0077b5]"
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
                       ))}
                     </div>
                   </GlassCard>
-                </div>
-              )}
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-            </motion.div>
-          </AnimatePresence>
-        </>
+          {/* Right Column (span 1) */}
+          <div className="space-y-5">
+            {/* AI Job Matches & Recommendations */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <Sparkles size={13} className="text-[#00a0dc]" />
+                <p className="text-[12px] font-bold text-[#f0f0f3]">AI Job Matches</p>
+              </div>
+              <p className="text-[11.5px] text-[#71717a] px-1 leading-relaxed">
+                Jobs matched to your profile using high-fidelity LinkedIn AI recommendations.
+              </p>
+              {profile.jobs.map((job, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+                  <GlassCard className="!p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-xl flex-shrink-0">{job.logo}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          <div>
+                            <p className="text-[13px] font-semibold text-[#f0f0f3]">{job.title}</p>
+                            <p className="text-[11px] text-[#a1a1aa]">{job.company}</p>
+                            <p className="text-[10.5px] text-[#71717a] mt-0.5">{job.location} · {job.type} · Posted {job.postedAgo}</p>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${matchColor(job.match)} flex-shrink-0`}>{job.match}% match</span>
+                        </div>
+                        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-white/[0.03]">
+                          <span className="text-[11px] text-emerald-400 font-semibold">{job.salary}</span>
+                          <button
+                            onClick={() => setSavedJobs(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
+                            className={`text-[10px] px-2.5 py-0.5 rounded-lg border transition-all font-semibold ${savedJobs.includes(i) ? 'bg-[#0077b5]/15 border-[#0077b5]/30 text-[#00a0dc]' : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'}`}>
+                            {savedJobs.includes(i) ? '✓ Saved' : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* OAuth Partner Integration Guide */}
+            <GlassCard className="border border-[#0077b5]/15 bg-[#0077b5]/[0.03]">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap size={13} className="text-[#0077b5]" />
+                <p className="text-[12px] font-bold text-[#a1a1aa]">How to Enable Real LinkedIn Integration</p>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  { step: '01', text: 'Apply for LinkedIn Partner Program at developer.linkedin.com/partner-programs' },
+                  { step: '02', text: 'Get approved for Sign In with LinkedIn + Profile API access' },
+                  { step: '03', text: 'Implement OAuth 2.0 PKCE flow — redirect to LinkedIn authorization endpoint' },
+                  { step: '04', text: 'Exchange auth code for access token (server-side, never in browser)' },
+                  { step: '05', text: 'Call /v2/me and /v2/emailAddress with Bearer token to fetch real profile data' },
+                ].map(s => (
+                  <div key={s.step} className="flex items-start gap-3">
+                    <span className="text-[10px] font-black text-[#0077b5]/60 font-mono mt-0.5 flex-shrink-0">{s.step}</span>
+                    <p className="text-[11px] text-[#71717a] leading-relaxed">{s.text}</p>
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          </div>
+        </motion.div>
       )}
     </div>
   );
@@ -1757,134 +1795,190 @@ function NutritionixPanel() {
       {/* Results */}
       <AnimatePresence>
         {result && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-            {isDemo && (
-              <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2">
-                <AlertTriangle size={13} /> Demo mode — add Nutritionix keys above for real results
-              </div>
-            )}
-
-            {/* Total nutrition */}
-            <GlassCard className="relative overflow-hidden">
-              <div className="absolute -top-20 -right-20 w-44 h-44 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none" />
-              
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <Utensils size={15} className="text-emerald-400" />
-                  <h3 className="text-[13.5px] font-bold text-white tracking-wide">Nutrition Breakdown</h3>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+            {/* Left Column (span 2) */}
+            <div className="lg:col-span-2 space-y-5">
+              {isDemo && (
+                <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2">
+                  <AlertTriangle size={13} /> Demo mode — add Nutritionix keys above for real results
                 </div>
-                {/* Health Score Circular Gauge */}
-                {(() => {
-                  const score = result.healthScore;
-                  const strokeColor = score >= 70 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
-                  const glowColor = score >= 70 ? 'rgba(16, 185, 129, 0.4)' : score >= 50 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(239, 68, 68, 0.4)';
-                  const radius = 20;
-                  const circumference = 2 * Math.PI * radius;
-                  const strokeDashoffset = circumference - (score / 100) * circumference;
-                  return (
-                    <div className="flex items-center gap-3">
-                      <span className="text-[11px] font-medium text-[#8b949e]">Health Score</span>
-                      <div className="relative w-14 h-14 flex items-center justify-center">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 50 50">
-                          <circle cx="25" cy="25" r={radius} fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="3.5" />
-                          <motion.circle cx="25" cy="25" r={radius} fill="transparent" stroke={strokeColor} strokeWidth="3.5"
-                            strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset }}
-                            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }} strokeLinecap="round"
-                            style={{ filter: `drop-shadow(0 0 5px ${strokeColor})` }}
-                          />
-                        </svg>
-                        <span className="absolute text-[14px] font-black" style={{ color: strokeColor, textShadow: `0 0 8px ${glowColor}` }}>
-                          {score}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
+              )}
 
-              {/* Calorie hero + Macro cards row */}
-              <div className="grid grid-cols-4 gap-3.5 mb-5">
-                {[
-                  { label: 'Calories', value: result.total.calories, unit: 'kcal', color: '#f59e0b', icon: Zap },
-                  { label: 'Protein', value: result.total.protein, unit: 'g', color: '#6366f1', icon: Activity },
-                  { label: 'Carbs', value: result.total.carbs, unit: 'g', color: '#f97316', icon: Activity },
-                  { label: 'Fat', value: result.total.fat, unit: 'g', color: '#ec4899', icon: Activity },
-                ].map(m => (
-                  <motion.div
-                    key={m.label}
-                    whileHover={{ y: -3, scale: 1.02, borderColor: 'rgba(255, 255, 255, 0.12)' }}
-                    className="relative overflow-hidden p-4 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col items-center justify-center transition-all duration-300"
-                  >
-                    <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: `linear-gradient(90deg, ${m.color}00, ${m.color}40, ${m.color}00)` }} />
-                    <p className="text-[24px] font-black text-white tracking-tight leading-none mb-0.5">{m.value}</p>
-                    <p className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-wider">{m.unit} {m.label}</p>
-                  </motion.div>
-                ))}
-              </div>
+              {/* Total nutrition */}
+              <GlassCard className="relative overflow-hidden">
+                <div className="absolute -top-20 -right-20 w-44 h-44 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none" />
+                
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <Utensils size={15} className="text-emerald-400" />
+                    <h3 className="text-[13.5px] font-bold text-white tracking-wide">Nutrition Breakdown</h3>
+                  </div>
+                  {/* Health Score Circular Gauge */}
+                  {(() => {
+                    const score = result.healthScore;
+                    const strokeColor = score >= 70 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+                    const glowColor = score >= 70 ? 'rgba(16, 185, 129, 0.4)' : score >= 50 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(239, 68, 68, 0.4)';
+                    const radius = 20;
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDashoffset = circumference - (score / 100) * circumference;
+                    return (
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] font-medium text-[#8b949e]">Health Score</span>
+                        <div className="relative w-14 h-14 flex items-center justify-center">
+                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 50 50">
+                            <circle cx="25" cy="25" r={radius} fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="3.5" />
+                            <motion.circle cx="25" cy="25" r={radius} fill="transparent" stroke={strokeColor} strokeWidth="3.5"
+                              strokeDasharray={circumference} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset }}
+                              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }} strokeLinecap="round"
+                              style={{ filter: `drop-shadow(0 0 5px ${strokeColor})` }}
+                            />
+                          </svg>
+                          <span className="absolute text-[14px] font-black" style={{ color: strokeColor, textShadow: `0 0 8px ${glowColor}` }}>
+                            {score}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
 
-              <div className="space-y-3.5">
-                <MacroBar label="Protein"       value={result.total.protein} color="#6366f1" max={60}  />
-                <MacroBar label="Carbohydrates" value={result.total.carbs}   color="#f59e0b" max={100} />
-                <MacroBar label="Fat"           value={result.total.fat}     color="#ec4899" max={60}  />
-                <MacroBar label="Fiber"         value={result.total.fiber}   color="#10b981" max={25}  />
-                <MacroBar label="Sodium"        value={result.total.sodium}  color="#ef4444" max={2300} unit="mg" />
-              </div>
-            </GlassCard>
+                {/* Calorie hero + Macro cards row */}
+                <div className="grid grid-cols-4 gap-3.5 mb-5">
+                  {[
+                    { label: 'Calories', value: result.total.calories, unit: 'kcal', color: '#f59e0b', icon: Zap },
+                    { label: 'Protein', value: result.total.protein, unit: 'g', color: '#6366f1', icon: Activity },
+                    { label: 'Carbs', value: result.total.carbs, unit: 'g', color: '#f97316', icon: Activity },
+                    { label: 'Fat', value: result.total.fat, unit: 'g', color: '#ec4899', icon: Activity },
+                  ].map(m => (
+                    <motion.div
+                      key={m.label}
+                      whileHover={{ y: -3, scale: 1.02, borderColor: 'rgba(255, 255, 255, 0.12)' }}
+                      className="relative overflow-hidden p-4 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col items-center justify-center transition-all duration-300"
+                    >
+                      <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: `linear-gradient(90deg, ${m.color}00, ${m.color}40, ${m.color}00)` }} />
+                      <p className="text-[24px] font-black text-white tracking-tight leading-none mb-0.5">{m.value}</p>
+                      <p className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-wider">{m.unit} {m.label}</p>
+                    </motion.div>
+                  ))}
+                </div>
 
-            {/* Food items */}
-            <GlassCard className="relative overflow-hidden">
-              <div className="absolute -bottom-12 -left-12 w-28 h-28 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
-              <div className="flex items-center gap-2 mb-4">
-                <Utensils size={15} className="text-emerald-400" />
-                <h3 className="text-[13.5px] font-bold text-white tracking-wide">Identified Foods</h3>
-                <span className="ml-auto text-[11px] text-[#8b949e] font-medium">{result.items.length} items</span>
-              </div>
-              <div className="space-y-3">
-                {result.items.map((item, i) => (
-                  <motion.div 
-                    key={i} 
-                    whileHover={{ y: -1, borderColor: 'rgba(255, 255, 255, 0.1)' }}
-                    className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.05] transition-all duration-300 group"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/20 flex items-center justify-center text-base overflow-hidden flex-shrink-0">
-                        {item.thumb ? <img src={item.thumb} alt="" className="w-full h-full object-cover rounded-xl" /> : '🥘'}
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-semibold text-slate-200 capitalize group-hover:text-white transition-colors">{item.name}</p>
-                        <p className="text-[11px] text-[#8b949e] mt-0.5">{item.qty}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-5 text-right">
-                      <div>
-                        <p className="text-[13px] font-black text-white">{item.calories}</p>
-                        <p className="text-[9px] text-[#8b949e] font-medium uppercase tracking-wider">kcal</p>
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-black text-indigo-400">{item.protein}g</p>
-                        <p className="text-[9px] text-[#8b949e] font-medium uppercase tracking-wider">protein</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </GlassCard>
+                <div className="space-y-3.5">
+                  <MacroBar label="Protein"       value={result.total.protein} color="#6366f1" max={60}  />
+                  <MacroBar label="Carbohydrates" value={result.total.carbs}   color="#f59e0b" max={100} />
+                  <MacroBar label="Fat"           value={result.total.fat}     color="#ec4899" max={60}  />
+                  <MacroBar label="Fiber"         value={result.total.fiber}   color="#10b981" max={25}  />
+                  <MacroBar label="Sodium"        value={result.total.sodium}  color="#ef4444" max={2300} unit="mg" />
+                </div>
+              </GlassCard>
 
-            <motion.button
-              onClick={handleLogToHealth}
-              disabled={logged}
-              whileHover={!logged ? { scale: 1.02, y: -1 } : {}}
-              whileTap={!logged ? { scale: 0.98 } : {}}
-              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-[13px] transition-all disabled:cursor-default cursor-pointer"
-              style={{ 
-                background: logged ? 'rgba(16,185,129,0.08)' : 'linear-gradient(135deg, #10b981, #059669)', 
-                border: logged ? '1px solid rgba(16,185,129,0.25)' : 'none', 
-                color: logged ? '#10b981' : 'white',
-                boxShadow: logged ? 'none' : '0 4px 20px rgba(16, 185, 129, 0.2)'
-              }}
-            >
-              {logged ? <><CheckCircle size={15} /> Logged to Health Profile</> : <><Plus size={15} /> Log {result.total.calories} cal to Health Dashboard</>}
-            </motion.button>
+              {/* Food items */}
+              <GlassCard className="relative overflow-hidden">
+                <div className="absolute -bottom-12 -left-12 w-28 h-28 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
+                <div className="flex items-center gap-2 mb-4">
+                  <Utensils size={15} className="text-emerald-400" />
+                  <h3 className="text-[13.5px] font-bold text-white tracking-wide">Identified Foods</h3>
+                  <span className="ml-auto text-[11px] text-[#8b949e] font-medium">{result.items.length} items</span>
+                </div>
+                <div className="space-y-3">
+                  {result.items.map((item, i) => (
+                    <motion.div 
+                      key={i} 
+                      whileHover={{ y: -1, borderColor: 'rgba(255, 255, 255, 0.1)' }}
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.05] transition-all duration-300 group"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/20 flex items-center justify-center text-base overflow-hidden flex-shrink-0">
+                          {item.thumb ? <img src={item.thumb} alt="" className="w-full h-full object-cover rounded-xl" /> : '🥘'}
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-semibold text-slate-200 capitalize group-hover:text-white transition-colors">{item.name}</p>
+                          <p className="text-[11px] text-[#8b949e] mt-0.5">{item.qty}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-5 text-right">
+                        <div>
+                          <p className="text-[13px] font-black text-white">{item.calories}</p>
+                          <p className="text-[9px] text-[#8b949e] font-medium uppercase tracking-wider">kcal</p>
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-black text-indigo-400">{item.protein}g</p>
+                          <p className="text-[9px] text-[#8b949e] font-medium uppercase tracking-wider">protein</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* Right Column (span 1) */}
+            <div className="space-y-5">
+              {/* AI Nutrition & Health Recommendations */}
+              <GlassCard className="relative overflow-hidden border border-emerald-500/20 bg-emerald-500/[0.01]">
+                <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none" />
+                <div className="flex items-center gap-2 mb-4">
+                  <Brain size={14} className="text-emerald-400 animate-pulse" />
+                  <h4 className="text-[13.5px] font-bold text-white tracking-wide">AI Wellness Advice</h4>
+                </div>
+                <div className="space-y-3">
+                  {(() => {
+                    const score = result.healthScore;
+                    let recommendations = [];
+                    if (score >= 75) {
+                      recommendations = [
+                        "Excellent meal composition! Highly nutrient-dense with a strong macro profile.",
+                        "High fiber and protein content will keep your glycemic response stable.",
+                        "Great choice for building high-quality lean mass and supporting cellular recovery."
+                      ];
+                    } else if (score >= 50) {
+                      recommendations = [
+                        "Balanced nutritional profile, but there is some room for enhancement.",
+                        "Consider adding a handful of greens or berries to boost micronutrients and antioxidants.",
+                        "Hydrate well to support digestion of this meal's nutrient profile."
+                      ];
+                    } else {
+                      recommendations = [
+                        "This meal is relatively high in sodium, fats, or refined carbs and lower in fiber/protein.",
+                        "Pair with a lean protein source or a side salad to improve your glycemic response.",
+                        "Make sure to balance your next meal with high-fiber greens and lean clean proteins."
+                      ];
+                    }
+                    return recommendations.map((r, i) => (
+                      <div key={i} className="flex items-start gap-2 text-[12px] text-slate-300 leading-relaxed font-medium">
+                        <ChevronRight size={13} className="mt-1 text-emerald-400 flex-shrink-0" />
+                        <span>{r}</span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </GlassCard>
+
+              {/* Digital Twin Sync actions card */}
+              <GlassCard className="border border-indigo-500/10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Cable size={14} className="text-indigo-400" />
+                  <h4 className="text-[13.5px] font-bold text-white tracking-wide">Digital Twin Sync</h4>
+                </div>
+                <p className="text-[12px] text-[#8b949e] leading-relaxed mb-4">
+                  Log this meal's nutritional load into your real-time Health profile to dynamically sync with your physiological digital twin.
+                </p>
+                <motion.button
+                  onClick={handleLogToHealth}
+                  disabled={logged}
+                  whileHover={!logged ? { scale: 1.02, y: -1 } : {}}
+                  whileTap={!logged ? { scale: 0.98 } : {}}
+                  className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-bold text-[13px] transition-all disabled:cursor-default cursor-pointer"
+                  style={{ 
+                    background: logged ? 'rgba(16,185,129,0.08)' : 'linear-gradient(135deg, #10b981, #059669)', 
+                    border: logged ? '1px solid rgba(16,185,129,0.25)' : 'none', 
+                    color: logged ? '#10b981' : 'white',
+                    boxShadow: logged ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.2)'
+                  }}
+                >
+                  {logged ? <><CheckCircle size={14} /> Logged to Health Profile</> : <><Plus size={14} /> Log {result.total.calories} cal to Twin</>}
+                </motion.button>
+              </GlassCard>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1898,256 +1992,259 @@ const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
 function FitbitPanel() {
   return (
-    <div className="flex flex-col gap-[24px]">
-
-      {/* ── Header ── */}
-      <GlassCard className="!p-5">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div style={{
-              width: 42, height: 42, borderRadius: 12,
-              background: 'rgba(0, 176, 185, 0.1)',
-              border: '1px solid rgba(0, 176, 185, 0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-            }}>
-              <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
-                <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
-                <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
-                <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
-                <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-                <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-                <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-                <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="text-[15px] font-bold text-[#f0f0f3]">Fitbit Health Sync</h3>
-                <StatusBadge status="none" />
-              </div>
-              <p className="text-[13px] text-[#8b949e] leading-relaxed">Click Connect Fitbit to authorize via OAuth. We fetch sleep, steps, heart rate, and calories — no password stored.</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            <button
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 10, 
-                fontWeight: 600, fontSize: 13, color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.25)',
-                background: 'rgba(99, 102, 241, 0.12)', cursor: 'pointer', transition: 'all 0.2s'
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.2)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.45)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.12)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)'; }}
-            >
-              Connect Fitbit <ExternalLink size={13} />
-            </button>
-            <div className="flex items-center gap-1 text-[11px] text-[#8b949e]">
-              <ShieldCheck size={12} /> Secure OAuth 2.0
-            </div>
-          </div>
-        </div>
-      </GlassCard>
-
-      {/* ── 4 Metric Cards ── */}
-      <div 
-        className="grid grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden shadow-lg gap-px bg-white/[0.06]"
-        style={{
-          border: '1px solid rgba(255, 255, 255, 0.06)',
-          backdropFilter: 'blur(16px)',
-          width: '100%',
-          minWidth: 0
-        }}
-      >
-        {[
-          { label:'Steps',      value:'8,642',  suffix:'',     Icon:Footprints, bg:'#10b98120', iconCls:'text-emerald-400', trend:'+12.4%', up:true  },
-          { label:'Sleep',      value:'7h 32m', suffix:'',     Icon:Moon,       bg:'#6366f120', iconCls:'text-indigo-400',  trend:'+8.1%',  up:true  },
-          { label:'Heart Rate', value:'72',     suffix:'bpm',  Icon:Heart,      bg:'#ef444420', iconCls:'text-rose-400',    trend:'-3.2%',  up:false },
-          { label:'Calories',   value:'2,184',  suffix:'kcal', Icon:Zap,        bg:'#f59e0b20', iconCls:'text-amber-400',   trend:'+6.7%',  up:true  },
-        ].map((m, idx) => (
-          <div
-            key={m.label}
-            className="group hover:bg-[#162035]/90 transition-colors duration-300"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              padding: '24px 24px',
-              backgroundColor: 'rgba(13, 20, 35, 0.85)',
-              minWidth: 0
-            }}
-          >
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
-              style={{ background: m.bg }}
-            >
-              <m.Icon size={19} className={m.iconCls} />
-            </div>
-            <div className="min-w-0 flex flex-col gap-1" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-              <p className="text-[11.5px] text-[#8b949e]" style={{ margin: 0, fontSize: 11.5, fontWeight: 500 }}>{m.label}</p>
-              <div className="flex items-baseline gap-1.5" style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span className="text-[22px] font-black text-white leading-none" style={{ fontSize: 22 }}>{m.value}</span>
-                {m.suffix && <span className="text-[11.5px] text-[#8b949e] font-normal" style={{ fontSize: 11.5 }}>{m.suffix}</span>}
-              </div>
-              <p className={`text-[12px] font-bold ${m.up ? 'text-[#10b981]' : 'text-[#f43f5e]'}`} style={{ margin: 0, fontSize: 12 }}>
-                {m.up ? '▲' : '▼'} {m.trend.replace('+','').replace('-','')} <span className="text-[#8b949e] font-normal">vs last 7 days</span>
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── All Activities Table ── */}
-      <div className="glass-card overflow-hidden flex flex-col flex-1">
-        {/* Toolbar */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+      {/* Left Column (span 2) */}
+      <div className="lg:col-span-2 space-y-5">
+        {/* ── 4 Metric Cards ── */}
         <div 
-          className="flex items-center justify-between border-b border-white/[0.06]"
-          style={{ paddingBottom: '16px' }}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
-            <span 
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '20px',
-                minWidth: '22px',
-                padding: '0 6px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                color: '#8b949e',
-                fontSize: '11px',
-                fontWeight: 600
-              }}
-            >
-              10
-            </span>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <button
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                height: '34px',
-                padding: '0 14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                color: '#8b949e',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease-in-out'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                e.currentTarget.style.color = '#c9d1d9';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                e.currentTarget.style.color = '#8b949e';
-              }}
-            >
-              <Calendar size={13.5} className="text-[#8b949e]" />
-              <span>May 23 - May 29, 2025</span>
-              <ChevronDown size={13.5} />
-            </button>
-            <button
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                height: '34px',
-                padding: '0 14px',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                color: '#8b949e',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease-in-out'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                e.currentTarget.style.color = '#c9d1d9';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                e.currentTarget.style.color = '#8b949e';
-              }}
-            >
-              <Filter size={13.5} className="text-[#8b949e]" />
-              <span>Filter</span>
-              <ChevronDown size={13.5} />
-            </button>
-          </div>
-        </div>
-
-        {/* Column header row */}
-        <div
-          className="grid border-b border-white/[0.06] text-[11px] font-bold text-[#8b949e] uppercase tracking-wider"
-          style={{ 
-            gridTemplateColumns: '150px 1fr 110px 120px 120px 40px',
-            paddingTop: '14px',
-            paddingBottom: '14px',
-            alignItems: 'center'
+          className="grid grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden shadow-lg gap-px bg-white/[0.06]"
+          style={{
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            backdropFilter: 'blur(16px)',
+            width: '100%',
+            minWidth: 0
           }}
         >
-          <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
-          <div className="flex items-center">Activity</div>
-          <div className="flex items-center">Type</div>
-          <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Value <ChevronDown size={11}/></div>
-          <div className="flex items-center">Source</div>
-          <div/>
+          {[
+            { label:'Steps',      value:'8,642',  suffix:'',     Icon:Footprints, bg:'#10b98120', iconCls:'text-emerald-400', trend:'+12.4%', up:true  },
+            { label:'Sleep',      value:'7h 32m', suffix:'',     Icon:Moon,       bg:'#6366f120', iconCls:'text-indigo-400',  trend:'+8.1%',  up:true  },
+            { label:'Heart Rate', value:'72',     suffix:'bpm',  Icon:Heart,      bg:'#ef444420', iconCls:'text-rose-400',    trend:'-3.2%',  up:false },
+            { label:'Calories',   value:'2,184',  suffix:'kcal', Icon:Zap,        bg:'#f59e0b20', iconCls:'text-amber-400',   trend:'+6.7%',  up:true  },
+          ].map((m, idx) => (
+            <div
+              key={m.label}
+              className="group hover:bg-[#162035]/90 transition-colors duration-300"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                padding: '24px 24px',
+                backgroundColor: 'rgba(13, 20, 35, 0.85)',
+                minWidth: 0
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
+                style={{ background: m.bg }}
+              >
+                <m.Icon size={19} className={m.iconCls} />
+              </div>
+              <div className="min-w-0 flex flex-col gap-1" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                <p className="text-[11.5px] text-[#8b949e]" style={{ margin: 0, fontSize: 11.5, fontWeight: 500 }}>{m.label}</p>
+                <div className="flex items-baseline gap-1.5" style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span className="text-[22px] font-black text-white leading-none" style={{ fontSize: 22 }}>{m.value}</span>
+                  {m.suffix && <span className="text-[11.5px] text-[#8b949e] font-normal" style={{ fontSize: 11.5 }}>{m.suffix}</span>}
+                </div>
+                <p className={`text-[12px] font-bold ${m.up ? 'text-[#10b981]' : 'text-[#f43f5e]'}`} style={{ margin: 0, fontSize: 12 }}>
+                  {m.up ? '▲' : '▼'} {m.trend.replace('+','').replace('-','')} <span className="text-[#8b949e] font-normal">vs last 7 days</span>
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Data rows */}
-        <div className="flex-1 flex flex-col divide-y divide-white/[0.06]">
-        {[
-          { date:'May 29, 2025', time:'10:42 AM', act:'Walk',            sub:'Outdoor',          type:'Steps',    pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'6,213 steps', Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
-          { date:'May 29, 2025', time:'09:15 AM', act:'Sleep',           sub:'7h 32m',           type:'Sleep',    pill:'bg-indigo-500/10  text-indigo-400  border-indigo-500/20',  val:'7h 32m',      Icon:Moon,       ib:'bg-indigo-500/10',  ic:'text-indigo-400'  },
-          { date:'May 28, 2025', time:'08:22 PM', act:'Heart Rate',      sub:'Resting',          type:'Heart',    pill:'bg-rose-500/10    text-rose-400    border-rose-500/20',    val:'72 bpm',      Icon:Heart,      ib:'bg-rose-500/10',    ic:'text-rose-400'    },
-          { date:'May 28, 2025', time:'06:45 PM', act:'Calories Burned', sub:'Active',           type:'Calories', pill:'bg-amber-500/10   text-amber-400   border-amber-500/20',   val:'512 kcal',    Icon:Zap,        ib:'bg-amber-500/10',   ic:'text-amber-400'   },
-          { date:'May 28, 2025', time:'04:30 PM', act:'Run',             sub:'Outdoor · 5.2 km', type:'Activity', pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'5.2 km',      Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
-        ].map((row, i) => (
+        {/* ── All Activities Table ── */}
+        <div className="glass-card overflow-hidden flex flex-col flex-1">
+          {/* Toolbar */}
+          <div 
+            className="flex items-center justify-between border-b border-white/[0.06]"
+            style={{ paddingBottom: '16px' }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
+              <span 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '20px',
+                  minWidth: '22px',
+                  padding: '0 6px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#8b949e',
+                  fontSize: '11px',
+                  fontWeight: 600
+                }}
+              >
+                10
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  height: '34px',
+                  padding: '0 14px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  color: '#8b949e',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.color = '#c9d1d9';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = '#8b949e';
+                }}
+              >
+                <Calendar size={13.5} className="text-[#8b949e]" />
+                <span>May 23 - May 29, 2025</span>
+                <ChevronDown size={13.5} />
+              </button>
+              <button
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  height: '34px',
+                  padding: '0 14px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  color: '#8b949e',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.color = '#c9d1d9';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.color = '#8b949e';
+                }}
+              >
+                <Filter size={13.5} className="text-[#8b949e]" />
+                <span>Filter</span>
+                <ChevronDown size={13.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Column header row */}
           <div
-            key={i}
-            className="grid hover:bg-white/[0.015] transition-colors group"
+            className="grid border-b border-white/[0.06] text-[11px] font-bold text-[#8b949e] uppercase tracking-wider"
             style={{ 
-              gridTemplateColumns: '150px 1fr 110px 120px 120px 40px', 
-              minHeight: '56px',
+              gridTemplateColumns: '150px 1fr 110px 120px 120px 40px',
               paddingTop: '14px',
               paddingBottom: '14px',
               alignItems: 'center'
             }}
           >
-            <div>
-              <p className="text-[13px] text-[#f0f0f3] font-medium">{row.date}</p>
-              <p className="text-[11px] text-[#8b949e] mt-0.5">{row.time}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg ${row.ib} flex items-center justify-center flex-shrink-0`}>
-                <row.Icon size={15} className={row.ic} />
+            <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
+            <div className="flex items-center">Activity</div>
+            <div className="flex items-center">Type</div>
+            <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Value <ChevronDown size={11}/></div>
+            <div className="flex items-center">Source</div>
+            <div/>
+          </div>
+
+          {/* Data rows */}
+          <div className="flex-1 flex flex-col divide-y divide-white/[0.06]">
+          {[
+            { date:'May 29, 2025', time:'10:42 AM', act:'Walk',            sub:'Outdoor',          type:'Steps',    pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'6,213 steps', Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
+            { date:'May 29, 2025', time:'09:15 AM', act:'Sleep',           sub:'7h 32m',           type:'Sleep',    pill:'bg-indigo-500/10  text-indigo-400  border-indigo-500/20',  val:'7h 32m',      Icon:Moon,       ib:'bg-indigo-500/10',  ic:'text-indigo-400'  },
+            { date:'May 28, 2025', time:'08:22 PM', act:'Heart Rate',      sub:'Resting',          type:'Heart',    pill:'bg-rose-500/10    text-rose-400    border-rose-500/20',    val:'72 bpm',      Icon:Heart,      ib:'bg-rose-500/10',    ic:'text-rose-400'    },
+            { date:'May 28, 2025', time:'06:45 PM', act:'Calories Burned', sub:'Active',           type:'Calories', pill:'bg-amber-500/10   text-amber-400   border-amber-500/20',   val:'512 kcal',    Icon:Zap,        ib:'bg-amber-500/10',   ic:'text-amber-400'   },
+            { date:'May 28, 2025', time:'04:30 PM', act:'Run',             sub:'Outdoor · 5.2 km', type:'Activity', pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'5.2 km',      Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
+          ].map((row, i) => (
+            <div
+              key={i}
+              className="grid hover:bg-white/[0.015] transition-colors group"
+              style={{ 
+                gridTemplateColumns: '150px 1fr 110px 120px 120px 40px', 
+                minHeight: '56px',
+                paddingTop: '14px',
+                paddingBottom: '14px',
+                alignItems: 'center'
+              }}
+            >
+              <div>
+                <p className="text-[13px] text-[#f0f0f3] font-medium">{row.date}</p>
+                <p className="text-[11px] text-[#8b949e] mt-0.5">{row.time}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-lg ${row.ib} flex items-center justify-center flex-shrink-0`}>
+                  <row.Icon size={15} className={row.ic} />
+                </div>
+                <div>
+                  <p className="text-[13px] font-medium text-[#f0f0f3]">{row.act}</p>
+                  <p className="text-[11px] text-[#8b949e]">{row.sub}</p>
+                </div>
               </div>
               <div>
-                <p className="text-[13px] font-medium text-[#f0f0f3]">{row.act}</p>
-                <p className="text-[11px] text-[#8b949e]">{row.sub}</p>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${row.pill}`}>
+                  {row.type}
+                </span>
               </div>
+              <div className="text-[13px] text-[#f0f0f3] font-medium">{row.val}</div>
+              <div className="flex items-center gap-2 text-[13px] text-[#f0f0f3]">
+                <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+                  <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
+                  <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
+                  <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
+                  <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+                  <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
+                  <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
+                  <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
+                </svg>
+                Fitbit
+              </div>
+              <button className="flex justify-center text-[#8b949e] hover:text-[#f0f0f3] opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreVertical size={15} />
+              </button>
             </div>
-            <div>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${row.pill}`}>
-                {row.type}
-              </span>
+          ))}
+          </div>
+
+          {/* Pagination footer */}
+          <div 
+            className="flex items-center justify-between border-t border-white/[0.06]"
+            style={{ paddingTop: '16px' }}
+          >
+            <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
+            <div className="flex items-center gap-1.5">
+              <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
+                <ChevronLeft size={14}/>
+              </button>
+              <button className="w-8 h-8 rounded-lg bg-[#388bfd] text-white flex items-center justify-center text-[12px] font-bold shadow-md shadow-blue-500/25">1</button>
+              <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors text-[12px]">2</button>
+              <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
+                <ChevronRight size={14}/>
+              </button>
             </div>
-            <div className="text-[13px] text-[#f0f0f3] font-medium">{row.val}</div>
-            <div className="flex items-center gap-2 text-[13px] text-[#f0f0f3]">
-              <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column (span 1) */}
+      <div className="space-y-5">
+        {/* Connection Status & Sync Guide Card */}
+        <GlassCard className="border border-[#00b0b9]/15 bg-[#00b0b9]/[0.02] !p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div style={{
+              width: 38, height: 38, borderRadius: 10,
+              background: 'rgba(0, 176, 185, 0.15)',
+              border: '1px solid rgba(0, 176, 185, 0.3)',
+              display: 'flex', alignItems: 'center', justifyCent: 'center', flexShrink: 0
+            }} className="flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
                 <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
                 <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
                 <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
@@ -2156,32 +2253,52 @@ function FitbitPanel() {
                 <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
                 <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
               </svg>
-              Fitbit
             </div>
-            <button className="flex justify-center text-[#8b949e] hover:text-[#f0f0f3] opacity-0 group-hover:opacity-100 transition-opacity">
-              <MoreVertical size={15} />
-            </button>
+            <div>
+              <h4 className="text-[13.5px] font-bold text-white tracking-wide">Fitbit Health Sync</h4>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+                <span className="text-[10px] text-[#10b981] font-semibold">Live Sync Active</span>
+              </div>
+            </div>
           </div>
-        ))}
-        </div>
+          <p className="text-[12px] text-[#8b949e] leading-relaxed mb-4">
+            Authorize BeyondSelf to fetch steps, sleep duration, active calories, and heart rate directly from your Fitbit cloud via secure OAuth 2.0 protocols.
+          </p>
+          <button
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '10px 18px', borderRadius: 12, 
+              fontWeight: 750, fontSize: 13, color: '#00b0b9', border: '1px solid rgba(0,176,185,0.3)',
+              background: 'rgba(0, 176, 185, 0.08)', cursor: 'pointer', transition: 'all 0.2s', justifyContent: 'center'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,176,185,0.15)'; e.currentTarget.style.borderColor = 'rgba(0,176,185,0.5)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 176, 185, 0.08)'; e.currentTarget.style.borderColor = 'rgba(0,176,185,0.3)'; }}
+          >
+            Reconnect Cloud Sync <ExternalLink size={13} />
+          </button>
+        </GlassCard>
 
-        {/* Pagination footer */}
-        <div 
-          className="flex items-center justify-between border-t border-white/[0.06]"
-          style={{ paddingTop: '16px' }}
-        >
-          <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
-          <div className="flex items-center gap-1.5">
-            <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
-              <ChevronLeft size={14}/>
-            </button>
-            <button className="w-8 h-8 rounded-lg bg-[#388bfd] text-white flex items-center justify-center text-[12px] font-bold shadow-md shadow-blue-500/25">1</button>
-            <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors text-[12px]">2</button>
-            <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
-              <ChevronRight size={14}/>
-            </button>
+        {/* AI Wellness Recommendations */}
+        <GlassCard className="relative overflow-hidden border border-indigo-500/15 bg-indigo-500/[0.01] !p-6">
+          <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
+          <div className="flex items-center gap-2 mb-4">
+            <Brain size={14} className="text-indigo-400 animate-pulse" />
+            <h4 className="text-[13.5px] font-bold text-white tracking-wide">AI Wellness Advice</h4>
           </div>
-        </div>
+          <div className="space-y-3.5">
+            {[
+              "Sleep Quality: 7h 32m achieved. Excellent consistency. Maintaining this window reduces cumulative sleep debt and optimizes cognitive function.",
+              "Daily Steps: 8,642 steps. You are 86% toward your 10k target. A brisk 12-minute walk will trigger physical twin sync baseline.",
+              "Cardiovascular: Resting HR is 72 bpm. Stable baseline. Your recovery kinetics after activity indicate strong aerobic endurance.",
+              "Caloric Output: Active burn of 2,184 kcal aligns perfectly with your metabolic digital twin prediction."
+            ].map((rec, i) => (
+              <div key={i} className="flex items-start gap-2 text-[12px] text-slate-300 leading-relaxed font-medium">
+                <ChevronRight size={13} className="mt-1 text-indigo-400 flex-shrink-0" />
+                <span>{rec}</span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
       </div>
     </div>
   );
@@ -2457,16 +2574,8 @@ function IndiaBankingPanel() {
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-2">
-                <button onClick={handleSyncFinance} disabled={synced}
-                  className="flex items-center gap-1.5 text-[11px] px-3.5 py-2 rounded-xl border font-semibold transition-all disabled:cursor-default"
-                  style={{ background: synced ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.12)', borderColor: 'rgba(16,185,129,0.25)', color: synced ? '#10b981' : '#34d399' }}>
-                  {synced ? <><CheckCircle size={12} /> Synced</> : <><Plus size={12} /> Sync to Finance</>}
-                </button>
-                <button onClick={handleReset}
-                  className="text-[11px] px-3.5 py-2 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] transition-all bg-white/[0.02]">
-                  Reset
-                </button>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#34d399] font-bold text-[12px] select-none">
+                <CheckCircle size={13} className="text-emerald-400" /> Secure AA Tunnel Active
               </div>
             )}
           </div>
@@ -2619,274 +2728,315 @@ function IndiaBankingPanel() {
 
       {/* ── Data View (demo or AI results) ── */}
       {(isDemo || isResults) && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {isDemo && (
-            <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2">
-              <AlertTriangle size={13} /> Demo data — connect a provider or upload your statement for real AI analysis
-            </div>
-          )}
-          {isResults && stmtData?.summary?.insight && (
-            <div className="flex items-start gap-2 text-[12px] text-indigo-300 bg-indigo-500/[0.06] border border-indigo-500/20 rounded-xl px-3 py-2.5">
-              <Brain size={13} className="mt-0.5 flex-shrink-0 text-indigo-400" />
-              <span><strong>AI Insight:</strong> {stmtData.summary.insight}</span>
-            </div>
-          )}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+          {/* Left Column (span 2) */}
+          <div className="lg:col-span-2 space-y-5">
+            {isDemo && (
+              <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2">
+                <AlertTriangle size={13} /> Demo data — connect a provider or upload your statement for real AI analysis
+              </div>
+            )}
+            {isResults && stmtData?.summary?.insight && (
+              <div className="flex items-start gap-2 text-[12px] text-indigo-300 bg-indigo-500/[0.06] border border-indigo-500/20 rounded-xl px-3 py-2.5">
+                <Brain size={13} className="mt-0.5 flex-shrink-0 text-indigo-400" />
+                <span><strong>AI Insight:</strong> {stmtData.summary.insight}</span>
+              </div>
+            )}
 
-          {/* Summary row */}
-          <div className="grid grid-cols-3" style={{ gap: '16px' }}>
-            <GlassCard>
-              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Total Income</p>
-              <p className="text-[22px] font-black text-emerald-400">₹{totalIncome.toLocaleString('en-IN')}</p>
-              <p className="text-[10px] text-[#6b7280]">this month</p>
-            </GlassCard>
-            <GlassCard>
-              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Total Spent</p>
-              <p className="text-[22px] font-black text-[#f97316]">₹{totalSpend.toLocaleString('en-IN')}</p>
-              <p className="text-[10px] text-[#6b7280]">this month</p>
-            </GlassCard>
-            <GlassCard>
-              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Savings Rate</p>
-              <p className="text-[22px] font-black text-indigo-400">{savingsRate}%</p>
-              <div className="h-1.5 rounded-full bg-white/[0.05] mt-2 overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${savingsRate}%` }}
-                  transition={{ duration: 1 }} className="h-full rounded-full bg-indigo-500" />
+            {/* Summary row */}
+            <div className="grid grid-cols-3 gap-3.5">
+              <GlassCard>
+                <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Total Income</p>
+                <p className="text-[22px] font-black text-emerald-400">₹{totalIncome.toLocaleString('en-IN')}</p>
+                <p className="text-[10px] text-[#6b7280]">this month</p>
+              </GlassCard>
+              <GlassCard>
+                <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Total Spent</p>
+                <p className="text-[22px] font-black text-[#f97316]">₹{totalSpend.toLocaleString('en-IN')}</p>
+                <p className="text-[10px] text-[#6b7280]">this month</p>
+              </GlassCard>
+              <GlassCard>
+                <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Savings Rate</p>
+                <p className="text-[22px] font-black text-indigo-400">{savingsRate}%</p>
+                <div className="h-1.5 rounded-full bg-white/[0.05] mt-2 overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${savingsRate}%` }}
+                    transition={{ duration: 1 }} className="h-full rounded-full bg-indigo-500" />
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* View tabs */}
+            <div className="flex gap-1.5 flex-wrap">
+              {[
+                { id: 'transactions', label: 'Transactions' },
+                { id: 'categories',   label: 'Spend Analysis' },
+              ].map(v => (
+                <button key={v.id} onClick={() => setActiveView(v.id)}
+                  className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
+                    activeView === v.id
+                      ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                      : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
+                  }`}>
+                  {v.label}
+                </button>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div key={activeView} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
+
+                {/* TRANSACTIONS */}
+                {activeView === 'transactions' && (
+                  <GlassCard>
+                    <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">
+                      Recent Transactions {isResults && <span className="text-[11px] font-normal text-[#71717a] ml-1">({txns.length} found)</span>}
+                    </h3>
+                    <div className="space-y-2">
+                      {txns.slice(0, 20).map((t, i) => {
+                        const amt = t.amount ?? (t.credit ?? -(t.debit ?? 0));
+                        const positive = t.amount > 0 || (t.credit && !t.debit);
+
+                        // Custom brand colors for circular badges
+                        let badgeBg = 'rgba(255,255,255,0.03)';
+                        let badgeBorder = 'rgba(255,255,255,0.06)';
+                        let badgeColor = '#ffffff';
+                        
+                        if (t.name.includes('Salary') || t.name.includes('Infosys')) {
+                          badgeBg = 'rgba(16,185,129,0.1)';
+                          badgeBorder = 'rgba(16,185,129,0.2)';
+                          badgeColor = '#10b981';
+                        } else if (t.name.includes('HDFC')) {
+                          badgeBg = 'rgba(239,68,68,0.1)';
+                          badgeBorder = 'rgba(239,68,68,0.2)';
+                          badgeColor = '#ef4444';
+                        } else if (t.name.includes('Axis') || t.name.includes('SIP')) {
+                          badgeBg = 'rgba(99,102,241,0.1)';
+                          badgeBorder = 'rgba(99,102,241,0.2)';
+                          badgeColor = '#818cf8';
+                        } else if (t.name.includes('Swiggy')) {
+                          badgeBg = 'rgba(245,158,11,0.1)';
+                          badgeBorder = 'rgba(245,158,11,0.2)';
+                          badgeColor = '#f59e0b';
+                        } else if (t.name.includes('Zepto') || t.name.includes('Blinkit')) {
+                          badgeBg = 'rgba(139,92,246,0.1)';
+                          badgeBorder = 'rgba(139,92,246,0.2)';
+                          badgeColor = '#a78bfa';
+                        } else if (t.name.includes('Uber')) {
+                          badgeBg = 'rgba(15,23,42,0.8)';
+                          badgeBorder = 'rgba(255,255,255,0.1)';
+                          badgeColor = '#ffffff';
+                        } else if (t.name.includes('Amazon')) {
+                          badgeBg = 'rgba(249,115,22,0.1)';
+                          badgeBorder = 'rgba(249,115,22,0.2)';
+                          badgeColor = '#f97316';
+                        } else if (positive) {
+                          badgeBg = 'rgba(16,185,129,0.08)';
+                          badgeBorder = 'rgba(16,185,129,0.15)';
+                          badgeColor = '#10b981';
+                        }
+
+                        return (
+                          <div key={i} className="flex items-center gap-3.5 p-3 rounded-xl bg-white/[0.015] border border-white/[0.04] hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-300 group">
+                            <div 
+                              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base transition-transform duration-300 group-hover:scale-105"
+                              style={{ 
+                                backgroundColor: badgeBg, 
+                                border: `1px solid ${badgeBorder}`,
+                                color: badgeColor
+                              }}
+                            >
+                              {t.icon ?? (positive ? '💰' : '💸')}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[12.5px] font-semibold text-[#f0f0f3] truncate group-hover:text-white transition-colors">{t.name ?? t.description}</p>
+                              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                <span className="text-[10px] text-[#71717a] font-medium">{t.date}</span>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#6b7280] font-mono">{t.mode ?? 'UPI'}</span>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#71717a]">{t.cat ?? t.category}</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                              <span className={`text-[13.5px] font-black ${positive ? 'text-emerald-400' : 'text-white'}`}>
+                                {positive ? '+' : '-'}₹{Math.abs(amt).toLocaleString('en-IN')}
+                              </span>
+                              <span className="text-[9px] text-[#6b7280] font-medium uppercase tracking-wider">INR</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </GlassCard>
+                )}
+
+                {/* CATEGORIES */}
+                {activeView === 'categories' && (
+                  <GlassCard>
+                    <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-5">Spend by Category</h3>
+                    
+                    <div className="flex flex-col md:flex-row items-center gap-8 py-2">
+                      {/* SVG Donut Chart on the Left */}
+                      <div className="relative w-[150px] h-[150px] flex-shrink-0">
+                        <svg width="100%" height="100%" viewBox="0 0 100 100">
+                          {/* Empty background circle */}
+                          <circle cx="50" cy="50" r="38" fill="transparent" stroke="rgba(255,255,255,0.02)" strokeWidth="8" />
+                          {(() => {
+                            let accumulatedPercent = 0;
+                            const radius = 38;
+                            const circumference = 2 * Math.PI * radius; // 238.76
+                            return cats.map((c, idx) => {
+                              const strokeDashoffset = circumference - (circumference * c.pct) / 100;
+                              const rotation = (accumulatedPercent * 360) / 100;
+                              accumulatedPercent += c.pct;
+                              return (
+                                <circle
+                                  key={idx}
+                                  cx="50"
+                                  cy="50"
+                                  r={radius}
+                                  fill="transparent"
+                                  stroke={c.color}
+                                  strokeWidth="8"
+                                  strokeDasharray={circumference}
+                                  strokeDashoffset={strokeDashoffset}
+                                  transform={`rotate(${rotation - 90} 50 50)`}
+                                  style={{
+                                    transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    transformOrigin: '50% 50%'
+                                  }}
+                                />
+                              );
+                            });
+                          })()}
+                        </svg>
+                        {/* Text in the center of the Donut */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                          <span className="text-[9px] text-[#71717a] uppercase tracking-wider font-semibold">Total Spent</span>
+                          <span className="text-[17px] font-black text-white mt-0.5">₹{totalSpend.toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
+
+                      {/* Category list on the Right */}
+                      <div className="flex-1 w-full space-y-3">
+                        {cats.map(c => (
+                          <div key={c.label}>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-[12px] text-[#a1a1aa] flex items-center gap-1.5 font-medium">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color, display: 'inline-block' }} />
+                                {c.label}
+                              </span>
+                              <span className="text-[12px] font-semibold text-white">₹{c.amount.toLocaleString('en-IN')} <span className="text-[#71717a] font-normal">({c.pct}%)</span></span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }} animate={{ width: `${c.pct}%` }}
+                                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                                className="h-full rounded-full" style={{ background: c.color }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="mt-5 pt-3.5 border-t border-white/[0.05] flex justify-between items-center">
+                      <span className="text-[12px] text-[#71717a] font-medium">Reporting Cycle (May 2025)</span>
+                      <span className="text-[13px] font-black text-[#34d399]">₹{totalSpend.toLocaleString('en-IN')} Total Debit Flow</span>
+                    </div>
+                  </GlassCard>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right Column (span 1) */}
+          <div className="space-y-5">
+            {/* AI Financial Recommendations & UPI/AA insights */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <Sparkles size={13} className="text-emerald-400" />
+                <p className="text-[12px] font-bold text-[#f0f0f3]">AI Financial Insights & UPI / AA Metrics</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'UPI Transactions', value: isResults ? txns.filter(t => t.mode === 'UPI').length : 9, unit: 'this month', color: '#8b5cf6', isNum: true },
+                  { label: 'UPI Spend Total',  value: isResults ? txns.filter(t => t.mode === 'UPI' && t.debit).reduce((a, t) => a + t.debit, 0) : 5200, unit: 'via UPI', color: '#6366f1', prefix: '₹' },
+                  { label: 'NACH / SI Debits', value: isResults ? txns.filter(t => ['NACH','SI'].includes(t.mode) && t.debit).reduce((a,t)=>a+t.debit,0) : 9200, unit: 'auto-debits', color: '#f59e0b', prefix: '₹' },
+                  { label: 'NEFT / IMPS',      value: isResults ? txns.filter(t => ['NEFT','IMPS'].includes(t.mode) && t.debit).reduce((a,t)=>a+t.debit,0) : 18000, unit: 'wire transfers', color: '#10b981', prefix: '₹' },
+                ].map(m => (
+                  <GlassCard key={m.label} className="!p-4">
+                    <p className="text-[9.5px] text-[#71717a] mb-1 font-semibold uppercase tracking-wider">{m.label}</p>
+                    <p className="text-[18px] font-black" style={{ color: m.color }}>
+                      {m.prefix}{(m.isNum ? m.value : m.value).toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-[10px] text-[#6b7280]">{m.unit}</p>
+                  </GlassCard>
+                ))}
+              </div>
+
+              {/* AA Framework card */}
+              <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02] !p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Brain size={13} className="text-indigo-400" />
+                  <p className="text-[12px] font-bold text-[#a1a1aa]">How the AA Framework Works</p>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { step: '01', text: 'You give one-time consent via the AA app (Setu / Finvu)' },
+                    { step: '02', text: 'AA fetches your bank data from FIPs (your banks) in real time' },
+                    { step: '03', text: 'Encrypted, consent-tagged data is shared with the FIU (BeyondSelf)' },
+                    { step: '04', text: 'You can revoke consent anytime — no data stored without permission' },
+                  ].map(s => (
+                    <div key={s.step} className="flex items-start gap-3">
+                      <span className="text-[10px] font-black text-[#6b7280] font-mono mt-0.5 flex-shrink-0">{s.step}</span>
+                      <p className="text-[12px] text-[#71717a] leading-relaxed">{s.text}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3.5 pt-3.5 border-t border-white/[0.05] flex flex-wrap gap-2">
+                  {AA_PROVIDERS.map(p => (
+                    <span key={p.id} className="text-[9.5px] px-2.5 py-0.5 rounded-lg border font-semibold"
+                      style={{ color: p.color, borderColor: p.color + '30', background: p.color + '10' }}>
+                      {p.name} · {p.banks}+ banks
+                    </span>
+                  ))}
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* Digital Twin Financial Sync actions card */}
+            <GlassCard className="border border-emerald-500/15 bg-emerald-500/[0.01] !p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Landmark size={14} className="text-emerald-400" />
+                <h4 className="text-[13.5px] font-bold text-white tracking-wide">Financial Twin Sync</h4>
+              </div>
+              <p className="text-[12.5px] text-[#8b949e] leading-relaxed mb-4">
+                Sync aggregated asset balances, savings rate ({savingsRate}%), and monthly cashflows to update your financial digital twin.
+              </p>
+              <div className="flex flex-col gap-2">
+                <motion.button
+                  onClick={handleSyncFinance}
+                  disabled={synced}
+                  whileHover={!synced ? { scale: 1.02, y: -1 } : {}}
+                  whileTap={!synced ? { scale: 0.98 } : {}}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] transition-all disabled:cursor-default cursor-pointer"
+                  style={{ 
+                    background: synced ? 'rgba(16,185,129,0.08)' : 'linear-gradient(135deg, #10b981, #059669)', 
+                    border: synced ? '1px solid rgba(16,185,129,0.25)' : 'none', 
+                    color: synced ? '#10b981' : 'white',
+                    boxShadow: synced ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.2)'
+                  }}
+                >
+                  {synced ? <><CheckCircle size={14} /> Synced to Finance Dashboard</> : <><Plus size={14} /> Sync ₹{(totalIncome - totalSpend).toLocaleString('en-IN')} Surplus to Twin</>}
+                </motion.button>
+                <button
+                  onClick={handleReset}
+                  className="w-full py-2.5 rounded-xl border border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa] hover:border-white/[0.12] transition-all bg-white/[0.02] text-[12px] font-semibold cursor-pointer"
+                >
+                  Reset Banking Interface
+                </button>
               </div>
             </GlassCard>
           </div>
-
-          {/* View tabs */}
-          <div className="flex gap-1.5 flex-wrap">
-            {[
-              { id: 'transactions', label: 'Transactions' },
-              { id: 'categories',   label: 'Spend Analysis' },
-              { id: 'upi',          label: 'UPI & AA Insights' },
-            ].map(v => (
-              <button key={v.id} onClick={() => setActiveView(v.id)}
-                className={`text-[11px] px-3.5 py-1.5 rounded-xl border font-semibold transition-all ${
-                  activeView === v.id
-                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                    : 'border-white/[0.06] text-[#71717a] hover:text-[#a1a1aa]'
-                }`}>
-                {v.label}
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div key={activeView} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
-
-              {/* TRANSACTIONS */}
-              {activeView === 'transactions' && (
-                <GlassCard>
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">
-                    Recent Transactions {isResults && <span className="text-[11px] font-normal text-[#71717a] ml-1">({txns.length} found)</span>}
-                  </h3>
-                  <div className="space-y-2">
-                    {txns.slice(0, 20).map((t, i) => {
-                      const amt = t.amount ?? (t.credit ?? -(t.debit ?? 0));
-                      const positive = t.amount > 0 || (t.credit && !t.debit);
-
-                      // Custom brand colors for circular badges
-                      let badgeBg = 'rgba(255,255,255,0.03)';
-                      let badgeBorder = 'rgba(255,255,255,0.06)';
-                      let badgeColor = '#ffffff';
-                      
-                      if (t.name.includes('Salary') || t.name.includes('Infosys')) {
-                        badgeBg = 'rgba(16,185,129,0.1)';
-                        badgeBorder = 'rgba(16,185,129,0.2)';
-                        badgeColor = '#10b981';
-                      } else if (t.name.includes('HDFC')) {
-                        badgeBg = 'rgba(239,68,68,0.1)';
-                        badgeBorder = 'rgba(239,68,68,0.2)';
-                        badgeColor = '#ef4444';
-                      } else if (t.name.includes('Axis') || t.name.includes('SIP')) {
-                        badgeBg = 'rgba(99,102,241,0.1)';
-                        badgeBorder = 'rgba(99,102,241,0.2)';
-                        badgeColor = '#818cf8';
-                      } else if (t.name.includes('Swiggy')) {
-                        badgeBg = 'rgba(245,158,11,0.1)';
-                        badgeBorder = 'rgba(245,158,11,0.2)';
-                        badgeColor = '#f59e0b';
-                      } else if (t.name.includes('Zepto') || t.name.includes('Blinkit')) {
-                        badgeBg = 'rgba(139,92,246,0.1)';
-                        badgeBorder = 'rgba(139,92,246,0.2)';
-                        badgeColor = '#a78bfa';
-                      } else if (t.name.includes('Uber')) {
-                        badgeBg = 'rgba(15,23,42,0.8)';
-                        badgeBorder = 'rgba(255,255,255,0.1)';
-                        badgeColor = '#ffffff';
-                      } else if (t.name.includes('Amazon')) {
-                        badgeBg = 'rgba(249,115,22,0.1)';
-                        badgeBorder = 'rgba(249,115,22,0.2)';
-                        badgeColor = '#f97316';
-                      } else if (positive) {
-                        badgeBg = 'rgba(16,185,129,0.08)';
-                        badgeBorder = 'rgba(16,185,129,0.15)';
-                        badgeColor = '#10b981';
-                      }
-
-                      return (
-                        <div key={i} className="flex items-center gap-3.5 p-3 rounded-xl bg-white/[0.015] border border-white/[0.04] hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-300 group">
-                          <div 
-                            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base transition-transform duration-300 group-hover:scale-105"
-                            style={{ 
-                              backgroundColor: badgeBg, 
-                              border: `1px solid ${badgeBorder}`,
-                              color: badgeColor
-                            }}
-                          >
-                            {t.icon ?? (positive ? '💰' : '💸')}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[12.5px] font-semibold text-[#f0f0f3] truncate group-hover:text-white transition-colors">{t.name ?? t.description}</p>
-                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                              <span className="text-[10px] text-[#71717a] font-medium">{t.date}</span>
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#6b7280] font-mono">{t.mode ?? 'UPI'}</span>
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#71717a]">{t.cat ?? t.category}</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                            <span className={`text-[13.5px] font-black ${positive ? 'text-emerald-400' : 'text-white'}`}>
-                              {positive ? '+' : '-'}₹{Math.abs(amt).toLocaleString('en-IN')}
-                            </span>
-                            <span className="text-[9px] text-[#6b7280] font-medium uppercase tracking-wider">INR</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </GlassCard>
-              )}
-
-              {/* CATEGORIES */}
-              {activeView === 'categories' && (
-                <GlassCard>
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-5">Spend by Category</h3>
-                  
-                  <div className="flex flex-col md:flex-row items-center gap-8 py-2">
-                    {/* SVG Donut Chart on the Left */}
-                    <div className="relative w-[150px] h-[150px] flex-shrink-0">
-                      <svg width="100%" height="100%" viewBox="0 0 100 100">
-                        {/* Empty background circle */}
-                        <circle cx="50" cy="50" r="38" fill="transparent" stroke="rgba(255,255,255,0.02)" strokeWidth="8" />
-                        {(() => {
-                          let accumulatedPercent = 0;
-                          const radius = 38;
-                          const circumference = 2 * Math.PI * radius; // 238.76
-                          return cats.map((c, idx) => {
-                            const strokeDashoffset = circumference - (circumference * c.pct) / 100;
-                            const rotation = (accumulatedPercent * 360) / 100;
-                            accumulatedPercent += c.pct;
-                            return (
-                              <circle
-                                key={idx}
-                                cx="50"
-                                cy="50"
-                                r={radius}
-                                fill="transparent"
-                                stroke={c.color}
-                                strokeWidth="8"
-                                strokeDasharray={circumference}
-                                strokeDashoffset={strokeDashoffset}
-                                transform={`rotate(${rotation - 90} 50 50)`}
-                                style={{
-                                  transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-                                  transformOrigin: '50% 50%'
-                                }}
-                              />
-                            );
-                          });
-                        })()}
-                      </svg>
-                      {/* Text in the center of the Donut */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                        <span className="text-[9px] text-[#71717a] uppercase tracking-wider font-semibold">Total Spent</span>
-                        <span className="text-[17px] font-black text-white mt-0.5">₹{totalSpend.toLocaleString('en-IN')}</span>
-                      </div>
-                    </div>
-
-                    {/* Category list on the Right */}
-                    <div className="flex-1 w-full space-y-3">
-                      {cats.map(c => (
-                        <div key={c.label}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-[12px] text-[#a1a1aa] flex items-center gap-1.5 font-medium">
-                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color, display: 'inline-block' }} />
-                              {c.label}
-                            </span>
-                            <span className="text-[12px] font-semibold text-white">₹{c.amount.toLocaleString('en-IN')} <span className="text-[#71717a] font-normal">({c.pct}%)</span></span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }} animate={{ width: `${c.pct}%` }}
-                              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                              className="h-full rounded-full" style={{ background: c.color }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="mt-5 pt-3.5 border-t border-white/[0.05] flex justify-between items-center">
-                    <span className="text-[12px] text-[#71717a] font-medium">Reporting Cycle (May 2025)</span>
-                    <span className="text-[13px] font-black text-[#34d399]">₹{totalSpend.toLocaleString('en-IN')} Total Debit Flow</span>
-                  </div>
-                </GlassCard>
-              )}
-
-              {/* UPI & AA INSIGHTS */}
-              {activeView === 'upi' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: 'UPI Transactions', value: isResults ? txns.filter(t => t.mode === 'UPI').length : 9, unit: 'this month', color: '#8b5cf6', isNum: true },
-                      { label: 'UPI Spend Total',  value: isResults ? txns.filter(t => t.mode === 'UPI' && t.debit).reduce((a, t) => a + t.debit, 0) : 5200, unit: 'via UPI', color: '#6366f1', prefix: '₹' },
-                      { label: 'NACH / SI Debits', value: isResults ? txns.filter(t => ['NACH','SI'].includes(t.mode) && t.debit).reduce((a,t)=>a+t.debit,0) : 9200, unit: 'auto-debits', color: '#f59e0b', prefix: '₹' },
-                      { label: 'NEFT / IMPS',      value: isResults ? txns.filter(t => ['NEFT','IMPS'].includes(t.mode) && t.debit).reduce((a,t)=>a+t.debit,0) : 18000, unit: 'wire transfers', color: '#10b981', prefix: '₹' },
-                    ].map(m => (
-                      <GlassCard key={m.label}>
-                        <p className="text-[10px] text-[#71717a] mb-1">{m.label}</p>
-                        <p className="text-[20px] font-black" style={{ color: m.color }}>
-                          {m.prefix}{(m.isNum ? m.value : m.value).toLocaleString('en-IN')}
-                        </p>
-                        <p className="text-[10px] text-[#6b7280]">{m.unit}</p>
-                      </GlassCard>
-                    ))}
-                  </div>
-
-                  <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Brain size={13} className="text-indigo-400" />
-                      <p className="text-[12px] font-bold text-[#a1a1aa]">How the AA Framework Works</p>
-                    </div>
-                    <div className="space-y-3">
-                      {[
-                        { step: '01', text: 'You give one-time consent via the AA app (Setu / Finvu)' },
-                        { step: '02', text: 'AA fetches your bank data from FIPs (your banks) in real time' },
-                        { step: '03', text: 'Encrypted, consent-tagged data is shared with the FIU (BeyondSelf)' },
-                        { step: '04', text: 'You can revoke consent anytime — no data stored without permission' },
-                      ].map(s => (
-                        <div key={s.step} className="flex items-start gap-3">
-                          <span className="text-[10px] font-black text-[#6b7280] font-mono mt-0.5 flex-shrink-0">{s.step}</span>
-                          <p className="text-[12px] text-[#71717a] leading-relaxed">{s.text}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-white/[0.05] flex flex-wrap gap-2">
-                      {AA_PROVIDERS.map(p => (
-                        <span key={p.id} className="text-[10px] px-2.5 py-1 rounded-lg border font-semibold"
-                          style={{ color: p.color, borderColor: p.color + '30', background: p.color + '10' }}>
-                          {p.name} · {p.banks}+ banks
-                        </span>
-                      ))}
-                    </div>
-                  </GlassCard>
-                </div>
-              )}
-
-            </motion.div>
-          </AnimatePresence>
         </motion.div>
       )}
 

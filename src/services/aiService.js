@@ -11,8 +11,29 @@
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE + '/ai';
-// NOTE: No VITE_GROQ_API_KEY used here. All AI calls go through the backend proxy.
-// The Groq key lives server-side only in application.properties / .env.
+const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key');
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+async function callGroqDirect(systemPrompt, history, userMessage) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history,
+    { role: 'user', content: userMessage },
+  ];
+  const res = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${GROQ_KEY}`,
+    },
+    body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: 500, temperature: 0.7 }),
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
 
 /** Strip PII from user data before sending to AI. */
 function stripPII(data) {
@@ -140,10 +161,20 @@ export async function chatWithAI(message, context = {}, history = []) {
       return { response: data.response, source: data.source || 'groq' };
     }
   } catch (error) {
-    console.warn('Backend AI unavailable, using deterministic fallback:', error.message);
+    console.warn('Backend AI unavailable, trying Groq direct:', error.message);
   }
 
-  // 2. Deterministic fallback — no Groq key needed, no external call
+  // 2. Direct Groq fallback (uses VITE_GROQ_API_KEY — no backend needed)
+  if (GROQ_KEY) {
+    try {
+      const response = await callGroqDirect(systemPrompt, conversationHistory, message);
+      return { response, source: 'groq-direct' };
+    } catch (error) {
+      console.warn('Groq direct failed, using deterministic fallback:', error.message);
+    }
+  }
+
+  // 3. Deterministic fallback — no external calls required
   return {
     response: generateFallbackResponse(message, context),
     source: 'fallback',
