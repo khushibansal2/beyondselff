@@ -659,74 +659,74 @@ function ExplainAICard({ label, display, color, change, up, factors, insight, li
   );
 }
 
-const r = 42;
+const r = 50; // Increased radius for ~120px diameter (including stroke)
 const circ = 2 * Math.PI * r;
 
-function DashboardScoreRing({ label, score, display, color, change, up, isActive, onClick }) {
+function DashboardScoreRing({ label, icon, score, display, color, change, up, isActive, onClick }) {
   const offset = circ - (score / 100) * circ;
   return (
     <motion.div
       onClick={onClick}
-      whileHover={{ scale: 1.06 }}
-      whileTap={{ scale: 0.96 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       style={{
-        textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-        cursor: 'pointer', padding: '10px 16px', borderRadius: 14,
-        background: isActive ? `${color}12` : 'transparent',
-        border: isActive ? `1px solid ${color}35` : '1px solid transparent',
-        transition: 'background 0.2s, border 0.2s',
+        flex: 1,
+        textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+        cursor: 'pointer', padding: '16px 12px', borderRadius: 16,
+        background: isActive ? `${color}15` : '#111827',
+        border: `1px solid ${isActive ? `${color}50` : 'rgba(255,255,255,0.05)'}`,
+        transition: 'all 0.2s',
         position: 'relative',
+        boxShadow: isActive ? `0 0 20px ${color}20` : 'none',
       }}
     >
-      <div style={{ position: 'relative', width: 108, height: 108 }}>
+      <div style={{ position: 'relative', width: 120, height: 120 }}>
         {/* Ambient glow when active */}
         {isActive && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{
-              position: 'absolute', inset: 14, borderRadius: '50%',
-              background: `radial-gradient(circle, ${color}30 0%, transparent 70%)`,
-              filter: 'blur(10px)',
+              position: 'absolute', inset: 10, borderRadius: '50%',
+              background: `radial-gradient(circle, ${color}40 0%, transparent 70%)`,
+              filter: 'blur(12px)',
               pointerEvents: 'none',
             }}
           />
         )}
-        <svg width="108" height="108" viewBox="0 0 108 108" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="54" cy="54" r={r + 6} fill="none" stroke={`${color}12`} strokeWidth="1" />
-          <circle cx="54" cy="54" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
+        <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
           <circle
-            cx="54" cy="54" r={r}
+            cx="60" cy="60" r={r}
             fill="none"
             stroke={color}
-            strokeWidth="7"
+            strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={circ}
             strokeDashoffset={offset}
-            style={{ filter: isActive ? `drop-shadow(0 0 5px ${color}99)` : 'none', transition: 'filter 0.3s' }}
+            style={{ filter: isActive ? `drop-shadow(0 0 6px ${color}80)` : 'none', transition: 'all 0.3s' }}
           />
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 23, fontWeight: 800, color, lineHeight: 1 }}>{display}</span>
-          <span style={{ fontSize: 9, color: '#6b7280', lineHeight: 1.5 }}>/100</span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{display}</span>
+          <span style={{ fontSize: 11, color: '#9ca3af', lineHeight: 1.5, marginTop: 2 }}>/100</span>
         </div>
       </div>
-      <span style={{ fontSize: 12, fontWeight: isActive ? 700 : 500, color: isActive ? '#e2e8f0' : '#9ca3af', transition: 'color 0.2s' }}>{label}</span>
+      
+      <span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', transition: 'color 0.2s', marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</span>
       <span style={{ fontSize: 11, color: up ? '#22c55e' : '#ef4444', fontWeight: 600 }}>{change}</span>
+      
       {/* "Why this score?" dropdown row */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 4,
-        padding: '3px 10px', borderRadius: 99,
-        background: isActive ? `${color}18` : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${isActive ? `${color}35` : 'rgba(255,255,255,0.08)'}`,
-        transition: 'all 0.2s',
+        marginTop: 6,
       }}>
-        <span style={{ fontSize: 9, fontWeight: 600, color: isActive ? color : '#6b7280', transition: 'color 0.2s' }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: isActive ? color : '#6b7280', transition: 'color 0.2s' }}>
           Why this score?
         </span>
         <motion.span
           animate={{ rotate: isActive ? 180 : 0 }}
           transition={{ duration: 0.25 }}
-          style={{ fontSize: 8, color: isActive ? color : '#6b7280', lineHeight: 1, display: 'inline-block' }}
+          style={{ fontSize: 9, color: isActive ? color : '#6b7280', lineHeight: 1, display: 'inline-block' }}
         >
           ▼
         </motion.span>
@@ -1348,67 +1348,30 @@ export default function Dashboard() {
               HIGHLIGHTED METRIC SCORE CARDS (KPI Ribbon)
           ════════════════════════════════════════════════════ */}
           <div style={{ position: 'relative', marginBottom: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr) auto', gap: 12, alignItems: 'stretch', marginBottom: 12 }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', marginBottom: 16 }}>
               {[
-                { label: 'Health', score: healthScore, trend: '▲ 7% this week', color: '#10b981', icon: '❤️', points: [45, 52, 49, 62, 58, 65, healthScore] },
+                { label: 'Health', score: healthScore, trend: '▲ 7% this week', color: '#f43f5e', icon: '❤️', points: [45, 52, 49, 62, 58, 65, healthScore] },
                 { label: 'Finance', score: financeScore, trend: '▼ 3% this week', color: '#fbbf24', icon: '💰', points: [72, 70, 68, 65, 67, 66, financeScore] },
-                { label: 'Career', score: careerScore, trend: '▲ 11% this week', color: '#a78bfa', icon: '🎯', points: [25, 30, 28, 35, 32, 40, careerScore] },
-                { label: 'Mindset', score: mindScore, trend: '▲ 10% this week', color: '#c084fc', icon: '🧠', points: [55, 60, 58, 64, 62, 70, mindScore] },
-                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#818cf8', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance], ringKey: 'Balance' },
+                { label: 'Career', score: careerScore, trend: '▲ 11% this week', color: '#6366f1', icon: '🎯', points: [25, 30, 28, 35, 32, 40, careerScore] },
+                { label: 'Mindset', score: mindScore, trend: '▲ 10% this week', color: '#d946ef', icon: '🧠', points: [55, 60, 58, 64, 62, 70, mindScore] },
+                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#06b6d4', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance], ringKey: 'Balance' },
               ].map((card) => {
                 const rk = card.ringKey || card.label;
                 const isActive = !!openRings[rk];
+                const up = card.trend.includes('▲');
                 return (
-                  <div
+                  <DashboardScoreRing
                     key={card.label}
+                    label={card.label}
+                    icon={card.icon}
+                    score={card.score}
+                    display={String(card.score)}
+                    color={card.color}
+                    change={card.trend}
+                    up={up}
+                    isActive={isActive}
                     onClick={() => toggleRing(rk)}
-                    style={{
-                      background: '#111827',
-                      border: `1px solid ${isActive ? card.color : 'rgba(255,255,255,0.06)'}`,
-                      borderRadius: 12,
-                      padding: '10px 12px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      boxShadow: isActive ? `0 0 10px ${card.color}25` : 'none',
-                      transform: isActive ? 'translateY(-2px)' : 'none',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 13 }}>{card.icon}</span>
-                      <span style={{ fontSize: 9.5, color: '#6b7280', fontWeight: 850, textTransform: 'uppercase', letterSpacing: 0.5 }}>{card.label}</span>
-                    </div>
-                    
-                    <div style={{ margin: '6px 0 4px' }}>
-                      <span style={{ fontSize: 18, fontWeight: 900, color: '#e2e8f0' }}>{card.score}</span>
-                      <span style={{ fontSize: 10, color: '#6b7280' }}>/100</span>
-                      <div style={{ fontSize: 8, color: card.color === '#ef4444' || card.trend.includes('▼') ? '#f43f5e' : '#10b981', fontWeight: 700, marginTop: 1 }}>{card.trend}</div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
-                      <MiniSparkline data={card.points} color={card.color} width={80} height={16} />
-                    </div>
-
-                    {/* Why this score? dropdown trigger */}
-                    <div style={{
-                      borderTop: '1px solid rgba(255,255,255,0.06)',
-                      marginTop: 8, paddingTop: 6,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-                    }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: isActive ? card.color : '#4b5563', transition: 'color 0.2s' }}>
-                        Why this score?
-                      </span>
-                      <motion.span
-                        animate={{ rotate: isActive ? 180 : 0 }}
-                        transition={{ duration: 0.25 }}
-                        style={{ fontSize: 8, color: isActive ? card.color : '#4b5563', display: 'inline-block', lineHeight: 1 }}
-                      >
-                        ▼
-                      </motion.span>
-                    </div>
-                  </div>
+                  />
                 );
               })}
 
@@ -1416,12 +1379,13 @@ export default function Dashboard() {
                 <button
                   onClick={() => window.location.href = '/goals'}
                   style={{
-                    width: 36, height: 36, borderRadius: '50%',
+                    width: 48, height: 48, borderRadius: '50%',
                     background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
-                    border: 'none', color: '#fff', fontSize: 18, fontWeight: 800,
+                    border: 'none', color: '#fff', fontSize: 24, fontWeight: 800,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', outline: 'none', boxShadow: '0 4px 12px rgba(124,58,237,0.3)',
                     transition: 'transform 0.15s',
+                    flexShrink: 0
                   }}
                   onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
                   onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
