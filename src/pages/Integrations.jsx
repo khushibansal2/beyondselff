@@ -3197,8 +3197,8 @@ function CourseraPanel() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header card */}
-      <GlassCard className="!p-8 !pb-9" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* ── ACADEMIC PORTAL HEADER CARD ── */}
+      <GlassCard className="!p-6 !pb-7" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{
@@ -3236,6 +3236,18 @@ function CourseraPanel() {
         <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0, lineHeight: 1.6 }}>
           Directly query <strong className="text-white">Coursera's global developer database</strong> to search for live verified courses, specialization tracks, and university certificates. Save select programs to construct your AI-guided digital twin learning roadmap.
         </p>
+      </GlassCard>
+
+      {/* ── SEARCH & SKILL DISCOVERY HUB ── */}
+      <GlassCard className="!p-8 !pb-9" style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <div>
+          <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span>🔍</span> Skill Exploration Hub
+          </h4>
+          <p style={{ fontSize: 12, color: '#8b949e', margin: 0, lineHeight: 1.6 }}>
+            Type any topic below or select a trending capsule keyword to explore the active database catalog.
+          </p>
+        </div>
 
         {/* Search Input Box */}
         <div style={{ display: 'flex', gap: 16, width: '100%' }}>
@@ -3275,7 +3287,7 @@ function CourseraPanel() {
         </div>
 
         {/* Skill chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 4 }}>
           {SKILL_CHIPS.map(s => {
             const isAct = query === s;
             return (
