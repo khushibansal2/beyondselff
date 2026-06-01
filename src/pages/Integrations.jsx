@@ -3196,130 +3196,256 @@ function CourseraPanel() {
   const savedCourses = career?.courseraLearning || [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* ── ACADEMIC PORTAL HEADER CARD ── */}
-      <GlassCard className="!p-6 !pb-7" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 12,
-              background: 'rgba(0,86,210,0.1)',
-              border: '1px solid rgba(0,86,210,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-            }}>
-              <BookOpen size={20} style={{ color: '#60a5fa' }} />
-            </div>
-            <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Coursera Academic Portal</h3>
-              <p style={{ fontSize: 11.5, color: '#64748b', margin: '4px 0 0 0' }}>Live Catalog · Real-Time API Sync · Verified Credentials</p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <StatusBadge status="live" />
-            {hasCache && (
-              <button 
-                onClick={() => { clearCourseraCache(); setHasCache(false); }} 
-                style={{
-                  fontSize: 10.5, fontWeight: 600, color: '#64748b', background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 10px',
-                  cursor: 'pointer', transition: 'all 0.2s'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#f1f5f9'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
-              >
-                Clear Cache
-              </button>
-            )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      {/* ── ACADEMIC PORTAL HEADER CARD (HORIZONTAL SPLIT MOCKUP STYLE) ── */}
+      <GlassCard className="!p-8 !pb-9" style={{ display: 'flex', flexDirection: 'row', gap: '36px', alignItems: 'center', flexWrap: 'wrap' }}>
+        
+        {/* Left Column: 3D glowing circular illustration with rotating orbital dots */}
+        <div style={{
+          width: 170, height: 170, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%)',
+          border: '1px dashed rgba(99,102,241,0.18)',
+          position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0, margin: '0 auto'
+        }}>
+          {/* Outer rotating orbit 1 */}
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            style={{
+              position: 'absolute', inset: 10, border: '1px solid rgba(129,140,248,0.15)',
+              borderRadius: '50%'
+            }}
+          >
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)', boxShadow: '0 0 8px #818cf8' }} />
+          </motion.div>
+
+          {/* Inner counter-rotating orbit 2 */}
+          <motion.div 
+            animate={{ rotate: -360 }}
+            transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
+            style={{
+              position: 'absolute', inset: 26, border: '1px dashed rgba(167,139,250,0.12)',
+              borderRadius: '50%'
+            }}
+          >
+            <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#a78bfa', position: 'absolute', bottom: '15%', right: '50%', transform: 'translateX(50%)', boxShadow: '0 0 6px #a78bfa' }} />
+          </motion.div>
+
+          {/* Deep glowing background circle */}
+          <div style={{
+            position: 'absolute', width: 100, height: 100, borderRadius: '50%',
+            background: 'rgba(13, 20, 35, 0.8)', border: '1px solid rgba(99,102,241,0.25)',
+            boxShadow: '0 0 32px rgba(99,102,241,0.22)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <BookOpen size={44} style={{ color: '#818cf8', filter: 'drop-shadow(0 0 16px rgba(129,140,248,0.65))' }} />
           </div>
         </div>
 
-        <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0, lineHeight: 1.6 }}>
-          Directly query <strong className="text-white">Coursera's global developer database</strong> to search for live verified courses, specialization tracks, and university certificates. Save select programs to construct your AI-guided digital twin learning roadmap.
-        </p>
+        {/* Right Column: Portal Content (Title, desc, search, skill pills) */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', minWidth: '280px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: '#f1f5f9', margin: 0, letterSpacing: '-0.02em' }}>Coursera Academic Portal</h3>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700,
+                padding: '2px 8px', borderRadius: 99, background: 'rgba(16,185,129,0.08)',
+                border: '1px solid rgba(16,185,129,0.2)', color: '#34d399'
+              }}>
+                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981', animation: 'pulse-dot 2s infinite' }} />
+                Twin Live
+              </span>
+            </div>
+            
+            <button style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex' }} className="hover:text-slate-300">
+              <MoreVertical size={16} />
+            </button>
+          </div>
+
+          <p style={{ fontSize: 11, color: '#64748b', margin: '-14px 0 0 0', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+            Live Catalog · Real-Time API Sync · Verified Credentials
+          </p>
+
+          <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0, lineHeight: 1.6 }}>
+            Directly query Coursera's global developer database to search for live verified courses, specialization tracks, and university certificates. Save select programs to construct your AI-guided digital twin learning roadmap.
+          </p>
+
+          {/* Search Input Box */}
+          <div style={{ display: 'flex', gap: 12, width: '100%', alignItems: 'center' }}>
+            <div style={{
+              position: 'relative', flex: 1, display: 'flex', alignItems: 'center',
+              background: 'rgba(5, 8, 15, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 12, padding: '0 16px', transition: 'all 0.25s'
+            }} className="focus-within:border-indigo-500/50 focus-within:shadow-[0_0_12px_rgba(99,102,241,0.18)]">
+              <Search size={14} style={{ color: '#4b5563', marginRight: 10, flexShrink: 0 }} />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && doSearch(query)}
+                placeholder="Search live Coursera database… e.g. Python, AI Agent, Next.js"
+                style={{
+                  width: '100%', background: 'transparent', border: 'none', outline: 'none',
+                  fontSize: 13, color: '#fff', padding: '12px 0', boxSizing: 'border-box'
+                }}
+              />
+            </div>
+            <button
+              onClick={() => doSearch(query)}
+              disabled={loading || !query.trim()}
+              style={{
+                padding: '12px 24px', borderRadius: 12, background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)', border: 'none',
+                color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
+                opacity: (loading || !query.trim()) ? 0.4 : 1,
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)'
+              }}
+              onMouseEnter={e => { if (!loading && query.trim()) e.currentTarget.style.filter = 'brightness(1.1)'; }}
+              onMouseLeave={e => { if (!loading && query.trim()) e.currentTarget.style.filter = 'brightness(1)'; }}
+            >
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+              Search
+            </button>
+          </div>
+
+          {/* Skill chips */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, paddingTop: 4 }}>
+            {SKILL_CHIPS.map(s => {
+              const isAct = query === s;
+              return (
+                <button 
+                  key={s} 
+                  onClick={() => { setQuery(s); doSearch(s); }}
+                  style={{
+                    fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 99,
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    background: isAct ? 'rgba(99,102,241,0.18)' : 'rgba(255,255,255,0.03)',
+                    border: isAct ? '1px solid rgba(129,140,248,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                    color: isAct ? '#818cf8' : '#8b949e'
+                  }}
+                  onMouseEnter={e => {
+                    if (!isAct) {
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                      e.currentTarget.style.color = '#f1f5f9';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isAct) {
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                      e.currentTarget.style.color = '#8b949e';
+                    }
+                  }}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </GlassCard>
 
-      {/* ── SEARCH & SKILL DISCOVERY HUB ── */}
-      <GlassCard className="!p-8 !pb-9" style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-        <div>
-          <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#f1f5f9', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span>🔍</span> Skill Exploration Hub
-          </h4>
-          <p style={{ fontSize: 12, color: '#8b949e', margin: 0, lineHeight: 1.6 }}>
-            Type any topic below or select a trending capsule keyword to explore the active database catalog.
-          </p>
-        </div>
-
-        {/* Search Input Box */}
-        <div style={{ display: 'flex', gap: 16, width: '100%' }}>
-          <div style={{
-            position: 'relative', flex: 1, display: 'flex', alignItems: 'center',
-            background: 'rgba(5, 8, 15, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 12, padding: '0 16px', transition: 'all 0.25s'
-          }} className="focus-within:border-blue-500/50 focus-within:shadow-[0_0_12px_rgba(96,165,250,0.18)]">
-            <Search size={14} style={{ color: '#4b5563', marginRight: 10, flexShrink: 0 }} />
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && doSearch(query)}
-              placeholder="Search live Coursera database… e.g. Python, AI Agent, Next.js"
-              style={{
-                width: '100%', background: 'transparent', border: 'none', outline: 'none',
-                fontSize: 13, color: '#fff', padding: '12px 0', boxSizing: 'border-box'
-              }}
-            />
-          </div>
-          <button
-            onClick={() => doSearch(query)}
-            disabled={loading || !query.trim()}
-            style={{
-              padding: '12px 28px', borderRadius: 12, background: '#0056d2', border: 'none',
-              color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
-              opacity: (loading || !query.trim()) ? 0.4 : 1
-            }}
-            onMouseEnter={e => { if (!loading && query.trim()) e.currentTarget.style.background = '#0047b3'; }}
-            onMouseLeave={e => { if (!loading && query.trim()) e.currentTarget.style.background = '#0056d2'; }}
+      {/* ── RECOMMENDED FOR YOU CAROUSEL ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
+          <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Recommended for You</h4>
+          <button 
+            onClick={() => { setQuery('AI'); doSearch('AI'); }}
+            style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
+            className="hover:text-[#94a3b8]"
           >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-            Search
+            View all →
           </button>
         </div>
 
-        {/* Skill chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 4 }}>
-          {SKILL_CHIPS.map(s => {
-            const isAct = query === s;
-            return (
-              <button 
-                key={s} 
-                onClick={() => { setQuery(s); doSearch(s); }}
+        <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+          <div 
+            className="custom-scrollbar"
+            style={{
+              display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px',
+              width: '100%', boxSizing: 'border-box', scrollBehavior: 'smooth'
+            }}
+          >
+            {[
+              { id: 'rec-1', name: 'Python for Everybody', partner: 'University of Michigan', logo: '🐍', color: '#10b981', badge: 'Beginner', badgeColor: '#34d399', badgeBg: 'rgba(16,185,129,0.08)', badgeBorder: 'rgba(16,185,129,0.2)', rating: '4.8', size: '18 Weeks' },
+              { id: 'rec-2', name: 'Machine Learning Specialization', partner: 'DeepLearning.AI', logo: '🧠', color: '#fbbf24', badge: 'Intermediate', badgeColor: '#fbbf24', badgeBg: 'rgba(245,158,11,0.08)', badgeBorder: 'rgba(245,158,11,0.2)', rating: '4.9', size: '4 Courses' },
+              { id: 'rec-3', name: 'Google Cloud Professional', partner: 'Google Cloud', logo: '☁️', color: '#3b82f6', badge: 'Advanced', badgeColor: '#60a5fa', badgeBg: 'rgba(59,130,246,0.08)', badgeBorder: 'rgba(59,130,246,0.2)', rating: '4.7', size: '12 Weeks' },
+              { id: 'rec-4', name: 'React Developer', partner: 'Meta', logo: '⚛️', color: '#06b6d4', badge: 'Intermediate', badgeColor: '#34d399', badgeBg: 'rgba(16,185,129,0.08)', badgeBorder: 'rgba(16,185,129,0.2)', rating: '4.6', size: '10 Weeks' },
+              { id: 'rec-5', name: 'Data Science Specialization', partner: 'Johns Hopkins Univ.', logo: '📊', color: '#ec4899', badge: 'Intermediate', badgeColor: '#f472b6', badgeBg: 'rgba(244,114,182,0.08)', badgeBorder: 'rgba(244,114,182,0.2)', rating: '4.8', size: '6 Courses' },
+            ].map(rec => (
+              <div 
+                key={rec.id}
+                onClick={() => { setQuery(rec.name); doSearch(rec.name); }}
                 style={{
-                  fontSize: 11, fontWeight: 600, padding: '6px 14px', borderRadius: 99,
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  background: isAct ? 'rgba(0,86,210,0.18)' : 'rgba(255,255,255,0.03)',
-                  border: isAct ? '1px solid rgba(96,165,250,0.4)' : '1px solid rgba(255,255,255,0.06)',
-                  color: isAct ? '#60a5fa' : '#8b949e'
+                  width: '232px', minWidth: '232px', background: 'rgba(13, 20, 35, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '16px',
+                  padding: '18px 20px', display: 'flex', flexDirection: 'column',
+                  gap: 12, cursor: 'pointer', transition: 'all 0.25s', boxSizing: 'border-box'
                 }}
-                onMouseEnter={e => {
-                  if (!isAct) {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
-                    e.currentTarget.style.color = '#f1f5f9';
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!isAct) {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
-                    e.currentTarget.style.color = '#8b949e';
-                  }
-                }}
+                className="hover:scale-[1.02] hover:border-indigo-500/20 hover:bg-[#162035]/60"
               >
-                {s}
-              </button>
-            );
-          })}
+                {/* Top Row: brand logo + titles */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 17, flexShrink: 0
+                  }}>
+                    {rec.logo}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{ fontSize: 12.5, fontWeight: 700, color: '#f1f5f9', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rec.name}</p>
+                    <p style={{ fontSize: 10.5, color: '#64748b', margin: '2px 0 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rec.partner}</p>
+                  </div>
+                </div>
+
+                {/* Middle Row: Badge */}
+                <div style={{ display: 'flex' }}>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                    color: rec.badgeColor, background: rec.badgeBg, border: `1px solid ${rec.badgeBorder}`,
+                    textTransform: 'uppercase', letterSpacing: '0.05em'
+                  }}>
+                    {rec.badge}
+                  </span>
+                </div>
+
+                {/* Divider Line */}
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.04)', margin: '2px 0' }} />
+
+                {/* Bottom Row: Rating + Duration */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 10.5 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
+                    {rec.rating} <Star size={11} style={{ color: '#fbbf24', fill: '#fbbf24' }} />
+                  </span>
+                  <span style={{ color: '#64748b', fontWeight: 500 }}>
+                    {rec.size}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Carousel Arrow Button overlay */}
+          <button 
+            style={{
+              position: 'absolute', right: -12, zIndex: 10, width: 28, height: 28,
+              borderRadius: '50%', background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              transition: 'all 0.2s'
+            }}
+            className="hover:scale-105 hover:bg-[#1e293b]"
+            onClick={() => {
+              const el = document.querySelector('.custom-scrollbar');
+              if (el) el.scrollBy({ left: 240, behavior: 'smooth' });
+            }}
+          >
+            <ChevronRight size={14} />
+          </button>
         </div>
-      </GlassCard>
+      </div>
 
       {/* Progress / loading */}
       {loading && (
