@@ -2396,7 +2396,7 @@ function IndiaBankingPanel() {
   };
 
   return (
-    <div className="space-y-[24px]">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
       {/* ── HEADER CARD ── */}
       <GlassCard className="!p-5">
@@ -2475,14 +2475,14 @@ function IndiaBankingPanel() {
 
       {/* ── Landing Phase ── */}
       {phase === 'landing' && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-[24px]">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           {/* 3-column provider cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: '20px' }}>
             {AA_PROVIDERS.map(p => (
               <button key={p.id} onClick={() => handleProviderClick(p)}
                 className="text-left rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all group flex flex-col overflow-hidden shadow-lg hover:shadow-indigo-500/[0.02]"
-                style={{ padding: 0 }}>
+                style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
                 {/* Color accent top bar */}
                 <div style={{ height: 3, background: p.color, opacity: 0.7, width: '100%' }} />
                 <div style={{ padding: '18px 20px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -2619,7 +2619,7 @@ function IndiaBankingPanel() {
 
       {/* ── Data View (demo or AI results) ── */}
       {(isDemo || isResults) && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {isDemo && (
             <div className="flex items-center gap-2 text-[12px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/20 rounded-xl px-3 py-2">
               <AlertTriangle size={13} /> Demo data — connect a provider or upload your statement for real AI analysis
@@ -2633,7 +2633,7 @@ function IndiaBankingPanel() {
           )}
 
           {/* Summary row */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3" style={{ gap: '16px' }}>
             <GlassCard>
               <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Total Income</p>
               <p className="text-[22px] font-black text-emerald-400">₹{totalIncome.toLocaleString('en-IN')}</p>
