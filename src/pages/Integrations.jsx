@@ -200,10 +200,10 @@ function GitHubPanel() {
   return (
     <div className="space-y-5">
       {/* Search */}
-      <GlassCard className="relative overflow-hidden">
+      <GlassCard className="relative overflow-hidden !p-6 md:!p-7">
         <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-white/[0.015] blur-3xl pointer-events-none" />
         
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{
               width: 42, height: 42, borderRadius: 12,
@@ -225,16 +225,15 @@ function GitHubPanel() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, width: '100%' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Github size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#6e7681' }} />
+        <div style={{ display: 'flex', gap: 12, width: '100%', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
             <input
               value={username}
               onChange={e => setUsername(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleFetch()}
               placeholder="e.g. torvalds"
               className="input-premium w-full text-[13.5px]"
-              style={{ paddingLeft: 38 }}
+              style={{ paddingLeft: 16, paddingRight: 16, height: 42, boxSizing: 'border-box' }}
             />
           </div>
           <motion.button
@@ -243,10 +242,11 @@ function GitHubPanel() {
             whileHover={!loading && username.trim() ? { scale: 1.03, y: -1 } : {}}
             whileTap={!loading && username.trim() ? { scale: 0.97 } : {}}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 28px', borderRadius: 12, 
+              display: 'flex', alignItems: 'center', gap: 8, padding: '0 28px', height: 42, borderRadius: 12, 
               fontWeight: 700, fontSize: 13, color: '#ffffff', border: 'none',
               background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', cursor: 'pointer', transition: 'all 0.2s',
-              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)', opacity: !username.trim() || loading ? 0.5 : 1
+              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)', opacity: !username.trim() || loading ? 0.5 : 1,
+              boxSizing: 'border-box'
             }}
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
@@ -316,7 +316,7 @@ function GitHubPanel() {
         {profile && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
             {/* User card */}
-            <GlassCard className="relative overflow-hidden">
+            <GlassCard className="relative overflow-hidden !p-6 md:!p-7">
               <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
               
               <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5">
@@ -407,180 +407,328 @@ function GitHubPanel() {
               </div>
 
               {/* Stats row */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mt-6 pt-5 border-t border-white/[0.06]">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mt-6 pt-5 pb-5">
                 {[
-                  { label: 'Repositories', value: profile.user.public_repos, icon: Code2,   color: '#6366f1' },
-                  { label: 'Total Stars',  value: profile.metrics.totalStars, icon: Star,    color: '#fbbf24' },
-                  { label: 'Followers',    value: profile.user.followers,      icon: Users,   color: '#10b981' },
-                  { label: 'Active (30d)', value: profile.metrics.recentRepos, icon: Activity,color: '#a78bfa' },
+                  { label: 'Repositories', value: profile.user.public_repos, sub: 'Active projects', icon: Code2,   color: '#6366f1' },
+                  { label: 'Total Stars',  value: profile.metrics.totalStars, sub: 'Across all repos', icon: Star,    color: '#fbbf24' },
+                  { label: 'Followers',    value: profile.user.followers,      sub: 'Community reach', icon: Users,   color: '#10b981' },
+                  { label: 'Active (30D)', value: profile.metrics.recentRepos, sub: 'Recent activity', icon: Activity,color: '#a78bfa' },
                 ].map(s => (
                   <motion.div
                     key={s.label}
                     whileHover={{ y: -3, scale: 1.02, borderColor: 'rgba(255, 255, 255, 0.12)' }}
-                    className="relative overflow-hidden p-4 rounded-2xl bg-white/[0.01] border border-white/[0.05] flex flex-col items-center justify-center transition-all duration-300"
+                    className="relative overflow-hidden rounded-2xl bg-white/[0.015] border border-white/[0.05] flex items-center gap-4 transition-all duration-300"
                     style={{
-                      boxShadow: `inset 0 1px 1px rgba(255,255,255,0.02)`
+                      padding: '16px 20px',
+                      boxShadow: `inset 0 1px 1px rgba(255,255,255,0.01)`
                     }}
                   >
                     <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: `linear-gradient(90deg, ${s.color}00, ${s.color}40, ${s.color}00)` }} />
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 transition-colors"
-                         style={{ background: `rgba(255, 255, 255, 0.02)`, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                      <s.icon size={15} style={{ color: s.color, filter: `drop-shadow(0 0 4px ${s.color}40)` }} />
+                    <div 
+                      style={{ 
+                        width: 38, height: 38, borderRadius: '50%', 
+                        background: `rgba(255, 255, 255, 0.02)`, 
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      <s.icon size={16} style={{ color: s.color, filter: `drop-shadow(0 0 4px ${s.color}40)` }} />
                     </div>
-                    <p className="text-[20px] font-black text-white tracking-tight leading-none mb-1">{s.value}</p>
-                    <p className="text-[10px] font-semibold text-[#8b949e] uppercase tracking-wider">{s.label}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, gap: 1 }}>
+                      <span style={{ fontSize: 18, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>{s.value}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: '#e2e8f0', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.label}</span>
+                      <span style={{ fontSize: 9.5, color: '#64748b', fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.sub}</span>
+                    </div>
                   </motion.div>
                 ))}
               </div>
             </GlassCard>
 
-            {/* Language Chart */}
-            <GlassCard className="relative overflow-hidden">
-              <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none" />
-              <div className="flex items-center gap-2 mb-5">
-                <Code2 size={15} className="text-indigo-400" />
-                <h3 className="text-[13.5px] font-bold text-white tracking-wide">Tech Stack Distribution</h3>
-              </div>
-              <div className="space-y-4">
-                {profile.languages.map(l => {
-                  const langColor = LANG_COLORS[l.lang] ?? '#6366f1';
-                  return (
-                    <motion.div 
-                      key={l.lang}
-                      whileHover={{ x: 3 }}
-                      className="group transition-all"
-                    >
-                      <div className="flex justify-between items-center mb-1.5">
-                        <div className="flex items-center gap-2.5">
-                          <span 
-                            className="w-3 h-3 rounded-full flex-shrink-0 transition-transform duration-300 group-hover:scale-110" 
-                            style={{ 
-                              background: langColor,
-                              boxShadow: `0 0 10px ${langColor}60`
-                            }} 
-                          />
-                          <span className="text-[13px] text-slate-200 font-semibold group-hover:text-white transition-colors">{l.lang}</span>
-                        </div>
-                        <span className="text-[11.5px] text-[#8b949e] font-medium transition-colors group-hover:text-slate-300">
-                          {l.count} {l.count === 1 ? 'repo' : 'repos'} <span className="text-slate-600 mx-1">•</span> {l.pct}%
-                        </span>
-                      </div>
-                      <div className="h-[7px] rounded-full bg-white/[0.03] border border-white/[0.04] overflow-hidden p-[1px]">
-                        <motion.div
-                          initial={{ width: 0 }} 
-                          animate={{ width: `${l.pct}%` }}
-                          transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-                          className="h-full rounded-full transition-all duration-300" 
-                          style={{ 
-                            background: `linear-gradient(90deg, ${langColor}dd, ${langColor})`,
-                            boxShadow: `0 0 8px ${langColor}80`
-                          }}
-                        />
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </GlassCard>
-
-            {/* Top Repos */}
-            <GlassCard className="relative overflow-hidden">
-              <div className="absolute -bottom-12 -left-12 w-28 h-28 rounded-full bg-purple-500/5 blur-2xl pointer-events-none" />
-              <div className="flex items-center gap-2 mb-5">
-                <GitBranch size={15} className="text-purple-400" />
-                <h3 className="text-[13.5px] font-bold text-white tracking-wide">Top Repositories</h3>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {profile.topRepos.map(r => (
-                  <motion.a 
-                    key={r.id} 
-                    href={r.html_url} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    whileHover={{ y: -2, borderColor: 'rgba(255, 255, 255, 0.12)', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
-                    className="block p-4 rounded-xl border border-white/[0.05] bg-white/[0.005] hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all duration-300 group"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <GitBranch size={13} className="text-[#8b949e] group-hover:text-indigo-400 transition-colors flex-shrink-0" />
-                          <p className="text-[13px] font-bold text-slate-200 group-hover:text-white transition-colors truncate">
-                            {r.name}
-                          </p>
-                        </div>
-                        {r.description ? (
-                          <p className="text-[11.5px] text-[#8b949e] mt-1.5 line-clamp-2 leading-relaxed group-hover:text-[#a1a1aa] transition-colors">
-                            {r.description}
-                          </p>
-                        ) : (
-                          <p className="text-[11.5px] text-slate-600 mt-1.5 italic">No description provided</p>
-                        )}
-                      </div>
-                      <ExternalLink size={12} className="text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0 mt-0.5" />
-                    </div>
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.03]">
-                      <div className="flex items-center gap-3">
-                        {r.language && (
-                          <span className="flex items-center gap-1.5 text-[10.5px] font-semibold text-[#8b949e]">
+            {/* Tech Stack and Top Repositories in a stunning side-by-side grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.35fr', gap: 16, alignItems: 'stretch' }}>
+              {/* Language Chart */}
+              <GlassCard className="flex flex-col relative overflow-hidden !p-4" style={{ margin: 0, height: '100%', boxSizing: 'border-box' }}>
+                <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none" />
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Code2 size={15} className="text-indigo-400" />
+                  <h3 className="text-[13.5px] font-bold text-white tracking-wide">Tech Stack Distribution</h3>
+                </div>
+                <div className="flex-1" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', minHeight: 0 }}>
+                  {profile.languages.map(l => {
+                    const langColor = LANG_COLORS[l.lang] ?? '#6366f1';
+                    return (
+                      <motion.div 
+                        key={l.lang}
+                        whileHover={{ x: 3 }}
+                        className="group transition-all"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center gap-2.5">
                             <span 
-                              className="w-2.5 h-2.5 rounded-full" 
+                              className="w-3 h-3 rounded-full flex-shrink-0 transition-transform duration-300 group-hover:scale-110" 
                               style={{ 
-                                background: LANG_COLORS[r.language] ?? '#6366f1',
-                                boxShadow: `0 0 6px ${(LANG_COLORS[r.language] ?? '#6366f1')}40`
+                                background: langColor,
+                                boxShadow: `0 0 10px ${langColor}60`
                               }} 
                             />
-                            {r.language}
+                            <span className="text-[13px] text-slate-200 font-semibold group-hover:text-white transition-colors">{l.lang}</span>
+                          </div>
+                          <span className="text-[11.5px] text-[#8b949e] font-medium transition-colors group-hover:text-slate-300">
+                            {l.count} {l.count === 1 ? 'repo' : 'repos'} <span className="text-slate-600 mx-1">•</span> {l.pct}%
                           </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-[10.5px] font-medium text-[#8b949e] group-hover:text-amber-400 transition-colors">
-                          <Star size={11} className="fill-transparent group-hover:fill-amber-400/20" />
-                          {r.stargazers_count}
-                        </span>
-                        <span className="flex items-center gap-1 text-[10.5px] font-medium text-[#8b949e] group-hover:text-indigo-400 transition-colors">
-                          <GitFork size={11} />
-                          {r.forks_count}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.a>
-                ))}
-              </div>
-            </GlassCard>
+                        </div>
+                        <div className="h-[7px] rounded-full bg-white/[0.03] border border-white/[0.04] overflow-hidden p-[1px]">
+                          <motion.div
+                            initial={{ width: 0 }} 
+                            animate={{ width: `${l.pct}%` }}
+                            transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+                            className="h-full rounded-full transition-all duration-300" 
+                            style={{ 
+                                background: `linear-gradient(90deg, ${langColor}dd, ${langColor})`,
+                                boxShadow: `0 0 8px ${langColor}80`
+                            }}
+                          />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </GlassCard>
 
-            {/* Action buttons */}
-            <div className="flex flex-wrap gap-4 py-1">
-              <motion.button 
-                onClick={handleSyncSkills}
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 text-[12.5px] px-5 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08] text-emerald-300 hover:text-emerald-200 hover:bg-emerald-500/[0.15] font-bold transition-all shadow-[0_0_12px_rgba(16,185,129,0.06)] hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] cursor-pointer"
-              >
-                <Plus size={14} className="stroke-[2.5]" /> Sync Languages to Career Profile
-              </motion.button>
+              {/* Top Repos */}
+              <GlassCard className="relative overflow-hidden !p-4" style={{ margin: 0, height: '100%', boxSizing: 'border-box' }}>
+                <div className="absolute -bottom-12 -left-12 w-28 h-28 rounded-full bg-purple-500/5 blur-2xl pointer-events-none" />
+                <div className="flex items-center gap-2 mb-2.5">
+                  <GitBranch size={15} className="text-purple-400" />
+                  <h3 className="text-[13.5px] font-bold text-white tracking-wide">Top Repositories</h3>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2.5">
+                  {profile.topRepos.map(r => {
+                    const hasDetails = r.language || r.stargazers_count > 0 || r.forks_count > 0;
+                    return (
+                      <motion.a 
+                        key={r.id} 
+                        href={r.html_url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        whileHover={{ y: -2, borderColor: 'rgba(255, 255, 255, 0.12)', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
+                        className="block rounded-xl border border-white/[0.05] bg-white/[0.005] hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all duration-300 group"
+                        style={{ padding: '8px 12px' }}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <GitBranch size={13} className="text-[#8b949e] group-hover:text-[#818cf8] transition-colors flex-shrink-0" />
+                              <p className="text-[13px] font-bold text-slate-200 group-hover:text-white transition-colors truncate">
+                                {r.name}
+                              </p>
+                            </div>
+                          </div>
+                          <ExternalLink size={12} className="text-slate-600 group-hover:text-slate-400 transition-colors flex-shrink-0 mt-0.5" />
+                        </div>
+                        {hasDetails && (
+                          <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-white/[0.03]">
+                            <div className="flex items-center gap-3">
+                              {r.language && (
+                                <span className="flex items-center gap-1.5 text-[10.5px] font-semibold text-[#8b949e]">
+                                  <span 
+                                    className="w-2.5 h-2.5 rounded-full" 
+                                    style={{ 
+                                      background: LANG_COLORS[r.language] ?? '#6366f1',
+                                      boxShadow: `0 0 6px ${(LANG_COLORS[r.language] ?? '#6366f1')}40`
+                                    }} 
+                                  />
+                                  {r.language}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="flex items-center gap-1 text-[10.5px] font-medium text-[#8b949e] group-hover:text-amber-400 transition-colors">
+                                <Star size={11} className="fill-transparent group-hover:fill-amber-400/20" />
+                                {r.stargazers_count}
+                              </span>
+                              <span className="flex items-center gap-1 text-[10.5px] font-medium text-[#8b949e] group-hover:text-indigo-400 transition-colors">
+                                <GitFork size={11} />
+                                {r.forks_count}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </motion.a>
+                    );
+                  })}
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* High-fidelity Action Banners Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 12 }}>
               
-              <motion.button 
-                onClick={handleAIAnalysis} 
-                disabled={aiLoading}
-                whileHover={!aiLoading ? { scale: 1.02, y: -1 } : {}}
-                whileTap={!aiLoading ? { scale: 0.98 } : {}}
-                className="relative overflow-hidden flex items-center gap-2 text-[12.5px] px-5 py-3 rounded-xl font-bold text-white disabled:opacity-50 transition-all cursor-pointer shadow-[0_0_16px_rgba(99,102,241,0.12)] hover:shadow-[0_0_25px_rgba(99,102,241,0.25)]"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+              {/* Banner 1: Sync Languages */}
+              <div
+                onClick={handleSyncSkills}
+                style={{
+                  background: 'rgba(16, 185, 129, 0.03)',
+                  border: '1px solid rgba(16, 185, 129, 0.15)',
+                  borderRadius: 14,
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 0 12px rgba(16, 185, 129, 0.06)',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(16, 185, 129, 0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(16, 185, 129, 0.03)';
+                  e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.15)';
+                  e.currentTarget.style.transform = 'none';
+                }}
               >
-                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite] pointer-events-none" />
-                {aiLoading ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin text-white" />
-                    <span>Analyzing tech stack…</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={14} className="text-white animate-pulse" />
-                    <span>AI Career Analysis</span>
-                  </>
-                )}
-              </motion.button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.2) 100%)',
+                      border: '1px solid rgba(16,185,129,0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#10b981',
+                      boxShadow: '0 0 8px rgba(16, 185, 129, 0.3)',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>Sync Languages to Career Profile</div>
+                    <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>Keep your skills in sync</div>
+                  </div>
+                </div>
+                <ChevronRight size={14} style={{ color: '#10b981' }} />
+              </div>
+
+              {/* Banner 2: AI Career Analysis */}
+              <div
+                onClick={handleAIAnalysis}
+                style={{
+                  background: 'rgba(139, 92, 246, 0.03)',
+                  border: '1px solid rgba(139, 92, 246, 0.15)',
+                  borderRadius: 14,
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: aiLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 0 12px rgba(139, 92, 246, 0.06)',
+                  opacity: aiLoading ? 0.7 : 1,
+                }}
+                onMouseEnter={e => {
+                  if (!aiLoading) {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.06)';
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.03)';
+                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.15)';
+                  e.currentTarget.style.transform = 'none';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(139,92,246,0.2) 100%)',
+                      border: '1px solid rgba(139,92,246,0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#a78bfa',
+                      boxShadow: '0 0 8px rgba(139, 92, 246, 0.3)',
+                    }}
+                  >
+                    {aiLoading ? (
+                      <Loader2 size={14} className="animate-spin text-[#a78bfa]" />
+                    ) : (
+                      <Sparkles size={14} className="text-[#a78bfa] animate-pulse" />
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#a78bfa' }}>
+                      {aiLoading ? 'Analyzing tech stack…' : 'AI Career Analysis'}
+                    </div>
+                    <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
+                      Get AI-powered career insights
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight size={14} style={{ color: '#a78bfa' }} />
+              </div>
+
+              {/* Banner 3: Data Status Card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.015)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: 14,
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.01)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: 'rgba(16, 185, 129, 0.04)',
+                      border: '1px solid rgba(16, 185, 129, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff' }}>Data is fetched live from GitHub</div>
+                    <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>Public profile data • Real-time insights</div>
+                  </div>
+                </div>
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#8b949e',
+                  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.02)',
+                }}>
+                  <Github size={16} />
+                </div>
+              </div>
+
             </div>
 
             {/* AI Analysis Passport */}
@@ -590,7 +738,7 @@ function GitHubPanel() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <GlassCard className="relative overflow-hidden border border-indigo-500/20 bg-indigo-500/[0.01] shadow-[0_0_30px_rgba(99,102,241,0.06)]">
+                <GlassCard className="relative overflow-hidden border border-indigo-500/20 bg-indigo-500/[0.01] shadow-[0_0_30px_rgba(99,102,241,0.06)] !p-6 md:!p-7">
                   <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/5 to-purple-500/5 blur-3xl pointer-events-none" />
                   
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/[0.05]">
@@ -2593,6 +2741,7 @@ export default function Integrations() {
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
           position: relative !important;
           overflow: hidden !important;
+          padding: 24px 28px !important;
         }
         .glass-card:hover {
           border-color: rgba(255, 255, 255, 0.1) !important;
@@ -2636,6 +2785,13 @@ export default function Integrations() {
 
       {/* ── Glowing Brand Header ── */}
       <div className="mb-4 pt-2 flex flex-col gap-1" style={{ position: 'relative', zIndex: 2 }}>
+        {/* Breadcrumbs Path */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#64748b', fontWeight: 600, marginBottom: 8, textTransform: 'none' }}>
+          <span style={{ color: '#64748b' }}>BeyondSelf</span>
+          <span style={{ fontSize: 9.5 }}>/</span>
+          <span style={{ color: '#94a3b8' }}>Integrations</span>
+        </div>
+
         {/* Title block */}
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/5">
@@ -2666,30 +2822,6 @@ export default function Integrations() {
           {tab === 'coursera'    && <CourseraPanel />}
         </motion.div>
       </AnimatePresence>
-
-      {/* Floating Manage Connections Button */}
-      <div style={{
-        position: 'fixed',
-        bottom: 24,
-        right: 24,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 6,
-        zIndex: 50
-      }}>
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-12 h-12 rounded-full bg-[#4f46e5] text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 hover:bg-[#4338ca] transition-all border border-indigo-400/20 cursor-pointer"
-          onClick={() => alert('Integrate for production:\n\nLaunch connection management gateway on your backend to handle revoked consent tokens.')}
-        >
-          <Cable size={20} />
-        </motion.button>
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          Manage Connections
-        </span>
-      </div>
     </div>
   );
 }
