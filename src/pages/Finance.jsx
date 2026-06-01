@@ -326,7 +326,7 @@ const FUND_RECS = {
   ],
 };
 
-function InvestmentRoboAdvisor({ f, score }) {
+function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
   // exact mockup values as fallback when real stats are 0
   const dispIncome = f.income || 215430;
   const dispExpenses = f.expenses || 78230;
@@ -3538,7 +3538,7 @@ export default function Finance() {
 
       {/* ── INVEST TAB ────────────────────────────────────────────────────── */}
       {tab === 'invest' && (
-        <InvestmentRoboAdvisor f={f} score={score} />
+        <InvestmentRoboAdvisor f={f} score={score} financeRecords={financeRecords} />
       )}
     </div>
   );
