@@ -191,7 +191,19 @@ CREATE TABLE IF NOT EXISTS transaction_records (
     CONSTRAINT pk_transaction_records PRIMARY KEY (id)
 );
 
--- ── 11. Indexes ───────────────────────────────────────────────────────────────
+-- ── 11. fitbit_tokens ─────────────────────────────────────────────────────────
+-- Persists Google Fit / Fitbit OAuth tokens across backend restarts.
+-- user_id is the PK (one row per app user, upserted on every token refresh).
+CREATE TABLE IF NOT EXISTS fitbit_tokens (
+    user_id        varchar(255) NOT NULL,
+    access_token   text         NOT NULL,
+    refresh_token  text,
+    google_user_id varchar(255),
+    updated_at     timestamp(6),
+    CONSTRAINT pk_fitbit_tokens PRIMARY KEY (user_id)
+);
+
+-- ── 12. Indexes ───────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_tx_user     ON transaction_records (user_id);
 CREATE INDEX IF NOT EXISTS idx_tx_category ON transaction_records (category);
 
@@ -199,6 +211,27 @@ CREATE INDEX IF NOT EXISTS idx_tx_category ON transaction_records (category);
 -- Each block checks pg_constraint by name before adding, so re-running this
 -- migration on an existing database never raises a "constraint already exists"
 -- error — regardless of whether the constraint was previously unnamed.
+
+-- Clean up orphaned records to prevent foreign key constraint violations on startup
+DELETE FROM health_records WHERE user_id NOT IN (SELECT id FROM users);
+UPDATE health_records SET import_id = NULL WHERE import_id IS NOT NULL AND import_id NOT IN (SELECT id FROM import_history);
+
+DELETE FROM career_records WHERE user_id NOT IN (SELECT id FROM users);
+UPDATE career_records SET import_id = NULL WHERE import_id IS NOT NULL AND import_id NOT IN (SELECT id FROM import_history);
+
+DELETE FROM career_record_languages WHERE career_record_id NOT IN (SELECT id FROM career_records);
+DELETE FROM career_record_skills WHERE career_record_id NOT IN (SELECT id FROM career_records);
+DELETE FROM career_record_projects WHERE career_record_id NOT IN (SELECT id FROM career_records);
+
+DELETE FROM finance_records WHERE user_id NOT IN (SELECT id FROM users);
+UPDATE finance_records SET import_id = NULL WHERE import_id IS NOT NULL AND import_id NOT IN (SELECT id FROM import_history);
+
+DELETE FROM goals             WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM user_stats        WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM user_badges       WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM study_sessions    WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM transaction_records WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM fitbit_tokens     WHERE user_id NOT IN (SELECT id FROM users);
 
 -- health_records → users
 DO $$ BEGIN
@@ -296,5 +329,14 @@ DO $$ BEGIN
     ALTER TABLE career_record_projects
       ADD CONSTRAINT fk_career_record_projects_record
       FOREIGN KEY (career_record_id) REFERENCES career_records (id);
+  END IF;
+END $$;
+
+-- fitbit_tokens → users
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_fitbit_tokens_user_id') THEN
+    ALTER TABLE fitbit_tokens
+      ADD CONSTRAINT fk_fitbit_tokens_user_id
+      FOREIGN KEY (user_id) REFERENCES users (id);
   END IF;
 END $$;

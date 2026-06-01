@@ -115,10 +115,13 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-        <!-- Flyway 10+ requires an explicit PostgreSQL module -->
+        <!-- Flyway 10+ requires an explicit PostgreSQL module.
+             Spring Boot 3.2.5 BOM manages flyway-core but NOT this split
+             module, so the version must be pinned to match flyway-core. -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
+            <version>10.10.0</version>
         </dependency>
 
         <!-- Test -->

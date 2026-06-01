@@ -6,6 +6,22 @@
 
 BEGIN;
 
+-- ── 0. Pre-flight cleanup ─────────────────────────────────────────────────────
+-- Remove any orphaned records left by previous runs or incomplete migrations.
+-- These DELETEs are safe no-ops if the data is already clean.
+DELETE FROM user_stats        WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM user_badges       WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM health_records    WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM finance_records   WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM career_records    WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM study_sessions    WHERE user_id NOT IN (SELECT id FROM users);
+DELETE FROM transaction_records WHERE user_id NOT IN (SELECT id FROM users);
+-- Null out dangling import_id references (can't delete import_history rows that
+-- may be referenced by other tables, so we just clear the FK instead).
+UPDATE health_records  SET import_id = NULL WHERE import_id IS NOT NULL AND import_id NOT IN (SELECT id FROM import_history);
+UPDATE finance_records SET import_id = NULL WHERE import_id IS NOT NULL AND import_id NOT IN (SELECT id FROM import_history);
+UPDATE career_records  SET import_id = NULL WHERE import_id IS NOT NULL AND import_id NOT IN (SELECT id FROM import_history);
+
 -- ── 1. Users ──────────────────────────────────────────────────────────────────
 INSERT INTO users (id, email, password_hash, name, created_at) VALUES
   ('seed-user-01', 'aryan.kapoor@example.com',   '$2a$10$placeholder', 'Aryan Kapoor',   NOW() - INTERVAL '87 days'),

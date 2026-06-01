@@ -1,5 +1,7 @@
 package com.digitaltwin.backend.controller;
 
+import com.digitaltwin.backend.entity.FitbitToken;
+import com.digitaltwin.backend.repository.FitbitTokenRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,11 +20,12 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 /**
  * Google Fit OAuth 2.0 Controller — syncs steps, calories, heart rate, sleep, distance.
@@ -44,8 +47,12 @@ public class FitbitController {
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                     .withZone(ZoneId.of("UTC"));
 
-    // In-memory token store: appUserId -> { accessToken, refreshToken, googleUserId }
-    private static final Map<String, Map<String, String>> TOKEN_STORE = new ConcurrentHashMap<>();
+    // ── DB-backed token store ─────────────────────────────────────────────────
+    private final FitbitTokenRepository tokenRepo;
+
+    public FitbitController(FitbitTokenRepository tokenRepo) {
+        this.tokenRepo = tokenRepo;
+    }
 
     @Value("${fitbit.client.id:}")
     private String clientId;
@@ -136,10 +143,14 @@ public class FitbitController {
             String googleUserId  = profileData.path("sub").asText();
             String appUserId     = (state != null && !state.isBlank()) ? state : googleUserId;
 
-            TOKEN_STORE.put(appUserId, Map.of(
-                    "accessToken",  accessToken,
-                    "refreshToken", refreshToken,
-                    "googleUserId", googleUserId));
+            // Persist tokens to DB (upsert — same userId just overwrites the row)
+            tokenRepo.save(FitbitToken.builder()
+                    .userId(appUserId)
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken.isBlank() ? null : refreshToken)
+                    .googleUserId(googleUserId)
+                    .updatedAt(LocalDateTime.now())
+                    .build());
 
             log.info("Google Fit connected: appUser={}, googleUser={}", appUserId, googleUserId);
             response.sendRedirect(frontendUrl + "/integrations?fitbit=success&tab=fitbit&userId=" +
@@ -158,12 +169,13 @@ public class FitbitController {
     public ResponseEntity<Map<String, Object>> sync(
             @RequestParam(defaultValue = "default") String userId) {
 
-        Map<String, String> tokens = TOKEN_STORE.get(userId);
-        if (tokens == null) {
+        Optional<FitbitToken> tokenOpt = tokenRepo.findById(userId);
+        if (tokenOpt.isEmpty()) {
             return ResponseEntity.ok(Map.of("connected", false, "reason", "Not connected — OAuth required"));
         }
 
-        String token = tokens.get("accessToken");
+        FitbitToken tokenRecord = tokenOpt.get();
+        String token = tokenRecord.getAccessToken();
         String today = LocalDate.now().toString();
 
         try {
@@ -278,7 +290,7 @@ public class FitbitController {
                     "connected",    true,
                     "syncedAt",     today,
                     "displayName",  displayName,
-                    "fitbitUserId", tokens.getOrDefault("googleUserId", ""),
+                    "fitbitUserId", tokenRecord.getGoogleUserId() != null ? tokenRecord.getGoogleUserId() : "",
                     "health", Map.of(
                             "sleepHours",       sleepHours,
                             "steps",            steps,
@@ -290,6 +302,20 @@ public class FitbitController {
 
         } catch (Exception e) {
             log.error("Sync error for user {}: {}", userId, e.getMessage(), e);
+            // If it's an auth error and we have a refresh token, try to get a new access token
+            FitbitToken tr = tokenRepo.findById(userId).orElse(null);
+            if (tr != null && tr.getRefreshToken() != null && e.getMessage() != null
+                    && (e.getMessage().contains("401") || e.getMessage().contains("Unauthorized"))) {
+                try {
+                    String newAccessToken = refreshAccessToken(tr.getRefreshToken());
+                    tr.setAccessToken(newAccessToken);
+                    tr.setUpdatedAt(LocalDateTime.now());
+                    tokenRepo.save(tr);
+                    log.info("Access token refreshed and persisted for user {}", userId);
+                } catch (Exception refreshEx) {
+                    log.warn("Token refresh also failed for user {}: {}", userId, refreshEx.getMessage());
+                }
+            }
             return ResponseEntity.ok(Map.of("connected", true, "syncError", e.getMessage()));
         }
     }
@@ -299,13 +325,13 @@ public class FitbitController {
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> status(
             @RequestParam(defaultValue = "default") String userId) {
-        return ResponseEntity.ok(Map.of("connected", TOKEN_STORE.containsKey(userId)));
+        return ResponseEntity.ok(Map.of("connected", tokenRepo.existsById(userId)));
     }
 
     @PostMapping("/disconnect")
     public ResponseEntity<Map<String, Object>> disconnect(
             @RequestParam(defaultValue = "default") String userId) {
-        TOKEN_STORE.remove(userId);
+        tokenRepo.deleteById(userId);
         log.info("Google Fit disconnected: {}", userId);
         return ResponseEntity.ok(Map.of("disconnected", true));
     }
@@ -329,6 +355,31 @@ public class FitbitController {
             throw new RuntimeException("Google API " + resp.statusCode() + ": " + resp.body());
         }
         return MAPPER.readTree(resp.body());
+    }
+
+    /**
+     * Use the stored refresh token to obtain a new Google access token.
+     * Called automatically when sync() receives a 401 from the Google API.
+     */
+    private String refreshAccessToken(String refreshToken) throws Exception {
+        String body = "client_id="     + URLEncoder.encode(clientId,     StandardCharsets.UTF_8) +
+                      "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8) +
+                      "&refresh_token=" + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8) +
+                      "&grant_type=refresh_token";
+
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("https://oauth2.googleapis.com/token"))
+                .timeout(Duration.ofSeconds(10))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+        if (resp.statusCode() >= 400) {
+            throw new RuntimeException("Token refresh failed " + resp.statusCode() + ": " + resp.body());
+        }
+        JsonNode data = MAPPER.readTree(resp.body());
+        return data.path("access_token").asText();
     }
 
     /** POST to the Google Fit Aggregate API for a single data type over a time window. */

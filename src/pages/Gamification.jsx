@@ -164,6 +164,134 @@ function StatBar({ meta, value, prevValue }) {
   );
 }
 
+// ── PROTOTYPE DISCLAIMER ───────────────────────────────────────────────────────
+
+function PrototypeDisclaimer({ featureName }) {
+  const [expanded, setExpanded] = useState(false);
+  
+  return (
+    <div 
+      style={{
+        padding: '16px 20px',
+        borderRadius: '16px',
+        border: '1px solid rgba(245, 158, 11, 0.2)',
+        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.04) 0%, rgba(245, 158, 11, 0.01) 100%)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.02)',
+        backdropFilter: 'blur(12px)',
+        marginBottom: '20px',
+        fontFamily: 'Inter, sans-serif'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 36,
+            height: 36,
+            borderRadius: '10px',
+            background: 'rgba(245, 158, 11, 0.1)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#f59e0b',
+            flexShrink: 0
+          }}>
+            <AlertTriangle size={18} style={{ filter: 'drop-shadow(0 0 4px rgba(245, 158, 11, 0.5))' }} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: '#f59e0b', letterSpacing: '0.05em', background: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: '4px' }}>
+                Prototype Preview
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>
+                {featureName} is simulated client-side
+              </span>
+            </div>
+            <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '4px 0 0', lineHeight: 1.4 }}>
+              Currently using local storage & demo users. Learn about our secure production roadmap.
+            </p>
+          </div>
+        </div>
+        <button 
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '8px',
+            color: '#cbd5e1',
+            fontSize: '11px',
+            fontWeight: 600,
+            padding: '6px 12px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            outline: 'none'
+          }}
+          className="hover:bg-white/10"
+        >
+          {expanded ? 'Hide Roadmap' : 'View Production Roadmap'}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', marginTop: 14, paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>Production Architecture Specifications:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13 }}>🗄️</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>DB-Backed Persistent Engine</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
+                    All user profiles, actions, and reactions are stored in a relational/NoSQL DB, replacing local storage data persistence.
+                  </p>
+                </div>
+                
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13 }}>🔌</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>Challenge Participation APIs</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
+                    Restful endpoints handle secure enrollment, validation, and reward distribution for guild and individual challenges.
+                  </p>
+                </div>
+                
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13 }}>⚡</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>WebSocket Real-Time Sync</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
+                    Bidirectional WebSocket connections push real-time user presence, active grinder counts, and room reactions to peers instantly.
+                  </p>
+                </div>
+                
+                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 13 }}>🔒</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>Anonymous Percentile Model</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
+                    Leaderboards focus on anonymous cohort-based percentile metrics rather than revealing raw user-vs-user names and profiles.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── IDENTITY PANEL ─────────────────────────────────────────────────────────────
 
 function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
@@ -671,6 +799,8 @@ function GrindRoomPanel({ onXP }) {
   if (!selectedRoom) {
     return (
       <div style={{display:'flex', flexDirection:'column', gap:12}}>
+        <PrototypeDisclaimer featureName="Silent Grind Rooms" />
+        
         {/* Plain Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
           <div>
@@ -776,6 +906,7 @@ function GrindRoomPanel({ onXP }) {
 
   return (
     <div className="space-y-4">
+      <PrototypeDisclaimer featureName="Silent Grind Rooms" />
       <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
         {/* Room header */}
         <div className="flex items-center justify-between mb-6">
@@ -829,7 +960,7 @@ function GrindRoomPanel({ onXP }) {
         {/* Live presence */}
         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
           <p className="text-[10px] text-[#71717a] font-semibold uppercase tracking-wider mb-3">
-            {selectedRoom.users + (running ? 1 : 0)} grinding in silence
+            {selectedRoom.users + (running ? 1 : 0)} grinding in silence <span style={{ color: '#f59e0b', fontSize: '9px', marginLeft: '6px', border: '1px solid rgba(245,158,11,0.25)', padding: '1px 4px', borderRadius: '4px', background: 'rgba(245,158,11,0.05)', textTransform: 'none' }}>[Simulated]</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {phantoms.map((name, i) => (
@@ -847,7 +978,8 @@ function GrindRoomPanel({ onXP }) {
               </div>
             )}
           </div>
-          <div className="flex gap-4 mt-3">
+          <div className="flex gap-4 mt-3 items-center">
+            <span style={{ fontSize: '9.5px', color: '#71717a', marginRight: '4px' }}>Simulated Reactions:</span>
             {['🔥','⚡','👏'].map(r => {
               const count = reactions[r] || 0;
               return (
@@ -885,31 +1017,18 @@ function PeersPanel({ userScores, codename }) {
 
   const myTotal = Math.round(((userScores.health || 60) + (userScores.finance || 60) + (userScores.career || 60)) / 3);
 
-  const peers = useMemo(() => {
-    const names = PHANTOM_USERS.slice(0, 4);
-    const mults = [0.88, 1.10, 0.96, 1.05];
-    return names.map((name, i) => {
-      const v = mults[i];
-      const h  = Math.min(100, Math.max(20, Math.round((userScores.health  || 60) * v + (i * 4 - 8))));
-      const fi = Math.min(100, Math.max(20, Math.round((userScores.finance || 60) * v + (i * 3 - 6))));
-      const ca = Math.min(100, Math.max(20, Math.round((userScores.career  || 60) * v + (i * 5 - 10))));
-      return { name, h, fi, ca, total: Math.round((h + fi + ca) / 3), isMe: false };
-    });
-  }, [userScores]);
+  // Sigmoid formula to compute dynamic percentile based on user total score
+  const percentile = useMemo(() => {
+    const rawPct = Math.round(100 / (1 + Math.exp(-((myTotal - 55) / 12))));
+    return Math.min(99, Math.max(5, rawPct));
+  }, [myTotal]);
 
-  const PEER_COLORS = ['#6366f1','#10b981','#f59e0b','#ec4899','#06b6d4'];
-  const PEER_AVATARS = ['🦁','🐉','🦊','🦅','🧬'];
-  const getLevel = (total) => Math.max(1, Math.floor(total / 10));
-  const rankIcon = (rank) => rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-
-  const leaderboard = useMemo(() => {
-    const list = [
-      ...peers.map(p => ({ ...p })),
-      { name: codename, h: userScores.health || 60, fi: userScores.finance || 60, ca: userScores.career || 60, total: myTotal, isMe: true }
-    ];
-    list.sort((a, b) => b.total - a.total);
-    return list.map((p, i) => ({ ...p, rank: i + 1 }));
-  }, [peers, codename, myTotal, userScores]);
+  const cohortTier = useMemo(() => {
+    if (percentile >= 90) return { name: 'Elite Ascendant', color: '#ec4899', bg: 'rgba(236,72,153,0.12)', desc: 'You are among the most disciplined and balanced individuals globally.' };
+    if (percentile >= 75) return { name: 'High Performer', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', desc: 'Outstanding consistency. You are pacing well ahead of the average user.' };
+    if (percentile >= 50) return { name: 'Consistent Seeker', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)', desc: 'Solid habits. You maintain healthy averages across most categories.' };
+    return { name: 'Rising Wanderer', color: '#71717a', bg: 'rgba(113,113,122,0.12)', desc: 'Building momentum. Consistency is starting to compound.' };
+  }, [percentile]);
 
   function toggleChallenge(id) {
     setJoined(prev => {
@@ -933,57 +1052,162 @@ function PeersPanel({ userScores, codename }) {
   const norm = v => maxP === minP ? 35 : 45 - ((v - minP) / (maxP - minP)) * 32;
   const sparkCoords = rawPts.map((v, i) => `${(i / 6) * 200},${norm(v)}`).join(' ');
 
+  const cohorts = [
+    { label: 'Health Quotient', score: userScores.health || 60, median: 58, top: 82, color: '#10b981' },
+    { label: 'Financial Wisdom', score: userScores.finance || 60, median: 62, top: 86, color: '#f59e0b' },
+    { label: 'Career Growth', score: userScores.career || 60, median: 54, top: 80, color: '#3b82f6' }
+  ];
+
   return (
     <div style={{display:'flex', flexDirection:'column', gap:12}}>
+      <PrototypeDisclaimer featureName="Percentile & Social Engine" />
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2" style={pCard}>
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px 6px'}}>
+        
+        {/* Left Card: Anonymous Percentile Analytics */}
+        <div className="lg:col-span-2" style={{ ...pCard, padding: '24px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <div>
               <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:2}}>
-                <span style={{fontSize:14, filter: 'drop-shadow(0 0 4px rgba(245,158,11,0.6))'}}>🏆</span>
-                <p style={{fontSize:14, fontWeight:800, color:'#ffffff', margin: 0, letterSpacing: '-0.01em'}}>Anonymous Leaderboard</p>
+                <span style={{fontSize:14, filter: 'drop-shadow(0 0 4px rgba(245,158,11,0.6))'}}>📊</span>
+                <p style={{fontSize:14, fontWeight:800, color:'#ffffff', margin: 0, letterSpacing: '-0.01em'}}>Anonymous Percentile Comparison</p>
               </div>
-              <p style={{fontSize:11, color:'#64748b', margin: 0}}>Real scores. Hidden identities.</p>
-            </div>
-            <div style={{display:'flex', alignItems:'center', gap:6, padding:'3px 10px', borderRadius:8, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.03)', cursor:'pointer', flexShrink:0}}>
-              <span style={{fontSize:11, color:'#94a3b8', fontWeight:600}}>All Time</span>
-              <span style={{fontSize:9, color:'#64748b'}}>▾</span>
+              <p style={{fontSize:11.5, color:'#64748b', margin: 0}}>Privacy-preserving aggregate metrics. No names exposed.</p>
             </div>
           </div>
-          <div style={{padding:'2px 18px', borderTop:'1px solid rgba(255,255,255,0.06)', display:'flex', justifyContent:'flex-end'}}>
-            <span style={{fontSize:9.5, color:'#475569', fontWeight:800, textTransform: 'uppercase', letterSpacing: '0.05em'}}>Life Score</span>
-          </div>
-          {leaderboard.map((p, idx) => {
-            const avatarColor = PEER_COLORS[idx] || '#6366f1';
-            return (
-              <div key={p.name} style={{
-                display:'flex', alignItems:'center', gap:10, padding:'7px 18px',
-                borderTop:'1px solid rgba(255,255,255,0.05)',
-                background: p.isMe ? 'rgba(99,102,241,0.08)' : 'transparent',
+
+          {/* Percentile Big Stat Display */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 24,
+            padding: '20px',
+            borderRadius: '16px',
+            background: 'rgba(255,255,255,0.01)',
+            border: '1px solid rgba(255,255,255,0.04)',
+            marginBottom: 20,
+            flexWrap: 'wrap'
+          }}>
+            <div style={{
+              width: 90,
+              height: 90,
+              borderRadius: '50%',
+              border: `3px solid ${cohortTier.color}`,
+              background: 'rgba(9, 13, 22, 0.6)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: `0 0 20px ${cohortTier.color}30, inset 0 0 15px ${cohortTier.color}15`,
+              flexShrink: 0
+            }}>
+              <span style={{ fontSize: 26, fontWeight: 900, color: '#ffffff', textShadow: `0 0 8px ${cohortTier.color}` }}>
+                {percentile}%
+              </span>
+              <span style={{ fontSize: 7.5, fontWeight: 800, color: '#cbd5e1', textTransform: 'uppercase', marginTop: -2 }}>
+                Percentile
+              </span>
+            </div>
+            
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <span style={{
+                fontSize: 10,
+                fontWeight: 900,
+                color: cohortTier.color,
+                background: cohortTier.bg,
+                border: `1px solid ${cohortTier.color}25`,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
               }}>
-                <span style={{fontSize: p.rank<=3?13:11, fontWeight:800, color:'#64748b', width:22, textAlign:'center', flexShrink:0}}>{rankIcon(p.rank)}</span>
-                <div style={{
-                  width:30, height:30, borderRadius:8, background:avatarColor+'15', border:`1px solid ${avatarColor}30`,
-                  display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0,
-                }}>
-                  {PEER_AVATARS[idx]}
-                </div>
-                <div style={{flex:1, minWidth:0, display:'flex', alignItems:'center', gap:6}}>
-                  <p style={{fontSize:13, fontWeight:700, color: p.isMe ? '#a5b4fc' : '#f1f5f9', margin: 0}}>{p.name}</p>
-                  {p.isMe && (
-                    <span style={{fontSize:8, padding:'1.5px 5px', borderRadius:4, background:'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', color:'#a5b4fc', fontWeight:900}}>
-                      YOU
-                    </span>
-                  )}
-                  <span className="text-slate-400 bg-white/5 border border-white/5 text-[9.5px] font-semibold px-2 py-0.5 rounded-full">
-                    Lv. {getLevel(p.total)}
-                  </span>
-                </div>
-                <p style={{fontSize:14, fontWeight:900, color: p.isMe ? '#818cf8' : '#ffffff', flexShrink:0, margin: 0}}>{p.total}</p>
-              </div>
-            );
-          })}
+                {cohortTier.name}
+              </span>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '8px 0 4px' }}>
+                You score higher than {percentile}% of active members.
+              </p>
+              <p style={{ fontSize: 11.5, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+                {cohortTier.desc}
+              </p>
+            </div>
+          </div>
+
+          {/* Benchmark Table */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ fontSize: 12, fontWeight: 800, color: '#cbd5e1', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Category Benchmarks</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {cohorts.map((c) => {
+                return (
+                  <div key={c.label} style={{ background: 'rgba(0,0,0,0.2)', padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>{c.label}</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: c.color }}>Your Score: {c.score}</span>
+                    </div>
+                    
+                    {/* Visual bar showing User, Median and Top 10% */}
+                    <div style={{ position: 'relative', height: '6px', background: 'rgba(255,255,255,0.04)', borderRadius: '99px', margin: '14px 0 10px' }}>
+                      {/* Median marker */}
+                      <div 
+                        style={{ 
+                          position: 'absolute', 
+                          left: `${c.median}%`, 
+                          top: '-6px', 
+                          width: '2px', 
+                          height: '18px', 
+                          background: '#64748b', 
+                          zIndex: 2 
+                        }} 
+                      >
+                        <span style={{ position: 'absolute', top: '-14px', left: '-18px', fontSize: '8px', color: '#64748b', fontWeight: 800 }}>Med: {c.median}</span>
+                      </div>
+                      
+                      {/* Top 10% marker */}
+                      <div 
+                        style={{ 
+                          position: 'absolute', 
+                          left: `${c.top}%`, 
+                          top: '-6px', 
+                          width: '2px', 
+                          height: '18px', 
+                          background: '#ec4899', 
+                          zIndex: 2 
+                        }} 
+                      >
+                        <span style={{ position: 'absolute', top: '-14px', left: '-18px', fontSize: '8px', color: '#ec4899', fontWeight: 800 }}>Top 10%: {c.top}</span>
+                      </div>
+
+                      {/* User score progress bar */}
+                      <div 
+                        style={{ 
+                          position: 'absolute', 
+                          left: 0, 
+                          height: '100%', 
+                          width: `${c.score}%`, 
+                          background: c.color, 
+                          borderRadius: '99px',
+                          boxShadow: `0 0 8px ${c.color}60`
+                        }} 
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Privacy statement footer */}
+          <div style={{ borderTop: '1px dotted rgba(255,255,255,0.06)', marginTop: 20, paddingTop: 14 }}>
+            <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.5, display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 12 }}>🛡️</span>
+              <span>
+                <strong>Privacy by Design:</strong> Direct user-vs-user rank tables expose personal data. BeyondSelf anonymizes comparison calculations. In production, your score is aggregated locally into global distribution bins, completely hiding your identification from others.
+              </span>
+            </p>
+          </div>
         </div>
+
+        {/* Right Card: Life Score Display */}
         <div className="lg:col-span-1" style={{...pCard, padding: '24px 20px 20px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
           <div style={{display:'flex', flexDirection:'column'}}>
             <div style={{display:'flex', alignItems:'baseline', gap:10, marginBottom: 12}}>
@@ -1013,7 +1237,7 @@ function PeersPanel({ userScores, codename }) {
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', margin: '16px 0 12px' }} />
           </div>
           
-          {/* Sparkline Chart — driven by real rawPts (user score trend) */}
+          {/* Sparkline Chart */}
           <div style={{flex:1, minHeight:46, display: 'flex', alignItems: 'flex-end', marginTop: 4}}>
             <svg width="100%" height="46" viewBox="0 0 200 46" preserveAspectRatio="none" style={{overflow: 'visible'}}>
               <defs>
@@ -1039,6 +1263,8 @@ function PeersPanel({ userScores, codename }) {
           </div>
         </div>
       </div>
+
+      {/* Bottom section: Global Challenges */}
       <div>
         <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10}}>
           <div>
@@ -1046,7 +1272,7 @@ function PeersPanel({ userScores, codename }) {
               <span style={{fontSize:14, filter: 'drop-shadow(0 0 4px rgba(59,130,246,0.6))'}}>🌎</span>
               <p style={{fontSize:14, fontWeight:800, color:'#ffffff', margin: 0, letterSpacing: '-0.01em'}}>Global Challenges</p>
             </div>
-            <p style={{fontSize:11, color:'#64748b', margin: 0}}>Join challenges. Earn XP. Beat your peers.</p>
+            <p style={{fontSize:11, color:'#64748b', margin: 0}}>Join challenges. Earn XP. Beat your peers. <span style={{ color: '#f59e0b', fontSize: '9px', marginLeft: '6px', border: '1px solid rgba(245,158,11,0.25)', padding: '1px 4px', borderRadius: '4px', background: 'rgba(245,158,11,0.05)', textTransform: 'none' }}>[Simulated Participation]</span></p>
           </div>
           <button style={{
             padding: '5px 11px', borderRadius: '9px',
@@ -1097,18 +1323,6 @@ function PeersPanel({ userScores, codename }) {
                           boxShadow: isJoined ? 'none' : '0 4px 10px rgba(99,102,241,0.25)',
                           transition: 'all 0.2s'
                         }}
-                        onMouseEnter={(e) => {
-                          if (!isJoined) {
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.boxShadow = '0 5px 12px rgba(99,102,241,0.3)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isJoined) {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 4px 10px rgba(99,102,241,0.25)';
-                          }
-                        }}
                       >
                         {isJoined ? '✓ Joined' : 'Join'}
                       </button>
@@ -1137,6 +1351,8 @@ function GuildsPanel({ myGuildId, onJoin }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <PrototypeDisclaimer featureName="Anonymous Guilds" />
+      
       {/* Plain Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
@@ -1206,15 +1422,19 @@ function GuildsPanel({ myGuildId, onJoin }) {
                   <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999, fontWeight: 700, color: rs.color, background: rs.bg, border: `1px solid ${rs.border}` }}>
                     {guild.rank.toUpperCase()}
                   </span>
+                  <span style={{ fontSize: '9px', color: '#8b949e', border: '1px solid rgba(255,255,255,0.06)', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>Simulated</span>
                 </div>
                 <p style={{ fontSize: 12, color: '#8b949e', margin: '0 0 4px', lineHeight: 1.4 }}>{guild.desc}</p>
                 <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>Focus: <span style={{ color: guild.color, fontWeight: 600 }}>{guild.stat}</span></p>
               </div>
               {/* Members + Join */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, color: '#475569' }}>👥</span>
-                  <span style={{ fontSize: 12, color: '#94a3b8' }}>{fmtMembers(guild.members)} members</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13, color: '#475569' }}>👥</span>
+                    <span style={{ fontSize: 12, color: '#94a3b8' }}>{fmtMembers(guild.members)} members</span>
+                  </div>
+                  <span style={{ fontSize: '8px', color: '#e0a82e', opacity: 0.8, letterSpacing: '0.02em' }}>[Simulated]</span>
                 </div>
                 <button
                   onClick={() => { onJoin(isMine ? null : guild.id); showToast(isMine ? 'Left guild' : `Joined ${guild.name}!`, isMine ? 'info' : 'success'); }}

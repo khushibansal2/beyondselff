@@ -14,6 +14,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
+import { detectAnomalies } from '../engines/anomalyEngine';
 
 const DataContext = createContext(null);
 
@@ -27,6 +28,7 @@ const EMPTY_STATE = {
   career: {},
   goals: [],
   timeline: [],
+  anomalies: [],
 
   // Records from backend (imported data)
   records: {
@@ -436,20 +438,23 @@ export function DataProvider({ children }) {
     if (!hasData) {
       return {
         lifeBalance: null,
+        anomalies: [],
         hasData: false,
       };
     }
 
     try {
       const lifeBalance = computeLifeBalance(userData, state.records);
+      const anomalies = detectAnomalies(userData, state.records);
       return {
         ...lifeBalance,
         lifeBalance,
+        anomalies,
         hasData: true,
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);
-      return { lifeBalance: null, hasData: false };
+      return { lifeBalance: null, anomalies: [], hasData: false };
     }
   }, [state.health, state.finance, state.career, state.records]);
 
@@ -510,6 +515,9 @@ export function DataProvider({ children }) {
 
     // Computed scores (from deterministic engines)
     computed,
+
+    // Expose anomalies at the top level
+    anomalies: computed?.anomalies || [],
 
     // Action dispatchers
     ...actions,

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { calculateTrajectory, getActionCards } from '../engines/trajectoryEngine';
 
 const DOMAIN_TABS = [
   { id: 'overall', label: 'Life Balance', color: '#8b5cf6', activeColor: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.2)', text: '#8b5cf6' },
@@ -9,34 +10,6 @@ const DOMAIN_TABS = [
   { id: 'finance', label: 'Finance',      color: '#f59e0b', activeColor: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)', text: '#f59e0b' },
   { id: 'career',  label: 'Career',       color: '#3b82f6', activeColor: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)', text: '#3b82f6' },
 ];
-
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const MONTH_LABELS = (() => {
-  const labels = ['Now'];
-  const startMonth = 4; // May
-  for (let i = 1; i <= 12; i++) {
-    const idx = (startMonth + i) % 12;
-    const label = MONTH_NAMES[idx];
-    labels.push(idx === 0 ? `${label} '27` : label);
-  }
-  return labels;
-})();
-
-function generateProjection(startScore, domainId, burnoutRisk = 0) {
-  const drift = startScore < 45 ? -1.0 : startScore < 60 ? -0.8 : -0.4;
-  const maxGain = domainId === 'health' ? 4.8 : domainId === 'finance' ? 4.0 : domainId === 'career' ? 4.5 : 4.3;
-
-  return MONTH_LABELS.map((month, i) => {
-    const noise = Math.sin(i * 1.9 + domainId.length * 0.7) * 0.5;
-    const currentRaw = startScore + drift * i + noise;
-    const current = Math.max(8, Math.min(96, Math.round(currentRaw)));
-    
-    const optimizedGain = maxGain * Math.log(1 + i * 0.85);
-    const optimized = Math.max(8, Math.min(94, Math.round(startScore + optimizedGain)));
-    
-    return { month, current, optimized, i };
-  });
-}
 
 function CustomTooltip({ active, payload, label, domainColor }) {
   if (!active || !payload?.length) return null;
@@ -68,8 +41,10 @@ function CustomTooltip({ active, payload, label, domainColor }) {
 }
 
 export default function FutureYou() {
-  const { computed } = useData();
+  const { computed, health, finance, career } = useData();
   const [activeDomain, setActiveDomain] = useState('overall');
+
+  const userData = useMemo(() => ({ health, finance, career }), [health, finance, career]);
 
   const balance   = computed?.balance   ?? 45;
   const hScore    = computed?.healthScore?.score  ?? 49;
@@ -81,39 +56,29 @@ export default function FutureYou() {
   const tab = DOMAIN_TABS.find(t => t.id === activeDomain);
   const startScore = domainScores[activeDomain];
 
-  const chartData = useMemo(() => generateProjection(startScore, activeDomain, burnoutRisk), [startScore, activeDomain, burnoutRisk]);
+  const chartData = useMemo(() => calculateTrajectory(activeDomain, startScore, userData), [startScore, activeDomain, userData]);
 
-  const currentEnd  = chartData[12].current;
-  const optimizedEnd = chartData[12].optimized;
+  const currentEnd  = chartData[12]?.current ?? startScore;
+  const optimizedEnd = chartData[12]?.optimized ?? startScore;
   const gap12 = optimizedEnd - currentEnd;
   const currentDelta  = currentEnd  - startScore;
   const optimizedDelta = optimizedEnd - startScore;
 
-  const actionCards = useMemo(() => {
-    const actions = {
-      overall: [
-        { icon: '😴', title: 'Sleep 7–8 hrs consistently', impact: '+8 pts Health', color: '#10b981' },
-        { icon: '🪙', title: 'Cut one impulse spend/week', impact: '+5 pts Finance', color: '#f59e0b' },
-        { icon: '📚', title: '1 deep-work session daily', impact: '+7 pts Career', color: '#3b82f6' },
-      ],
-      health: [
-        { icon: '😴', title: 'Fix sleep schedule — same bedtime', impact: 'Fastest single lever', color: '#10b981' },
-        { icon: '🏃', title: '20-min walk 4x/week minimum', impact: 'Mental + physical uplift', color: '#10b981' },
-        { icon: '💧', title: 'Track water + nutrition daily', impact: 'Energy + cognition boost', color: '#10b981' },
-      ],
-      finance: [
-        { icon: '🎯', title: 'Automate ₹500/month savings', impact: 'Compounds to ₹6k+ savings', color: '#f59e0b' },
-        { icon: '📊', title: 'Log every spend for 30 days', impact: 'Exposes hidden leaks', color: '#f59e0b' },
-        { icon: '📈', title: 'Start one SIP regardless of size', impact: 'Habit > amount early on', color: '#f59e0b' },
-      ],
-      career: [
-        { icon: '🧠', title: '3 DSA problems per day', impact: 'Interview-ready in 90 days', color: '#3b82f6' },
-        { icon: '🤝', title: 'One LinkedIn post per week', impact: 'Build visibility compound', color: '#3b82f6' },
-        { icon: '🚀', title: 'Ship one project this month', impact: 'Portfolio differentiator', color: '#3b82f6' },
-      ],
-    };
-    return actions[activeDomain] || actions.overall;
-  }, [activeDomain]);
+  const actionCards = useMemo(() => getActionCards(activeDomain, userData, computed), [activeDomain, userData, computed]);
+
+  // Compute month-12 values for all subdomains to drive comparison table
+  const healthProj = useMemo(() => calculateTrajectory('health', hScore, userData), [hScore, userData]);
+  const financeProj = useMemo(() => calculateTrajectory('finance', fScore, userData), [fScore, userData]);
+  const careerProj = useMemo(() => calculateTrajectory('career', cScore, userData), [cScore, userData]);
+
+  const currentHealth12 = healthProj[12]?.current ?? hScore;
+  const optHealth12 = healthProj[12]?.optimized ?? hScore;
+
+  const currentFinance12 = financeProj[12]?.current ?? fScore;
+  const optFinance12 = financeProj[12]?.optimized ?? fScore;
+
+  const currentCareer12 = careerProj[12]?.current ?? cScore;
+  const optCareer12 = careerProj[12]?.optimized ?? cScore;
 
   return (
     <div style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'var(--font-primary)' }}>
@@ -345,9 +310,9 @@ export default function FutureYou() {
             background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', gap: 18
           }}>
             {[
-              { label: 'Health', base: hScore, drop: 40 },
-              { label: 'Finance', base: fScore, drop: 42 },
-              { label: 'Career', base: cScore, drop: 11 }
+              { label: 'Health', base: hScore, drop: currentHealth12 },
+              { label: 'Finance', base: fScore, drop: currentFinance12 },
+              { label: 'Career', base: cScore, drop: currentCareer12 }
             ].map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
                 <span style={{ color: '#64748b', fontWeight: 500 }}>{row.label}</span>
@@ -369,9 +334,9 @@ export default function FutureYou() {
             background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', gap: 18
           }}>
             {[
-              { label: 'Health', base: hScore, opt: 61, gain: '+12' },
-              { label: 'Finance', base: fScore, opt: 62, gain: '+10' },
-              { label: 'Career', base: cScore, opt: 47, gain: '+11' }
+              { label: 'Health', base: hScore, opt: optHealth12, gain: `${optHealth12 - hScore >= 0 ? '+' : ''}${optHealth12 - hScore}` },
+              { label: 'Finance', base: fScore, opt: optFinance12, gain: `${optFinance12 - fScore >= 0 ? '+' : ''}${optFinance12 - fScore}` },
+              { label: 'Career', base: cScore, opt: optCareer12, gain: `${optCareer12 - cScore >= 0 ? '+' : ''}${optCareer12 - cScore}` }
             ].map(row => (
               <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
                 <span style={{ color: '#64748b', fontWeight: 500 }}>{row.label}</span>

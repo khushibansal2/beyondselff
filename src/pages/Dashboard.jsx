@@ -982,7 +982,10 @@ export default function Dashboard() {
   const [activityTab, setActivityTab] = useState('activity');
   const [showShare, setShowShare] = useState(false);
   const [openRings, setOpenRings] = useState({});
-  const toggleRing = (label) => setOpenRings(prev => ({ ...prev, [label]: !prev[label] }));
+  const toggleRing = (label) => setOpenRings(prev => {
+    const isOpen = !!prev[label];
+    return isOpen ? {} : { [label]: true };
+  });
   const [theme, setTheme] = useState('dark');
   const scoreRingsRef = useRef(null);
   const searchRef = useRef(null);
@@ -1033,10 +1036,10 @@ export default function Dashboard() {
   const domainCascades = useMemo(() => buildDomainCascades(computed?.crossDomain || []), [computed?.crossDomain]);
 
   const explainFactors = useMemo(() => ({
-    health: computeHealthScore(health || {}, []).factors,
-    finance: computeFinanceScore(finance || {}, []).factors,
-    career: computeCareerScore(career || {}, []).factors,
-  }), [health, finance, career]);
+    health: computed?.healthScore?.factors || [],
+    finance: computed?.financeScore?.factors || [],
+    career: computed?.careerScore?.factors || [],
+  }), [computed]);
 
   const mindsetFactors = useMemo(() => [
     {
@@ -1354,7 +1357,7 @@ export default function Dashboard() {
                 { label: 'Finance', score: financeScore, trend: '▼ 3% this week', color: '#fbbf24', icon: '💰', points: [72, 70, 68, 65, 67, 66, financeScore] },
                 { label: 'Career', score: careerScore, trend: '▲ 11% this week', color: '#6366f1', icon: '🎯', points: [25, 30, 28, 35, 32, 40, careerScore] },
                 { label: 'Mindset', score: mindScore, trend: '▲ 10% this week', color: '#d946ef', icon: '🧠', points: [55, 60, 58, 64, 62, 70, mindScore] },
-                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#06b6d4', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance], ringKey: 'Balance' },
+                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#06b6d4', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance] },
               ].map((card) => {
                 const rk = card.ringKey || card.label;
                 const isActive = !!openRings[rk];
@@ -1473,15 +1476,17 @@ export default function Dashboard() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f43f5e', boxShadow: '0 0 8px rgba(244, 63, 94, 0.12)', flexShrink: 0 }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                         <span style={{ fontSize: 9, color: '#64748b', fontWeight: 700 }}>Health</span>
-                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>61</span>
+                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>{healthScore}</span>
                       </div>
                     </div>
-                    <div style={{ fontSize: 9, color: '#10b981', fontWeight: 800, marginTop: 4, paddingLeft: 40 }}>Good</div>
+                    <div style={{ fontSize: 9, color: healthScore >= 70 ? '#10b981' : healthScore >= 45 ? '#f97316' : '#ef4444', fontWeight: 800, marginTop: 4, paddingLeft: 40 }}>
+                      {healthScore >= 70 ? 'Good' : healthScore >= 45 ? 'Average' : 'Low'}
+                    </div>
                   </div>
 
                   {/* Finance block */}
@@ -1495,10 +1500,12 @@ export default function Dashboard() {
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                         <span style={{ fontSize: 9, color: '#64748b', fontWeight: 700 }}>Finance</span>
-                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>65</span>
+                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>{financeScore}</span>
                       </div>
                     </div>
-                    <div style={{ fontSize: 9, color: '#10b981', fontWeight: 800, marginTop: 4, paddingLeft: 40 }}>Stable</div>
+                    <div style={{ fontSize: 9, color: financeScore >= 70 ? '#10b981' : financeScore >= 45 ? '#f97316' : '#ef4444', fontWeight: 800, marginTop: 4, paddingLeft: 40 }}>
+                      {financeScore >= 70 ? 'Stable' : financeScore >= 45 ? 'Warning' : 'Critical'}
+                    </div>
                   </div>
                 </div>
 
@@ -1585,7 +1592,7 @@ export default function Dashboard() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, alignItems: 'flex-end' }}>
                         <span style={{ fontSize: 9, color: '#64748b', fontWeight: 700 }}>Mindset</span>
-                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>76</span>
+                        <span style={{ fontSize: 17, fontWeight: 900, color: '#ffffff', lineHeight: 1.1 }}>{mindScore}</span>
                       </div>
                       <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a855f7', boxShadow: '0 0 8px rgba(168, 85, 247, 0.12)', flexShrink: 0 }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1593,7 +1600,9 @@ export default function Dashboard() {
                         </svg>
                       </div>
                     </div>
-                    <div style={{ fontSize: 9, color: '#a855f7', fontWeight: 800, marginTop: 4, paddingRight: 40 }}>Strong</div>
+                    <div style={{ fontSize: 9, color: mindScore >= 70 ? '#a855f7' : mindScore >= 45 ? '#f97316' : '#ef4444', fontWeight: 800, marginTop: 4, paddingRight: 40 }}>
+                      {mindScore >= 70 ? 'Strong' : mindScore >= 45 ? 'Average' : 'Overloaded'}
+                    </div>
                   </div>
                 </div>
 

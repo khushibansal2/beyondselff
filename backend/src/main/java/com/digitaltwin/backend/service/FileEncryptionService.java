@@ -10,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -21,8 +22,9 @@ import java.util.Base64;
  * Set FILE_ENCRYPTION_KEY env var (32 bytes, base64-encoded).
  * Generate one with: openssl rand -base64 32
  *
- * If the key is missing/blank, files are stored unencrypted and a warning is logged
- * so the app still works in dev without configuration.
+ * If the key is missing/blank, a secure 256-bit key is automatically generated
+ * and persisted to the upload directory (.file_encryption_key) to ensure files
+ * are always encrypted and accessible across restarts.
  */
 @Service
 public class FileEncryptionService {
@@ -34,24 +36,59 @@ public class FileEncryptionService {
     @Value("${file.encryption.key:}")
     private String encryptionKeyBase64;
 
-    private SecretKey getKey() {
-        if (encryptionKeyBase64 == null || encryptionKeyBase64.isBlank()) return null;
-        byte[] keyBytes = Base64.getDecoder().decode(encryptionKeyBase64);
-        if (keyBytes.length != 32) {
-            throw new IllegalStateException("FILE_ENCRYPTION_KEY must be exactly 32 bytes (base64-encoded 256-bit key)");
+    @Value("${upload.dir:./uploads}")
+    private String uploadDir;
+
+    private SecretKey resolvedKey;
+
+    private synchronized SecretKey getKey() {
+        if (resolvedKey != null) {
+            return resolvedKey;
         }
-        return new SecretKeySpec(keyBytes, "AES");
+
+        if (encryptionKeyBase64 != null && !encryptionKeyBase64.isBlank() && 
+            !"X4l/W9/T942QE7cueDASfJfR4Nszs/KXpg/4D7fohR8=".equals(encryptionKeyBase64.trim())) {
+            byte[] keyBytes = Base64.getDecoder().decode(encryptionKeyBase64.trim());
+            if (keyBytes.length != 32) {
+                throw new IllegalStateException("FILE_ENCRYPTION_KEY must be exactly 32 bytes (base64-encoded 256-bit key)");
+            }
+            resolvedKey = new SecretKeySpec(keyBytes, "AES");
+        } else {
+            try {
+                Path keyPath = Paths.get(uploadDir).resolve(".file_encryption_key");
+                byte[] keyBytes;
+                if (Files.exists(keyPath)) {
+                    keyBytes = Files.readAllBytes(keyPath);
+                    if (keyBytes.length != 32) {
+                        keyBytes = generateAndSaveKey(keyPath);
+                    }
+                } else {
+                    Files.createDirectories(keyPath.getParent());
+                    keyBytes = generateAndSaveKey(keyPath);
+                }
+                resolvedKey = new SecretKeySpec(keyBytes, "AES");
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to initialize or persist file encryption key", e);
+            }
+        }
+        return resolvedKey;
+    }
+
+    private byte[] generateAndSaveKey(Path keyPath) throws Exception {
+        byte[] keyBytes = new byte[32];
+        new SecureRandom().nextBytes(keyBytes);
+        Files.write(keyPath, keyBytes);
+        return keyBytes;
     }
 
     /**
      * Encrypts plaintext bytes and writes [ IV || ciphertext ] to the target path.
-     * Falls back to plain write if key is not configured (logs warning in UploadService).
+     * Enforces encryption (no plaintext fallbacks).
      */
     public void encryptToFile(byte[] plaintext, Path target) throws Exception {
         SecretKey key = getKey();
         if (key == null) {
-            Files.write(target, plaintext);
-            return;
+            throw new IllegalStateException("Encryption key is not available. Refusing to store files in plaintext.");
         }
 
         byte[] iv = new byte[IV_LENGTH];
@@ -72,12 +109,13 @@ public class FileEncryptionService {
 
     /**
      * Reads and decrypts a file previously encrypted with encryptToFile().
-     * Falls back to plain read if key is not configured.
      */
     public byte[] decryptFromFile(Path source) throws Exception {
         byte[] stored = Files.readAllBytes(source);
         SecretKey key = getKey();
-        if (key == null) return stored;
+        if (key == null) {
+            throw new IllegalStateException("Decryption key is not available.");
+        }
 
         byte[] iv         = ByteBuffer.wrap(stored, 0, IV_LENGTH).array();
         byte[] ciphertext = new byte[stored.length - IV_LENGTH];
@@ -88,8 +126,8 @@ public class FileEncryptionService {
         return cipher.doFinal(ciphertext);
     }
 
-    /** Returns true if encryption is active (key is configured). */
+    /** Returns true if encryption is active (key is configured or generated). */
     public boolean isEncryptionEnabled() {
-        return encryptionKeyBase64 != null && !encryptionKeyBase64.isBlank();
+        return getKey() != null;
     }
 }

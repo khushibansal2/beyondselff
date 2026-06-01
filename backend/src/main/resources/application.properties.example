@@ -19,8 +19,8 @@ spring.servlet.multipart.max-request-size=50MB
 # Upload storage directory
 upload.dir=./uploads
 
-# CORS (allow React dev server)
-cors.allowed-origins=http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176
+# CORS (allow React dev server or production domain)
+cors.allowed-origins=${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176}
 
 # Gemini AI
 gemini.api.key=YOUR_GEMINI_API_KEY

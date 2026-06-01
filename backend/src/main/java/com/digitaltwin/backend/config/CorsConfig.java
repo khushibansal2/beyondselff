@@ -21,7 +21,7 @@ public class CorsConfig {
     @Bean
     public FilterRegistrationBean<CorsFilter> customCorsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        config.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

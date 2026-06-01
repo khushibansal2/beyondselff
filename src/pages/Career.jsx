@@ -17,6 +17,7 @@ import { fetchJobs } from '../services/jobService';
 import {
   calculateJobMatch, rankJobsByMatch, aggregateMissingSkills,
   getSalaryBenchmark, getSalaryChartData, generateCareerCoach, getDigitalTwinInsights,
+  fetchSkillDemandTrends,
 } from '../services/careerIntelligenceService';
 
 // ── Cognitive Load Gauge ─────────────────────────────────────────────────────
@@ -741,7 +742,7 @@ function JobCard({ job, userSkills }) {
 const ROLE_CHIPS = ['Frontend', 'Backend', 'Full Stack', 'AI Engineer', 'ML Engineer', 'Product Engineer'];
 const LOCATIONS  = [{ label: 'Anywhere', value: '' }, { label: 'Remote', value: 'remote' }, { label: 'Bengaluru', value: 'Bengaluru' }, { label: 'Mumbai', value: 'Mumbai' }, { label: 'Hyderabad', value: 'Hyderabad' }, { label: 'Delhi', value: 'Delhi' }];
 
-function JobsTab({ userSkills }) {
+function JobsTab({ userSkills, targetRole }) {
   const [query,    setQuery]    = useState('');
   const [location, setLocation] = useState('');
   const [jobs,     setJobs]     = useState([]);
@@ -750,10 +751,29 @@ function JobsTab({ userSkills }) {
   const [filter,   setFilter]   = useState('all');
   const [searched, setSearched] = useState(false);
   const [showLoc,  setShowLoc]  = useState(false);
+  const [trends,        setTrends]        = useState(null);
+  const [trendsLoading, setTrendsLoading] = useState(false);
+
+  async function loadTrends(role) {
+    setTrendsLoading(true);
+    try {
+      const data = await fetchSkillDemandTrends(role);
+      setTrends(data);
+    } catch (e) {
+      console.error('loadTrends failed:', e);
+    } finally {
+      setTrendsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadTrends(targetRole || 'Software Engineer');
+  }, [targetRole]);
 
   async function doSearch(q = query, loc = location) {
     if (!q.trim()) return;
     setLoading(true); setError(null); setJobs([]); setSearched(true);
+    loadTrends(q.trim());
     try {
       const results = await fetchJobs(q.trim(), { location: loc.trim() });
       setJobs(rankJobsByMatch(userSkills || [], results));
@@ -958,18 +978,75 @@ function JobsTab({ userSkills }) {
 
           {/* Market Insight */}
           <div style={{ flex: 1, background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '18px 20px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>💡</div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Market Insight</p>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Market Insight</p>
+                {trends && (
+                  <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: trends.hiringVelocity === 'Critical' ? 'rgba(244,63,94,0.15)' : 'rgba(16,185,129,0.15)', color: trends.hiringVelocity === 'Critical' ? '#f43f5e' : '#10b981', border: '1px solid rgba(255,255,255,0.05)', display: 'inline-block', marginTop: 2 }}>
+                    {trends.hiringVelocity} Hiring Velocity
+                  </span>
+                )}
+              </div>
             </div>
-            <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, marginBottom: 10 }}>
-              {query ? `${query} demand increased 32% this month.` : 'Tech hiring is up 28% this quarter.'}<br />
-              <span style={{ color: '#64748b' }}>Keep building {query ? `${query} + related skills.` : 'in-demand skills.'}</span>
-            </p>
-            {/* Mini trend line */}
-            <svg width="100%" height="36" viewBox="0 0 200 36" style={{ marginTop: 'auto' }}>
-              <polyline points="0,30 40,24 80,18 120,10 160,6 200,2" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+
+            {trendsLoading && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '10px 0' }}>
+                <div style={{ height: 14, background: 'rgba(255,255,255,0.05)', borderRadius: 4, width: '80%' }} className="animate-pulse" />
+                <div style={{ height: 32, background: 'rgba(255,255,255,0.03)', borderRadius: 4, width: '100%' }} className="animate-pulse" />
+                <div style={{ height: 40, background: 'rgba(255,255,255,0.04)', borderRadius: 4, width: '100%', marginTop: 8 }} className="animate-pulse" />
+              </div>
+            )}
+
+            {!trendsLoading && trends && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>
+                  {trends.query} Demand {trends.demandGrowth > 0 ? `Up ${trends.demandGrowth}%` : `${trends.demandGrowth}%`} YoY
+                </p>
+                <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, marginBottom: 12 }}>
+                  {trends.marketBrief}
+                </p>
+                
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Top Skill Gaps &amp; Demand</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                  {trends.topSkills.slice(0, 3).map((item) => (
+                    <div key={item.skill} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#94a3b8' }}>
+                        <span>{item.skill}</span>
+                        <span style={{ color: '#818cf8', fontWeight: 600 }}>{item.percentage}% ({item.growth})</span>
+                      </div>
+                      <div style={{ width: '100%', height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                        <div style={{ width: `${item.percentage}%`, height: '100%', background: 'linear-gradient(90deg, #818cf8, #a78bfa)', borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {trends.topSkills[0] && (
+                  <div style={{ marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <p style={{ fontSize: 10, color: '#64748b', marginBottom: 8 }}>{trends.topSkills[0].skill} Demand Trajectory (6 Months)</p>
+                    <div style={{ position: 'relative', height: 42 }}>
+                      <svg width="100%" height="36" viewBox="0 0 200 36">
+                        <polyline
+                          points={trends.topSkills[0].trend.map((val, i) => `${i * 40},${36 - (val / 100) * 30}`).join(' ')}
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                        {trends.topSkills[0].trend.map((val, i) => (
+                          <circle key={i} cx={i * 40} cy={36 - (val / 100) * 30} r="2.5" fill="#10b981" />
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+                )}
+                
+                <span style={{ fontSize: 9, color: '#475569', marginTop: 10, display: 'block', textAlign: 'right' }}>
+                  Source: {trends.source}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1001,6 +1078,8 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
   const [coachLoading, setCoachLoading] = useState(false);
   const [coachError,   setCoachError]   = useState(null);
   const [roleInput,    setRoleInput]    = useState(targetRole || 'Software Engineer');
+  const [trends,        setTrends]        = useState(null);
+  const [trendsLoading, setTrendsLoading] = useState(false);
 
   const salary     = useMemo(() => getSalaryBenchmark(roleInput, userSkills), [roleInput, userSkills]);
   const salaryChart = useMemo(() => getSalaryChartData(), []);
@@ -1020,15 +1099,27 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
   async function handleLoadMarketJobs() {
     if (jobsLoading) return;
     setJobsLoading(true);
+    setTrendsLoading(true);
     try {
       const results = await fetchJobs(roleInput);
       setJobs(rankJobsByMatch(userSkills || [], results));
-    } catch {
-      // silently skip — match section shows empty state
+      const trendData = await fetchSkillDemandTrends(roleInput);
+      setTrends(trendData);
+    } catch (e) {
+      console.error('handleLoadMarketJobs failed:', e);
     } finally {
       setJobsLoading(false);
+      setTrendsLoading(false);
     }
   }
+
+  const hasLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!hasLoadedRef.current) {
+      hasLoadedRef.current = true;
+      handleLoadMarketJobs();
+    }
+  }, []);
 
   async function handleGenerateCoach() {
     if (!userSkills?.length) { setCoachError('Upload your resume first to generate coaching.'); return; }
@@ -1134,6 +1225,45 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                     className="px-5 py-2 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[12px] font-semibold hover:bg-violet-500/25 transition-all flex items-center gap-2 mx-auto">
                     <RefreshCw size={12} /> Load Market Data
                   </button>
+                </GlassCard>
+              )}
+
+              {/* Dynamic Demand Trends Summary */}
+              {!trendsLoading && trends && (
+                <GlassCard>
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp size={13} className="text-emerald-400" />
+                    <h3 className="text-[13px] font-semibold text-[#f0f0f3]">{trends.query} Market Trajectory</h3>
+                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)', color: '#34d399', marginLeft: 'auto' }}>
+                      {trends.hiringVelocity} Velocity
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-[#a1a1aa] leading-relaxed mb-4">{trends.marketBrief}</p>
+                  
+                  {/* Trajectory Sparkline for the top skill */}
+                  {trends.topSkills[0] && (
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-[#64748b] mb-1">
+                        <span>{trends.topSkills[0].skill} Growth Pattern</span>
+                        <span className="text-[#10b981] font-bold">{trends.topSkills[0].growth}</span>
+                      </div>
+                      <div style={{ position: 'relative', height: 36, marginTop: 4 }}>
+                        <svg width="100%" height="32" viewBox="0 0 200 32">
+                          <polyline
+                            points={trends.topSkills[0].trend.map((val, i) => `${i * 40},${32 - (val / 100) * 26}`).join(' ')}
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                          {trends.topSkills[0].trend.map((val, i) => (
+                            <circle key={i} cx={i * 40} cy={32 - (val / 100) * 26} r="2.5" fill="#10b981" />
+                          ))}
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                  <span className="text-[9px] text-[#475569] block text-right mt-2">Data Source: {trends.source}</span>
                 </GlassCard>
               )}
 
@@ -1785,6 +1915,7 @@ export default function Career() {
   const tabs = [
     { id: 'brain',           label: 'Brain Twin',     emoji: '🧠' },
     { id: 'jobs',            label: 'Job Market',     emoji: '💼' },
+    { id: 'intelligence',    label: 'Market Insights', emoji: '💡' },
     { id: 'log',             label: 'Log Session',    emoji: '⚡' },
     { id: 'history',         label: 'History',        emoji: '📅' },
     { id: 'recommendations', label: 'Insights',       emoji: '✨' },
@@ -3025,8 +3156,18 @@ export default function Career() {
               </button>
             </div>
           )}
-          <JobsTab userSkills={userSkills} />
+          <JobsTab userSkills={userSkills} targetRole={c.targetRole} />
         </div>
+      )}
+
+      {/* ── MARKET INSIGHTS TAB ─────────────────────────────────────────────── */}
+      {tab === 'intelligence' && (
+        <CareerIntelligenceTab
+          userSkills={userSkills}
+          targetRole={c.targetRole || 'Software Engineer'}
+          health={health}
+          computed={computed}
+        />
       )}
 
       {/* ── RESUME AI TAB ─────────────────────────────────────────────────────── */}

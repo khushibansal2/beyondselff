@@ -1,6 +1,8 @@
 // Learning Path Service — powered by Groq AI
 // Handles AI generation of structured career transition learning paths.
 
+import { authFetch } from './backendApi';
+
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
@@ -128,6 +130,18 @@ export const LEARNING_PATH_COURSES = [
 ];
 
 // ── AI-Powered Learning Path Generation ─────────────────────────────────────
+function isBackendConnected() {
+  try {
+    const raw = localStorage.getItem('dt_auth');
+    if (!raw) return false;
+    const { token, isDemo } = JSON.parse(raw);
+    return !isDemo && token && !token.startsWith('DEMO_SESSION_') && !token.startsWith('dt_jwt_');
+  } catch {
+    return false;
+  }
+}
+
+// ── AI-Powered Learning Path Generation ─────────────────────────────────────
 export async function generateLearningPath(currentRole, targetRole) {
   const apiKey = getApiKey();
 
@@ -136,11 +150,6 @@ export async function generateLearningPath(currentRole, targetRole) {
       `  - "${c.title}" | ${c.platform} | ${c.hours}hrs | ${c.cost} | ${c.url}`
     ).join('\n')}`
   ).join('\n\n');
-
-  if (!apiKey) {
-    console.warn('[LearningService] No API key, returning demo path');
-    return getDemoLearningPath(currentRole, targetRole);
-  }
 
   const prompt = `
 You are a career counselor AI. The user wants to transition from "${currentRole}" to "${targetRole}".
@@ -184,70 +193,205 @@ Schema:
 }
 `;
 
-  try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1500,
-        temperature: 0.3,
-      }),
-    });
-
-    if (!res.ok) {
-      if (res.status === 429) {
-        console.warn('[LearningService] Quota exceeded, returning demo path');
-        return getDemoLearningPath(currentRole, targetRole);
+  // 1. Try backend proxy first if connected
+  if (isBackendConnected()) {
+    try {
+      console.log('[LearningService] Connecting to backend simulation endpoint...');
+      const data = await authFetch('/ai/simulate', {
+        method: 'POST',
+        body: JSON.stringify({ prompt }),
+      });
+      if (data && data.response) {
+        const result = extractJson(data.response);
+        if (result && result.phases && Array.isArray(result.phases)) {
+          return result;
+        }
       }
-      throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      console.warn('[LearningService] Backend proxy generation failed, trying direct Groq/fallback:', err.message);
     }
-
-    const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content;
-    if (!raw) throw new Error('Empty response from Groq');
-
-    const result = extractJson(raw);
-    if (!result.phases || !Array.isArray(result.phases)) {
-      throw new Error('Invalid JSON structure from AI');
-    }
-
-    return result;
-  } catch (err) {
-    console.error('[LearningService] Learning path generation failed:', err);
-    return getDemoLearningPath(currentRole, targetRole);
   }
+
+  // 2. Fallback to client-side API key direct Groq call
+  if (apiKey) {
+    try {
+      console.log('[LearningService] Connecting to Groq direct API...');
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 1500,
+          temperature: 0.3,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content;
+      if (!raw) throw new Error('Empty response from Groq');
+
+      const result = extractJson(raw);
+      if (!result.phases || !Array.isArray(result.phases)) {
+        throw new Error('Invalid JSON structure from AI');
+      }
+
+      return result;
+    } catch (err) {
+      console.error('[LearningService] Direct Groq learning path generation failed:', err);
+    }
+  }
+
+  console.warn('[LearningService] No API keys or backend connectivity active, returning local demo matching path');
+  return getDemoLearningPath(currentRole, targetRole);
 }
 
 function getDemoLearningPath(currentRole, targetRole) {
-  // Best-effort demo using the closest matching transition
-  const fallback = LEARNING_PATH_COURSES[0]; // SW Eng → ML Eng as safe default
-  const courses = fallback.courses;
+  const currentLower = (currentRole || '').toLowerCase().trim();
+  const targetLower = (targetRole || '').toLowerCase().trim();
+
+  // 1. Try to find exact transition match (case-insensitive)
+  let matchedTransition = LEARNING_PATH_COURSES.find(t => {
+    const parts = t.transition.split('→');
+    if (parts.length === 2) {
+      const fromPart = parts[0].toLowerCase().trim();
+      const toPart = parts[1].toLowerCase().trim();
+      return fromPart === currentLower && toPart === targetLower;
+    }
+    return false;
+  });
+
+  // 2. Try to find "Any Role → targetRole"
+  if (!matchedTransition) {
+    matchedTransition = LEARNING_PATH_COURSES.find(t => {
+      const parts = t.transition.split('→');
+      if (parts.length === 2) {
+        const fromPart = parts[0].toLowerCase().trim();
+        const toPart = parts[1].toLowerCase().trim();
+        return fromPart === 'any role' && toPart === targetLower;
+      }
+      return false;
+    });
+  }
+
+  // 3. Try to find any transition ending in targetRole
+  if (!matchedTransition) {
+    matchedTransition = LEARNING_PATH_COURSES.find(t => {
+      const parts = t.transition.split('→');
+      if (parts.length === 2) {
+        const toPart = parts[1].toLowerCase().trim();
+        return toPart === targetLower;
+      }
+      return false;
+    });
+  }
+
+  // 4. Try to find transition whose target contains targetRole, or vice versa
+  if (!matchedTransition) {
+    matchedTransition = LEARNING_PATH_COURSES.find(t => {
+      const parts = t.transition.split('→');
+      if (parts.length === 2) {
+        const toPart = parts[1].toLowerCase().trim();
+        return toPart.includes(targetLower) || targetLower.includes(toPart);
+      }
+      return false;
+    });
+  }
+
+  // 5. Try keyword matching
+  if (!matchedTransition) {
+    if (targetLower.includes('developer') || targetLower.includes('development') || targetLower.includes('web') || targetLower.includes('full stack') || targetLower.includes('frontend') || targetLower.includes('backend') || targetLower.includes('software') || targetLower.includes('engineer')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('Full Stack Developer'));
+    } else if (targetLower.includes('data') || targetLower.includes('analyst') || targetLower.includes('analytics') || targetLower.includes('science') || targetLower.includes('scientist')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('Data Analyst') || t.transition.includes('Data Scientist'));
+    } else if (targetLower.includes('manager') || targetLower.includes('product') || targetLower.includes('project')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('Product Manager'));
+    } else if (targetLower.includes('design') || targetLower.includes('ui') || targetLower.includes('ux') || targetLower.includes('user experience') || targetLower.includes('user interface')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('UI/UX Designer'));
+    } else if (targetLower.includes('security') || targetLower.includes('cyber') || targetLower.includes('cybersecurity') || targetLower.includes('infosec')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('Cybersecurity Analyst'));
+    } else if (targetLower.includes('devops') || targetLower.includes('cloud') || targetLower.includes('sre') || targetLower.includes('system')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('DevOps Engineer'));
+    } else if (targetLower.includes('machine learning') || targetLower.includes('ml') || targetLower.includes('ai') || targetLower.includes('artificial intelligence') || targetLower.includes('deep learning')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('Machine Learning Engineer'));
+    } else if (targetLower.includes('blockchain') || targetLower.includes('crypto') || targetLower.includes('solidity') || targetLower.includes('ethereum')) {
+      matchedTransition = LEARNING_PATH_COURSES.find(t => t.transition.includes('Blockchain Developer'));
+    }
+  }
+
+  // 6. Default fallback
+  const matched = matchedTransition || LEARNING_PATH_COURSES[0];
+  const courses = matched.courses;
+
+  // Decide if this is an approximate match
+  let isApproximate = true;
+  if (matchedTransition) {
+    const parts = matchedTransition.transition.split('→');
+    if (parts.length === 2) {
+      const fromPart = parts[0].toLowerCase().trim();
+      const toPart = parts[1].toLowerCase().trim();
+      if (fromPart === currentLower && toPart === targetLower) {
+        isApproximate = false;
+      }
+    }
+  }
+
+  const phases = [];
+  if (courses.length > 0) {
+    if (courses.length >= 4) {
+      phases.push({
+        phase: 'Phase 1 — Foundations',
+        courses: courses.slice(0, 2),
+      });
+      phases.push({
+        phase: 'Phase 2 — Core Skills',
+        courses: courses.slice(2, 3),
+      });
+      phases.push({
+        phase: 'Phase 3 — Specialization',
+        courses: courses.slice(3),
+      });
+    } else if (courses.length === 3) {
+      phases.push({
+        phase: 'Phase 1 — Foundations',
+        courses: courses.slice(0, 1),
+      });
+      phases.push({
+        phase: 'Phase 2 — Core Skills',
+        courses: courses.slice(1, 2),
+      });
+      phases.push({
+        phase: 'Phase 3 — Specialization',
+        courses: courses.slice(2),
+      });
+    } else {
+      phases.push({
+        phase: 'Phase 1 — Foundations',
+        courses: [courses[0]],
+      });
+      if (courses[1]) {
+        phases.push({
+          phase: 'Phase 2 — Advanced Skills',
+          courses: [courses[1]],
+        });
+      }
+    }
+  }
 
   const plan = {
     from: currentRole,
     to: targetRole,
     totalHours: courses.reduce((acc, c) => acc + c.hours, 0),
-    totalCost: 'Mostly Free',
-    approximate: true,
-    phases: [
-      {
-        phase: 'Phase 1 — Foundations',
-        courses: [courses[0], courses[1]],
-      },
-      {
-        phase: 'Phase 2 — Core Skills',
-        courses: [courses[2]],
-      },
-      {
-        phase: 'Phase 3 — Advanced',
-        courses: [courses[3]].filter(Boolean),
-      },
-    ],
+    totalCost: courses[0]?.cost?.includes('Paid') ? 'Mostly Paid' : 'Mostly Free',
+    approximate: isApproximate,
+    phases,
   };
 
   return new Promise(resolve => setTimeout(() => resolve(plan), 1200));

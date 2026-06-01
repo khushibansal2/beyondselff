@@ -43,7 +43,7 @@ public class AIProxyController {
             String response = geminiService.chat(message, context, systemPrompt, history);
             return ResponseEntity.ok(Map.of(
                 "response", response,
-                "source", "gemini",
+                "source", "groq",
                 "timestamp", System.currentTimeMillis()
             ));
         } catch (Exception e) {
@@ -70,7 +70,7 @@ public class AIProxyController {
             String narrative = geminiService.generateNarrative(computedData, narrativeType);
             return ResponseEntity.ok(Map.of(
                 "narrative", narrative,
-                "source", "gemini",
+                "source", "groq",
                 "type", narrativeType,
                 "timestamp", System.currentTimeMillis()
             ));
@@ -95,7 +95,7 @@ public class AIProxyController {
             String explanation = geminiService.explainInsight(insightData);
             return ResponseEntity.ok(Map.of(
                 "explanation", explanation,
-                "source", "gemini",
+                "source", "groq",
                 "timestamp", System.currentTimeMillis()
             ));
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class AIProxyController {
             String response = geminiService.simulate(prompt);
             return ResponseEntity.ok(Map.of(
                 "response", response,
-                "source", "gemini",
+                "source", "groq",
                 "timestamp", System.currentTimeMillis()
             ));
         } catch (Exception e) {
@@ -163,7 +163,7 @@ public class AIProxyController {
         boolean available = geminiService.isAvailable();
         return ResponseEntity.ok(Map.of(
             "available", available,
-            "provider", "gemini",
+            "provider", "groq",
             "timestamp", System.currentTimeMillis()
         ));
     }

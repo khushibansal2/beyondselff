@@ -13,7 +13,7 @@
  * The backend/dev proxy is only needed to bypass the CORS restriction.
  */
 
-const BACKEND = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
 const FIELDS   = 'name,slug,photoUrl,description,domainTypes,courseType,level,partners';
 const INCLUDES = 'partners.v1';
