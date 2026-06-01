@@ -198,14 +198,7 @@ export default function VoiceLogger() {
         const amount = entities.amount || 0;
         if (action === 'expense' && amount > 0) {
           const cat = (entities.category || 'Others').toLowerCase();
-          updateDomain('finance', {
-            expenses: (finance?.expenses || 0) + amount,
-            categoryTotals: {
-              ...(finance?.categoryTotals || {}),
-              [cat]: ((finance?.categoryTotals || {})[cat] || 0) + amount,
-            },
-          });
-          addRecords('finance', [{ date: now, amount, category: cat, merchant: entities.merchant || 'Voice Log', source: 'voice' }]);
+          addRecords('finance', [{ date: now, amount, category: cat, merchant: entities.merchant || 'Voice Log', source: 'voice', transactionType: 'debit' }]);
           addTimelineEvent({ type: 'Voice: Expense', text: humanReadable, sentiment: 'neutral', domain: 'finance' });
 
           // Also write to Finance page's parsedTxs localStorage so it appears in the
@@ -229,40 +222,23 @@ export default function VoiceLogger() {
             window.dispatchEvent(new CustomEvent('voice-finance-tx', { detail: voiceTx }));
           } catch { /* non-critical */ }
         } else if (action === 'income' && amount > 0) {
-          updateDomain('finance', { income: (finance?.income || 0) + amount });
+          addRecords('finance', [{ date: now, amount, category: 'Income', merchant: 'Voice Log', source: 'voice', transactionType: 'credit' }]);
           addTimelineEvent({ type: 'Voice: Income', text: humanReadable, sentiment: 'positive', domain: 'finance' });
         }
       }
 
       // ── Health ──────────────────────────────────────────────────────
       if (domain === 'health') {
-        const healthUpdate = {};
-        if (action === 'workout') {
-          // Always increment workout count; only update activeMinutes if duration was extracted
-          healthUpdate.workoutsPerWeek = Math.min(7, (health?.workoutsPerWeek || 0) + 1);
-          if (entities.durationMinutes) {
-            healthUpdate.activeMinutes = (health?.activeMinutes || 0) + entities.durationMinutes;
-          }
-        }
-        if (action === 'sleep' && entities.sleepHours) {
-          healthUpdate.sleepAvg = entities.sleepHours;
-        }
-        if (action === 'meal' && entities.calories) {
-          healthUpdate.caloriesAvg = entities.calories;
-        }
-        if (action === 'mood' && entities.mood) {
-          healthUpdate.moodAvg = entities.mood;
-        }
-        if (action === 'stress' && entities.stressLevel) {
-          healthUpdate.stressLevel = entities.stressLevel;
-        }
-        if (action === 'water' && entities.waterIntake) {
-          healthUpdate.waterIntake = entities.waterIntake;
-        }
-        if (Object.keys(healthUpdate).length) {
-          updateDomain('health', healthUpdate);
-          addRecords('health', [{ date: now, ...healthUpdate }]);
-        }
+        // Log clean record fields for aggregateHealth
+        const record = { date: now };
+        if (entities.sleepHours) record.sleepHours = entities.sleepHours;
+        if (action === 'workout') record.workoutsPerWeek = 1;
+        if (entities.waterIntake) record.waterGlasses = entities.waterIntake;
+        if (entities.calories) record.calories = entities.calories;
+        if (entities.mood) record.moodScore = entities.mood;
+        if (entities.stressLevel) record.stressLevel = entities.stressLevel;
+        
+        addRecords('health', [record]);
         addTimelineEvent({ type: `Voice: ${ACTION_LABELS[action] || 'Health'}`, text: humanReadable, sentiment: 'positive', domain: 'health' });
       }
 
@@ -270,7 +246,6 @@ export default function VoiceLogger() {
       if (domain === 'career' && action === 'study') {
         const hours = entities.studyHours || 0;
         const mins = entities.durationMinutes || Math.round(hours * 60);
-        updateDomain('career', { studyHoursDaily: Math.max(career?.studyHoursDaily || 0, hours) });
         addRecords('career', [{ date: now, studyHours: hours, topic: entities.topic }]);
         addTimelineEvent({ type: 'Voice: Study', text: humanReadable, sentiment: 'positive', domain: 'career' });
 

@@ -1710,7 +1710,28 @@ function CareerRecommendations({ recommendations }) {
 // ── Main Component ───────────────────────────────────────────────────────────
 export default function Career() {
   useAuth();
-  const { career, health, records, updateDomain, addRecords, setRecords, computed } = useData();
+  const { career, health, records, updateDomain, addRecords, setRecords, computed, gamification, updateGamification } = useData();
+
+  const handleAward = (award) => {
+    if (award) {
+      updateGamification({
+        xp: award.totalXp,
+        level: award.level,
+        streak: award.streak,
+        badges: award.newBadges && award.newBadges.length > 0
+          ? [...(gamification?.badges || []), ...award.newBadges]
+          : (gamification?.badges || [])
+      });
+      if (award.xpGained > 0) {
+        showToast(`Earned +${award.xpGained} XP! ⚡`, 'success');
+      }
+      if (award.newBadges && award.newBadges.length > 0) {
+        award.newBadges.forEach(badge => {
+          showToast(`🏆 New Badge Unlocked: ${badge.badgeName || badge.badgeId}!`, 'success');
+        });
+      }
+    }
+  };
   const [tab, setTab] = useState('brain');
 
   // Static career state
@@ -1858,12 +1879,12 @@ export default function Career() {
       await loadData();
       // Also update career domain for cross-domain effects
       const todayHours = (logForm.durationMinutes / 60);
-      updateDomain('career', { ...c, studyHoursDaily: Math.max(c.studyHoursDaily, parseFloat(todayHours.toFixed(1))) });
       addRecords('career', [{ date: new Date().toISOString(), studyHours: todayHours, topic: logForm.topic }]);
       // Persist to backend
       if (careerApi.isEnabled()) {
         try {
-          await careerApi.create({ date: new Date().toISOString(), studyHours: todayHours, skillLearned: logForm.topic });
+          const { award } = await careerApi.create({ date: new Date().toISOString(), studyHours: todayHours, skillLearned: logForm.topic });
+          handleAward(award);
         } catch (err) { console.warn('Career: session backend save failed:', err.message); }
       }
     } catch {
@@ -1888,13 +1909,15 @@ export default function Career() {
       changes++;
     }
     if (changes === 0) { showToast('Fill at least one field', 'error'); return; }
-    updateDomain('career', updated);
     addRecords('career', [record]);
     setCareerForm({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
     showToast(`Career data saved (${changes} field${changes > 1 ? 's' : ''})`, 'success');
     // Persist to backend
     if (careerApi.isEnabled()) {
-      try { await careerApi.create(record); }
+      try {
+        const { award } = await careerApi.create(record);
+        handleAward(award);
+      }
       catch (err) { console.warn('Career: backend save failed:', err.message); }
     }
   };

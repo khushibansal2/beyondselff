@@ -44,7 +44,7 @@ const TRANSPORT_MULTIPLIERS = {
 
 const ENERGY_MULTIPLIERS = {
   electricity: 0.00006,
-  tata power: 0.00006,
+  'tata power': 0.00006,
   bses: 0.00006,
   bescom: 0.00006,
   tneb: 0.00006,

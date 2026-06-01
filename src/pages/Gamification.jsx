@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { gamificationApi } from '../services/backendApi';
 import { badges as allBadges, challenges as allChallenges } from '../data/demoData';
 import { GlassCard, PageHeader, Badge, AchievementPopup, showToast } from '../components/ui/Components';
 import {
@@ -1653,14 +1654,14 @@ const TABS = [
 
 export default function Gamification() {
   const { user }                                    = useAuth();
-  const { computed, gamification, updateGamification } = useData();
+  const { computed, gamification, updateGamification, health, finance, career } = useData();
   const [tab,       setTab]       = useState('identity');
   const [showPopup, setShowPopup] = useState(null);
   const [myGuild,   setMyGuild]   = useState(() => localStorage.getItem('my_guild_id'));
 
-  const h = user?.health  || {};
-  const f = user?.finance || {};
-  const c = user?.career  || {};
+  const h = health  || {};
+  const f = finance || {};
+  const c = career  || {};
   const xp = gamification?.xp || 0;
 
   const codename = useMemo(() => generateCodename(user?.name || user?.id || 'default'), [user]);
@@ -1710,7 +1711,31 @@ export default function Gamification() {
     showToast(next.has(id) ? 'Challenge accepted! ⚔️' : 'Challenge abandoned', next.has(id) ? 'success' : 'info');
   }
 
-  function handleGrindXP(bonus) {
+  async function handleGrindXP(bonus) {
+    if (gamificationApi.isEnabled()) {
+      try {
+        const award = await gamificationApi.awardXp(bonus);
+        if (award) {
+          updateGamification({
+            xp: award.totalXp,
+            level: award.level,
+            streak: award.streak,
+            badges: award.newBadges && award.newBadges.length > 0
+              ? [...(gamification?.badges || []), ...award.newBadges]
+              : (gamification?.badges || [])
+          });
+          showToast(`+${bonus} XP earned from grind session! ⚡`, 'success');
+          if (award.newBadges && award.newBadges.length > 0) {
+            award.newBadges.forEach(badge => {
+              showToast(`🏆 New Badge Unlocked: ${badge.badgeName || badge.badgeId}!`, 'success');
+            });
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to award grind XP to backend, falling back to local:', err);
+      }
+    }
     updateGamification({ xp: (gamification?.xp || 0) + bonus });
     showToast(`+${bonus} XP earned from grind session!`, 'success');
   }

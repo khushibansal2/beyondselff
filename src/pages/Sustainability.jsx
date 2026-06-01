@@ -194,6 +194,7 @@ export default function Sustainability() {
     sustainabilitySyncEnabled, setSustainabilitySyncEnabled,
     computedSustainability,
     records,
+    logEcoAction, deleteEcoAction,
   } = useData();
 
   const [tab, setTab] = useState('dashboard');
@@ -251,12 +252,13 @@ export default function Sustainability() {
     { name: 'Food/Diet', value: sustainData.carbonFootprint.food,      color: '#10b981' },
   ];
 
-  const handleLogAction = (action, carbonSaved) => {
-    const newEntry = { action, points: carbonSaved, date: new Date().toISOString() };
-    updateDomain('sustainability', {
-      ecoActions: [newEntry, ...(sustainability?.ecoActions || [])],
-    });
-    showToast(`Logged: "${action}". Saved ${carbonSaved}kg CO₂!`, 'success');
+  const handleLogAction = async (action, carbonSaved) => {
+    try {
+      await logEcoAction(action, carbonSaved);
+      showToast(`Logged: "${action}". Saved ${carbonSaved}kg CO₂!`, 'success');
+    } catch (e) {
+      showToast('Failed to log eco-action.', 'error');
+    }
   };
 
   const tabs = [
@@ -620,7 +622,7 @@ export default function Sustainability() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 420, overflowY: 'auto' }}>
                   {sustainData.ecoActions.map((action, i) => (
-                    <div key={i} style={{
+                    <div key={action.id || i} style={{
                       padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                     }}>
@@ -630,7 +632,31 @@ export default function Sustainability() {
                           {new Date(action.date).toLocaleDateString()} at {new Date(action.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>−{action.points}kg CO₂</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>−{action.points}kg CO₂</span>
+                        <button
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to delete this eco-action?')) {
+                              try {
+                                await deleteEcoAction(action.id || action.date);
+                                showToast('Eco-action deleted.', 'success');
+                              } catch (e) {
+                                showToast('Failed to delete eco-action.', 'error');
+                              }
+                            }
+                          }}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+                            color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            opacity: 0.6, transition: 'opacity 0.2s'
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+                          onMouseLeave={e => { e.currentTarget.style.opacity = '0.6'; }}
+                          title="Delete eco-action"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

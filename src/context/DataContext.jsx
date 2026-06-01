@@ -85,10 +85,159 @@ const ACTIONS = {
   UPDATE_AI_CACHE: 'UPDATE_AI_CACHE',
   UPDATE_SIMULATOR_STATE: 'UPDATE_SIMULATOR_STATE',
   SET_SUSTAINABILITY_SYNC: 'SET_SUSTAINABILITY_SYNC',
+  SET_SUSTAINABILITY_DATA: 'SET_SUSTAINABILITY_DATA',
+  ADD_ECO_ACTION: 'ADD_ECO_ACTION',
+  DELETE_ECO_ACTION: 'DELETE_ECO_ACTION',
   RESET: 'RESET',
   HYDRATE: 'HYDRATE',
 };
 
+
+function aggregateHealth(records, currentState = {}) {
+  if (!records || !records.length) return currentState;
+  const sum = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0 };
+  const count = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0 };
+
+  records.forEach(r => {
+    const sleep = r.sleepHours ?? r.sleep;
+    const mood = r.moodScore ?? r.mood;
+    const stress = r.stressLevel ?? r.stress;
+    const workout = r.workoutsPerWeek ?? (r.workoutMinutes != null ? Math.round(r.workoutMinutes / 30) : null) ?? r.workout;
+    const water = r.waterGlasses ?? r.water;
+    const calories = r.calories;
+    const bmi = r.bmi;
+    const weight = r.weight;
+
+    if (sleep != null) { sum.sleep += sleep; count.sleep++; }
+    if (mood != null) { sum.mood += mood; count.mood++; }
+    if (stress != null) { sum.stress += stress; count.stress++; }
+    if (workout != null) { sum.workout += workout; count.workout++; }
+    if (water != null) { sum.water += water; count.water++; }
+    if (calories != null) { sum.calories += calories; count.calories++; }
+    if (bmi != null) { sum.bmi += bmi; count.bmi++; }
+    if (weight != null) { sum.weight += weight; count.weight++; }
+  });
+
+  return {
+    ...currentState,
+    sleepAvg: count.sleep ? Math.round((sum.sleep / count.sleep) * 10) / 10 : (currentState.sleepAvg ?? 7),
+    moodAvg: count.mood ? Math.round(sum.mood / count.mood) : (currentState.moodAvg ?? 7),
+    stressLevel: count.stress ? Math.round(sum.stress / count.stress) : (currentState.stressLevel ?? 5),
+    workoutsPerWeek: count.workout ? Math.round(sum.workout / count.workout) : (currentState.workoutsPerWeek ?? 2),
+    waterIntake: count.water ? Math.round(sum.water / count.water) : (currentState.waterIntake ?? 6),
+    calories: count.calories ? Math.round(sum.calories / count.calories) : (currentState.calories ?? 2000),
+    bmi: count.bmi ? Math.round((sum.bmi / count.bmi) * 10) / 10 : (currentState.bmi ?? 22),
+    weight: count.weight ? Math.round((sum.weight / count.weight) * 10) / 10 : (currentState.weight ?? 70),
+  };
+}
+
+function aggregateFinance(records, currentState = {}, oldRecords = []) {
+  const categoryTotals = { ...(currentState.categoryTotals || {}) };
+  
+  // Calculate sums for old records
+  let oldExpensesSum = 0;
+  const oldCategorySums = {};
+  if (oldRecords && oldRecords.length) {
+    oldRecords.forEach(r => {
+      const amt = Number(r.amount) || 0;
+      const type = r.transactionType || r.type || 'debit';
+      const cat = (r.category || 'others').toLowerCase();
+      
+      if (type.toLowerCase() === 'credit' || cat === 'income') {
+        // Credit
+      } else {
+        oldExpensesSum += amt;
+        oldCategorySums[cat] = (oldCategorySums[cat] || 0) + amt;
+      }
+    });
+  }
+
+  // Calculate sums for new records
+  let newExpensesSum = 0;
+  const newCategorySums = {};
+  if (records && records.length) {
+    records.forEach(r => {
+      const amt = Number(r.amount) || 0;
+      const type = r.transactionType || r.type || 'debit';
+      const cat = (r.category || 'others').toLowerCase();
+      
+      if (type.toLowerCase() === 'credit' || cat === 'income') {
+        // Credit
+      } else {
+        newExpensesSum += amt;
+        newCategorySums[cat] = (newCategorySums[cat] || 0) + amt;
+      }
+    });
+  }
+
+  // Calculate base expenses and category totals (offsetting old records)
+  const currentExpenses = currentState.expenses || 0;
+  const baseExpenses = Math.max(0, currentExpenses - oldExpensesSum);
+  const totalExpenses = baseExpenses + newExpensesSum;
+
+  // Update category totals with offset
+  const updatedCategoryTotals = { ...categoryTotals };
+  Object.keys(newCategorySums).forEach(cat => {
+    const oldCatSum = oldCategorySums[cat] || 0;
+    const currentCatVal = categoryTotals[cat] || 0;
+    const baseCatVal = Math.max(0, currentCatVal - oldCatSum);
+    updatedCategoryTotals[cat] = baseCatVal + newCategorySums[cat];
+  });
+
+  // Calculate income
+  let totalIncome = currentState.income || 0;
+  const creditSum = records ? records
+    .filter(r => (r.transactionType || r.type || 'debit').toLowerCase() === 'credit' || (r.category || '').toLowerCase() === 'income')
+    .reduce((sum, r) => sum + (Number(r.amount) || 0), 0) : 0;
+
+  if (creditSum > 0) {
+    let oldIncomeSum = 0;
+    if (oldRecords && oldRecords.length) {
+      oldIncomeSum = oldRecords
+        .filter(r => (r.transactionType || r.type || 'debit').toLowerCase() === 'credit' || (r.category || '').toLowerCase() === 'income')
+        .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    }
+    const baseIncome = Math.max(0, (currentState.income || 0) - oldIncomeSum);
+    totalIncome = baseIncome + creditSum;
+  }
+
+  return {
+    ...currentState,
+    income: totalIncome || 25000,
+    expenses: totalExpenses,
+    categoryTotals: updatedCategoryTotals,
+    savings: Math.max(0, totalIncome - totalExpenses),
+  };
+}
+
+function aggregateCareer(records, currentState = {}) {
+  if (!records || !records.length) return currentState;
+
+  let dsaSum = 0, dsaCount = 0;
+  let studyHoursSum = 0, studyCount = 0;
+  let codingHoursSum = 0, codingCount = 0;
+  let latestProjects = null;
+  const skillsSet = new Set(currentState.skills || []);
+
+  records.forEach(r => {
+    if (r.dsaProblems != null) { dsaSum += r.dsaProblems; dsaCount++; }
+    if (r.studyHours != null) { studyHoursSum += r.studyHours; studyCount++; }
+    if (r.codingHours != null) { codingHoursSum += r.codingHours; codingCount++; }
+    if (r.projects != null) latestProjects = r.projects;
+    if (r.skillLearned && r.skillLearned.trim()) {
+      skillsSet.add(r.skillLearned.trim());
+    }
+  });
+
+  return {
+    ...currentState,
+    skills: Array.from(skillsSet),
+    dsaPractice: dsaCount ? Math.round((dsaSum / dsaCount) * 10) / 10 : (currentState.dsaPractice || 0),
+    studyHoursDaily: studyCount ? Math.round((studyHoursSum / studyCount) * 10) / 10 : (currentState.studyHoursDaily || 0),
+    codingHoursDaily: codingCount ? Math.round((codingHoursSum / codingCount) * 10) / 10 : (currentState.codingHoursDaily || 0),
+    projectsCompleted: latestProjects !== null ? latestProjects : (currentState.projectsCompleted || 0),
+  };
+}
 
 function dataReducer(state, action) {
   switch (action.type) {
@@ -151,12 +300,22 @@ function dataReducer(state, action) {
 
     case ACTIONS.ADD_RECORDS: {
       const { domain, records } = action.payload;
+      const newRecords = [...(state.records[domain] || []), ...records];
+      let domainUpdate = {};
+      if (domain === 'health') {
+        domainUpdate = { health: aggregateHealth(newRecords, state.health) };
+      } else if (domain === 'finance') {
+        domainUpdate = { finance: aggregateFinance(newRecords, state.finance, state.records.finance) };
+      } else if (domain === 'career') {
+        domainUpdate = { career: aggregateCareer(newRecords, state.career) };
+      }
       return {
         ...state,
         records: {
           ...state.records,
-          [domain]: [...(state.records[domain] || []), ...records],
+          [domain]: newRecords,
         },
+        ...domainUpdate,
         dataSource: state.dataSource === 'none' || state.dataSource === 'demo' ? 'imported' : state.dataSource,
         lastUpdated: new Date().toISOString(),
         _revision: (state._revision || 0) + 1,
@@ -166,12 +325,22 @@ function dataReducer(state, action) {
 
     case ACTIONS.SET_RECORDS: {
       const { domain, records } = action.payload;
+      let domainUpdate = {};
+      if (domain === 'health') {
+        domainUpdate = { health: aggregateHealth(records, state.health) };
+      } else if (domain === 'finance') {
+        // Pass empty object so expenses are computed purely from the new records, not accumulated
+        domainUpdate = { finance: aggregateFinance(records, {}, []) };
+      } else if (domain === 'career') {
+        domainUpdate = { career: aggregateCareer(records, state.career) };
+      }
       return {
         ...state,
         records: {
           ...state.records,
           [domain]: records,
         },
+        ...domainUpdate,
         dataSource: 'imported',
         lastUpdated: new Date().toISOString(),
         _revision: (state._revision || 0) + 1,
@@ -249,6 +418,41 @@ function dataReducer(state, action) {
       return {
         ...state,
         sustainabilitySyncEnabled: !!action.payload,
+        _revision: (state._revision || 0) + 1,
+      };
+    }
+
+    case ACTIONS.SET_SUSTAINABILITY_DATA: {
+      const { syncEnabled, ecoActions } = action.payload;
+      return {
+        ...state,
+        sustainabilitySyncEnabled: syncEnabled,
+        sustainability: {
+          ...state.sustainability,
+          ecoActions: ecoActions || [],
+        },
+        _revision: (state._revision || 0) + 1,
+      };
+    }
+
+    case ACTIONS.ADD_ECO_ACTION: {
+      return {
+        ...state,
+        sustainability: {
+          ...state.sustainability,
+          ecoActions: [action.payload, ...(state.sustainability?.ecoActions || [])],
+        },
+        _revision: (state._revision || 0) + 1,
+      };
+    }
+
+    case ACTIONS.DELETE_ECO_ACTION: {
+      return {
+        ...state,
+        sustainability: {
+          ...state.sustainability,
+          ecoActions: (state.sustainability?.ecoActions || []).filter(a => a.id !== action.payload && a.date !== action.payload),
+        },
         _revision: (state._revision || 0) + 1,
       };
     }
@@ -354,7 +558,7 @@ function persistState(state) {
 }
 
 import { useAuth } from './AuthContext';
-import { fetchAllRecords } from '../services/backendApi';
+import { fetchAllRecords, sustainabilityApi, gamificationApi } from '../services/backendApi';
 
 export function DataProvider({ children }) {
   const { registerAuthCallback } = useAuth();
@@ -386,7 +590,7 @@ export function DataProvider({ children }) {
 
         if (isRealToken) {
           try {
-            const { health, finance, career, goals, gamification } = await fetchAllRecords();
+            const { health, finance, career, goals, gamification, sustainabilitySettings, ecoActions } = await fetchAllRecords();
             if (health.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'health',  records: health  } });
             if (finance.length) dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'finance', records: finance } });
             if (career.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'career',  records: career  } });
@@ -400,6 +604,14 @@ export function DataProvider({ children }) {
                 badges: gamification.badges || [],
               } });
             }
+
+            dispatch({
+              type: ACTIONS.SET_SUSTAINABILITY_DATA,
+              payload: {
+                syncEnabled: sustainabilitySettings ? sustainabilitySettings.syncEnabled : false,
+                ecoActions: ecoActions || [],
+              }
+            });
           } catch (e) {
             console.warn('DataContext: Backend sync failed (non-critical):', e.message);
           }
@@ -528,6 +740,27 @@ export function DataProvider({ children }) {
       dispatch({ type: ACTIONS.UPDATE_GAMIFICATION, payload: data });
     },
 
+    refreshGamification: async () => {
+      if (gamificationApi.isEnabled()) {
+        try {
+          const data = await gamificationApi.refresh();
+          if (data && data.stats) {
+            dispatch({
+              type: ACTIONS.UPDATE_GAMIFICATION,
+              payload: {
+                xp: data.stats.xp,
+                level: data.stats.level,
+                streak: data.stats.currentStreak,
+                badges: data.badges || [],
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('Failed to refresh gamification:', e);
+        }
+      }
+    },
+
     updateAICache: (data) => {
       dispatch({ type: ACTIONS.UPDATE_AI_CACHE, payload: data });
     },
@@ -536,8 +769,42 @@ export function DataProvider({ children }) {
       dispatch({ type: ACTIONS.UPDATE_SIMULATOR_STATE, payload: data });
     },
 
-    setSustainabilitySyncEnabled: (enabled) => {
+    setSustainabilitySyncEnabled: async (enabled) => {
       dispatch({ type: ACTIONS.SET_SUSTAINABILITY_SYNC, payload: enabled });
+      if (sustainabilityApi.isEnabled()) {
+        try {
+          await sustainabilityApi.updateSettings(enabled);
+        } catch (e) {
+          console.warn("Failed to sync sustainability settings to backend:", e);
+        }
+      }
+    },
+
+    logEcoAction: async (actionName, carbonSaved) => {
+      if (sustainabilityApi.isEnabled()) {
+        try {
+          const saved = await sustainabilityApi.createEcoAction(actionName, carbonSaved);
+          dispatch({ type: ACTIONS.ADD_ECO_ACTION, payload: saved });
+          return saved;
+        } catch (e) {
+          console.warn("Failed to save eco action to backend, falling back to local:", e);
+        }
+      }
+      // Demo / offline fallback
+      const localEntry = { action: actionName, points: carbonSaved, date: new Date().toISOString(), id: `local-${Date.now()}` };
+      dispatch({ type: ACTIONS.ADD_ECO_ACTION, payload: localEntry });
+      return localEntry;
+    },
+
+    deleteEcoAction: async (idOrDate) => {
+      dispatch({ type: ACTIONS.DELETE_ECO_ACTION, payload: idOrDate });
+      if (sustainabilityApi.isEnabled() && typeof idOrDate === 'number') {
+        try {
+          await sustainabilityApi.deleteEcoAction(idOrDate);
+        } catch (e) {
+          console.warn("Failed to delete eco action from backend:", e);
+        }
+      }
     },
 
     reset: () => {

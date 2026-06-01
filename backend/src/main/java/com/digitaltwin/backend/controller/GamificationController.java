@@ -42,4 +42,18 @@ public class GamificationController {
         List<UserBadge> badges = gamificationService.getBadges(userId);
         return ResponseEntity.ok(Map.of("stats", stats, "badges", badges));
     }
+
+    // Manual XP award (e.g. Grind Room session completion)
+    @PostMapping("/award-xp")
+    public ResponseEntity<Map<String, Object>> awardManualXp(
+            @RequestHeader("Authorization") String auth,
+            @RequestBody Map<String, Object> body) {
+        String userId = authUtil.getUserIdFromToken(auth);
+        int xp = body.get("xp") != null ? ((Number) body.get("xp")).intValue() : 0;
+        if (xp <= 0 || xp > 500) {
+            return ResponseEntity.badRequest().body(Map.of("error", "XP must be between 1 and 500"));
+        }
+        Map<String, Object> result = gamificationService.awardManualXp(userId, xp);
+        return ResponseEntity.ok(result);
+    }
 }

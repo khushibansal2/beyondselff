@@ -329,7 +329,7 @@ function ScanVisionPanel({ onApplyCalories }) {
                 {/* Apply button */}
                 <div className="flex flex-col sm:flex-row gap-3 border-t border-white/[0.04] pt-5">
                   <button
-                    onClick={() => { onApplyCalories(result.calories); showToast(`Logged ${result.foodName} — ${result.calories} kcal`, 'success', 5000); }}
+                    onClick={() => { onApplyCalories({ calories: result.calories, protein: result.protein, carbs: result.carbs, fat: result.fat, foodName: result.foodName }); showToast(`Logged ${result.foodName} — ${result.calories} kcal`, 'success', 5000); }}
                     className="btn-primary flex-1"
                   >
                     Apply Calories to Health Log
@@ -1461,7 +1461,7 @@ function HealthRecommendations({ recommendations, h, score }) {
 
 export default function Health() {
   const { user } = useAuth();
-  const { health, finance, records, updateDomain, addRecords, setRecords, computed } = useData();
+  const { health, finance, records, updateDomain, addRecords, setRecords, computed, gamification, updateGamification } = useData();
   const healthRecords = records?.health || [];
   const [tab, setTab] = useState('overview');
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
@@ -1554,7 +1554,6 @@ export default function Health() {
     if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
 
     // 1. Update local state immediately (optimistic)
-    updateDomain('health', updated);
     addRecords('health', [record]);
     setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
     showToast(`Health data saved (${changes} field${changes > 1 ? 's' : ''})`, 'success');
@@ -1562,7 +1561,25 @@ export default function Health() {
     // 2. Persist to backend (non-blocking for real users)
     if (healthApi.isEnabled()) {
       try {
-        await healthApi.create(record);
+        const { award } = await healthApi.create(record);
+        if (award) {
+          updateGamification({
+            xp: award.totalXp,
+            level: award.level,
+            streak: award.streak,
+            badges: award.newBadges && award.newBadges.length > 0
+              ? [...(gamification?.badges || []), ...award.newBadges]
+              : (gamification?.badges || [])
+          });
+          if (award.xpGained > 0) {
+            showToast(`Earned +${award.xpGained} XP! ⚡`, 'success');
+          }
+          if (award.newBadges && award.newBadges.length > 0) {
+            award.newBadges.forEach(badge => {
+              showToast(`🏆 New Badge Unlocked: ${badge.badgeName || badge.badgeId}!`, 'success');
+            });
+          }
+        }
       } catch (err) {
         if (err.message !== 'NOT_AUTHENTICATED' && err.message !== 'UNAUTHORIZED') {
           console.warn('Health: backend save failed:', err.message);
@@ -1571,7 +1588,11 @@ export default function Health() {
     }
   };
 
-  const handleApplyCalories = (calories) => {
+  const handleApplyCalories = (nutrition) => {
+    const calories = typeof nutrition === 'number' ? nutrition : (nutrition?.calories ?? 0);
+    if (calories > 0) {
+      addRecords('health', [{ date: new Date().toISOString(), calories }]);
+    }
     setForm(prev => ({ ...prev, calories: calories.toString() }));
     setTab('log');
   };

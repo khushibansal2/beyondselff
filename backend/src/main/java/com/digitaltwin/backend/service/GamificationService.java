@@ -90,6 +90,16 @@ public class GamificationService {
         return buildResult(XP_GOAL_DONE, stats, newBadges);
     }
 
+    // ─── Called for manual XP awards (e.g. Grind Room) ─────────────────────
+
+    public Map<String, Object> awardManualXp(String userId, int xpAmount) {
+        UserStats stats = getOrCreate(userId);
+        updateStreak(stats);
+        addXp(stats, xpAmount);
+        statsRepo.save(stats);
+        return buildResult(xpAmount, stats, List.of());
+    }
+
     // ─── Public getters ───────────────────────────────────────────────────────
 
     public UserStats getStats(String userId) {

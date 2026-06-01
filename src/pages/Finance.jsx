@@ -1383,7 +1383,28 @@ function FinanceRecommendations({ recommendations }) {
 // ── Main Finance Component ───────────────────────────────────────────────────
 export default function Finance() {
   const { user } = useAuth();
-  const { finance, health, career, records, computed, updateDomain, addRecords, setRecords, addTimelineEvent } = useData();
+  const { finance, health, career, records, computed, updateDomain, addRecords, setRecords, addTimelineEvent, gamification, updateGamification, refreshGamification } = useData();
+
+  const handleAward = (award) => {
+    if (award) {
+      updateGamification({
+        xp: award.totalXp,
+        level: award.level,
+        streak: award.streak,
+        badges: award.newBadges && award.newBadges.length > 0
+          ? [...(gamification?.badges || []), ...award.newBadges]
+          : (gamification?.badges || [])
+      });
+      if (award.xpGained > 0) {
+        showToast(`Earned +${award.xpGained} XP! ⚡`, 'success');
+      }
+      if (award.newBadges && award.newBadges.length > 0) {
+        award.newBadges.forEach(badge => {
+          showToast(`🏆 New Badge Unlocked: ${badge.badgeName || badge.badgeId}!`, 'success');
+        });
+      }
+    }
+  };
   const [tab, setTab] = useState('overview');
   const [txFilter, setTxFilter] = useState('All');
   const [txSearch, setTxSearch] = useState('');
@@ -1475,6 +1496,21 @@ export default function Finance() {
   const [parsedTxs, setParsedTxs] = useState(() => loadTxsLocal());
   const saveTxs = useCallback((txs) => { setParsedTxs(txs); saveTxsLocal(txs); }, []);
 
+  // Sync parsedTxs totals → DataContext so the finance score always reflects what's displayed
+  useEffect(() => {
+    if (!parsedTxs.length) return;
+    const totalExpenses = parsedTxs
+      .filter(t => t.type !== 'Credit' && t.type !== 'Transfer')
+      .reduce((s, t) => s + (t.amount || 0), 0);
+    const totalIncome = parsedTxs
+      .filter(t => t.type === 'Credit')
+      .reduce((s, t) => s + (t.amount || 0), 0);
+    const update = { expenses: Math.round(totalExpenses) };
+    if (totalIncome > 0) update.income = Math.round(totalIncome);
+    update.savings = Math.max(0, Math.round((totalIncome > 0 ? totalIncome : (finance?.income || 0)) - totalExpenses));
+    updateDomain('finance', update);
+  }, [parsedTxs]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Listen for voice-logged transactions from VoiceLogger (same-tab real-time update)
   useEffect(() => {
     const handler = (e) => {
@@ -1553,11 +1589,7 @@ export default function Finance() {
 
       // Update categoryTotals every 5 live transactions — never touch f.expenses (monthly budget)
       if (liveCountRef.current % 5 === 0) {
-        updateDomain('finance', {
-          ...f,
-          categoryTotals: { ...(f.categoryTotals || {}), [tx.category]: ((f.categoryTotals || {})[tx.category] || 0) + tx.amount },
-        });
-        addRecords('finance', [{ date: new Date().toISOString(), amount: tx.amount, category: tx.category }]);
+        addRecords('finance', [{ date: new Date().toISOString(), amount: tx.amount, category: tx.category, transactionType: 'debit' }]);
       }
     }, delay);
 
@@ -1582,17 +1614,15 @@ export default function Finance() {
     if (amt <= 0 || amt > 10_000_000) { showToast('Invalid amount — must be ₹1 to ₹1,00,00,000', 'error'); return; }
     const confirmed = { ...editResult, amount: amt, id: Date.now(), source: 'manual', parsedAt: new Date().toISOString() };
     saveTxs([confirmed, ...parsedTxs]);
-    // Only update categoryTotals — never touch f.expenses here (that's the monthly budget field)
-    updateDomain('finance', {
-      ...f,
-      categoryTotals: { ...(f.categoryTotals || {}), [confirmed.category]: ((f.categoryTotals || {})[confirmed.category] || 0) + amt },
-    });
-    addRecords('finance', [{ date: new Date().toISOString(), amount: amt, category: confirmed.category }]);
+    addRecords('finance', [{ date: new Date().toISOString(), amount: amt, category: confirmed.category, transactionType: confirmed.type === 'Credit' ? 'credit' : 'debit' }]);
     addTimelineEvent({ type: 'Transaction Parsed', text: `₹${amt} at ${confirmed.merchant} (${confirmed.category})`, sentiment: 'neutral', domain: 'finance' });
     showToast(`Added: ${confirmed.merchant} ₹${amt}`, 'success');
     setSmsInput(''); setParseResult(null); setEditResult(null);
     if (financeApi.isEnabled()) {
-      try { await financeApi.create({ date: new Date().toISOString(), amount: amt, category: confirmed.category, merchant: confirmed.merchant, transactionType: confirmed.type === 'Credit' ? 'credit' : 'debit' }); }
+      try {
+        const { award } = await financeApi.create({ date: new Date().toISOString(), amount: amt, category: confirmed.category, merchant: confirmed.merchant, transactionType: confirmed.type === 'Credit' ? 'credit' : 'debit' });
+        handleAward(award);
+      }
       catch (err) { console.warn('Finance: backend save failed:', err.message); }
     }
   };
@@ -1614,17 +1644,14 @@ export default function Finance() {
       .filter(t => t.amount > 0 && t.amount <= 10_000_000);
     if (!valid.length) { showToast('No valid transactions to add', 'error'); return; }
     saveTxs([...valid, ...parsedTxs]);
-    // Only update categoryTotals — never touch f.expenses here
-    const catDelta = valid.reduce((acc, t) => {
-      acc[t.category] = (acc[t.category] || 0) + t.amount;
-      return acc;
-    }, { ...(f.categoryTotals || {}) });
-    updateDomain('finance', { ...f, categoryTotals: catDelta });
-    addRecords('finance', valid.map(t => ({ date: new Date().toISOString(), amount: t.amount, category: t.category })));
+    addRecords('finance', valid.map(t => ({ date: new Date().toISOString(), amount: t.amount, category: t.category, transactionType: t.type === 'Credit' ? 'credit' : 'debit' })));
     showToast(`Added ${valid.length} transaction${valid.length !== 1 ? 's' : ''}`, 'success');
     setMultiInput(''); setMultiResults([]);
     if (financeApi.isEnabled()) {
-      try { await Promise.all(valid.map(t => financeApi.create({ date: new Date().toISOString(), amount: t.amount, category: t.category, merchant: t.merchant, transactionType: t.type === 'Credit' ? 'credit' : 'debit' }))); }
+      try {
+        await Promise.all(valid.map(t => financeApi.create({ date: new Date().toISOString(), amount: t.amount, category: t.category, merchant: t.merchant, transactionType: t.type === 'Credit' ? 'credit' : 'debit' })));
+        refreshGamification();
+      }
       catch (err) { console.warn('Finance: bulk backend save failed:', err.message); }
     }
   };
@@ -1632,11 +1659,7 @@ export default function Finance() {
   const handleDeleteTx = async (id) => {
     const tx = parsedTxs.find(t => t.id === id);
     saveTxs(parsedTxs.filter(t => t.id !== id));
-    // Remove from categoryTotals only — don't touch f.expenses
-    if (tx?.amount > 0) {
-      const cat = f.categoryTotals || {};
-      updateDomain('finance', { ...f, categoryTotals: { ...cat, [tx.category]: Math.max(0, (cat[tx.category] || 0) - tx.amount) } });
-    }
+    // parsedTxs sync useEffect will recompute expenses/income/savings automatically
     if (financeApi.isEnabled() && tx?.backendId) {
       try { await financeApi.delete(tx.backendId); } catch (err) { console.warn('Finance: backend delete failed:', err.message); }
     }
@@ -1645,37 +1668,40 @@ export default function Finance() {
   // ── Legacy handlers ───────────────────────────────────────────────────────
   const handleLog = async (e) => {
     e.preventDefault();
-    const updated = { ...f };
-    let hasUpdate = false;
-    const backendRecord = { date: new Date().toISOString() };
+    let changes = 0;
+    const recordsToLog = [];
+    const backendRecords = [];
+    
     if (form.income) {
-      updated.income = parseInt(form.income);
-      hasUpdate = true;
-      backendRecord.amount = parseInt(form.income);
-      backendRecord.transactionType = 'credit';
-      backendRecord.category = 'Income';
-      addRecords('finance', [{ date: new Date().toISOString(), amount: parseInt(form.income), category: 'Income' }]);
-      addTimelineEvent({ type: 'Income Updated', text: `Logged income: ₹${updated.income}`, sentiment: 'positive', domain: 'finance' });
+      const incomeVal = parseInt(form.income, 10);
+      recordsToLog.push({ date: new Date().toISOString(), amount: incomeVal, category: 'Income', transactionType: 'credit' });
+      backendRecords.push({ date: new Date().toISOString(), amount: incomeVal, category: 'Income', transactionType: 'credit' });
+      addTimelineEvent({ type: 'Income Updated', text: `Logged income: ₹${incomeVal}`, sentiment: 'positive', domain: 'finance' });
+      changes++;
     }
     if (form.amount) {
-      const amount = parseInt(form.amount);
-      updated.expenses = (updated.expenses || 0) + amount;
-      updated.categoryTotals = { ...(updated.categoryTotals || {}) };
-      updated.categoryTotals[form.category] = (updated.categoryTotals[form.category] || 0) + amount;
-      hasUpdate = true;
-      addRecords('finance', [{ date: new Date().toISOString(), amount, category: form.category }]);
-      backendRecord.amount = amount; backendRecord.category = form.category; backendRecord.transactionType = 'debit';
-      addTimelineEvent({ type: 'Expense Logged', text: `Spent ₹${amount} on ${form.category}`, sentiment: 'neutral', domain: 'finance' });
+      const amountVal = parseInt(form.amount, 10);
+      recordsToLog.push({ date: new Date().toISOString(), amount: amountVal, category: form.category, transactionType: 'debit' });
+      backendRecords.push({ date: new Date().toISOString(), amount: amountVal, category: form.category, transactionType: 'debit' });
+      addTimelineEvent({ type: 'Expense Logged', text: `Spent ₹${amountVal} on ${form.category}`, sentiment: 'neutral', domain: 'finance' });
+      changes++;
     }
-    if (hasUpdate) {
-      updateDomain('finance', updated);
+    
+    if (changes > 0) {
+      addRecords('finance', recordsToLog);
       setForm({ income: '', expense: '', category: 'food', amount: '' });
       showToast('Financial data saved', 'success');
+      
       // Persist to backend
-      if (financeApi.isEnabled() && backendRecord.amount) {
-        try { await financeApi.create(backendRecord); }
+      if (financeApi.isEnabled()) {
+        try {
+          await Promise.all(backendRecords.map(rec => financeApi.create(rec)));
+          refreshGamification();
+        }
         catch (err) { console.warn('Finance: backend save failed:', err.message); }
       }
+    } else {
+      showToast('Please fill at least one field', 'error');
     }
   };
 

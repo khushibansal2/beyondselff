@@ -135,11 +135,14 @@ export const healthApi = {
 
   async create(frontendRecord) {
     const body = toHealthRecord(frontendRecord);
-    const saved = await authFetch('/records/health', {
+    const response = await authFetch('/records/health', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-    return fromHealthRecord(saved);
+    // Backend returns { record, award } envelope
+    const record = response.record ? fromHealthRecord(response.record) : fromHealthRecord(response);
+    const award = response.award || null;
+    return { record, award };
   },
 
   async update(id, frontendRecord) {
@@ -204,11 +207,14 @@ export const financeApi = {
 
   async create(frontendRecord) {
     const body = toFinanceRecord(frontendRecord);
-    const saved = await authFetch('/records/finance', {
+    const response = await authFetch('/records/finance', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-    return fromFinanceRecord(saved);
+    // Backend returns { record, award } envelope
+    const record = response.record ? fromFinanceRecord(response.record) : fromFinanceRecord(response);
+    const award = response.award || null;
+    return { record, award };
   },
 
   async update(id, frontendRecord) {
@@ -285,11 +291,14 @@ export const careerApi = {
 
   async create(frontendRecord) {
     const body = toCareerRecord(frontendRecord);
-    const saved = await authFetch('/records/career', {
+    const response = await authFetch('/records/career', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-    return fromCareerRecord(saved);
+    // Backend returns { record, award } envelope
+    const record = response.record ? fromCareerRecord(response.record) : fromCareerRecord(response);
+    const award = response.award || null;
+    return { record, award };
   },
 
   async update(id, frontendRecord) {
@@ -384,8 +393,64 @@ export const goalsApi = {
 };
 
 export const gamificationApi = {
+  isEnabled: isAuthenticated,
+
   async getSummary() {
     return authFetch('/gamification/summary', { method: 'GET' });
+  },
+
+  /** Award XP for Grind Room sessions */
+  async awardXp(xp, reason = 'grind_session') {
+    return authFetch('/gamification/award-xp', {
+      method: 'POST',
+      body: JSON.stringify({ xp, reason }),
+    });
+  },
+
+  /** Re-fetch full gamification state (stats + badges) */
+  async refresh() {
+    return authFetch('/gamification/summary', { method: 'GET' });
+  },
+};
+
+function fromEcoAction(r) {
+  return {
+    id: r.id,
+    action: r.actionName,
+    points: r.carbonSaved,
+    date: r.loggedAt,
+  };
+}
+
+export const sustainabilityApi = {
+  isEnabled: isAuthenticated,
+
+  async getSettings() {
+    return authFetch('/sustainability/settings');
+  },
+
+  async updateSettings(syncEnabled) {
+    return authFetch('/sustainability/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ syncEnabled }),
+    });
+  },
+
+  async getEcoActions() {
+    const actions = await authFetch('/sustainability/eco-actions');
+    return actions.map(fromEcoAction);
+  },
+
+  async createEcoAction(actionName, carbonSaved) {
+    const saved = await authFetch('/sustainability/eco-actions', {
+      method: 'POST',
+      body: JSON.stringify({ actionName, carbonSaved }),
+    });
+    return fromEcoAction(saved);
+  },
+
+  async deleteEcoAction(id) {
+    return authFetch(`/sustainability/eco-actions/${id}`, { method: 'DELETE' });
   },
 };
 
@@ -393,18 +458,20 @@ export const gamificationApi = {
 
 /**
  * Fetch all backend records for the authenticated user.
- * Returns { health, finance, career, goals } arrays.
+ * Returns { health, finance, career, goals, gamification, sustainabilitySettings, ecoActions } arrays.
  * Silently returns empty arrays on any error (e.g. demo mode).
  */
 export async function fetchAllRecords() {
-  if (!isAuthenticated()) return { health: [], finance: [], career: [], goals: [], gamification: null };
+  if (!isAuthenticated()) return { health: [], finance: [], career: [], goals: [], gamification: null, sustainabilitySettings: null, ecoActions: [] };
 
-  const [health, finance, career, goals, gamification] = await Promise.allSettled([
+  const [health, finance, career, goals, gamification, sustainabilitySettings, ecoActions] = await Promise.allSettled([
     healthApi.getAll(),
     financeApi.getAll(),
     careerApi.getAll(),
     goalsApi.getAll(),
     gamificationApi.getSummary(),
+    sustainabilityApi.getSettings(),
+    sustainabilityApi.getEcoActions(),
   ]);
 
   return {
@@ -413,5 +480,8 @@ export async function fetchAllRecords() {
     career:  career.status  === 'fulfilled' ? career.value  : [],
     goals:   goals.status   === 'fulfilled' ? goals.value   : [],
     gamification: gamification.status === 'fulfilled' ? gamification.value : null,
+    sustainabilitySettings: sustainabilitySettings.status === 'fulfilled' ? sustainabilitySettings.value : null,
+    ecoActions: ecoActions.status === 'fulfilled' ? ecoActions.value : [],
   };
 }
+
