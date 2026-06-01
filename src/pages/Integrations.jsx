@@ -2329,6 +2329,16 @@ function IndiaBankingPanel() {
   const [activeView, setActiveView] = useState('transactions');
   const [synced, setSynced] = useState(false);
 
+  // ── RBI Account Aggregator Simulated Flow States ──
+  const [showAaModal, setShowAaModal] = useState(false);
+  const [selectedAaProvider, setSelectedAaProvider] = useState(null);
+  const [aaStep, setAaStep] = useState('phone'); // phone | otp | discover | success
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otpValue, setOtpValue] = useState(['', '', '', '', '', '']);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [selectedAccounts, setSelectedAccounts] = useState(['hdfc', 'icici']);
+  const [aaProviderConnected, setAaProviderConnected] = useState(null);
+
   const isDemo = phase === 'demo';
   const isResults = phase === 'results';
   const txns = isResults ? (stmtData?.transactions ?? []) : INDIA_TXN;
@@ -2352,8 +2362,11 @@ function IndiaBankingPanel() {
   }
 
   function handleProviderClick(p) {
-    alert(`${p.name} — ${p.subtitle}\n\n${p.desc}\n\nTo integrate for production:\n1. Sign up at ${p.site}\n2. Get API credentials from their developer portal\n3. Implement the AA consent flow on your backend\n4. Receive data via webhook\n\nShowing demo data instead.`);
-    setPhase('demo');
+    setSelectedAaProvider(p);
+    setPhoneNumber('');
+    setOtpValue(['', '', '', '', '', '']);
+    setAaStep('phone');
+    setShowAaModal(true);
   }
 
   function handleSyncFinance() {
@@ -2363,10 +2376,27 @@ function IndiaBankingPanel() {
 
   function handleReset() {
     setPhase('landing'); setStmtData(null); setError(null); setSynced(false); setActiveView('transactions');
+    setAaProviderConnected(null);
   }
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) processStatement(file);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-[24px]">
 
       {/* ── HEADER CARD ── */}
       <GlassCard className="!p-5">
@@ -2384,6 +2414,22 @@ function IndiaBankingPanel() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>India Banking Intelligence</h3>
                 <StatusBadge status={isResults ? 'live' : isDemo ? 'demo' : 'none'} />
+                {aaProviderConnected && (
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 10,
+                    padding: '2px 8px',
+                    borderRadius: 99,
+                    fontWeight: 600,
+                    background: 'rgba(99,102,241,0.08)',
+                    border: '1px solid rgba(99,102,241,0.18)',
+                    color: '#818cf8'
+                  }}>
+                    Connected via {aaProviderConnected}
+                  </span>
+                )}
               </div>
               <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0 }}>
                 Consent-based secure open banking powered by India's RBI-regulated Account Aggregator (AA) framework.
@@ -2395,7 +2441,7 @@ function IndiaBankingPanel() {
             {phase === 'landing' ? (
               <>
                 <button
-                  onClick={() => setPhase('demo')}
+                  onClick={() => handleProviderClick(AA_PROVIDERS[0])}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderRadius: 10, 
                     fontWeight: 600, fontSize: 13, color: '#34d399', border: '1px solid rgba(16,185,129,0.3)',
@@ -2429,19 +2475,19 @@ function IndiaBankingPanel() {
 
       {/* ── Landing Phase ── */}
       {phase === 'landing' && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-[24px]">
 
           {/* 3-column provider cards */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {AA_PROVIDERS.map(p => (
               <button key={p.id} onClick={() => handleProviderClick(p)}
-                className="text-left rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all group flex flex-col overflow-hidden"
+                className="text-left rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all group flex flex-col overflow-hidden shadow-lg hover:shadow-indigo-500/[0.02]"
                 style={{ padding: 0 }}>
                 {/* Color accent top bar */}
                 <div style={{ height: 3, background: p.color, opacity: 0.7, width: '100%' }} />
-                <div style={{ padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <div style={{ padding: '18px 20px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                   {/* Logo icon + badge row */}
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-3.5">
                     <div style={{
                       width: 40, height: 40, borderRadius: 10,
                       background: p.color + '1a',
@@ -2458,9 +2504,9 @@ function IndiaBankingPanel() {
                   {/* Name */}
                   <span className="text-[15px] font-bold text-[#f0f0f3] mb-1">{p.name}</span>
                   {/* Subtitle */}
-                  <p className="text-[12px] font-semibold mb-3" style={{ color: p.color }}>{p.subtitle}</p>
+                  <p className="text-[12px] font-semibold mb-3.5" style={{ color: p.color }}>{p.subtitle}</p>
                   {/* Description */}
-                  <p className="text-[12px] text-[#71717a] leading-relaxed flex-1 mb-4">{p.desc}</p>
+                  <p className="text-[12px] text-[#71717a] leading-relaxed flex-1 mb-4.5">{p.desc}</p>
                   {/* Footer */}
                   <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                     <span className="flex items-center gap-1.5 text-[12px] text-[#6b7280]">
@@ -2475,47 +2521,51 @@ function IndiaBankingPanel() {
             ))}
           </div>
 
-          {/* Upload card — standalone */}
-          <GlassCard>
-            <div className="flex items-center justify-between py-1">
-              <div className="flex items-center gap-4">
-                {/* PDF Icon */}
-                <div className="w-14 h-14 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)' }}>
-                  <span className="text-[18px] leading-none">📄</span>
-                  <span className="text-[9px] font-bold text-purple-400 mt-1 tracking-wider">PDF</span>
-                </div>
-                <div>
-                  <h3 className="text-[15px] font-bold text-[#f0f0f3] mb-1">Upload bank statement PDF</h3>
-                  <p className="text-[12px] text-[#71717a]">AI extracts &amp; categorises all transactions instantly</p>
-                </div>
-              </div>
-              {/* Upload button + hint */}
-              <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-2 text-[13px] px-5 py-2.5 rounded-xl font-semibold text-[#f0f0f3] transition-all hover:bg-white/[0.06] whitespace-nowrap"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.13)' }}
-                >
-                  <span className="text-[16px] leading-none">↑</span> Upload PDF
-                </button>
-                <span className="text-[11px] text-[#6b7280]">Supports PDF up to 25MB</span>
-              </div>
+          {/* Premium Dropzone File Uploader */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileRef.current?.click()}
+            className="group relative overflow-hidden text-center cursor-pointer border border-dashed hover:border-solid hover:bg-white/[0.03] transition-all duration-300 shadow-xl"
+            style={{
+              borderColor: dragOver ? '#a78bfa' : 'rgba(255, 255, 255, 0.08)',
+              backgroundColor: dragOver ? 'rgba(139, 92, 246, 0.05)' : 'rgba(13, 20, 35, 0.45)',
+              borderRadius: '24px',
+              padding: '36px 24px',
+              backdropFilter: 'blur(16px)'
+            }}
+          >
+            <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-purple-500/5 blur-3xl pointer-events-none" />
+            
+            {/* SVG Glowing Document Icon */}
+            <div className="w-14 h-14 rounded-full bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-[22px] mx-auto mb-4 group-hover:scale-110 group-hover:border-purple-500/40 transition-transform duration-300 flex-shrink-0">
+              📂
             </div>
+            
+            <h3 className="text-[15px] font-bold text-white mb-1.5">Upload your bank statement PDF</h3>
+            <p className="text-[12px] text-[#8b949e] max-w-sm mx-auto leading-relaxed mb-4">
+              Drag & drop your statement here, or <span className="text-[#a5b4fc] font-semibold underline group-hover:text-[#c7d2fe]">browse files</span>. AI will parse & categorise all transactions instantly.
+            </p>
+            
+            <span className="inline-flex items-center px-3 py-1 rounded-lg bg-white/[0.04] border border-white/[0.05] text-[10px] text-[#6b7280] font-medium tracking-wide uppercase">
+              Supports HDFC, ICICI, SBI & more · Max 25MB
+            </span>
+
             <input ref={fileRef} type="file" accept=".pdf,application/pdf" className="hidden"
               onChange={e => e.target.files[0] && processStatement(e.target.files[0])} />
+          </div>
 
-            {error && (
-              <div className="mt-4 flex items-center gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2">
-                <AlertTriangle size={13} /> {error}
-              </div>
-            )}
-          </GlassCard>
+          {error && (
+            <div className="flex items-center gap-2 text-[12px] text-red-400 bg-red-500/[0.06] border border-red-500/20 rounded-xl px-3 py-2">
+              <AlertTriangle size={13} /> {error}
+            </div>
+          )}
 
           {/* Divider */}
           <div className="flex items-center gap-3 pt-2 pb-2">
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[12px] text-[#6b7280]">or view demo data</span>
+            <span className="text-[12px] text-[#6b7280]">or view demo database</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
@@ -2585,17 +2635,17 @@ function IndiaBankingPanel() {
           {/* Summary row */}
           <div className="grid grid-cols-3 gap-3">
             <GlassCard>
-              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-medium">Total Income</p>
+              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Total Income</p>
               <p className="text-[22px] font-black text-emerald-400">₹{totalIncome.toLocaleString('en-IN')}</p>
               <p className="text-[10px] text-[#6b7280]">this month</p>
             </GlassCard>
             <GlassCard>
-              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-medium">Total Spent</p>
+              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Total Spent</p>
               <p className="text-[22px] font-black text-[#f97316]">₹{totalSpend.toLocaleString('en-IN')}</p>
               <p className="text-[10px] text-[#6b7280]">this month</p>
             </GlassCard>
             <GlassCard>
-              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-medium">Savings Rate</p>
+              <p className="text-[10px] text-[#71717a] mb-1.5 uppercase tracking-wider font-semibold">Savings Rate</p>
               <p className="text-[22px] font-black text-indigo-400">{savingsRate}%</p>
               <div className="h-1.5 rounded-full bg-white/[0.05] mt-2 overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: `${savingsRate}%` }}
@@ -2635,20 +2685,72 @@ function IndiaBankingPanel() {
                     {txns.slice(0, 20).map((t, i) => {
                       const amt = t.amount ?? (t.credit ?? -(t.debit ?? 0));
                       const positive = t.amount > 0 || (t.credit && !t.debit);
+
+                      // Custom brand colors for circular badges
+                      let badgeBg = 'rgba(255,255,255,0.03)';
+                      let badgeBorder = 'rgba(255,255,255,0.06)';
+                      let badgeColor = '#ffffff';
+                      
+                      if (t.name.includes('Salary') || t.name.includes('Infosys')) {
+                        badgeBg = 'rgba(16,185,129,0.1)';
+                        badgeBorder = 'rgba(16,185,129,0.2)';
+                        badgeColor = '#10b981';
+                      } else if (t.name.includes('HDFC')) {
+                        badgeBg = 'rgba(239,68,68,0.1)';
+                        badgeBorder = 'rgba(239,68,68,0.2)';
+                        badgeColor = '#ef4444';
+                      } else if (t.name.includes('Axis') || t.name.includes('SIP')) {
+                        badgeBg = 'rgba(99,102,241,0.1)';
+                        badgeBorder = 'rgba(99,102,241,0.2)';
+                        badgeColor = '#818cf8';
+                      } else if (t.name.includes('Swiggy')) {
+                        badgeBg = 'rgba(245,158,11,0.1)';
+                        badgeBorder = 'rgba(245,158,11,0.2)';
+                        badgeColor = '#f59e0b';
+                      } else if (t.name.includes('Zepto') || t.name.includes('Blinkit')) {
+                        badgeBg = 'rgba(139,92,246,0.1)';
+                        badgeBorder = 'rgba(139,92,246,0.2)';
+                        badgeColor = '#a78bfa';
+                      } else if (t.name.includes('Uber')) {
+                        badgeBg = 'rgba(15,23,42,0.8)';
+                        badgeBorder = 'rgba(255,255,255,0.1)';
+                        badgeColor = '#ffffff';
+                      } else if (t.name.includes('Amazon')) {
+                        badgeBg = 'rgba(249,115,22,0.1)';
+                        badgeBorder = 'rgba(249,115,22,0.2)';
+                        badgeColor = '#f97316';
+                      } else if (positive) {
+                        badgeBg = 'rgba(16,185,129,0.08)';
+                        badgeBorder = 'rgba(16,185,129,0.15)';
+                        badgeColor = '#10b981';
+                      }
+
                       return (
-                        <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                          <span className="text-lg w-8 text-center flex-shrink-0">{t.icon ?? (positive ? '💰' : '💸')}</span>
+                        <div key={i} className="flex items-center gap-3.5 p-3 rounded-xl bg-white/[0.015] border border-white/[0.04] hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-300 group">
+                          <div 
+                            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base transition-transform duration-300 group-hover:scale-105"
+                            style={{ 
+                              backgroundColor: badgeBg, 
+                              border: `1px solid ${badgeBorder}`,
+                              color: badgeColor
+                            }}
+                          >
+                            {t.icon ?? (positive ? '💰' : '💸')}
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[12px] font-medium text-[#a1a1aa] truncate">{t.name ?? t.description}</p>
-                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                              <span className="text-[10px] text-[#71717a]">{t.date}</span>
+                            <p className="text-[12.5px] font-semibold text-[#f0f0f3] truncate group-hover:text-white transition-colors">{t.name ?? t.description}</p>
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                              <span className="text-[10px] text-[#71717a] font-medium">{t.date}</span>
                               <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#6b7280] font-mono">{t.mode ?? 'UPI'}</span>
                               <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.05] text-[#71717a]">{t.cat ?? t.category}</span>
                             </div>
                           </div>
-                          <span className={`text-[13px] font-bold flex-shrink-0 ${positive ? 'text-emerald-400' : 'text-[#f0f0f3]'}`}>
-                            {positive ? '+' : ''}₹{Math.abs(amt).toLocaleString('en-IN')}
-                          </span>
+                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                            <span className={`text-[13.5px] font-black ${positive ? 'text-emerald-400' : 'text-white'}`}>
+                              {positive ? '+' : '-'}₹{Math.abs(amt).toLocaleString('en-IN')}
+                            </span>
+                            <span className="text-[9px] text-[#6b7280] font-medium uppercase tracking-wider">INR</span>
+                          </div>
                         </div>
                       );
                     })}
@@ -2659,27 +2761,76 @@ function IndiaBankingPanel() {
               {/* CATEGORIES */}
               {activeView === 'categories' && (
                 <GlassCard>
-                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-4">Spend by Category</h3>
-                  <div className="space-y-3">
-                    {cats.map(c => (
-                      <div key={c.label}>
-                        <div className="flex justify-between items-center mb-1.5">
-                          <span className="text-[12px] text-[#a1a1aa]">{c.label}</span>
-                          <span className="text-[12px] font-semibold" style={{ color: c.color }}>₹{c.amount.toLocaleString('en-IN')} · {c.pct}%</span>
-                        </div>
-                        <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }} animate={{ width: `${c.pct}%` }}
-                            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                            className="h-full rounded-full" style={{ background: c.color }}
-                          />
-                        </div>
+                  <h3 className="text-[13px] font-semibold text-[#f0f0f3] mb-5">Spend by Category</h3>
+                  
+                  <div className="flex flex-col md:flex-row items-center gap-8 py-2">
+                    {/* SVG Donut Chart on the Left */}
+                    <div className="relative w-[150px] h-[150px] flex-shrink-0">
+                      <svg width="100%" height="100%" viewBox="0 0 100 100">
+                        {/* Empty background circle */}
+                        <circle cx="50" cy="50" r="38" fill="transparent" stroke="rgba(255,255,255,0.02)" strokeWidth="8" />
+                        {(() => {
+                          let accumulatedPercent = 0;
+                          const radius = 38;
+                          const circumference = 2 * Math.PI * radius; // 238.76
+                          return cats.map((c, idx) => {
+                            const strokeDashoffset = circumference - (circumference * c.pct) / 100;
+                            const rotation = (accumulatedPercent * 360) / 100;
+                            accumulatedPercent += c.pct;
+                            return (
+                              <circle
+                                key={idx}
+                                cx="50"
+                                cy="50"
+                                r={radius}
+                                fill="transparent"
+                                stroke={c.color}
+                                strokeWidth="8"
+                                strokeDasharray={circumference}
+                                strokeDashoffset={strokeDashoffset}
+                                transform={`rotate(${rotation - 90} 50 50)`}
+                                style={{
+                                  transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                                  transformOrigin: '50% 50%'
+                                }}
+                              />
+                            );
+                          });
+                        })()}
+                      </svg>
+                      {/* Text in the center of the Donut */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                        <span className="text-[9px] text-[#71717a] uppercase tracking-wider font-semibold">Total Spent</span>
+                        <span className="text-[17px] font-black text-white mt-0.5">₹{totalSpend.toLocaleString('en-IN')}</span>
                       </div>
-                    ))}
+                    </div>
+
+                    {/* Category list on the Right */}
+                    <div className="flex-1 w-full space-y-3">
+                      {cats.map(c => (
+                        <div key={c.label}>
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[12px] text-[#a1a1aa] flex items-center gap-1.5 font-medium">
+                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color, display: 'inline-block' }} />
+                              {c.label}
+                            </span>
+                            <span className="text-[12px] font-semibold text-white">₹{c.amount.toLocaleString('en-IN')} <span className="text-[#71717a] font-normal">({c.pct}%)</span></span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }} animate={{ width: `${c.pct}%` }}
+                              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                              className="h-full rounded-full" style={{ background: c.color }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-white/[0.05] flex justify-between">
-                    <span className="text-[12px] text-[#71717a]">Total Spent (May)</span>
-                    <span className="text-[13px] font-bold text-[#f0f0f3]">₹{totalSpend.toLocaleString('en-IN')}</span>
+                  
+                  <div className="mt-5 pt-3.5 border-t border-white/[0.05] flex justify-between items-center">
+                    <span className="text-[12px] text-[#71717a] font-medium">Reporting Cycle (May 2025)</span>
+                    <span className="text-[13px] font-black text-[#34d399]">₹{totalSpend.toLocaleString('en-IN')} Total Debit Flow</span>
                   </div>
                 </GlassCard>
               )}
@@ -2738,6 +2889,263 @@ function IndiaBankingPanel() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* ── RBI ACCOUNT AGGREGATOR CONSENT FLOW MODAL ── */}
+      <AnimatePresence>
+        {showAaModal && selectedAaProvider && (
+          <div className="fixed inset-0 z-50 bg-[#060814]/85 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.24, ease: 'easeOut' }}
+              className="w-full max-w-md bg-[#0d1423] border border-white/[0.08] rounded-3xl shadow-2xl relative overflow-hidden flex flex-col gap-5 p-6"
+            >
+              {/* Top Accent Color Bar */}
+              <div style={{ height: 4, background: selectedAaProvider.color, width: '100%', position: 'absolute', top: 0, left: 0 }} />
+
+              {/* Close Button */}
+              <button 
+                onClick={() => setShowAaModal(false)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/[0.04] border border-white/[0.05] flex items-center justify-center text-[#8b949e] hover:text-white transition-colors"
+              >
+                <X size={14} />
+              </button>
+
+              {/* Header block */}
+              <div className="flex items-center gap-3.5 pr-8">
+                <div style={{
+                  width: 38, height: 38, borderRadius: 10,
+                  background: selectedAaProvider.color + '1a',
+                  border: `1px solid ${selectedAaProvider.color}35`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                }}>
+                  <Landmark size={18} style={{ color: selectedAaProvider.color }} />
+                </div>
+                <div>
+                  <h4 className="text-[14.5px] font-black text-white">{selectedAaProvider.name}</h4>
+                  <p className="text-[11px] text-[#8b949e] flex items-center gap-1 mt-0.5">
+                    <ShieldCheck size={11} className="text-[#34d399]" /> RBI Licensed Consent Manager
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 1: Phone Verification */}
+              {aaStep === 'phone' && (
+                <div className="flex flex-col gap-4 pt-1">
+                  <div>
+                    <h5 className="text-[15px] font-bold text-white mb-1.5">Link your Bank Accounts</h5>
+                    <p className="text-[12px] text-[#8b949e] leading-relaxed">
+                      Enter the mobile number linked with your bank accounts to securely fetch your transactions via the RBI Account Aggregator framework.
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 bg-[#05080f]/60 border border-white/[0.08] rounded-xl px-3.5 py-3 focus-within:border-indigo-500 focus-within:shadow-[0_0_12px_rgba(99,102,241,0.18)] transition-all">
+                    <span className="text-[13px] font-bold text-[#8b949e] font-mono">🇮🇳 +91</span>
+                    <input
+                      type="tel"
+                      placeholder="Enter 10-digit mobile number"
+                      value={phoneNumber}
+                      onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="flex-1 bg-transparent border-none outline-none text-[13.5px] font-semibold text-white tracking-wider"
+                    />
+                  </div>
+
+                  <label className="flex items-start gap-2.5 cursor-pointer pt-1">
+                    <input type="checkbox" defaultChecked className="mt-1 accent-indigo-500 rounded" />
+                    <span className="text-[11px] text-[#71717a] leading-relaxed">
+                      I authorize {selectedAaProvider.name} to send OTP and fetch my bank accounts to sync with BeyondSelf.
+                    </span>
+                  </label>
+
+                  <button
+                    disabled={phoneNumber.length !== 10}
+                    onClick={() => setAaStep('otp')}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] text-white bg-indigo-600 hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-indigo-600/15"
+                  >
+                    Send Secure OTP <Sparkles size={13} />
+                  </button>
+                </div>
+              )}
+
+              {/* Step 2: OTP Verification */}
+              {aaStep === 'otp' && (
+                <div className="flex flex-col gap-4 pt-1">
+                  <div>
+                    <h5 className="text-[15px] font-bold text-white mb-1.5">Verify Mobile Number</h5>
+                    <p className="text-[12px] text-[#8b949e] leading-relaxed">
+                      Enter the 6-digit OTP sent via secure SMS to <strong className="text-white font-mono">+91 {phoneNumber}</strong>.
+                    </p>
+                  </div>
+
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="• • • • • •"
+                    value={otpValue.join('')}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      const newOtp = ['', '', '', '', '', ''];
+                      for (let i = 0; i < val.length; i++) newOtp[i] = val[i];
+                      setOtpValue(newOtp);
+                    }}
+                    style={{
+                      width: '180px',
+                      padding: '10px',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(5, 8, 15, 0.6)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      color: 'white',
+                      fontSize: '22px',
+                      fontWeight: 'bold',
+                      outline: 'none',
+                      textAlign: 'center',
+                      letterSpacing: '8px',
+                      margin: '0 auto',
+                      display: 'block'
+                    }}
+                    className="focus:border-indigo-500 focus:shadow-[0_0_12px_rgba(99,102,241,0.25)] transition-all font-mono"
+                  />
+
+                  <div className="flex justify-between items-center text-[11.5px] text-[#71717a] pt-1.5">
+                    <span>Didn't receive code?</span>
+                    <button className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">Resend OTP in 42s</button>
+                  </div>
+
+                  <button
+                    disabled={otpValue.filter(Boolean).length !== 6}
+                    onClick={() => {
+                      setAaStep('discover');
+                      setIsDiscovering(true);
+                      setTimeout(() => {
+                        setIsDiscovering(false);
+                      }, 1800);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] text-white bg-indigo-600 hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-indigo-600/15"
+                  >
+                    Confirm & Discover Accounts
+                  </button>
+                </div>
+              )}
+
+              {/* Step 3: Discover & Link Accounts */}
+              {aaStep === 'discover' && (
+                <div className="flex flex-col gap-4 pt-1">
+                  {isDiscovering ? (
+                    <div className="py-8 flex flex-col items-center justify-center text-center gap-4">
+                      {/* Animating Bank circles */}
+                      <div className="relative w-20 h-20 flex items-center justify-center">
+                        <div className="absolute inset-0 rounded-full border border-indigo-500/10 border-t-indigo-400 animate-spin" />
+                        <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center text-xl animate-pulse">
+                          🔍
+                        </div>
+                      </div>
+                      <div>
+                        <h5 className="text-[14.5px] font-bold text-white mb-1">Discovering Bank Accounts…</h5>
+                        <p className="text-[11.5px] text-[#8b949e]">Securely querying RBI Financial Information Providers (FIPs)</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <h5 className="text-[15px] font-bold text-white mb-1.5">Accounts Discovered</h5>
+                        <p className="text-[12px] text-[#8b949e] leading-relaxed">
+                          We found the following RBI-registered accounts linked with your phone number. Select the ones you want to link:
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        {[
+                          { id: 'hdfc', name: 'HDFC Bank Savings *9924', icon: '🏦', balance: '₹1,42,850' },
+                          { id: 'icici', name: 'ICICI Bank Savings *8812', icon: '🏦', balance: '₹41,200' },
+                          { id: 'sbi', name: 'SBI Savings Account *4451', icon: '🏦', balance: '₹8,450' }
+                        ].map(acc => {
+                          const isSel = selectedAccounts.includes(acc.id);
+                          return (
+                            <label 
+                              key={acc.id}
+                              className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200 ${
+                                isSel 
+                                  ? 'bg-indigo-600/10 border-indigo-500/30' 
+                                  : 'bg-white/[0.015] border-white/[0.04] hover:bg-white/[0.03]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <input 
+                                  type="checkbox" 
+                                  checked={isSel} 
+                                  onChange={() => {
+                                    if (isSel) {
+                                      setSelectedAccounts(selectedAccounts.filter(x => x !== acc.id));
+                                    } else {
+                                      setSelectedAccounts([...selectedAccounts, acc.id]);
+                                    }
+                                  }}
+                                  className="accent-indigo-500 rounded"
+                                />
+                                <span className="text-lg leading-none">{acc.icon}</span>
+                                <div>
+                                  <p className="text-[12.5px] font-semibold text-white">{acc.name}</p>
+                                  <p className="text-[10px] text-[#8b949e] mt-0.5">Balance: {acc.balance}</p>
+                                </div>
+                              </div>
+                              <span className="text-[9.5px] font-bold px-2 py-0.5 bg-white/[0.04] border border-white/[0.06] text-[#8b949e] rounded-md font-mono">FIP</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      <div className="bg-[#05080f]/40 border border-white/[0.06] rounded-xl p-3 flex flex-col gap-1.5 text-[11px] text-[#71717a]">
+                        <p className="font-semibold text-[#8b949e] flex items-center gap-1.5">
+                          🛡️ Secure Consent Summary
+                        </p>
+                        <p>· Frequency: Daily updates · Duration: 1 Year (revocable anytime)</p>
+                        <p>· Purpose: Automated Financial Intelligence Twin Sync</p>
+                      </div>
+
+                      <button
+                        disabled={selectedAccounts.length === 0}
+                        onClick={() => setAaStep('success')}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] text-white bg-[#10b981] hover:bg-[#059669] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-emerald-500/15"
+                      >
+                        Approve secure Consent ({selectedAccounts.length} Linked) <ShieldCheck size={13} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Step 4: Consent Securely Approved */}
+              {aaStep === 'success' && (
+                <div className="py-6 flex flex-col items-center justify-center text-center gap-4">
+                  {/* Glowing success checkmark */}
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-center text-3xl animate-bounce shadow-xl shadow-emerald-500/10">
+                    ✅
+                  </div>
+                  <div>
+                    <h5 className="text-[17px] font-black text-white">Consent Securely Approved!</h5>
+                    <p className="text-[12.5px] text-[#8b949e] leading-relaxed max-w-xs mx-auto mt-1.5">
+                      Your bank account data has been encrypted and linked successfully. Syncing financial assets to your Digital Twin...
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setAaProviderConnected(selectedAaProvider.name);
+                      setPhase('demo');
+                      setShowAaModal(false);
+                    }}
+                    className="w-full py-3 mt-3 rounded-xl font-bold text-[13px] text-white bg-indigo-600 hover:bg-indigo-500 transition-all cursor-pointer shadow-lg shadow-indigo-600/15"
+                  >
+                    Go to Finance Panel
+                  </button>
+                </div>
+              )}
+
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
