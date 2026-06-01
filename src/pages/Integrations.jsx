@@ -1991,313 +1991,290 @@ function NutritionixPanel() {
 const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
 function FitbitPanel() {
+  const { userId, updateDomain } = useData();
+  const [status, setStatus]           = useState('checking'); // checking | disconnected | connected | syncing | error
+  const [syncData, setSyncData]       = useState(null);
+  const [errorMsg, setErrorMsg]       = useState('');
+  const [backendConfigured, setBackendConfigured] = useState(true);
+
+  const uid = userId || 'default';
+
+  const getHeaders = () => {
+    try {
+      const auth = localStorage.getItem('dt_auth');
+      if (auth) {
+        const { token } = JSON.parse(auth);
+        return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+      }
+    } catch {}
+    return { 'Content-Type': 'application/json' };
+  };
+
+  const doSync = async () => {
+    setStatus('syncing');
+    try {
+      const res = await fetch(`${BACKEND}/api/fitbit/sync?userId=${encodeURIComponent(uid)}`, {
+        headers: getHeaders(),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.connected) { setStatus('disconnected'); return; }
+      if (data.syncError)  { setStatus('connected'); setErrorMsg(data.syncError); setSyncData(data); return; }
+      setSyncData(data);
+      setStatus('connected');
+      // Write real values into DataContext health domain so scoring engines see live data
+      const h = data.health || {};
+      const patch = {};
+      if (h.sleepHours       > 0) patch.sleepAvg  = h.sleepHours;
+      if (h.steps            > 0) patch.steps      = h.steps;
+      if (h.restingHeartRate > 0) patch.heartRate  = h.restingHeartRate;
+      if (h.calories         > 0) patch.caloriesAvg = h.calories;
+      if (Object.keys(patch).length) updateDomain('health', { ...patch, lastFitbitSync: data.syncedAt });
+    } catch (e) {
+      setStatus('error');
+      setErrorMsg(e.message);
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fitbitResult = params.get('fitbit');
+
+    if (fitbitResult === 'success') {
+      window.history.replaceState({}, '', window.location.pathname);
+      doSync();
+      return;
+    }
+    if (fitbitResult === 'error') {
+      setStatus('error');
+      setErrorMsg(decodeURIComponent(params.get('msg') || 'OAuth authorization denied'));
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
+    // Normal mount: check whether this user already has a token stored server-side
+    fetch(`${BACKEND}/api/fitbit/status?userId=${encodeURIComponent(uid)}`, {
+      headers: getHeaders(),
+      signal: AbortSignal.timeout(5000),
+    })
+      .then(r => r.ok ? r.json() : { connected: false })
+      .then(d => { if (d.connected) doSync(); else setStatus('disconnected'); })
+      .catch(() => setStatus('disconnected'));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleConnect = async () => {
+    setStatus('checking');
+    try {
+      const res = await fetch(`${BACKEND}/api/fitbit/connect?userId=${encodeURIComponent(uid)}`, {
+        headers: getHeaders(),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = await res.json();
+      if (data.configured && data.url) {
+        window.location.href = data.url; // Redirect to Google OAuth consent screen
+      } else {
+        setBackendConfigured(false);
+        setStatus('error');
+        setErrorMsg(data.reason || 'FITBIT_CLIENT_ID / FITBIT_CLIENT_SECRET not set in backend application.properties.');
+      }
+    } catch {
+      setStatus('error');
+      setErrorMsg('Cannot reach backend. Is the Spring Boot server running on port 8080?');
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await fetch(`${BACKEND}/api/fitbit/disconnect?userId=${encodeURIComponent(uid)}`, {
+        method: 'POST', headers: getHeaders(), signal: AbortSignal.timeout(5000),
+      });
+    } catch {}
+    setSyncData(null);
+    setStatus('disconnected');
+  };
+
+  const isLoading   = status === 'checking' || status === 'syncing';
+  const isConnected = status === 'connected';
+  const h = syncData?.health || {};
+
+  const metrics = [
+    { label:'Steps',      value: h.steps            ? h.steps.toLocaleString()            : '—', suffix:'',     Icon:Footprints, bg:'#10b98120', iconCls:'text-emerald-400' },
+    { label:'Sleep',      value: h.sleepHours        ? `${h.sleepHours}h`                 : '—', suffix:'',     Icon:Moon,       bg:'#6366f120', iconCls:'text-indigo-400'  },
+    { label:'Heart Rate', value: h.restingHeartRate  ? String(h.restingHeartRate)          : '—', suffix:'bpm',  Icon:Heart,      bg:'#ef444420', iconCls:'text-rose-400'    },
+    { label:'Calories',   value: h.calories          ? h.calories.toLocaleString()         : '—', suffix:'kcal', Icon:Zap,        bg:'#f59e0b20', iconCls:'text-amber-400'   },
+  ];
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-      {/* Left Column (span 2) */}
+      {/* Left Column */}
       <div className="lg:col-span-2 space-y-5">
-        {/* ── 4 Metric Cards ── */}
-        <div 
-          className="grid grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden shadow-lg gap-px bg-white/[0.06]"
-          style={{
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            backdropFilter: 'blur(16px)',
-            width: '100%',
-            minWidth: 0
-          }}
-        >
-          {[
-            { label:'Steps',      value:'8,642',  suffix:'',     Icon:Footprints, bg:'#10b98120', iconCls:'text-emerald-400', trend:'+12.4%', up:true  },
-            { label:'Sleep',      value:'7h 32m', suffix:'',     Icon:Moon,       bg:'#6366f120', iconCls:'text-indigo-400',  trend:'+8.1%',  up:true  },
-            { label:'Heart Rate', value:'72',     suffix:'bpm',  Icon:Heart,      bg:'#ef444420', iconCls:'text-rose-400',    trend:'-3.2%',  up:false },
-            { label:'Calories',   value:'2,184',  suffix:'kcal', Icon:Zap,        bg:'#f59e0b20', iconCls:'text-amber-400',   trend:'+6.7%',  up:true  },
-          ].map((m, idx) => (
-            <div
-              key={m.label}
-              className="group hover:bg-[#162035]/90 transition-colors duration-300"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                padding: '24px 24px',
-                backgroundColor: 'rgba(13, 20, 35, 0.85)',
-                minWidth: 0
-              }}
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
-                style={{ background: m.bg }}
-              >
+
+        {/* 4 Metric Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden shadow-lg gap-px bg-white/[0.06]"
+          style={{ border:'1px solid rgba(255,255,255,0.06)', backdropFilter:'blur(16px)' }}>
+          {metrics.map(m => (
+            <div key={m.label} className="group hover:bg-[#162035]/90 transition-colors duration-300"
+              style={{ display:'flex', alignItems:'center', gap:16, padding:'24px', backgroundColor:'rgba(13,20,35,0.85)', minWidth:0 }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
+                style={{ background: m.bg }}>
                 <m.Icon size={19} className={m.iconCls} />
               </div>
-              <div className="min-w-0 flex flex-col gap-1" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-                <p className="text-[11.5px] text-[#8b949e]" style={{ margin: 0, fontSize: 11.5, fontWeight: 500 }}>{m.label}</p>
-                <div className="flex items-baseline gap-1.5" style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span className="text-[22px] font-black text-white leading-none" style={{ fontSize: 22 }}>{m.value}</span>
-                  {m.suffix && <span className="text-[11.5px] text-[#8b949e] font-normal" style={{ fontSize: 11.5 }}>{m.suffix}</span>}
+              <div style={{ display:'flex', flexDirection:'column', gap:4, minWidth:0 }}>
+                <p className="text-[11.5px] text-[#8b949e]" style={{ margin:0 }}>{m.label}</p>
+                <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+                  {isLoading
+                    ? <span className="inline-block w-14 h-5 rounded bg-white/10 animate-pulse" />
+                    : <><span className="text-[22px] font-black text-white leading-none">{m.value}</span>
+                       {m.suffix && m.value !== '—' && <span className="text-[11.5px] text-[#8b949e]">{m.suffix}</span>}</>}
                 </div>
-                <p className={`text-[12px] font-bold ${m.up ? 'text-[#10b981]' : 'text-[#f43f5e]'}`} style={{ margin: 0, fontSize: 12 }}>
-                  {m.up ? '▲' : '▼'} {m.trend.replace('+','').replace('-','')} <span className="text-[#8b949e] font-normal">vs last 7 days</span>
+                <p className="text-[11px] text-[#8b949e]" style={{ margin:0 }}>
+                  {isConnected && syncData?.syncedAt ? `Synced ${syncData.syncedAt}` : isLoading ? '' : 'Not connected'}
                 </p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* ── All Activities Table ── */}
-        <div className="glass-card overflow-hidden flex flex-col flex-1">
-          {/* Toolbar */}
-          <div 
-            className="flex items-center justify-between border-b border-white/[0.06]"
-            style={{ paddingBottom: '16px' }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
-              <span 
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '20px',
-                  minWidth: '22px',
-                  padding: '0 6px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  color: '#8b949e',
-                  fontSize: '11px',
-                  fontWeight: 600
-                }}
-              >
-                10
-              </span>
+        {/* Not-connected state */}
+        {!isConnected && !isLoading && (
+          <div className="glass-card flex flex-col items-center justify-center py-16 gap-5 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#00b0b9]/10 border border-[#00b0b9]/20 flex items-center justify-center">
+              <Activity size={30} className="text-[#00b0b9]" />
             </div>
-            <div className="flex items-center gap-2.5">
-              <button
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  height: '34px',
-                  padding: '0 14px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  color: '#8b949e',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease-in-out'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                  e.currentTarget.style.color = '#c9d1d9';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.color = '#8b949e';
-                }}
-              >
-                <Calendar size={13.5} className="text-[#8b949e]" />
-                <span>May 23 - May 29, 2025</span>
-                <ChevronDown size={13.5} />
-              </button>
-              <button
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  height: '34px',
-                  padding: '0 14px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  color: '#8b949e',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease-in-out'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                  e.currentTarget.style.color = '#c9d1d9';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.color = '#8b949e';
-                }}
-              >
-                <Filter size={13.5} className="text-[#8b949e]" />
-                <span>Filter</span>
-                <ChevronDown size={13.5} />
-              </button>
+            <div className="max-w-xs">
+              <p className="text-[15px] font-bold text-white mb-1">Connect Google Fit</p>
+              <p className="text-[12px] text-[#8b949e] leading-relaxed">
+                {status === 'error' ? errorMsg : 'Authorize BeyondSelf to fetch your steps, sleep, heart rate and calories via secure OAuth 2.0.'}
+              </p>
+              {!backendConfigured && (
+                <p className="text-[11px] text-[#8b949e] mt-3">
+                  Set <code className="text-[#00b0b9]">FITBIT_CLIENT_ID</code> and <code className="text-[#00b0b9]">FITBIT_CLIENT_SECRET</code> in <code className="text-[#00b0b9]">backend/application.properties</code>, then restart the server.
+                </p>
+              )}
             </div>
+            {(status !== 'error' || backendConfigured) && (
+              <button onClick={handleConnect}
+                className="px-6 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all hover:opacity-90"
+                style={{ background:'linear-gradient(135deg, #00b0b9, #0ea5e9)' }}>
+                Connect Now →
+              </button>
+            )}
           </div>
+        )}
 
-          {/* Column header row */}
-          <div
-            className="grid border-b border-white/[0.06] text-[11px] font-bold text-[#8b949e] uppercase tracking-wider"
-            style={{ 
-              gridTemplateColumns: '150px 1fr 110px 120px 120px 40px',
-              paddingTop: '14px',
-              paddingBottom: '14px',
-              alignItems: 'center'
-            }}
-          >
-            <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
-            <div className="flex items-center">Activity</div>
-            <div className="flex items-center">Type</div>
-            <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Value <ChevronDown size={11}/></div>
-            <div className="flex items-center">Source</div>
-            <div/>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="glass-card flex items-center justify-center py-16 gap-3">
+            <div className="w-5 h-5 rounded-full border-2 border-[#00b0b9] border-t-transparent animate-spin" />
+            <span className="text-[13px] text-[#8b949e]">
+              {status === 'syncing' ? 'Syncing Google Fit data…' : 'Checking connection…'}
+            </span>
           </div>
+        )}
 
-          {/* Data rows */}
-          <div className="flex-1 flex flex-col divide-y divide-white/[0.06]">
-          {[
-            { date:'May 29, 2025', time:'10:42 AM', act:'Walk',            sub:'Outdoor',          type:'Steps',    pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'6,213 steps', Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
-            { date:'May 29, 2025', time:'09:15 AM', act:'Sleep',           sub:'7h 32m',           type:'Sleep',    pill:'bg-indigo-500/10  text-indigo-400  border-indigo-500/20',  val:'7h 32m',      Icon:Moon,       ib:'bg-indigo-500/10',  ic:'text-indigo-400'  },
-            { date:'May 28, 2025', time:'08:22 PM', act:'Heart Rate',      sub:'Resting',          type:'Heart',    pill:'bg-rose-500/10    text-rose-400    border-rose-500/20',    val:'72 bpm',      Icon:Heart,      ib:'bg-rose-500/10',    ic:'text-rose-400'    },
-            { date:'May 28, 2025', time:'06:45 PM', act:'Calories Burned', sub:'Active',           type:'Calories', pill:'bg-amber-500/10   text-amber-400   border-amber-500/20',   val:'512 kcal',    Icon:Zap,        ib:'bg-amber-500/10',   ic:'text-amber-400'   },
-            { date:'May 28, 2025', time:'04:30 PM', act:'Run',             sub:'Outdoor · 5.2 km', type:'Activity', pill:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', val:'5.2 km',      Icon:Footprints, ib:'bg-emerald-500/10', ic:'text-emerald-400' },
-          ].map((row, i) => (
-            <div
-              key={i}
-              className="grid hover:bg-white/[0.015] transition-colors group"
-              style={{ 
-                gridTemplateColumns: '150px 1fr 110px 120px 120px 40px', 
-                minHeight: '56px',
-                paddingTop: '14px',
-                paddingBottom: '14px',
-                alignItems: 'center'
-              }}
-            >
-              <div>
-                <p className="text-[13px] text-[#f0f0f3] font-medium">{row.date}</p>
-                <p className="text-[11px] text-[#8b949e] mt-0.5">{row.time}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg ${row.ib} flex items-center justify-center flex-shrink-0`}>
-                  <row.Icon size={15} className={row.ic} />
+        {/* Connected: today's summary */}
+        {isConnected && syncData && (
+          <div className="glass-card overflow-hidden">
+            <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+              <span className="text-[15px] font-bold text-[#f0f0f3]">Today's Summary</span>
+              <span className="text-[11px] text-[#8b949e]">via Google Fit · {syncData.displayName}</span>
+            </div>
+            <div className="pt-4 space-y-1">
+              {[
+                { icon:'🚶', label:'Steps',             val: h.steps            > 0 ? `${h.steps.toLocaleString()} steps`               : 'No data' },
+                { icon:'😴', label:'Sleep last night',  val: h.sleepHours       > 0 ? `${h.sleepHours}h`                                 : 'No sleep session found' },
+                { icon:'❤️', label:'Resting heart rate',val: h.restingHeartRate > 0 ? `${h.restingHeartRate} bpm`                        : 'No data' },
+                { icon:'🔥', label:'Active calories',   val: h.calories         > 0 ? `${h.calories.toLocaleString()} kcal`              : 'No data' },
+                { icon:'📍', label:'Distance',          val: h.distanceMetres   > 0 ? `${(h.distanceMetres / 1000).toFixed(2)} km`       : 'No data' },
+              ].map((row, i) => (
+                <div key={i} className="flex items-center justify-between py-2.5 border-b border-white/[0.04] last:border-0">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base">{row.icon}</span>
+                    <span className="text-[13px] text-[#8b949e]">{row.label}</span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-white">{row.val}</span>
                 </div>
-                <div>
-                  <p className="text-[13px] font-medium text-[#f0f0f3]">{row.act}</p>
-                  <p className="text-[11px] text-[#8b949e]">{row.sub}</p>
-                </div>
-              </div>
-              <div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${row.pill}`}>
-                  {row.type}
-                </span>
-              </div>
-              <div className="text-[13px] text-[#f0f0f3] font-medium">{row.val}</div>
-              <div className="flex items-center gap-2 text-[13px] text-[#f0f0f3]">
-                <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
-                  <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
-                  <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
-                  <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
-                  <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-                  <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-                  <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-                  <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-                </svg>
-                Fitbit
-              </div>
-              <button className="flex justify-center text-[#8b949e] hover:text-[#f0f0f3] opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreVertical size={15} />
-              </button>
+              ))}
             </div>
-          ))}
+            {errorMsg && (
+              <p className="mt-3 text-[11px] text-amber-400 flex items-center gap-1">
+                <AlertTriangle size={11} /> Partial sync: {errorMsg}
+              </p>
+            )}
           </div>
-
-          {/* Pagination footer */}
-          <div 
-            className="flex items-center justify-between border-t border-white/[0.06]"
-            style={{ paddingTop: '16px' }}
-          >
-            <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
-            <div className="flex items-center gap-1.5">
-              <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
-                <ChevronLeft size={14}/>
-              </button>
-              <button className="w-8 h-8 rounded-lg bg-[#388bfd] text-white flex items-center justify-center text-[12px] font-bold shadow-md shadow-blue-500/25">1</button>
-              <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors text-[12px]">2</button>
-              <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
-                <ChevronRight size={14}/>
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Right Column (span 1) */}
+      {/* Right Column */}
       <div className="space-y-5">
-        {/* Connection Status & Sync Guide Card */}
         <GlassCard className="border border-[#00b0b9]/15 bg-[#00b0b9]/[0.02] !p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: 'rgba(0, 176, 185, 0.15)',
-              border: '1px solid rgba(0, 176, 185, 0.3)',
-              display: 'flex', alignItems: 'center', justifyCent: 'center', flexShrink: 0
-            }} className="flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
-                <circle cx="20" cy="8"  r="3.5" fill="#00b0b9"/>
-                <circle cx="20" cy="20" r="4.5" fill="#00b0b9"/>
-                <circle cx="20" cy="32" r="3.5" fill="#00b0b9"/>
-                <circle cx="9"  cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-                <circle cx="9"  cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-                <circle cx="31" cy="14" r="3"   fill="#00b0b9" opacity="0.6"/>
-                <circle cx="31" cy="26" r="3"   fill="#00b0b9" opacity="0.6"/>
-              </svg>
+            <div style={{ width:38, height:38, borderRadius:10, background:'rgba(0,176,185,0.15)', border:'1px solid rgba(0,176,185,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <Activity size={18} className="text-[#00b0b9]" />
             </div>
             <div>
-              <h4 className="text-[13.5px] font-bold text-white tracking-wide">Fitbit Health Sync</h4>
+              <h4 className="text-[13.5px] font-bold text-white tracking-wide">Google Fit / Fitbit Sync</h4>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-                <span className="text-[10px] text-[#10b981] font-semibold">Live Sync Active</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-[#10b981]' : isLoading ? 'bg-[#f59e0b] animate-pulse' : 'bg-[#8b949e]'}`} />
+                <span className={`text-[10px] font-semibold ${isConnected ? 'text-[#10b981]' : isLoading ? 'text-[#f59e0b]' : 'text-[#8b949e]'}`}>
+                  {isConnected ? 'Connected' : isLoading ? 'Connecting…' : 'Not connected'}
+                </span>
               </div>
             </div>
           </div>
-          <p className="text-[12px] text-[#8b949e] leading-relaxed mb-4">
-            Authorize BeyondSelf to fetch steps, sleep duration, active calories, and heart rate directly from your Fitbit cloud via secure OAuth 2.0 protocols.
-          </p>
-          <button
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '10px 18px', borderRadius: 12, 
-              fontWeight: 750, fontSize: 13, color: '#00b0b9', border: '1px solid rgba(0,176,185,0.3)',
-              background: 'rgba(0, 176, 185, 0.08)', cursor: 'pointer', transition: 'all 0.2s', justifyContent: 'center'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,176,185,0.15)'; e.currentTarget.style.borderColor = 'rgba(0,176,185,0.5)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 176, 185, 0.08)'; e.currentTarget.style.borderColor = 'rgba(0,176,185,0.3)'; }}
-          >
-            Reconnect Cloud Sync <ExternalLink size={13} />
-          </button>
+
+          {isConnected ? (
+            <div className="space-y-2">
+              <button onClick={doSync} disabled={isLoading}
+                className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ background:'linear-gradient(135deg, #00b0b9, #0ea5e9)' }}>
+                {status === 'syncing'
+                  ? <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Syncing…</>
+                  : '⟳ Sync Now'}
+              </button>
+              <button onClick={handleDisconnect}
+                className="w-full py-2 rounded-xl text-[12px] text-[#8b949e] border border-white/[0.08] hover:border-rose-500/30 hover:text-rose-400 transition-all">
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <button onClick={handleConnect} disabled={isLoading}
+              className="w-full py-2.5 rounded-xl text-[13px] font-bold text-[#00b0b9] border border-[#00b0b9]/30 bg-[#00b0b9]/[0.08] flex items-center justify-center gap-2 hover:bg-[#00b0b9]/[0.15] transition-all disabled:opacity-50">
+              {isLoading
+                ? <><div className="w-3.5 h-3.5 border-2 border-[#00b0b9] border-t-transparent rounded-full animate-spin" /> Connecting…</>
+                : <>Connect Google Fit <ExternalLink size={13} /></>}
+            </button>
+          )}
         </GlassCard>
 
-        {/* AI Wellness Recommendations */}
+        {/* AI Wellness — driven by real sync data when available */}
         <GlassCard className="relative overflow-hidden border border-indigo-500/15 bg-indigo-500/[0.01] !p-6">
           <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
           <div className="flex items-center gap-2 mb-4">
             <Brain size={14} className="text-indigo-400 animate-pulse" />
             <h4 className="text-[13.5px] font-bold text-white tracking-wide">AI Wellness Advice</h4>
           </div>
-          <div className="space-y-3.5">
-            {[
-              "Sleep Quality: 7h 32m achieved. Excellent consistency. Maintaining this window reduces cumulative sleep debt and optimizes cognitive function.",
-              "Daily Steps: 8,642 steps. You are 86% toward your 10k target. A brisk 12-minute walk will trigger physical twin sync baseline.",
-              "Cardiovascular: Resting HR is 72 bpm. Stable baseline. Your recovery kinetics after activity indicate strong aerobic endurance.",
-              "Caloric Output: Active burn of 2,184 kcal aligns perfectly with your metabolic digital twin prediction."
-            ].map((rec, i) => (
-              <div key={i} className="flex items-start gap-2 text-[12px] text-slate-300 leading-relaxed font-medium">
-                <ChevronRight size={13} className="mt-1 text-indigo-400 flex-shrink-0" />
-                <span>{rec}</span>
-              </div>
-            ))}
-          </div>
+          {isConnected && syncData ? (
+            <div className="space-y-3.5">
+              {[
+                h.sleepHours > 0 && `Sleep: ${h.sleepHours}h logged. ${h.sleepHours >= 7 ? 'Great sleep duration — maintain this window to protect cognitive output.' : 'Below the 7h target. Try shifting bedtime 30 minutes earlier.'}`,
+                h.steps > 0 && `Steps: ${h.steps.toLocaleString()} today. ${h.steps >= 10000 ? '10k goal reached — excellent activity level.' : `${(10000 - h.steps).toLocaleString()} more steps to your daily 10k goal.`}`,
+                h.restingHeartRate > 0 && `Heart rate: ${h.restingHeartRate} bpm resting. ${h.restingHeartRate < 75 ? 'Healthy resting HR — good aerobic fitness.' : 'Slightly elevated. Light cardio sessions this week can help.'}`,
+                h.calories > 0 && `Active burn: ${h.calories.toLocaleString()} kcal recorded for today.`,
+              ].filter(Boolean).map((rec, i) => (
+                <div key={i} className="flex items-start gap-2 text-[12px] text-slate-300 leading-relaxed font-medium">
+                  <ChevronRight size={13} className="mt-1 text-indigo-400 flex-shrink-0" />
+                  <span>{rec}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-[#8b949e] leading-relaxed">
+              Connect Google Fit to receive AI-personalized wellness insights grounded in your real activity data.
+            </p>
+          )}
         </GlassCard>
       </div>
     </div>
