@@ -1075,32 +1075,34 @@ function LinkedInPanel() {
           Analyze any LinkedIn profile or search for professional connections to enrich your career analytics and job matches.
         </p>
 
-        <div style={{ display: 'flex', gap: 12, marginTop: 12, width: '100%' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Linkedin size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#6e7681' }} />
+        <div style={{ display: 'flex', gap: 12, marginTop: 12, width: '100%', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+            <Search size={14} style={{ position: 'absolute', left: 14, color: '#6e7681' }} />
             <input
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
               placeholder="e.g. Arjun Mehta, Priya Sharma"
               className="input-premium w-full text-[13.5px]"
-              style={{ paddingLeft: 38 }}
+              style={{ paddingLeft: 38, height: 42, boxSizing: 'border-box' }}
             />
           </div>
-          <button
+          <motion.button
             onClick={handleSearch}
             disabled={!searchInput.trim() || loading}
+            whileHover={!loading && searchInput.trim() ? { scale: 1.03, y: -1 } : {}}
+            whileTap={!loading && searchInput.trim() ? { scale: 0.97 } : {}}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 12, 
-              fontWeight: 600, fontSize: 13, color: '#ffffff', border: '1px solid rgba(99,102,241,0.35)',
-              background: 'rgba(99, 102, 241, 0.25)', cursor: 'pointer', transition: 'all 0.2s'
+              display: 'flex', alignItems: 'center', gap: 8, padding: '0 28px', height: 42, borderRadius: 12, 
+              fontWeight: 700, fontSize: 13, color: '#ffffff', border: 'none',
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', cursor: 'pointer', transition: 'all 0.2s',
+              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)', opacity: !searchInput.trim() || loading ? 0.5 : 1,
+              boxSizing: 'border-box'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.35)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.55)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.25)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)'; }}
           >
-            {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
             Analyze
-          </button>
+          </motion.button>
         </div>
 
         {/* Suggested row */}
