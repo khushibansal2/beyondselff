@@ -1996,9 +1996,9 @@ function FitbitPanel() {
       </div>
 
       {/* ── All Activities Table ── */}
-      <div className="glass-card table-card overflow-hidden flex flex-col flex-1">
+      <div className="glass-card overflow-hidden flex flex-col flex-1">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
             <span 
@@ -2088,7 +2088,7 @@ function FitbitPanel() {
 
         {/* Column header row */}
         <div
-          className="grid px-6 py-3 border-b border-white/[0.06] text-[11px] font-bold text-[#8b949e] uppercase tracking-wider bg-white/[0.015]"
+          className="grid py-3 border-b border-white/[0.06] text-[11px] font-bold text-[#8b949e] uppercase tracking-wider"
           style={{ gridTemplateColumns: '150px 1fr 110px 120px 120px 40px' }}
         >
           <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
@@ -2110,7 +2110,7 @@ function FitbitPanel() {
         ].map((row, i) => (
           <div
             key={i}
-            className="grid px-6 py-3.5 hover:bg-white/[0.02] transition-colors items-center group"
+            className="grid py-3.5 hover:bg-white/[0.015] transition-colors items-center group"
             style={{ gridTemplateColumns: '150px 1fr 110px 120px 120px 40px', minHeight: '56px' }}
           >
             <div>
@@ -2152,7 +2152,7 @@ function FitbitPanel() {
         </div>
 
         {/* Pagination footer */}
-        <div className="flex items-center justify-between px-6 py-3.5 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
           <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
           <div className="flex items-center gap-1.5">
             <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
