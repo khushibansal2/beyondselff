@@ -1083,8 +1083,8 @@ function LinkedInPanel() {
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
               placeholder="e.g. Arjun Mehta, Priya Sharma"
-              className="input-premium w-full text-[13.5px]"
-              style={{ paddingLeft: 38, height: 42, boxSizing: 'border-box' }}
+              className="input-premium w-full text-[13.5px] !pl-10"
+              style={{ height: 42, boxSizing: 'border-box' }}
             />
           </div>
           <motion.button
