@@ -154,7 +154,9 @@ export default function VoiceLogger() {
 
   const startListening = () => {
     if (!recognitionRef.current) {
-      showToast('Speech recognition not supported in this browser', 'error');
+      setErrorMsg('Voice input requires Chrome or Edge — your browser does not support the Web Speech API.');
+      setExpanded(true);
+      setStage(STAGES.ERROR);
       return;
     }
     transcriptRef.current = '';
@@ -458,10 +460,17 @@ export default function VoiceLogger() {
                 <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
                   <p className="text-xs text-rose-300 leading-relaxed">{errorMsg}</p>
                 </div>
-                <button onClick={startListening}
-                  className="w-full py-2 rounded-xl bg-white/[0.04] border border-white/10 text-slate-300 text-xs hover:bg-white/[0.07] transition-all">
-                  Try Again 🎤
-                </button>
+                {recognitionRef.current ? (
+                  <button onClick={startListening}
+                    className="w-full py-2 rounded-xl bg-white/[0.04] border border-white/10 text-slate-300 text-xs hover:bg-white/[0.07] transition-all">
+                    Try Again 🎤
+                  </button>
+                ) : (
+                  <button onClick={resetToIdle}
+                    className="w-full py-2 rounded-xl bg-white/[0.04] border border-white/10 text-slate-300 text-xs hover:bg-white/[0.07] transition-all">
+                    Dismiss
+                  </button>
+                )}
               </div>
             )}
           </motion.div>
