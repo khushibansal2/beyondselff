@@ -1705,8 +1705,7 @@ function NutritionixPanel() {
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
               placeholder="e.g. 2 eggs, toast and a glass of milk"
-              className="input-premium w-full text-[13.5px]"
-              style={{ paddingLeft: 38 }}
+              className="input-premium w-full text-[13.5px] !pl-10"
             />
           </div>
           <motion.button
