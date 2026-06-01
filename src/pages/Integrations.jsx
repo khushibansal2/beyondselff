@@ -3196,52 +3196,78 @@ function CourseraPanel() {
   const savedCourses = career?.courseraLearning || [];
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header card */}
-      <GlassCard>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0056d2]/20 border border-[#0056d2]/30 flex items-center justify-center">
-              <BookOpen size={18} className="text-[#0056d2]" />
+      <GlassCard className="!p-6" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 12,
+              background: 'rgba(0,86,210,0.1)',
+              border: '1px solid rgba(0,86,210,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <BookOpen size={20} style={{ color: '#60a5fa' }} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white">Coursera</h3>
-              <p className="text-[11px] text-slate-500">Live catalog · Direct API · Real course data</p>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Coursera Academic Portal</h3>
+              <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0 0' }}>Live Catalog · Real-Time API Sync · Verified Credentials</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <StatusBadge status="live" />
             {hasCache && (
-              <button onClick={() => { clearCourseraCache(); setHasCache(false); }} className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors">
-                Clear cache
+              <button 
+                onClick={() => { clearCourseraCache(); setHasCache(false); }} 
+                style={{
+                  fontSize: 10.5, fontWeight: 600, color: '#64748b', background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 10px',
+                  cursor: 'pointer', transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#f1f5f9'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+              >
+                Clear Cache
               </button>
             )}
           </div>
         </div>
 
-        <p className="text-[12px] text-slate-400 mb-4">
-          Pulls live course data straight from{' '}
-          <span className="text-[#0056d2] font-semibold">Coursera's catalog API</span>.
-          No AI, no mock data — real titles, thumbnails, levels and partner names exactly as they appear on coursera.org.
+        <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0, lineHeight: 1.6 }}>
+          Directly query <strong className="text-white">Coursera's global developer database</strong> to search for live verified courses, specialization tracks, and university certificates. Save select programs to construct your AI-guided digital twin learning roadmap.
         </p>
 
-        {/* Search */}
-        <div className="flex gap-2 mb-3">
-          <div className="relative flex-1">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+        {/* Search Input Box */}
+        <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+          <div style={{
+            position: 'relative', flex: 1, display: 'flex', alignItems: 'center',
+            background: 'rgba(5, 8, 15, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: 12, padding: '0 12px', transition: 'all 0.25s'
+          }} className="focus-within:border-blue-500/50 focus-within:shadow-[0_0_12px_rgba(96,165,250,0.18)]">
+            <Search size={14} style={{ color: '#4b5563', marginRight: 8, flexShrink: 0 }} />
             <input
               ref={inputRef}
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch(query)}
-              placeholder="Search Coursera… e.g. Python, Machine Learning, React"
-              className="w-full pl-8 pr-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-[13px] text-white placeholder-slate-600 outline-none focus:border-[#0056d2]/40 transition-colors"
+              placeholder="Search live Coursera database… e.g. Python, AI Agent, Next.js"
+              style={{
+                width: '100%', background: 'transparent', border: 'none', outline: 'none',
+                fontSize: 13, color: '#fff', padding: '10px 0', boxSizing: 'border-box'
+              }}
             />
           </div>
           <button
             onClick={() => doSearch(query)}
             disabled={loading || !query.trim()}
-            className="px-4 py-2.5 rounded-xl bg-[#0056d2] hover:bg-[#0047b3] disabled:opacity-40 text-white text-[13px] font-semibold transition-all flex items-center gap-2"
+            style={{
+              padding: '10px 22px', borderRadius: 12, background: '#0056d2', border: 'none',
+              color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
+              opacity: (loading || !query.trim()) ? 0.4 : 1
+            }}
+            onMouseEnter={e => { if (!loading && query.trim()) e.currentTarget.style.background = '#0047b3'; }}
+            onMouseLeave={e => { if (!loading && query.trim()) e.currentTarget.style.background = '#0056d2'; }}
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
             Search
@@ -3249,96 +3275,317 @@ function CourseraPanel() {
         </div>
 
         {/* Skill chips */}
-        <div className="flex flex-wrap gap-1.5">
-          {SKILL_CHIPS.map(s => (
-            <button key={s} onClick={() => { setQuery(s); doSearch(s); }}
-              className={`text-[11px] px-3 py-1 rounded-full border transition-all ${query === s ? 'bg-[#0056d2]/20 border-[#0056d2]/40 text-[#60a5fa]' : 'bg-white/[0.03] border-white/[0.07] text-slate-400 hover:border-white/[0.15] hover:text-white'}`}>
-              {s}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, paddingTop: 4 }}>
+          {SKILL_CHIPS.map(s => {
+            const isAct = query === s;
+            return (
+              <button 
+                key={s} 
+                onClick={() => { setQuery(s); doSearch(s); }}
+                style={{
+                  fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 99,
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  background: isAct ? 'rgba(0,86,210,0.18)' : 'rgba(255,255,255,0.03)',
+                  border: isAct ? '1px solid rgba(96,165,250,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                  color: isAct ? '#60a5fa' : '#8b949e'
+                }}
+                onMouseEnter={e => {
+                  if (!isAct) {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                    e.currentTarget.style.color = '#f1f5f9';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isAct) {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.currentTarget.style.color = '#8b949e';
+                  }
+                }}
+              >
+                {s}
+              </button>
+            );
+          })}
         </div>
       </GlassCard>
 
       {/* Progress / loading */}
       {loading && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0056d2]/10 border border-[#0056d2]/20">
-          <Loader2 size={14} className="animate-spin text-[#60a5fa]" />
-          <p className="text-[12px] text-[#60a5fa]">{progress || 'Fetching live courses from Coursera…'}</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 8 }} 
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderRadius: 16,
+            background: 'rgba(0,86,210,0.08)', border: '1px solid rgba(0,86,210,0.18)'
+          }}
+        >
+          <Loader2 size={15} className="animate-spin" style={{ color: '#60a5fa' }} />
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: '#60a5fa', margin: 0 }}>
+            {progress || 'Connecting to Coursera Catalog Services…'}
+          </p>
+        </motion.div>
       )}
 
       {/* Error */}
       {error && !loading && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-          <AlertTriangle size={14} className="text-amber-400" />
-          <p className="text-[12px] text-amber-300">{error}</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 8 }} 
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderRadius: 16,
+            background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.18)'
+          }}
+        >
+          <AlertTriangle size={15} style={{ color: '#fbbf24' }} />
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: '#f59e0b', margin: 0 }}>{error}</p>
+        </motion.div>
       )}
 
-      {/* Results */}
+      {/* Results Grid */}
       {courses.length > 0 && (
-        <div>
-          <p className="text-[11px] text-slate-500 mb-3 px-1">{courses.length} courses found on Coursera for "<span className="text-slate-300">{query}</span>"</p>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {courses.map((course, i) => (
-              <motion.div key={course.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/[0.14] transition-all group">
-                {/* Course thumbnail */}
-                {course.photo ? (
-                  <img src={course.photo} alt={course.name}
-                    className="w-full h-28 object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                    onError={e => { e.target.style.display = 'none'; }} />
-                ) : (
-                  <div className="w-full h-28 bg-gradient-to-br from-[#0056d2]/20 to-purple-900/20 flex items-center justify-center">
-                    <BookOpen size={28} className="text-[#0056d2]/50" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p style={{ fontSize: 11.5, color: '#64748b', margin: '0 4px', fontWeight: 600 }}>
+            Catalog matches: <strong style={{ color: '#94a3b8' }}>{courses.length} courses</strong> found for "{query}"
+          </p>
+          
+          <div 
+            style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+              gap: '20px' 
+            }}
+          >
+            {courses.map((course, i) => {
+              const isSaved = saved[course.id] || !!savedCourses.find(c => c.id === course.id);
+
+              // Premium styling based on program level
+              let badgeBg = 'rgba(255,255,255,0.04)';
+              let badgeBorder = 'rgba(255,255,255,0.08)';
+              let badgeColor = '#94a3b8';
+              const lvl = course.level?.toLowerCase() || '';
+
+              if (lvl.includes('begin')) {
+                badgeBg = 'rgba(16,185,129,0.12)';
+                badgeBorder = 'rgba(16,185,129,0.2)';
+                badgeColor = '#34d399';
+              } else if (lvl.includes('intermed')) {
+                badgeBg = 'rgba(59,130,246,0.12)';
+                badgeBorder = 'rgba(59,130,246,0.2)';
+                badgeColor = '#60a5fa';
+              } else if (lvl.includes('adv') || lvl.includes('special')) {
+                badgeBg = 'rgba(139,92,246,0.12)';
+                badgeBorder = 'rgba(139,92,246,0.2)';
+                badgeColor = '#a78bfa';
+              }
+
+              return (
+                <motion.div 
+                  key={course.id} 
+                  initial={{ opacity: 0, y: 12 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  transition={{ delay: i * 0.04 }}
+                  className="group"
+                  style={{
+                    background: 'rgba(13, 20, 35, 0.45)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.borderColor = 'rgba(99,102,241,0.25)';
+                    e.currentTarget.style.boxShadow = '0 12px 36px 0 rgba(99,102,241,0.04)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.currentTarget.style.boxShadow = '0 8px 32px 0 rgba(0, 0, 0, 0.25)';
+                  }}
+                >
+                  {/* Aspect-ratio Banner */}
+                  <div style={{ width: '100%', height: 120, position: 'relative', overflow: 'hidden', background: '#05080f' }}>
+                    {course.photo ? (
+                      <img 
+                        src={course.photo} 
+                        alt={course.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8, transition: 'all 0.3s' }}
+                        className="group-hover:scale-105 group-hover:opacity-100"
+                        onError={e => { e.currentTarget.style.display = 'none'; }} 
+                      />
+                    ) : (
+                      <div style={{
+                        width: '100%', height: '100%',
+                        background: 'linear-gradient(135deg, rgba(0,86,210,0.15) 0%, rgba(99,102,241,0.05) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <BookOpen size={32} style={{ color: 'rgba(96, 165, 250, 0.25)' }} />
+                      </div>
+                    )}
+
+                    {/* Level Pill Indicator top-left */}
+                    {course.level && (
+                      <span style={{
+                        position: 'absolute', top: 12, left: 12, fontSize: 9.5, fontWeight: 700,
+                        padding: '3px 9px', borderRadius: 6, backdropFilter: 'blur(8px)',
+                        background: badgeBg, border: `1px solid ${badgeBorder}`, color: badgeColor,
+                        textTransform: 'uppercase', letterSpacing: '0.05em'
+                      }}>
+                        {course.level}
+                      </span>
+                    )}
                   </div>
-                )}
-                <div className="p-4">
-                  <p className="text-[13px] font-semibold text-white leading-snug mb-1 line-clamp-2">{course.name}</p>
-                  <p className="text-[11px] text-slate-500 mb-1">{course.partner}</p>
-                  <div className="flex gap-2 mb-3">
-                    {course.level && <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">{course.level}</span>}
-                    {course.duration && <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400">⏱ {course.duration}</span>}
+
+                  {/* Body details */}
+                  <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', flex: 1, gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px 0', lineHeight: 1.5 }} className="line-clamp-2">
+                        {course.name}
+                      </p>
+                      <p style={{ fontSize: 11, color: '#64748b', margin: 0, fontWeight: 500 }}>
+                        Offered by {course.partner}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      {course.duration && (
+                        <span style={{ fontSize: 10.5, fontWeight: 500, color: '#8b949e', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 6 }}>
+                          ⏱ {course.duration}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 10.5, fontWeight: 500, color: '#8b949e', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 6 }}>
+                        ✓ Course
+                      </span>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+                      <a 
+                        href={course.url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        style={{
+                          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          textDecoration: 'none', padding: '8px 0', borderRadius: 10,
+                          background: 'rgba(0,86,210,0.12)', border: '1px solid rgba(0,86,210,0.22)',
+                          color: '#60a5fa', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,86,210,0.22)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,86,210,0.12)'; }}
+                      >
+                        <ExternalLink size={12} /> View Program
+                      </a>
+                      <button
+                        onClick={() => handleSave(course)}
+                        disabled={isSaved}
+                        style={{
+                          width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center',
+                          justifyContent: 'center', cursor: isSaved ? 'default' : 'pointer', border: '1px solid',
+                          background: isSaved ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
+                          borderColor: isSaved ? 'rgba(16,185,129,0.28)' : 'rgba(255,255,255,0.08)',
+                          color: isSaved ? '#34d399' : '#8b949e', transition: 'all 0.2s', flexShrink: 0
+                        }}
+                        onMouseEnter={e => { if (!isSaved) { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; e.currentTarget.style.color = '#fff'; } }}
+                        onMouseLeave={e => { if (!isSaved) { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#8b949e'; } }}
+                      >
+                        {isSaved ? <CheckCircle size={14} /> : <Plus size={14} />}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <a href={course.url} target="_blank" rel="noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#0056d2]/15 border border-[#0056d2]/25 text-[#60a5fa] text-[12px] font-semibold hover:bg-[#0056d2]/25 transition-all">
-                      <ExternalLink size={12} /> View Course
-                    </a>
-                    <button
-                      onClick={() => handleSave(course)}
-                      disabled={saved[course.id] || !!savedCourses.find(c => c.id === course.id)}
-                      className="px-3 py-2 rounded-lg border text-[12px] font-semibold transition-all disabled:opacity-40"
-                      style={saved[course.id] || savedCourses.find(c => c.id === course.id)
-                        ? { background: 'rgba(16,185,129,0.12)', borderColor: 'rgba(16,185,129,0.3)', color: '#34d399' }
-                        : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)', color: '#94a3b8' }}
-                    >
-                      {saved[course.id] || savedCourses.find(c => c.id === course.id) ? <CheckCircle size={13} /> : <Plus size={13} />}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Saved courses */}
+      {/* Saved courses: Structured Learning Roadmap */}
       {savedCourses.length > 0 && (
-        <GlassCard>
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle size={14} className="text-emerald-400" /> Saved to Learning Path ({savedCourses.length})</h3>
-          <div className="space-y-2">
-            {savedCourses.map(c => (
-              <div key={c.id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-medium text-slate-200 truncate">{c.name}</p>
-                  <p className="text-[10px] text-slate-500">{c.partner}</p>
+        <GlassCard className="!p-6" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <CheckCircle size={15} style={{ color: '#34d399' }} />
+              <h3 style={{ fontSize: 14.5, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>AI Academic Learning Path</h3>
+            </div>
+            
+            <div style={{ display: 'flex', gap: 8 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399', padding: '3px 8px', borderRadius: 8 }}>
+                {savedCourses.length} Programs Linked
+              </span>
+              <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: '#818cf8', padding: '3px 8px', borderRadius: 8 }}>
+                Est: ~{savedCourses.length * 8} Hours
+              </span>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 12, color: '#8b949e', margin: 0 }}>
+            Your Digital Twin has mapped these saved programs chronologically. Complete them sequentially to optimize skill projections and accelerate career domain conversions.
+          </p>
+
+          {/* Interactive Connect-the-Dots Timeline Path */}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 16, paddingLeft: 14 }}>
+            {/* Vertical timeline connecting line */}
+            <div style={{
+              position: 'absolute', top: 8, bottom: 8, left: 3, width: 2,
+              background: 'linear-gradient(180deg, #10b981 0%, rgba(99,102,241,0.4) 60%, rgba(255,255,255,0.05) 100%)',
+              pointerEvents: 'none'
+            }} />
+
+            {savedCourses.map((c, idx) => {
+              const isFirst = idx === 0;
+              return (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, position: 'relative' }}>
+                  {/* Timeline dot */}
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: isFirst ? '#10b981' : '#6366f1',
+                    border: isFirst ? '2px solid rgba(16,185,129,0.4)' : '2px solid rgba(99,102,241,0.4)',
+                    boxShadow: isFirst ? '0 0 8px #10b981' : '0 0 6px #6366f1',
+                    flexShrink: 0, marginTop: 5, zIndex: 2, marginLeft: -17
+                  }} />
+
+                  <div 
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                      padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.012)',
+                      border: '1px solid rgba(255,255,255,0.03)', transition: 'all 0.25s'
+                    }}
+                    className="hover:bg-white/[0.03] hover:border-white/[0.08]"
+                  >
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 9, fontWeight: 800, color: isFirst ? '#34d399' : '#818cf8', textTransform: 'uppercase', fontMono: 'true' }}>
+                          Step {idx + 1}
+                        </span>
+                        {isFirst && (
+                          <span style={{ fontSize: 8.5, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: 'rgba(16,185,129,0.08)', color: '#34d399', border: '1px solid rgba(16,185,129,0.15)' }}>
+                            Active Track
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#f1f5f9', margin: '3px 0 1px 0', truncate: 'true' }}>{c.name}</p>
+                      <p style={{ fontSize: 10.5, color: '#64748b', margin: 0 }}>Offered by {c.partner}</p>
+                    </div>
+
+                    <a 
+                      href={c.url} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      style={{
+                        fontSize: 11, fontWeight: 600, color: '#60a5fa', textDecoration: 'none',
+                        display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0
+                      }}
+                      className="hover:underline"
+                    >
+                      Launch <ExternalLink size={10} />
+                    </a>
+                  </div>
                 </div>
-                <a href={c.url} target="_blank" rel="noreferrer" className="text-[11px] text-[#60a5fa] hover:underline flex items-center gap-1 shrink-0">
-                  Open <ExternalLink size={10} />
-                </a>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </GlassCard>
       )}
