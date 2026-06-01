@@ -3198,11 +3198,11 @@ function CourseraPanel() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header card */}
-      <GlassCard className="!p-6" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <GlassCard className="!p-8 !pb-9" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{
-              width: 42, height: 42, borderRadius: 12,
+              width: 44, height: 44, borderRadius: 12,
               background: 'rgba(0,86,210,0.1)',
               border: '1px solid rgba(0,86,210,0.25)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
@@ -3210,8 +3210,8 @@ function CourseraPanel() {
               <BookOpen size={20} style={{ color: '#60a5fa' }} />
             </div>
             <div>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Coursera Academic Portal</h3>
-              <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0 0' }}>Live Catalog · Real-Time API Sync · Verified Credentials</p>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Coursera Academic Portal</h3>
+              <p style={{ fontSize: 11.5, color: '#64748b', margin: '4px 0 0 0' }}>Live Catalog · Real-Time API Sync · Verified Credentials</p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -3238,13 +3238,13 @@ function CourseraPanel() {
         </p>
 
         {/* Search Input Box */}
-        <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+        <div style={{ display: 'flex', gap: 16, width: '100%' }}>
           <div style={{
             position: 'relative', flex: 1, display: 'flex', alignItems: 'center',
             background: 'rgba(5, 8, 15, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 12, padding: '0 12px', transition: 'all 0.25s'
+            borderRadius: 12, padding: '0 16px', transition: 'all 0.25s'
           }} className="focus-within:border-blue-500/50 focus-within:shadow-[0_0_12px_rgba(96,165,250,0.18)]">
-            <Search size={14} style={{ color: '#4b5563', marginRight: 8, flexShrink: 0 }} />
+            <Search size={14} style={{ color: '#4b5563', marginRight: 10, flexShrink: 0 }} />
             <input
               ref={inputRef}
               value={query}
@@ -3253,7 +3253,7 @@ function CourseraPanel() {
               placeholder="Search live Coursera database… e.g. Python, AI Agent, Next.js"
               style={{
                 width: '100%', background: 'transparent', border: 'none', outline: 'none',
-                fontSize: 13, color: '#fff', padding: '10px 0', boxSizing: 'border-box'
+                fontSize: 13, color: '#fff', padding: '12px 0', boxSizing: 'border-box'
               }}
             />
           </div>
@@ -3261,7 +3261,7 @@ function CourseraPanel() {
             onClick={() => doSearch(query)}
             disabled={loading || !query.trim()}
             style={{
-              padding: '10px 22px', borderRadius: 12, background: '#0056d2', border: 'none',
+              padding: '12px 28px', borderRadius: 12, background: '#0056d2', border: 'none',
               color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
               opacity: (loading || !query.trim()) ? 0.4 : 1
@@ -3275,7 +3275,7 @@ function CourseraPanel() {
         </div>
 
         {/* Skill chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, paddingTop: 4 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 8 }}>
           {SKILL_CHIPS.map(s => {
             const isAct = query === s;
             return (
@@ -3283,7 +3283,7 @@ function CourseraPanel() {
                 key={s} 
                 onClick={() => { setQuery(s); doSearch(s); }}
                 style={{
-                  fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 99,
+                  fontSize: 11, fontWeight: 600, padding: '6px 14px', borderRadius: 99,
                   cursor: 'pointer', transition: 'all 0.2s',
                   background: isAct ? 'rgba(0,86,210,0.18)' : 'rgba(255,255,255,0.03)',
                   border: isAct ? '1px solid rgba(96,165,250,0.4)' : '1px solid rgba(255,255,255,0.06)',
