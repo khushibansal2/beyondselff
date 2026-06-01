@@ -1148,20 +1148,169 @@ function LinkedInPanel() {
       {/* Empty State / Top Matches */}
       {!profile && !loading && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: 16 }}>
-          <GlassCard style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', textAlign: 'center', border: '1px dashed rgba(255, 255, 255, 0.08)', background: 'rgba(255, 255, 255, 0.005)' }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: '50%',
-              background: 'rgba(0, 119, 181, 0.1)',
-              border: '1px solid rgba(0, 119, 181, 0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 20
-            }}>
-              <Linkedin size={28} style={{ color: '#0077b5' }} />
+          <GlassCard style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '28px 18px', textAlign: 'center' }}>
+            {/* Top Graphic Area */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}>
+              
+              {/* Decorative Background Sparkles */}
+              <div style={{ position: 'absolute', top: 4, left: '16%', opacity: 0.5 }} className="animate-pulse">
+                <Sparkles size={13} className="text-blue-400" />
+              </div>
+              <div style={{ position: 'absolute', bottom: 12, left: '8%', opacity: 0.4 }} className="animate-pulse">
+                <Sparkles size={11} className="text-indigo-400" />
+              </div>
+              <div style={{ position: 'absolute', top: 20, right: '12%', opacity: 0.5 }} className="animate-pulse">
+                <Sparkles size={14} className="text-violet-400" />
+              </div>
+
+              {/* Glowing LinkedIn badge */}
+              <div style={{
+                width: 68, height: 68, borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(0, 119, 181, 0.22) 0%, rgba(0, 119, 181, 0.04) 100%)',
+                border: '1.5px solid rgba(0, 119, 181, 0.3)',
+                boxShadow: '0 0 24px rgba(0, 119, 181, 0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 16, zIndex: 2
+              }}>
+                <span style={{ fontSize: 30, fontWeight: 900, color: '#00a0dc', fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '-0.06em', textShadow: '0 0 8px rgba(0, 160, 220, 0.4)' }}>in</span>
+              </div>
+
+              {/* Central Vector Profile Card Mockup */}
+              <div style={{
+                position: 'relative',
+                width: 172,
+                height: 104,
+                borderRadius: 14,
+                background: 'rgba(255, 255, 255, 0.015)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.01)',
+                padding: '14px 18px',
+                boxSizing: 'border-box',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                zIndex: 1
+              }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  {/* Simplified Profile Circle */}
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#8b949e', flexShrink: 0
+                  }}>
+                    <Users size={15} />
+                  </div>
+
+                  {/* Horizontal text placeholders */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div style={{ height: 5, borderRadius: 2.5, background: 'rgba(255, 255, 255, 0.06)', width: '85%' }} />
+                    <div style={{ height: 5, borderRadius: 2.5, background: 'rgba(255, 255, 255, 0.03)', width: '65%' }} />
+                  </div>
+                </div>
+
+                {/* Bottom line placeholder */}
+                <div style={{ height: 5, borderRadius: 2.5, background: 'rgba(255, 255, 255, 0.04)', width: '75%', marginTop: 6 }} />
+
+                {/* Circular Magnifying Glass Lens with chart bars */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: -14,
+                  right: -14,
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  background: 'rgba(13, 20, 35, 0.9)',
+                  border: '1.5px solid rgba(129, 140, 248, 0.25)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#818cf8',
+                }}>
+                  {/* Mini Bar Chart lines inside circular lens */}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-[#818cf8]">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+
+                  {/* Magnifying Glass Handle protruding outside bottom-right */}
+                  <span style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    width: 10,
+                    height: 3,
+                    background: '#818cf8',
+                    borderRadius: 1.5,
+                    transform: 'rotate(45deg) translate(7px, 7px)',
+                    boxShadow: '0 0 6px rgba(129, 140, 248, 0.6)'
+                  }} />
+                </div>
+              </div>
             </div>
-            <h4 style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: '0 0 8px 0' }}>Analyze any LinkedIn profile</h4>
-            <p style={{ fontSize: 13, color: '#64748b', margin: 0, textAlign: 'center', lineHeight: 1.5 }}>
-              No authentication required • Works with any public profile
+
+            {/* Title & Subtitle */}
+            <h4 style={{ fontSize: 16, fontWeight: 700, color: '#f1f5f9', margin: '0 0 10px 0', letterSpacing: '-0.01em' }}>Analyze any LinkedIn profile</h4>
+            <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0, textAlign: 'center', lineHeight: 1.6 }}>
+              No authentication required<br />
+              Works with any public profile
             </p>
+
+            {/* Thin Horizontal Divider */}
+            <div style={{ width: '100%', height: 1, background: 'rgba(255, 255, 255, 0.05)', margin: '20px 0 16px' }} />
+
+            {/* Bottom Badges Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', width: '100%', gap: 6 }}>
+              
+              {/* Career Insights badge */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'rgba(129, 140, 248, 0.04)',
+                  border: '1px solid rgba(129, 140, 248, 0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#818cf8'
+                }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                    <polyline points="17 6 23 6 23 12" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b' }}>Career Insights</span>
+              </div>
+
+              {/* Skill Match badge */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'rgba(129, 140, 248, 0.04)',
+                  border: '1px solid rgba(129, 140, 248, 0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#818cf8'
+                }}>
+                  <ShieldCheck size={13} />
+                </div>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b' }}>Skill Match</span>
+              </div>
+
+              {/* Job Opportunities badge */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'rgba(129, 140, 248, 0.04)',
+                  border: '1px solid rgba(129, 140, 248, 0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#818cf8'
+                }}>
+                  <Briefcase size={13} />
+                </div>
+                <span style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b' }}>Job Opportunities</span>
+              </div>
+
+            </div>
           </GlassCard>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
