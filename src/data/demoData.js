@@ -84,13 +84,33 @@ export const demoUsers = {
   }
 };
 
-// 30-day trend data generator
+// Mulberry32 — fast, seedable 32-bit PRNG (returns float in [0, 1))
+function mulberry32(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s += 0x6d2b79f5;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 0x100000000;
+  };
+}
+
+// 30-day trend data generator — deterministic per (date, user baseline)
 export function generateTrendData(user, days = 30) {
   const data = [];
   const base = { ...user.health };
+  // Seed from user baseline values so each user's chart is unique but stable
+  const baseSeed = Math.round(
+    (base.sleepAvg || 7) * 1000 +
+    (base.stressLevel || 5) * 100 +
+    (base.moodAvg || 6) * 10
+  );
   for (let i = days; i >= 0; i--) {
     const date = new Date(); date.setDate(date.getDate() - i);
-    const noise = () => (Math.random() - 0.5) * 2;
+    // Seed each day from its calendar date + base so history never shifts on re-render
+    const daySeed = baseSeed + parseInt(date.toISOString().split('T')[0].replace(/-/g, ''), 10) % 100000;
+    const rand = mulberry32(daySeed);
+    const noise = () => (rand() - 0.5) * 2;
     data.push({
       date: date.toISOString().split('T')[0],
       sleep: Math.max(3, Math.min(10, base.sleepAvg + noise())),
@@ -99,7 +119,7 @@ export function generateTrendData(user, days = 30) {
       productivity: Math.max(1, Math.min(10, (10 - base.stressLevel) + noise() * 1.5)),
       spending: Math.max(100, user.finance.expenses / 30 + noise() * 200),
       studyHours: Math.max(0, user.career.studyHoursDaily + noise()),
-      workoutDone: Math.random() > (1 - user.health.workoutsPerWeek / 7),
+      workoutDone: rand() < (user.health.workoutsPerWeek / 7),
       water: Math.max(1, Math.min(12, base.waterIntake + noise())),
     });
   }
