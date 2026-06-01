@@ -15,6 +15,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { detectAnomalies } from '../engines/anomalyEngine';
+import { calculateRealSustainability } from '../services/sustainabilityService';
 
 const DataContext = createContext(null);
 
@@ -39,6 +40,7 @@ const EMPTY_STATE = {
 
   // Sustainability tracking
   sustainability: { carbonFootprint: { transport: 0, energy: 0, food: 0 }, ecoActions: [] },
+  sustainabilitySyncEnabled: false, // when true, use real telemetry data for carbon calc
 
   // LifeMarket contracts
   lifeMarket: { contracts: [] },
@@ -82,6 +84,7 @@ const ACTIONS = {
   UPDATE_GAMIFICATION: 'UPDATE_GAMIFICATION',
   UPDATE_AI_CACHE: 'UPDATE_AI_CACHE',
   UPDATE_SIMULATOR_STATE: 'UPDATE_SIMULATOR_STATE',
+  SET_SUSTAINABILITY_SYNC: 'SET_SUSTAINABILITY_SYNC',
   RESET: 'RESET',
   HYDRATE: 'HYDRATE',
 };
@@ -242,6 +245,14 @@ function dataReducer(state, action) {
       };
     }
 
+    case ACTIONS.SET_SUSTAINABILITY_SYNC: {
+      return {
+        ...state,
+        sustainabilitySyncEnabled: !!action.payload,
+        _revision: (state._revision || 0) + 1,
+      };
+    }
+
     case ACTIONS.RESET: {
       return { ...EMPTY_STATE };
     }
@@ -286,6 +297,7 @@ function migrateSchema(data) {
   
   if (!migrated.simulatorState) migrated.simulatorState = { selected: [], months: 3 };
   if (!migrated.sustainability) migrated.sustainability = { carbonFootprint: { transport: 0, energy: 0, food: 0 }, ecoActions: [] };
+  if (migrated.sustainabilitySyncEnabled === undefined) migrated.sustainabilitySyncEnabled = false;
   if (!migrated.lifeMarket) migrated.lifeMarket = { contracts: [] };
 
   return migrated;
@@ -458,6 +470,26 @@ export function DataProvider({ children }) {
     }
   }, [state.health, state.finance, state.career, state.records]);
 
+  // Computed sustainability — driven by real telemetry when sync is enabled
+  const computedSustainability = useMemo(() => {
+    if (!state.sustainabilitySyncEnabled) return null;
+    try {
+      return calculateRealSustainability({
+        financeRecords: state.records?.finance || [],
+        healthRecords:  state.records?.health  || [],
+        ecoActions:     state.sustainability?.ecoActions || [],
+      });
+    } catch (e) {
+      console.error('DataContext: Sustainability calculation error', e);
+      return null;
+    }
+  }, [
+    state.sustainabilitySyncEnabled,
+    state.records?.finance,
+    state.records?.health,
+    state.sustainability?.ecoActions,
+  ]);
+
   // Action dispatchers
   const actions = useMemo(() => ({
     setUserData: (userData, source = 'demo') => {
@@ -504,6 +536,10 @@ export function DataProvider({ children }) {
       dispatch({ type: ACTIONS.UPDATE_SIMULATOR_STATE, payload: data });
     },
 
+    setSustainabilitySyncEnabled: (enabled) => {
+      dispatch({ type: ACTIONS.SET_SUSTAINABILITY_SYNC, payload: enabled });
+    },
+
     reset: () => {
       dispatch({ type: ACTIONS.RESET });
     },
@@ -516,6 +552,9 @@ export function DataProvider({ children }) {
     // Computed scores (from deterministic engines)
     computed,
 
+    // Computed sustainability (from real telemetry when sync is enabled)
+    computedSustainability,
+
     // Expose anomalies at the top level
     anomalies: computed?.anomalies || [],
 
@@ -526,7 +565,7 @@ export function DataProvider({ children }) {
     hasRealData: state.dataSource === 'imported' || state.dataSource === 'mixed',
     isDemo: state.dataSource === 'demo',
     isEmpty: state.dataSource === 'none',
-  }), [state, computed, actions]);
+  }), [state, computed, computedSustainability, actions]);
 
   return (
     <DataContext.Provider value={value}>
