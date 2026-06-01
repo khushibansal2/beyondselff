@@ -1898,10 +1898,10 @@ const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
 
 function FitbitPanel() {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-[24px]">
 
       {/* ── Header ── */}
-      <GlassCard className="!p-4">
+      <GlassCard className="!p-5">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div style={{
@@ -1948,7 +1948,15 @@ function FitbitPanel() {
       </GlassCard>
 
       {/* ── 4 Metric Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden shadow-lg">
+      <div 
+        className="grid grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden shadow-lg gap-px bg-white/[0.06]"
+        style={{
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          backdropFilter: 'blur(16px)',
+          width: '100%',
+          minWidth: 0
+        }}
+      >
         {[
           { label:'Steps',      value:'8,642',  suffix:'',     Icon:Footprints, bg:'#10b98120', iconCls:'text-emerald-400', trend:'+12.4%', up:true  },
           { label:'Sleep',      value:'7h 32m', suffix:'',     Icon:Moon,       bg:'#6366f120', iconCls:'text-indigo-400',  trend:'+8.1%',  up:true  },
@@ -1957,23 +1965,29 @@ function FitbitPanel() {
         ].map((m, idx) => (
           <div
             key={m.label}
-            className={`flex items-center gap-3 px-4 py-3 bg-white/[0.01] ${
-              idx < 3 ? 'border-r border-white/[0.06]' : ''
-            }`}
+            className="group hover:bg-[#162035]/90 transition-colors duration-300"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '24px 24px',
+              backgroundColor: 'rgba(13, 20, 35, 0.85)',
+              minWidth: 0
+            }}
           >
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
               style={{ background: m.bg }}
             >
-              <m.Icon size={18} className={m.iconCls} />
+              <m.Icon size={19} className={m.iconCls} />
             </div>
-            <div className="min-w-0">
-              <p className="text-[11px] text-[#8b949e] mb-0.5">{m.label}</p>
-              <div className="flex items-baseline gap-1.5 mb-1">
-                <span className="text-[20px] font-bold text-[#f0f0f3] leading-none">{m.value}</span>
-                {m.suffix && <span className="text-[11px] text-[#8b949e] font-normal">{m.suffix}</span>}
+            <div className="min-w-0 flex flex-col gap-1" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+              <p className="text-[11.5px] text-[#8b949e]" style={{ margin: 0, fontSize: 11.5, fontWeight: 500 }}>{m.label}</p>
+              <div className="flex items-baseline gap-1.5" style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span className="text-[22px] font-black text-white leading-none" style={{ fontSize: 22 }}>{m.value}</span>
+                {m.suffix && <span className="text-[11.5px] text-[#8b949e] font-normal" style={{ fontSize: 11.5 }}>{m.suffix}</span>}
               </div>
-              <p className={`text-[12px] font-medium ${m.up ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <p className={`text-[12px] font-bold ${m.up ? 'text-[#10b981]' : 'text-[#f43f5e]'}`} style={{ margin: 0, fontSize: 12 }}>
                 {m.up ? '▲' : '▼'} {m.trend.replace('+','').replace('-','')} <span className="text-[#8b949e] font-normal">vs last 7 days</span>
               </p>
             </div>
@@ -1982,26 +1996,99 @@ function FitbitPanel() {
       </div>
 
       {/* ── All Activities Table ── */}
-      <div className="glass-card overflow-hidden flex flex-col flex-1">
+      <div className="glass-card table-card overflow-hidden flex flex-col flex-1">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-[#f0f0f3]">All Activities</span>
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[#8b949e] text-[12px] font-medium border border-white/[0.06]">10</span>
+            <span 
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '20px',
+                minWidth: '22px',
+                padding: '0 6px',
+                borderRadius: '6px',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#8b949e',
+                fontSize: '11px',
+                fontWeight: 600
+              }}
+            >
+              10
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
-              <Calendar size={13} /> May 23 - May 29, 2025 <ChevronDown size={13} />
+          <div className="flex items-center gap-2.5">
+            <button
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                height: '34px',
+                padding: '0 14px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                color: '#8b949e',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease-in-out'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.color = '#c9d1d9';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.color = '#8b949e';
+              }}
+            >
+              <Calendar size={13.5} className="text-[#8b949e]" />
+              <span>May 23 - May 29, 2025</span>
+              <ChevronDown size={13.5} />
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] text-[#8b949e] text-[12px] hover:text-[#c9d1d9] transition-colors">
-              <Filter size={13} /> Filter <ChevronDown size={13} />
+            <button
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                height: '34px',
+                padding: '0 14px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                color: '#8b949e',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease-in-out'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.color = '#c9d1d9';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                e.currentTarget.style.color = '#8b949e';
+              }}
+            >
+              <Filter size={13.5} className="text-[#8b949e]" />
+              <span>Filter</span>
+              <ChevronDown size={13.5} />
             </button>
           </div>
         </div>
 
         {/* Column header row */}
         <div
-          className="grid px-5 py-2 border-b border-white/[0.06] text-[11px] font-semibold text-[#8b949e] uppercase tracking-wider"
+          className="grid px-6 py-3 border-b border-white/[0.06] text-[11px] font-bold text-[#8b949e] uppercase tracking-wider bg-white/[0.015]"
           style={{ gridTemplateColumns: '150px 1fr 110px 120px 120px 40px' }}
         >
           <div className="flex items-center gap-1 cursor-pointer hover:text-[#c9d1d9]">Date &amp; Time <ChevronDown size={11}/></div>
@@ -2023,8 +2110,8 @@ function FitbitPanel() {
         ].map((row, i) => (
           <div
             key={i}
-            className="grid px-5 py-2 hover:bg-white/[0.02] transition-colors items-center group"
-            style={{ gridTemplateColumns: '150px 1fr 110px 120px 120px 40px', minHeight: '48px' }}
+            className="grid px-6 py-3.5 hover:bg-white/[0.02] transition-colors items-center group"
+            style={{ gridTemplateColumns: '150px 1fr 110px 120px 120px 40px', minHeight: '56px' }}
           >
             <div>
               <p className="text-[13px] text-[#f0f0f3] font-medium">{row.date}</p>
@@ -2065,9 +2152,9 @@ function FitbitPanel() {
         </div>
 
         {/* Pagination footer */}
-        <div className="flex items-center justify-between px-5 py-2 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between px-6 py-3.5 border-t border-white/[0.06]">
           <p className="text-[12px] text-[#8b949e]">Showing 1 to 5 of 10 activities</p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button className="w-8 h-8 rounded-lg border border-white/[0.08] bg-white/[0.02] flex items-center justify-center text-[#8b949e] hover:text-[#f0f0f3] transition-colors">
               <ChevronLeft size={14}/>
             </button>
@@ -2891,6 +2978,9 @@ export default function Integrations() {
           position: relative !important;
           overflow: hidden !important;
           padding: 24px 28px !important;
+        }
+        .glass-card.table-card {
+          padding: 0 !important;
         }
         .glass-card:hover {
           border-color: rgba(255, 255, 255, 0.1) !important;
