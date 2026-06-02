@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { healthApi } from '../services/backendApi';
 import { generateTrendData, generateInsights } from '../data/demoData';
 import { analyzeMealImage, analyzeSupplementImage, hasApiKey, saveApiKey, getDemoMealResult, getDemoSupplementResult } from '../services/visionService';
+import { parseMedicalReport, getDemoLabResult } from '../services/medicalReportService';
 import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionService';
 import { chatWithAI } from '../services/aiService';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge, RecommendationCard } from '../components/ui/Components';
@@ -1457,6 +1458,93 @@ function HealthRecommendations({ recommendations, h, score }) {
 }
 
 
+// ── Lab Report Uploader ───────────────────────────────────────────────────────
+function LabReportUploader({ health, updateDomain }) {
+  const [parsing,  setParsing]  = useState(false);
+  const [result,   setResult]   = useState(null);
+  const [error,    setError]    = useState(null);
+  const [applied,  setApplied]  = useState(false);
+  const fileRef = useRef(null);
+
+  async function handleFile(file) {
+    if (!file) return;
+    setParsing(true); setResult(null); setError(null); setApplied(false);
+    try {
+      const data = await parseMedicalReport(file);
+      setResult(data);
+    } catch (e) {
+      if (e.message === 'NO_KEY') {
+        setResult(getDemoLabResult());
+      } else {
+        setError(e.message);
+      }
+    } finally { setParsing(false); }
+  }
+
+  function applyToHealth() {
+    if (!result?.healthPatch) return;
+    updateDomain('health', { ...health, ...result.healthPatch });
+    setApplied(true);
+    showToast(`${result.markers?.length || 0} lab markers saved to your health profile`, 'success');
+  }
+
+  const STATUS_COLOR = { normal: '#10b981', high: '#f97316', low: '#f59e0b', critical: '#ef4444' };
+
+  return (
+    <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '18px 20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧪</div>
+        <div>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Lab Report Upload</p>
+          <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Upload a blood test or lab report PDF/image — AI extracts all markers</p>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={e => handleFile(e.target.files?.[0])} />
+        <button onClick={() => fileRef.current?.click()} disabled={parsing}
+          style={{ marginLeft: 'auto', padding: '7px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#8b5cf6,#6366f1)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: parsing ? 'not-allowed' : 'pointer', opacity: parsing ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {parsing ? <><div style={{ width: 12, height: 12, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> Parsing…</> : <><Upload size={13} /> Upload Report</>}
+        </button>
+      </div>
+
+      {error && <p style={{ fontSize: 12, color: '#f87171', margin: '0 0 10px', padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: 8 }}>⚠️ {error}</p>}
+
+      {result && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{result.reportType}</p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0' }}>{result.labName} · {result.reportDate}</p>
+            </div>
+            {result.flags?.length > 0 && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: 'rgba(249,115,22,0.12)', color: '#fb923c', border: '1px solid rgba(249,115,22,0.25)' }}>
+                {result.flags.length} flag{result.flags.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {/* Markers table */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+            {(result.markers || []).slice(0, 10).map((m, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: `1px solid ${m.status !== 'normal' ? STATUS_COLOR[m.status] + '30' : 'rgba(255,255,255,0.05)'}` }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[m.status] || '#10b981', flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 12, color: '#e2e8f0', fontWeight: 500 }}>{m.name}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: STATUS_COLOR[m.status] || '#10b981' }}>{m.value} {m.unit}</span>
+                {m.status !== 'normal' && <span style={{ fontSize: 10, color: STATUS_COLOR[m.status], fontWeight: 600 }}>{m.status.toUpperCase()}</span>}
+              </div>
+            ))}
+          </div>
+
+          {result.summary && <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 12px', lineHeight: 1.5, padding: '8px 12px', background: 'rgba(99,102,241,0.06)', borderRadius: 8, borderLeft: '2px solid rgba(99,102,241,0.4)' }}>{result.summary}</p>}
+
+          <button onClick={applyToHealth} disabled={applied}
+            style={{ width: '100%', padding: '9px', borderRadius: 8, border: 'none', background: applied ? 'rgba(16,185,129,0.2)' : 'linear-gradient(135deg,#10b981,#059669)', color: applied ? '#34d399' : '#fff', fontSize: 12, fontWeight: 700, cursor: applied ? 'default' : 'pointer' }}>
+            {applied ? '✅ Applied to Health Profile' : `Save ${result.markers?.length || 0} Markers to Health Profile →`}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Health() {
   const { user } = useAuth();
   const { health, finance, records, updateDomain, addRecords, setRecords, computed, gamification, updateGamification } = useData();
@@ -2415,7 +2503,10 @@ export default function Health() {
 
 
       {tab === 'scan' && (
-        <ScanVisionPanel onApplyCalories={handleApplyCalories} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <ScanVisionPanel onApplyCalories={handleApplyCalories} />
+          <LabReportUploader health={health} updateDomain={updateDomain} />
+        </div>
       )}
 
       {tab === 'nutrition' && (

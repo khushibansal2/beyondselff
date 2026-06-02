@@ -4,6 +4,8 @@ import { showToast } from '../components/ui/Components';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { analyzeDocument, saveApiKey } from '../services/visionService';
+import { parseMedicalReport, getDemoLabResult } from '../services/medicalReportService';
+import { parseCertificate, getDemoCertResult } from '../services/certificateService';
 import { authFetch } from '../services/backendApi';
 
 const DOC_TYPES = {
@@ -57,17 +59,34 @@ function SmartDocScanner({ onLogData }) {
   };
 
   const processFile = useCallback(async (file) => {
-    if (!file || !file.type.startsWith('image/')) {
-      showToast('Please upload an image of the document (PNG, JPG, WEBP)', 'error');
+    if (!file) return;
+    const isPdf   = file.type === 'application/pdf';
+    const isImage = file.type.startsWith('image/');
+    if (!isPdf && !isImage) {
+      showToast('Please upload an image or PDF of the document', 'error');
       return;
     }
     setError(null);
     setResult(null);
     setIsDemo(false);
-    setPreview(URL.createObjectURL(file));
+    if (isImage) setPreview(URL.createObjectURL(file));
     setScanning(true);
     try {
-      const data = await analyzeDocument(file);
+      // Check filename hints for routing to specialist parsers
+      const fname = file.name?.toLowerCase() || '';
+      const isLab  = fname.includes('lab') || fname.includes('blood') || fname.includes('report') || fname.includes('test');
+      const isCert = fname.includes('cert') || fname.includes('degree') || fname.includes('diploma') || fname.includes('course');
+
+      let data;
+      if (isLab) {
+        const lab = await parseMedicalReport(file);
+        data = { docType: 'lab_report', confidence: 95, summary: lab.summary, fields: (lab.markers || []).slice(0, 12).map(m => ({ label: m.name, value: `${m.value} ${m.unit}`, category: m.status === 'normal' ? 'normal' : 'abnormal' })), logTo: 'health', autoFill: {}, _labData: lab };
+      } else if (isCert) {
+        const cert = await parseCertificate(file);
+        data = { docType: 'unknown', confidence: 90, summary: cert.summary, fields: [{ label: 'Certification', value: cert.certificationName || '', category: 'career' }, { label: 'Issuer', value: cert.issuingOrganization || '', category: 'career' }, { label: 'Issued', value: cert.issueDate || '', category: 'date' }, ...(cert.skills || []).slice(0, 6).map(s => ({ label: 'Skill', value: s, category: 'skill' }))], logTo: 'career', autoFill: {}, _certData: cert };
+      } else {
+        data = await analyzeDocument(file);
+      }
       setResult(data);
     } catch (err) {
       if (err.message === 'QUOTA_EXCEEDED') {
@@ -535,15 +554,36 @@ export default function Upload() {
   };
 
   const handleDocLog = (result) => {
-    const fill = result.autoFill || {};
-    const type = result.docType;
+    const fill  = result.autoFill || {};
+    const type  = result.docType;
     const label = DOC_TYPES[type]?.label || 'Document';
 
+    // Finance path (salary slips, bills, bank statements)
     if (result.logTo === 'finance' || result.logTo === 'both') {
       const updated = { ...finance };
       if (fill.income)   updated.income   = (Number(updated.income)   || 0) + Number(fill.income);
       if (fill.expenses) updated.expenses = (Number(updated.expenses) || 0) + Number(fill.expenses);
       updateDomain('finance', updated);
+    }
+
+    // Health path — lab reports write extracted markers
+    if (result.logTo === 'health' || result.logTo === 'both') {
+      if (result._labData?.healthPatch) {
+        updateDomain('health', { ...health, ...result._labData.healthPatch });
+        const flags = result._labData.flags || [];
+        showToast(`Lab report logged — ${result._labData.markers?.length || 0} markers extracted${flags.length ? `. ${flags.length} flag(s) detected` : ''}`, 'success');
+        return;
+      }
+    }
+
+    // Career path — certificates add skills + certifications
+    if (result.logTo === 'career') {
+      if (result._certData?.careerPatch) {
+        const patch = result._certData.careerPatch;
+        updateDomain('career', { ...career, ...patch });
+        showToast(`Certificate logged — ${patch.skills?.length || 0} skills added to profile`, 'success');
+        return;
+      }
     }
 
     const summary = fill.income

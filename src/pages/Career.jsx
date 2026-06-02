@@ -19,6 +19,7 @@ import {
   getSalaryBenchmark, getSalaryChartData, generateCareerCoach, getDigitalTwinInsights,
   fetchSkillDemandTrends, generateCareerPathSimulation,
 } from '../services/careerIntelligenceService';
+import { parseCertificate, getDemoCertResult } from '../services/certificateService';
 
 // ── Cognitive Load Gauge ─────────────────────────────────────────────────────
 function CognitiveGauge({ value }) {

@@ -243,45 +243,27 @@ function PrototypeDisclaimer({ featureName }) {
             style={{ overflow: 'hidden' }}
           >
             <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', marginTop: 14, paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>Production Architecture Specifications:</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', margin: 0 }}>What's live now:</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
+                <div style={{ background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px', padding: '10px 12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <span style={{ fontSize: 13 }}>🗄️</span>
                     <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>DB-Backed Persistent Engine</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '1px 6px', borderRadius: 4 }}>LIVE</span>
                   </div>
                   <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
-                    All user profiles, actions, and reactions are stored in a relational/NoSQL DB, replacing local storage data persistence.
+                    User profiles, XP, badges, health/finance/career records are persisted in PostgreSQL via the Spring Boot backend.
                   </p>
                 </div>
-                
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 13 }}>🔌</span>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>Challenge Participation APIs</span>
-                  </div>
-                  <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
-                    Restful endpoints handle secure enrollment, validation, and reward distribution for guild and individual challenges.
-                  </p>
-                </div>
-                
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 13 }}>⚡</span>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>WebSocket Real-Time Sync</span>
-                  </div>
-                  <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
-                    Bidirectional WebSocket connections push real-time user presence, active grinder counts, and room reactions to peers instantly.
-                  </p>
-                </div>
-                
-                <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '10px', padding: '10px 12px' }}>
+
+                <div style={{ background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '10px', padding: '10px 12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <span style={{ fontSize: 13 }}>🔒</span>
                     <span style={{ fontSize: 11.5, fontWeight: 700, color: '#f1f5f9' }}>Anonymous Percentile Model</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '1px 6px', borderRadius: 4 }}>LIVE</span>
                   </div>
                   <p style={{ fontSize: 11, color: '#8b949e', margin: 0, lineHeight: 1.4 }}>
-                    Leaderboards focus on anonymous cohort-based percentile metrics rather than revealing raw user-vs-user names and profiles.
+                    Leaderboards show cohort-based percentile ranks without revealing other users' names or personal data.
                   </p>
                 </div>
               </div>
