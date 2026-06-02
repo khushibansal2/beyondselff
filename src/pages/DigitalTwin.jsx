@@ -248,14 +248,15 @@ export default function DigitalTwin() {
   const balance   = computed?.balance             ?? 63;
 
   // Initialise What-If Lab from real scores once computed is ready
+  // (previously used magic numbers 62/60/68 — now simply waits for computed to be populated)
   useEffect(() => {
-    if (!whatIfInited && (hScore !== 62 || fScore !== 60 || cScore !== 68)) {
-      setWhatIfH(hScore);
-      setWhatIfF(fScore);
-      setWhatIfC(cScore);
+    if (!whatIfInited && computed?.healthScore?.score !== undefined) {
+      setWhatIfH(Math.round(hScore));
+      setWhatIfF(Math.round(fScore));
+      setWhatIfC(Math.round(cScore));
       setWhatIfInited(true);
     }
-  }, [hScore, fScore, cScore, whatIfInited]);
+  }, [hScore, fScore, cScore, whatIfInited, computed]);
 
   const stateName = useMemo(() => computeStateName(hScore, fScore, cScore, burnout), [hScore, fScore, cScore, burnout]);
   const meta      = STATE_META[stateName];
@@ -428,7 +429,7 @@ export default function DigitalTwin() {
                   <span style={{ fontSize: 11, color: '#475569' }}>— drag sliders to preview your twin's evolution</span>
                 </div>
                 <button
-                  onClick={() => { setWhatIfH(hScore); setWhatIfF(fScore); setWhatIfC(cScore); }}
+                  onClick={() => { setWhatIfH(Math.round(hScore)); setWhatIfF(Math.round(fScore)); setWhatIfC(Math.round(cScore)); setWhatIfInited(true); }}
                   style={{
                     background: 'none', border: 'none', fontSize: 11, color: '#475569', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: 4

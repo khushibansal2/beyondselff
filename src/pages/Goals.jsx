@@ -23,7 +23,7 @@ const inputStyle = {
 };
 
 export default function Goals() {
-  const { health, finance, career, goals, updateGoals } = useData();
+  const { health, finance, career, goals, updateGoals, updateDomain, addRecords, gamification, updateGamification } = useData();
   const [showNew,  setShowNew]  = useState(false);
   const [newGoal,  setNewGoal]  = useState(EMPTY_FORM);
   const [filter,   setFilter]   = useState('all');
@@ -101,14 +101,45 @@ export default function Goals() {
     } catch (err) { showToast(err.message, 'error'); }
   };
 
+  const applyGoalCompletion = (goal) => {
+    // Award XP for completing any goal
+    const xpReward = goal.priority === 'high' ? 100 : goal.priority === 'medium' ? 50 : 25;
+    updateGamification({ xp: (gamification?.xp || 0) + xpReward });
+
+    const metric = goal.targetMetric;
+    const targetValue = Number(goal.targetValue);
+    if (!metric || !targetValue || isNaN(targetValue)) return;
+    const now = new Date().toISOString();
+    const map = {
+      sleepAvg:         () => addRecords('health',  [{ date: now, sleep:            targetValue }]),
+      workoutsPerWeek:  () => addRecords('health',  [{ date: now, workoutsPerWeek:  targetValue }]),
+      stressLevel:      () => addRecords('health',  [{ date: now, stress:           targetValue }]),
+      waterIntake:      () => addRecords('health',  [{ date: now, water:            targetValue }]),
+      bmi:              () => addRecords('health',  [{ date: now, bmi:              targetValue }]),
+      savings:          () => updateDomain('finance', { savings:      targetValue }),
+      investments:      () => updateDomain('finance', { investments:  targetValue }),
+      expenses:         () => updateDomain('finance', { expenses:     targetValue }),
+      income:           () => updateDomain('finance', { income:       targetValue }),
+      studyHoursDaily:  () => addRecords('career',  [{ date: now, studyHours:      targetValue }]),
+      codingHoursDaily: () => addRecords('career',  [{ date: now, codingHours:     targetValue }]),
+      dsaPractice:      () => addRecords('career',  [{ date: now, dsaProblems:     targetValue }]),
+      projectsCompleted:() => addRecords('career',  [{ date: now, projects:        targetValue }]),
+    };
+    if (map[metric]) map[metric]();
+  };
+
   const updateProgress = async (id, delta) => {
     const goal = (goals || []).find(g => g.id === id);
     if (!goal) return;
+    const wasComplete = (goal.progress || 0) >= 100;
     const newProgress = Math.max(0, Math.min(100, (goal.progress || 0) + delta));
     try {
       if (goalsApi.isEnabled() && String(id).indexOf('g-') !== 0) await goalsApi.updateProgress(id, newProgress);
       updateGoals((goals || []).map(g => g.id === id ? { ...g, progress: newProgress } : g));
-      if (newProgress >= 100) showToast(`🎉 Goal "${goal.title}" completed!`, 'success');
+      if (newProgress >= 100) {
+        showToast(`🎉 Goal "${goal.title}" completed!`, 'success');
+        if (!wasComplete) applyGoalCompletion(goal);
+      }
     } catch (err) { showToast(err.message, 'error'); }
   };
 

@@ -4,7 +4,7 @@
 import { authFetch } from './backendApi';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 function getApiKey() {
   return import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';

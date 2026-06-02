@@ -499,6 +499,15 @@ function PersonaEditor({ persona, onChange, onClose }) {
           ))}
         </div>
       </div>
+
+      {/* Done button */}
+      <button
+        onClick={onClose}
+        className="w-full py-2 rounded-xl text-[11px] font-bold text-white transition-all active:scale-[0.98]"
+        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', cursor: 'pointer', marginTop: 4 }}
+      >
+        ✓ Done — Save Avatar
+      </button>
     </motion.div>
   );
 }

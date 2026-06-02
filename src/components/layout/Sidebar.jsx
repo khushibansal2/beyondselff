@@ -203,76 +203,76 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="flex-shrink-0 p-4 space-y-3.5">
-        
-        {(!collapsed || mobile) ? (
-          <div className="flex flex-col gap-3.5">
-            {/* User Profile Card */}
-            <div className="bg-[#1b1e32]/45 border border-white/[0.04] rounded-[20px] p-4 flex flex-col gap-3" style={{ backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.02)' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[13px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
-                  {(user?.name || 'Yash')[0].toUpperCase()}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[13.5px] font-black text-white tracking-wide truncate">{(user?.name || 'YASH').toUpperCase()}</span>
-                  <span className="text-[10.5px] text-slate-500 font-medium">Level {level}</span>
-                </div>
-              </div>
+      <div className="flex-shrink-0 p-4 space-y-3">
 
-              {/* Progress bar to next level */}
-              <div className="flex flex-col gap-2 mt-1.5">
-                <div className="w-full h-1.5 rounded-full bg-slate-950/80 border border-white/5 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${xpProgress}%` }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full rounded-full"
-                    style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', boxShadow: '0 0 6px rgba(99,102,241,0.5)' }}
-                  />
-                </div>
-                <span className="text-[10.5px] text-slate-500 font-bold tracking-wide">{xpForNext - xp} XP to Level {level + 1}</span>
+        {(!collapsed || mobile) ? (
+          <div className="flex flex-col gap-3">
+            {/* User row */}
+            <div className="flex items-center gap-2.5 px-1">
+              <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[11px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
+                {(user?.name || 'U')[0].toUpperCase()}
               </div>
+              <span className="text-[12px] font-bold text-white truncate">{user?.name || 'User'}</span>
             </div>
 
-            {/* Life Streak Calendar Block */}
-            <div className="bg-[#1b1e32]/25 border border-white/[0.03] rounded-[20px] p-4 flex flex-col gap-3" style={{ backdropFilter: 'blur(10px)' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-[12px] font-black text-white">
-                  <span>🔥 Life Streak</span>
-                </div>
-                <span className="text-[12.5px] font-black text-slate-300">{gamification?.streak || 1} day</span>
-              </div>
-              <div className="flex justify-between items-center text-[10.5px] font-bold text-slate-500 px-0.5 mt-0.5">
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
-                  const today = new Date();
-                  const currentDayIdx = (today.getDay() + 6) % 7; // Monday = 0
-                  const isActive = idx === currentDayIdx;
-                  return (
-                    <div key={idx} className="flex flex-col items-center gap-2 flex-1">
-                      <span className={isActive ? 'text-slate-300' : 'text-slate-500'}>{day}</span>
-                      <div className="h-1.5 flex items-center justify-center">
-                        {isActive ? (
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#f97316] shadow-[0_0_8px_#f97316]" />
-                        ) : (
-                          <div className="w-1 h-1 rounded-full bg-slate-800" />
-                        )}
+            {/* Domain score circles — update whenever computed changes */}
+            <div className="flex justify-between items-end px-0.5">
+              {[
+                { label: 'Health',  score: computed?.healthScore?.score  ?? 0, color: '#10b981' },
+                { label: 'Finance', score: computed?.financeScore?.score ?? 0, color: '#f59e0b' },
+                { label: 'Career',  score: computed?.careerScore?.score  ?? 0, color: '#3b82f6' },
+              ].map(({ label, score, color }) => {
+                const r = 17;
+                const circ = 2 * Math.PI * r;
+                const offset = circ - (score / 100) * circ;
+                return (
+                  <div key={label} className="flex flex-col items-center gap-1 flex-1">
+                    <div style={{ position: 'relative', width: 44, height: 44 }}>
+                      <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+                        <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                        <circle
+                          cx="22" cy="22" r={r}
+                          fill="none" stroke={color} strokeWidth="4"
+                          strokeLinecap="round"
+                          strokeDasharray={circ}
+                          strokeDashoffset={offset}
+                          style={{ transition: 'stroke-dashoffset 0.9s ease, stroke 0.4s ease', filter: `drop-shadow(0 0 4px ${color}88)` }}
+                        />
+                      </svg>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{score}</span>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                    <span style={{ fontSize: 8, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label.slice(0, 3)}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : (
-          /* Collapsed View */
-          <div className="flex flex-col gap-3 items-center">
-            <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[13px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
-              {(user?.name || 'Yash')[0].toUpperCase()}
+          /* Collapsed: avatar + 3 tiny domain rings */
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[11px] bg-gradient-to-br from-indigo-500 to-purple-600">
+              {(user?.name || 'U')[0].toUpperCase()}
             </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-[10px] text-slate-500 font-bold">L1</span>
-              <span className="text-[10px] text-orange-400 font-black">🔥 1d</span>
-            </div>
+            {[
+              { color: '#10b981', score: computed?.healthScore?.score  ?? 0 },
+              { color: '#f59e0b', score: computed?.financeScore?.score ?? 0 },
+              { color: '#3b82f6', score: computed?.careerScore?.score  ?? 0 },
+            ].map(({ color, score }, i) => {
+              const r = 8, circ = 2 * Math.PI * r;
+              return (
+                <div key={i} style={{ position: 'relative', width: 22, height: 22 }}>
+                  <svg width="22" height="22" viewBox="0 0 22 22" style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+                    <circle cx="11" cy="11" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2.5" />
+                    <circle cx="11" cy="11" r={r} fill="none" stroke={color} strokeWidth="2.5"
+                      strokeLinecap="round" strokeDasharray={circ}
+                      strokeDashoffset={circ - (score / 100) * circ}
+                      style={{ transition: 'stroke-dashoffset 0.9s ease' }} />
+                  </svg>
+                </div>
+              );
+            })}
           </div>
         )}
 

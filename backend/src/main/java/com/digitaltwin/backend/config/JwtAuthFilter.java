@@ -29,14 +29,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final Set<String> PUBLIC_PREFIXES = Set.of(
             "/api/auth/login",
             "/api/auth/signup",
-            "/api/ai/status",
-            "/api/ai/chat",
-            "/api/ai/narrative",
-            "/api/ai/explain",
+            "/api/ai/status",          // health-check only — no AI call
             "/api/fitbit/callback",
             "/api/fitbit/config",
             "/api/fitbit/connect",
             "/h2-console"
+            // /api/ai/chat, /api/ai/narrative, /api/ai/explain are now AUTHENTICATED
+            // /api/groq/chat is AUTHENTICATED (server-side Groq proxy)
     );
 
     private final JwtUtil jwtUtil;

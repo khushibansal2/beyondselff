@@ -106,17 +106,7 @@ export function AuthProvider({ children }) {
       // Backend offline — fall through to localStorage custom users
     }
 
-    // Offline fallback: custom users created when backend was down
-    const customs = JSON.parse(localStorage.getItem('dt_custom_users') || '[]');
-    const local = customs.find(u => u.email === email && u.password === password);
-    if (local) {
-      const jwt = 'dt_jwt_' + btoa(JSON.stringify({ id: local.id, email, exp: Date.now() + 86400000 }));
-      setUser(local); setToken(jwt); setIsDemo(false);
-      localStorage.setItem('dt_auth', JSON.stringify({ user: local, token: jwt, isDemo: false }));
-      return { success: true, isDemo: false };
-    }
-
-    return { success: false, error: 'Cannot connect to server. Is the backend running on port 8080?' };
+    return { success: false, error: 'Cannot connect to server. Please ensure the backend is running on port 8080.' };
   };
 
   // ── Unified login — picks demo or real path automatically ────────────────────
@@ -150,21 +140,13 @@ export function AuthProvider({ children }) {
       // Backend offline — save to localStorage
     }
 
-    // Offline fallback signup
-    const customs = JSON.parse(localStorage.getItem('dt_custom_users') || '[]');
-    if (customs.find(u => u.email === email)) return { success: false, error: 'Email already exists' };
-    const newUser = { id: 'user-' + Date.now(), name, email, password, avatar: '👤', role: 'user', persona: 'New User', health: {}, finance: {}, career: {}, goals: [], timeline: [] };
-    customs.push(newUser);
-    localStorage.setItem('dt_custom_users', JSON.stringify(customs));
-    const jwt = 'dt_jwt_' + btoa(JSON.stringify({ id: newUser.id, email, exp: Date.now() + 86400000 }));
-    setUser(newUser); setToken(jwt); setIsDemo(false);
-    localStorage.setItem('dt_auth', JSON.stringify({ user: newUser, token: jwt, isDemo: false }));
-    return { success: true, isNew: true };
+    return { success: false, error: 'Signup requires the backend (port 8080). Please start the backend server and try again.' };
   };
 
   const logout = () => {
     setUser(null); setToken(null); setIsDemo(false);
     localStorage.removeItem('dt_auth');
+    localStorage.removeItem('dt_custom_users'); // remove any legacy insecure offline user store
   };
 
   const updateUser = (updates) => {

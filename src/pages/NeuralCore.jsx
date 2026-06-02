@@ -494,8 +494,8 @@ export default function NeuralCore() {
                   >
                     <div>
                       <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 6px' }}>{label}</p>
-                      <h3 style={{ fontSize: 24, fontWeight: 800, color, margin: '0 0 4px', lineHeight: 1 }}>{current}%</h3>
-                      {delta !== null && (
+                      <h3 style={{ fontSize: 24, fontWeight: 800, color, margin: '0 0 4px', lineHeight: 1 }}>{current != null ? `${current}%` : '–'}</h3>
+                      {delta !== null && wi != null && (
                         <p style={{ fontSize: 10, color: '#10b981', fontWeight: 600, margin: '0 0 4px' }}>
                           What-If: {wi}% ({delta > 0 ? '+' : ''}{delta})
                         </p>

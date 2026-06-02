@@ -95,8 +95,8 @@ const ACTIONS = {
 
 function aggregateHealth(records, currentState = {}) {
   if (!records || !records.length) return currentState;
-  const sum = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0 };
-  const count = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0 };
+  const sum = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0, protein: 0, carbs: 0, fat: 0 };
+  const count = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0, protein: 0, carbs: 0, fat: 0 };
 
   records.forEach(r => {
     const sleep = r.sleepHours ?? r.sleep;
@@ -107,6 +107,9 @@ function aggregateHealth(records, currentState = {}) {
     const calories = r.calories;
     const bmi = r.bmi;
     const weight = r.weight;
+    const protein = r.protein;
+    const carbs = r.carbs;
+    const fat = r.fat;
 
     if (sleep != null) { sum.sleep += sleep; count.sleep++; }
     if (mood != null) { sum.mood += mood; count.mood++; }
@@ -116,6 +119,9 @@ function aggregateHealth(records, currentState = {}) {
     if (calories != null) { sum.calories += calories; count.calories++; }
     if (bmi != null) { sum.bmi += bmi; count.bmi++; }
     if (weight != null) { sum.weight += weight; count.weight++; }
+    if (protein != null) { sum.protein += protein; count.protein++; }
+    if (carbs != null) { sum.carbs += carbs; count.carbs++; }
+    if (fat != null) { sum.fat += fat; count.fat++; }
   });
 
   return {
@@ -128,6 +134,9 @@ function aggregateHealth(records, currentState = {}) {
     calories: count.calories ? Math.round(sum.calories / count.calories) : (currentState.calories ?? 2000),
     bmi: count.bmi ? Math.round((sum.bmi / count.bmi) * 10) / 10 : (currentState.bmi ?? 22),
     weight: count.weight ? Math.round((sum.weight / count.weight) * 10) / 10 : (currentState.weight ?? 70),
+    protein: count.protein ? Math.round(sum.protein / count.protein) : (currentState.protein ?? null),
+    carbs: count.carbs ? Math.round(sum.carbs / count.carbs) : (currentState.carbs ?? null),
+    fat: count.fat ? Math.round(sum.fat / count.fat) : (currentState.fat ?? null),
   };
 }
 
@@ -654,18 +663,9 @@ export function DataProvider({ children }) {
       career: state.career,
     };
 
-    // Only compute if there's data
     const hasData = Object.keys(state.health).length > 0 ||
                     Object.keys(state.finance).length > 0 ||
                     Object.keys(state.career).length > 0;
-
-    if (!hasData) {
-      return {
-        lifeBalance: null,
-        anomalies: [],
-        hasData: false,
-      };
-    }
 
     try {
       const lifeBalance = computeLifeBalance(userData, state.records);
@@ -674,7 +674,7 @@ export function DataProvider({ children }) {
         ...lifeBalance,
         lifeBalance,
         anomalies,
-        hasData: true,
+        hasData,
       };
     } catch (e) {
       console.error('DataContext: Score computation error', e);

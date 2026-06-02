@@ -12,6 +12,7 @@ import { generateTrendData, generateCorrelations, generateInsights } from '../da
 import { computeHealthScore } from '../engines/healthScoreEngine';
 import { computeFinanceScore } from '../engines/financeScoreEngine';
 import { computeCareerScore } from '../engines/careerScoreEngine';
+import { computeGoalProgress } from '../engines/goalProgressEngine';
 import { fetchGitHubProfile } from '../services/githubService';
 import {
   CheckCircle, AlertTriangle, Activity, Landmark, Briefcase,
@@ -963,7 +964,7 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
 // ─── MAIN DASHBOARD ──────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuth();
-  const { health, finance, career, timeline, records, computed, aiCache, updateAICache, updateDomain, anomalies = [], goals = [] } = useData();
+  const { health, finance, career, timeline, records, computed, aiCache, updateAICache, updateDomain, updateGoals, anomalies = [], goals = [] } = useData();
   const [aiNarrative, setAiNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -990,6 +991,8 @@ export default function Dashboard() {
   const scoreRingsRef = useRef(null);
   const searchRef = useRef(null);
   const [whatIfHours, setWhatIfHours] = useState(2);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // ⌘K shortcut
   useEffect(() => {
@@ -1019,13 +1022,47 @@ export default function Dashboard() {
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
 
-  const healthScore = computed?.healthScore?.score || 84;
-  const financeScore = computed?.financeScore?.score || 78;
-  const careerScore = computed?.careerScore?.score || 82;
-  const lifeBalance = computed?.balance || 81;
-  const burnoutRisk = computed?.burnout?.risk || 24;
+  const healthScore = computed?.healthScore?.score ?? 0;
+  const financeScore = computed?.financeScore?.score ?? 0;
+  const careerScore = computed?.careerScore?.score ?? 0;
+  const lifeBalance = computed?.balance ?? 0;
+  const burnoutRisk = computed?.burnout?.risk ?? 0;
   const weakestDomain = computed?.weakestDomain?.name || 'health';
   const savingsRate = f.income > 0 ? Math.max(0, Math.round(((f.income - f.expenses) / f.income) * 100)) : 0;
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q || q.length < 2) return [];
+    const results = [];
+    (goals || []).forEach(g => {
+      if (g.title?.toLowerCase().includes(q))
+        results.push({ type: 'Goal', label: g.title, sub: g.domain, path: '/goals', icon: '🎯' });
+    });
+    (timeline || []).forEach(e => {
+      if ((e.text || e.title || '').toLowerCase().includes(q))
+        results.push({ type: 'Event', label: e.text || e.title, sub: e.type, path: `/${e.domain || 'dashboard'}`, icon: e.domain === 'health' ? '❤️' : e.domain === 'finance' ? '💰' : e.domain === 'career' ? '🎯' : '📋' });
+    });
+    (anomalies || []).forEach(a => {
+      if ((a.message || a.description || '').toLowerCase().includes(q))
+        results.push({ type: 'Alert', label: a.message || a.description, sub: a.domain, path: `/${a.domain || 'dashboard'}`, icon: '⚠️' });
+    });
+    const domainKeywords = [
+      { k: ['sleep', 'rest', 'tired'], path: '/health', label: 'Health → Sleep Tracking', icon: '😴' },
+      { k: ['stress', 'anxiety', 'mental'], path: '/health', label: 'Health → Wellness', icon: '🧘' },
+      { k: ['calories', 'nutrition', 'meal', 'food', 'diet'], path: '/health', label: 'Health → Nutrition', icon: '🥗' },
+      { k: ['workout', 'exercise', 'gym', 'fitness'], path: '/health', label: 'Health → Fitness', icon: '💪' },
+      { k: ['expense', 'spending', 'budget', 'money', 'income', 'saving'], path: '/finance', label: 'Finance → Transactions', icon: '💰' },
+      { k: ['invest', 'portfolio', 'debt'], path: '/finance', label: 'Finance → Investments', icon: '📈' },
+      { k: ['dsa', 'coding', 'leetcode', 'algorithm'], path: '/career', label: 'Career → DSA Practice', icon: '💻' },
+      { k: ['job', 'resume', 'interview', 'skill'], path: '/career', label: 'Career → Job Search', icon: '🎯' },
+      { k: ['goal', 'target', 'milestone'], path: '/goals', label: 'Goals → Track Progress', icon: '🏆' },
+    ];
+    domainKeywords.forEach(({ k, path, label, icon }) => {
+      if (k.some(kw => q.includes(kw) || kw.includes(q)))
+        results.push({ type: 'Section', label, sub: path.replace('/', ''), path, icon });
+    });
+    return results.slice(0, 8);
+  }, [searchQuery, goals, timeline, anomalies]);
 
   const toggleDoom = useCallback(() => {
     setDoomMode(d => !d);
@@ -1307,17 +1344,44 @@ export default function Dashboard() {
         <div style={{ height: 56, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: `1px solid ${C.border}`, background: 'transparent', gap: 16 }}>
           {/* Search */}
           <div style={{ position: 'relative', width: 280, flexShrink: 0 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }}>
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
             </svg>
             <input
               ref={searchRef}
-              placeholder="Search anything in your life..."
-              style={{ width: '100%', background: C.card, border: `1px solid ${C.border}`, padding: '7px 48px 7px 32px', borderRadius: 999, color: C.text, fontSize: 12, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
-              onFocus={e => e.target.style.borderColor = '#6366f1'}
-              onBlur={e => e.target.style.borderColor = C.border}
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+              placeholder="Search goals, events, sections..."
+              style={{ width: '100%', background: C.card, border: `1px solid ${searchOpen && searchQuery ? '#6366f1' : C.border}`, padding: '7px 48px 7px 32px', borderRadius: searchOpen && searchResults.length ? '12px 12px 0 0' : 999, color: C.text, fontSize: 12, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+              onFocus={() => setSearchOpen(true)}
+              onBlur={() => setTimeout(() => setSearchOpen(false), 150)}
             />
-            <div style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.06)', padding: '2px 5px', borderRadius: 4, fontSize: 9, color: C.textMuted, pointerEvents: 'none' }}>⌘K</div>
+            {searchQuery ? (
+              <button onClick={() => { setSearchQuery(''); setSearchOpen(false); }} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 14, lineHeight: 1, padding: '2px 4px' }}>✕</button>
+            ) : (
+              <div style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.06)', padding: '2px 5px', borderRadius: 4, fontSize: 9, color: C.textMuted, pointerEvents: 'none' }}>⌘K</div>
+            )}
+            {searchOpen && searchResults.length > 0 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid #6366f1`, borderTop: 'none', borderRadius: '0 0 12px 12px', zIndex: 999, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+                {searchResults.map((r, i) => (
+                  <Link key={i} to={r.path} onClick={() => { setSearchQuery(''); setSearchOpen(false); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', textDecoration: 'none', borderBottom: i < searchResults.length - 1 ? `1px solid rgba(255,255,255,0.04)` : 'none', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <span style={{ fontSize: 14 }}>{r.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.label}</p>
+                      <p style={{ margin: 0, fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{r.type} · {r.sub}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+            {searchOpen && searchQuery.length >= 2 && searchResults.length === 0 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid rgba(255,255,255,0.1)`, borderTop: 'none', borderRadius: '0 0 12px 12px', zIndex: 999, padding: '12px 14px', fontSize: 11, color: '#64748b' }}>
+                No results for "{searchQuery}"
+              </div>
+            )}
           </div>
 
           {/* Right actions */}
@@ -1640,12 +1704,30 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Life Bloom reactive SVG — goals-driven lotus flower */}
+              {/* Life Bloom — growing plant, one branch per goal */}
               <div style={{ flex: 1, minHeight: 0 }}>
                 {(() => {
                   const bloomGoals = goals.slice(0, 12);
                   const N = bloomGoals.length;
-                  const completedCount = bloomGoals.filter(g => !!checkedGoals[g.id || g.title]).length;
+
+                  const getDomainColors = (domain) => {
+                    if (!domain) return ['#f59e0b', '#fbbf24'];
+                    const d = String(domain).toLowerCase();
+                    if (d.includes('health'))  return ['#22c55e', '#4ade80'];
+                    if (d.includes('financ'))  return ['#3b82f6', '#60a5fa'];
+                    if (d.includes('career'))  return ['#a855f7', '#c084fc'];
+                    return ['#f59e0b', '#fbbf24'];
+                  };
+
+                  const completedCount = bloomGoals.filter(g => {
+                    const gKey = g.id || g.title;
+                    if (checkedGoals[gKey]) return true;
+                    if (g.targetMetric) {
+                      const { progress } = computeGoalProgress(g, health || {}, finance || {}, career || {});
+                      return progress >= 100;
+                    }
+                    return (g.progress || 0) >= 100;
+                  }).length;
                   const pct = N > 0 ? completedCount / N : 0;
 
                   const th = N === 0 || pct < 0.01
@@ -1655,211 +1737,233 @@ export default function Dashboard() {
                     : pct < 1.0  ? {a:'#ec4899',b:'#f9a8d4',bg:'rgba(236,72,153,0.18)'}
                     :              {a:'#f59e0b',b:'#fbbf24',bg:'rgba(245,158,11,0.22)'};
 
-                  const label = N === 0           ? '🌰 No Goals'
-                              : completedCount === 0 ? '🌱 Dormant'
-                              : pct < 0.35         ? '🌱 Budding'
-                              : pct < 0.7          ? '🌸 Blooming'
+                  const label = N === 0           ? '🌰 Dormant'
+                              : completedCount === 0 ? '🌱 Seed'
+                              : pct < 0.34         ? '🌿 Sprouting'
+                              : pct < 0.67         ? '🌸 Blooming'
                               : pct < 1            ? '✨ Flourishing'
                               :                      '🌺 Full Bloom!';
 
-                  const BW = 240, BH = 240, CX = 120, CY = 116;
+                  const BW = 240, BH = 230, CX = 120;
+                  const soilY = 200, trunkTop = 50;
+                  const trunkColor = pct < 0.1 ? '#6b3f1e' : pct < 0.5 ? '#92400e' : '#15803d';
+                  const trunkW = 3.5 + pct * 3;
+                  const branchLen = N > 7 ? 24 : 34;
 
-                  const domainColor = (domain) => {
-                    if (!domain) return ['#f59e0b','#fbbf24'];
-                    const d = String(domain).toLowerCase();
-                    if (d.includes('health'))              return ['#22c55e','#4ade80'];
-                    if (d.includes('financ'))              return ['#3b82f6','#60a5fa'];
-                    if (d.includes('career'))              return ['#a855f7','#c084fc'];
-                    if (d.includes('personal'))            return ['#ec4899','#f9a8d4'];
-                    return ['#f59e0b','#fbbf24'];
-                  };
-
-                  // Local-space petal paths — positioned via SVG transform, scaled via Framer Motion
-                  // transformOrigin '50% 100%' + fill-box = scale from base (flower center)
-                  const PETAL = "M 0 0 C -14 -15.68 -5.6 -49.28 0 -56 C 5.6 -49.28 14 -15.68 0 0 Z";
-                  const INNER_PETAL = "M 0 0 C -8 -8.4 -3.2 -26.4 0 -30 C 3.2 -26.4 8 -8.4 0 0 Z";
+                  // Distribute nodes evenly from near-soil to near-top
+                  const nodes = bloomGoals.map((goal, i) => {
+                    const t = N === 1 ? 0.5 : i / (N - 1);
+                    const y = (soilY - 22) - t * ((soilY - 22) - (trunkTop + 18));
+                    const dir = i % 2 === 0 ? -1 : 1;
+                    const tipX = CX + dir * branchLen;
+                    const tipY = y - 7;
+                    const gKey = goal.id || goal.title;
+                    const isComplete = !!checkedGoals[gKey] ||
+                      (goal.targetMetric
+                        ? computeGoalProgress(goal, health || {}, finance || {}, career || {}).progress >= 100
+                        : (goal.progress || 0) >= 100);
+                    const [c1, c2] = getDomainColors(goal.domain || goal.category);
+                    return { goal, i, y, tipX, tipY, dir, isComplete, c1, c2, gKey };
+                  });
 
                   return (
-                    <div style={{ background:'linear-gradient(180deg,#070c14 0%,#0d1320 50%,#111827 100%)', border:`1px solid ${th.a}30`, borderRadius:12, padding:'10px 12px 8px', overflow:'hidden', position:'relative', height:'100%', boxSizing:'border-box', display:'flex', flexDirection:'column' }}>
-                      {/* Twinkling stars */}
-                      {[{l:'10%',tp:'8%',d:0},{l:'80%',tp:'6%',d:0.9},{l:'62%',tp:'17%',d:1.6},{l:'28%',tp:'22%',d:0.4},{l:'90%',tp:'28%',d:1.2},{l:'48%',tp:'4%',d:0.7}].map((s,i)=>(
+                    <div style={{ background:'linear-gradient(180deg,#060b12 0%,#0c1220 55%,#111827 100%)', border:`1px solid ${th.a}30`, borderRadius:12, padding:'10px 12px 8px', overflow:'hidden', position:'relative', height:'100%', boxSizing:'border-box', display:'flex', flexDirection:'column' }}>
+                      {/* Stars */}
+                      {[{l:'8%',tp:'7%',d:0},{l:'82%',tp:'5%',d:0.9},{l:'60%',tp:'16%',d:1.6},{l:'26%',tp:'21%',d:0.4},{l:'91%',tp:'29%',d:1.2},{l:'46%',tp:'3%',d:0.7}].map((s,i)=>(
                         <motion.div key={i} style={{position:'absolute',left:s.l,top:s.tp,width:1.5,height:1.5,borderRadius:'50%',background:'#93c5fd',pointerEvents:'none',zIndex:0}}
-                          animate={{opacity:[0.05,0.65,0.05],scale:[0.5,1.3,0.5]}}
-                          transition={{duration:2.4+i*0.5,repeat:Infinity,delay:parseFloat(s.d)}}/>
+                          animate={{opacity:[0.05,0.6,0.05],scale:[0.5,1.3,0.5]}}
+                          transition={{duration:2.5+i*0.5,repeat:Infinity,delay:s.d}}/>
                       ))}
-                      <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'70%',height:50,background:`radial-gradient(ellipse,${th.a}22 0%,transparent 70%)`,pointerEvents:'none',zIndex:0}}/>
+                      {/* Ground glow */}
+                      <div style={{position:'absolute',bottom:0,left:'50%',transform:'translateX(-50%)',width:'65%',height:44,background:`radial-gradient(ellipse,${th.a}20 0%,transparent 70%)`,pointerEvents:'none',zIndex:0}}/>
 
                       {/* Header */}
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4,position:'relative',zIndex:1}}>
                         <div>
                           <div style={{fontSize:12,fontWeight:700,color:'#e2e8f0'}}>Life Bloom</div>
-                          <div style={{fontSize:8,color:'#4b5563'}}>{N===0 ? 'Add goals to start blooming' : `${N} petal${N!==1?'s':''} · complete goals to bloom`}</div>
+                          <div style={{fontSize:8,color:'#4b5563'}}>{N===0 ? 'Add goals to start growing' : `${N} branch${N!==1?'es':''} · complete goals to bloom`}</div>
                         </div>
                         <span style={{fontSize:9,fontWeight:700,color:th.a,background:th.bg,border:`1px solid ${th.a}40`,padding:'2px 9px',borderRadius:999}}>{label}</span>
                       </div>
 
-                      {/* Lotus Flower SVG */}
+                      {/* Plant SVG */}
                       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',minHeight:0}}>
-                        <svg viewBox={`0 0 ${BW} ${BH}`} style={{width:'100%',height:'100%',maxHeight:210,display:'block',position:'relative',zIndex:1}}>
+                        <svg viewBox={`0 0 ${BW} ${BH}`} style={{width:'100%',height:'100%',maxHeight:200,display:'block',position:'relative',zIndex:1}}>
                           <defs>
-                            {bloomGoals.map((_,i)=>{
-                              const [c1,c2] = domainColor(bloomGoals[i].domain||bloomGoals[i].category);
-                              return (
-                                <linearGradient key={i} id={`lb_petal_${i}`} x1="0%" y1="100%" x2="0%" y2="0%">
-                                  <stop offset="0%" stopColor={c1} stopOpacity="0.95"/>
-                                  <stop offset="100%" stopColor={c2} stopOpacity="0.65"/>
-                                </linearGradient>
-                              );
-                            })}
-                            <radialGradient id="lb_cg" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor={th.b} stopOpacity="0.95"/>
-                              <stop offset="55%" stopColor={th.a} stopOpacity="0.5"/>
+                            <radialGradient id="lb_soil_glow" cx="50%" cy="100%" r="60%">
+                              <stop offset="0%" stopColor={th.a} stopOpacity={0.1+pct*0.12}/>
                               <stop offset="100%" stopColor={th.a} stopOpacity="0"/>
                             </radialGradient>
-                            <radialGradient id="lb_bg" cx="50%" cy="50%" r="50%">
-                              <stop offset="0%" stopColor={th.a} stopOpacity={0.07+pct*0.14}/>
-                              <stop offset="100%" stopColor={th.a} stopOpacity="0"/>
-                            </radialGradient>
-                            <filter id="lb_glow" x="-60%" y="-60%" width="220%" height="220%">
-                              <feGaussianBlur stdDeviation="5" result="b"/>
+                            <filter id="lb_glow2" x="-80%" y="-80%" width="260%" height="260%">
+                              <feGaussianBlur stdDeviation="4.5" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
-                            <filter id="lb_soft" x="-40%" y="-40%" width="180%" height="180%">
+                            <filter id="lb_soft2" x="-50%" y="-50%" width="200%" height="200%">
                               <feGaussianBlur stdDeviation="2.5" result="b"/>
                               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
                           </defs>
 
-                          {/* Ambient bloom glow */}
-                          <circle cx={CX} cy={CY} r={82+pct*18} fill="url(#lb_bg)"/>
+                          {/* Ground ambient glow */}
+                          <ellipse cx={CX} cy={BH-10} rx="110" ry="38" fill="url(#lb_soil_glow)"/>
 
                           {N === 0 ? (
-                            /* No goals — dormant seed */
+                            /* Dormant seed waiting for a goal */
                             <g>
-                              <motion.circle cx={CX} cy={CY+14} r="15" fill="#8b6030"
-                                animate={{scale:[1,1.06,1]}} transition={{duration:2.2,repeat:Infinity}}
-                                style={{transformOrigin:`${CX}px ${CY+14}px`,transformBox:'fill-box'}}/>
-                              <ellipse cx={CX} cy={CY+14} rx="9" ry="10" fill="#c4a26a" opacity="0.4"/>
-                              <motion.path d={`M ${CX} ${CY} Q ${CX-9} ${CY-16} ${CX} ${CY-30}`} fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"
-                                animate={{pathLength:[0.3,1,0.3],opacity:[0.4,1,0.4]}} transition={{duration:2.5,repeat:Infinity,ease:'easeInOut'}}/>
-                              <motion.path d={`M ${CX} ${CY-13} Q ${CX+15} ${CY-24} ${CX+19} ${CY-34}`} fill="none" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round"
-                                animate={{pathLength:[0,1,0],opacity:[0,0.85,0]}} transition={{duration:2.8,repeat:Infinity,ease:'easeInOut',delay:0.55}}/>
-                              <text x={CX} y={CY+52} textAnchor="middle" fontSize="8.5" fill="#6b7280" fontWeight="600">Create goals to bloom ✦</text>
+                              <ellipse cx={CX} cy={soilY} rx="50" ry="10" fill="#6b3f1e" opacity="0.8"/>
+                              <ellipse cx={CX} cy={soilY-3} rx="44" ry="7" fill="#8B5e3c" opacity="0.5"/>
+                              {/* Roots */}
+                              <path d={`M ${CX} ${soilY} Q ${CX-18} ${soilY+8} ${CX-32} ${soilY+5}`} stroke="#5a3010" strokeWidth="3" fill="none" strokeLinecap="round"/>
+                              <path d={`M ${CX+4} ${soilY} Q ${CX+16} ${soilY+9} ${CX+30} ${soilY+6}`} stroke="#5a3010" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                              {/* Seed */}
+                              <motion.ellipse cx={CX} cy={soilY-14} rx="12" ry="14" fill="#a0855b"
+                                animate={{scale:[1,1.07,1]}} transition={{duration:2.2,repeat:Infinity}}
+                                style={{transformOrigin:`${CX}px ${soilY-14}px`,transformBox:'fill-box'}}/>
+                              <ellipse cx={CX} cy={soilY-14} rx="7" ry="9" fill="#c4a26a" opacity="0.4"/>
+                              {/* Tiny animated sprout */}
+                              <motion.path d={`M ${CX} ${soilY-26} Q ${CX-9} ${soilY-42} ${CX} ${soilY-54}`} fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round"
+                                animate={{pathLength:[0.3,1,0.3],opacity:[0.4,1,0.4]}} transition={{duration:2.5,repeat:Infinity}}/>
+                              <motion.path d={`M ${CX} ${soilY-40} Q ${CX+13} ${soilY-52} ${CX+18} ${soilY-63}`} fill="none" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round"
+                                animate={{pathLength:[0,1,0],opacity:[0,0.8,0]}} transition={{duration:2.8,repeat:Infinity,delay:0.55}}/>
+                              <text x={CX} y={soilY+28} textAnchor="middle" fontSize="8.5" fill="#4b5563" fontWeight="600">Create goals to bloom ✦</text>
                             </g>
                           ) : (
                             <g>
-                              {/* All petals: ghost outline + inner ring + main animated petal */}
-                              {bloomGoals.map((goal, i) => {
-                                const angleDeg = (360/N)*i - 90;
-                                const rad = angleDeg * Math.PI / 180;
-                                const gKey = goal.id || goal.title;
-                                const isComplete = !!checkedGoals[gKey];
-                                const [c1, c2] = domainColor(goal.domain||goal.category);
-                                // Tip at full scale in global coords (for tip effects)
-                                const tipX = CX + 56 * Math.sin(rad);
-                                const tipY = CY - 56 * Math.cos(rad);
-                                const innerScale = Math.max(0.28, 0.28 + pct * 0.32);
+                              {/* Soil + roots */}
+                              <ellipse cx={CX} cy={soilY} rx="54" ry="11" fill="#6b3f1e" opacity="0.85"/>
+                              <ellipse cx={CX} cy={soilY-3} rx="47" ry="8" fill="#8B5e3c" opacity="0.6"/>
+                              <path d={`M ${CX} ${soilY} Q ${CX-22} ${soilY+9} ${CX-40} ${soilY+6}`} stroke="#6b3f1e" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                              <path d={`M ${CX+4} ${soilY} Q ${CX+18} ${soilY+10} ${CX+38} ${soilY+7}`} stroke="#6b3f1e" strokeWidth="3" fill="none" strokeLinecap="round"/>
+                              <path d={`M ${CX-5} ${soilY} Q ${CX-8} ${soilY+15} ${CX-11} ${soilY+21}`} stroke="#5a3010" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                              <path d={`M ${CX+8} ${soilY} Q ${CX+11} ${soilY+13} ${CX+15} ${soilY+19}`} stroke="#5a3010" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
 
+                              {/* Main trunk */}
+                              <path
+                                d={`M ${CX} ${soilY} Q ${CX-4} ${(soilY+trunkTop)/2+10} ${CX+2} ${trunkTop}`}
+                                stroke={trunkColor} strokeWidth={trunkW} fill="none" strokeLinecap="round"
+                                style={{ transition: 'stroke 0.6s, stroke-width 0.6s' }}
+                              />
+                              {/* Trunk highlight */}
+                              <path
+                                d={`M ${CX+1} ${soilY-5} Q ${CX-2} ${(soilY+trunkTop)/2+10} ${CX+3} ${trunkTop+8}`}
+                                stroke={pct > 0.2 ? '#4ade80' : '#a16207'} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.3"
+                              />
+
+                              {/* Branches + leaves */}
+                              {nodes.map(({ i, y, tipX, tipY, dir, isComplete, c1, c2 }) => {
+                                const lx = tipX, ly = tipY;
+                                const lh = 32, lw = 11;
+                                // Organic upward-pointing leaf path
+                                const leafPath = `M ${lx} ${ly} C ${lx+dir*lw} ${ly-lh*0.28} ${lx+dir*lw*0.65} ${ly-lh*0.72} ${lx} ${ly-lh} C ${lx-dir*lw*0.65} ${ly-lh*0.72} ${lx-dir*lw} ${ly-lh*0.28} ${lx} ${ly} Z`;
                                 return (
-                                  <g key={`pg_${goal.id||i}`}>
-                                    {/* Ghost petal — full-size faint outline showing potential */}
-                                    <g transform={`translate(${CX},${CY}) rotate(${angleDeg})`}>
-                                      <path d={PETAL} fill={c1} opacity="0.06"/>
-                                    </g>
-
-                                    {/* Inner decorative ring petal (offset by half-step) */}
-                                    {N >= 2 && (
-                                      <g transform={`translate(${CX},${CY}) rotate(${angleDeg+(180/N)})`}>
-                                        <motion.path d={INNER_PETAL} fill={th.b}
-                                          initial={{scale:0,opacity:0}}
-                                          animate={{scale:innerScale,opacity:0.14+pct*0.26}}
-                                          transition={{delay:i*0.06,duration:0.6}}
-                                          style={{transformOrigin:`${CX}px ${CY}px`}}/>
-                                      </g>
+                                  <g key={`node_${i}`}>
+                                    {/* Ghost branch */}
+                                    <line x1={CX} y1={y} x2={tipX} y2={tipY}
+                                      stroke="#1a2332" strokeWidth="2" strokeLinecap="round"/>
+                                    {/* Live branch */}
+                                    <line x1={CX} y1={y} x2={tipX} y2={tipY}
+                                      stroke={isComplete ? c1 : '#2d3748'} strokeWidth={isComplete ? 2.5 : 1.2}
+                                      strokeLinecap="round"
+                                      style={{ transition: 'stroke 0.45s, stroke-width 0.45s' }}/>
+                                    {/* Leaf — scales from branch tip upward */}
+                                    <path
+                                      d={leafPath}
+                                      fill={isComplete ? c1 : '#1e2d3d'}
+                                      opacity={isComplete ? 0.88 : 0.22}
+                                      style={{
+                                        transform: `scale(${isComplete ? 1 : 0.18})`,
+                                        transformOrigin: `${lx}px ${ly}px`,
+                                        transition: 'transform 0.65s cubic-bezier(0.34,1.56,0.64,1), opacity 0.45s ease, fill 0.4s ease',
+                                      }}
+                                    />
+                                    {/* Leaf vein */}
+                                    {isComplete && (
+                                      <line x1={lx} y1={ly-2} x2={lx} y2={ly-lh+4}
+                                        stroke={c2} strokeWidth="0.9" strokeLinecap="round" opacity="0.45"
+                                        style={{ transition: 'opacity 0.4s' }}/>
                                     )}
-
-                                    {/* Main petal — CSS transition; origin at flower center (CX,CY) in SVG viewport coords */}
-                                    <g transform={`translate(${CX},${CY}) rotate(${angleDeg})`}>
-                                      <path d={PETAL}
-                                        fill={`url(#lb_petal_${i})`}
-                                        style={{
-                                          transform: `scale(${isComplete ? 1 : 0.35})`,
-                                          opacity: isComplete ? 0.9 : 0.22,
-                                          transition: 'transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease',
-                                          transformOrigin: `${CX}px ${CY}px`,
-                                        }}/>
-                                      <line x1="0" y1="-2" x2="0" y2={isComplete ? -49 : -18}
-                                        stroke={c2} strokeWidth="0.9" strokeLinecap="round"
-                                        opacity={isComplete ? 0.38 : 0.12}
-                                        style={{ transition: 'all 0.5s ease' }}/>
-                                    </g>
-
-                                    {/* Tip glow + particles + checkmark — only when completed */}
-                                    {isComplete && (<>
-                                      <motion.circle cx={tipX} cy={tipY} r={4.5} fill={c2}
-                                        animate={{r:[3.5,6.5,3.5],opacity:[0.45,1,0.45]}}
-                                        transition={{duration:2,repeat:Infinity,delay:i*0.28}}
-                                        filter="url(#lb_soft)"/>
-                                      {[{ox:5,oy:-9,d:0},{ox:-7,oy:-5,d:0.65},{ox:8,oy:4,d:1.3}].map((p,j)=>(
-                                        <motion.circle key={j} cx={tipX+p.ox} cy={tipY+p.oy} r={1.6} fill={c2}
-                                          animate={{y:[0,-11,0],opacity:[0.05,0.85,0.05],scale:[0.4,1.3,0.4]}}
-                                          transition={{duration:2.1+j*0.45,repeat:Infinity,delay:p.d+i*0.18}}/>
-                                      ))}
-                                      <text x={CX+(56+12)*Math.sin(rad)} y={CY-(56+12)*Math.cos(rad)+3}
-                                        textAnchor={Math.sin(rad)>0.3?'start':Math.sin(rad)<-0.3?'end':'middle'}
-                                        fontSize="7" fill={c2} fontWeight="800" opacity="0.9">✓</text>
-                                    </>)}
+                                    {/* Tip bud / flower */}
+                                    <circle
+                                      cx={lx} cy={isComplete ? ly - lh : ly - 9}
+                                      r={isComplete ? 4.2 : 2.8}
+                                      fill={isComplete ? c2 : '#374151'}
+                                      style={{ transition: 'cy 0.55s ease, r 0.4s ease, fill 0.4s ease' }}
+                                    />
+                                    {/* Glow pulse on complete */}
+                                    {isComplete && (
+                                      <motion.circle cx={lx} cy={ly - lh/2} r="9" fill={c1} opacity={0}
+                                        animate={{opacity:[0, 0.22, 0], r:[8,17,8]}}
+                                        transition={{duration:2.8, repeat:Infinity, delay: i*0.28}}/>
+                                    )}
+                                    {/* Checkmark label on complete */}
+                                    {isComplete && (
+                                      <text x={lx + dir*8} y={ly - lh - 6}
+                                        fontSize="7" fill={c2} fontWeight="800" opacity="0.85" textAnchor="middle">✓</text>
+                                    )}
                                   </g>
                                 );
                               })}
 
-                              {/* Pollen ring around center */}
-                              {bloomGoals.map((_, i) => {
-                                const angleDeg = (360/N)*i - 90;
-                                const rad = angleDeg * Math.PI / 180;
-                                const pr = 18 + pct * 7;
-                                return (
-                                  <motion.circle key={`poll_${i}`}
-                                    cx={CX + pr*Math.sin(rad)} cy={CY - pr*Math.cos(rad)}
-                                    r={1.9} fill={th.b}
-                                    animate={{opacity:[0.25,0.95,0.25],scale:[0.6,1.4,0.6]}}
-                                    transition={{duration:1.8+i*0.2,repeat:Infinity,delay:i*0.16}}/>
-                                );
-                              })}
-
-                              {/* Center stamen layers */}
-                              <motion.circle cx={CX} cy={CY} r={20+pct*10} fill="url(#lb_cg)" filter="url(#lb_glow)"
-                                animate={{r:[20+pct*10,24+pct*10,20+pct*10],opacity:[0.5,0.9,0.5]}}
-                                transition={{duration:2.8,repeat:Infinity,ease:'easeInOut'}}/>
-                              <circle cx={CX} cy={CY} r={13+pct*6} fill={th.a} opacity={0.5+pct*0.4}/>
-                              <circle cx={CX} cy={CY} r={8+pct*3} fill={th.b} opacity={0.85}/>
-                              <circle cx={CX} cy={CY} r={3.8} fill="#fff" opacity="0.92"/>
-
-                              {/* Full bloom sparkles */}
-                              {pct === 1 && (
-                                [{x:CX-50,y:CY-44,d:0},{x:CX+50,y:CY-42,d:0.5},{x:CX-56,y:CY+10,d:1.0},{x:CX+54,y:CY+8,d:1.5},{x:CX,y:CY-74,d:0.8},{x:CX,y:CY+72,d:1.3}]
-                                .map((p,i)=>(
-                                  <motion.text key={i} x={p.x} y={p.y} fontSize="11" textAnchor="middle" fill={th.b}
-                                    animate={{y:[p.y,p.y-14,p.y],opacity:[0.05,1,0.05]}}
-                                    transition={{duration:2.5,repeat:Infinity,delay:p.d}}>✦</motion.text>
-                                ))
+                              {/* Crown bud → flower at top of trunk */}
+                              {pct < 1 ? (
+                                <motion.circle cx={CX+2} cy={trunkTop}
+                                  r={5 + pct * 10} fill={th.a}
+                                  opacity={0.35 + pct * 0.55}
+                                  animate={{scale:[1, 1.1, 1], opacity:[0.35+pct*0.55, 0.85+pct*0.15, 0.35+pct*0.55]}}
+                                  transition={{duration:2.2, repeat:Infinity}}
+                                  style={{transformOrigin:`${CX+2}px ${trunkTop}px`, transformBox:'fill-box'}}
+                                  filter="url(#lb_soft2)"
+                                />
+                              ) : (
+                                /* Full bloom crown flower */
+                                <g filter="url(#lb_glow2)">
+                                  {[0,60,120,180,240,300].map((angle, i) => {
+                                    const rad = (angle * Math.PI) / 180;
+                                    const px = CX+2 + Math.cos(rad) * 14;
+                                    const py = trunkTop + Math.sin(rad) * 14;
+                                    return (
+                                      <motion.ellipse key={i} cx={px} cy={py} rx="9" ry="5.5"
+                                        transform={`rotate(${angle} ${px} ${py})`}
+                                        fill={i%2===0 ? '#f472b6' : '#ec4899'} opacity="0.95"
+                                        initial={{scale:0}} animate={{scale:1}}
+                                        transition={{duration:0.4, delay: 0.2 + i*0.07}}/>
+                                    );
+                                  })}
+                                  <circle cx={CX+2} cy={trunkTop} r="7.5" fill="#fbbf24"/>
+                                  <circle cx={CX+2} cy={trunkTop} r="3.5" fill="#fff" opacity="0.9"/>
+                                  {/* Bloom sparkles */}
+                                  {[{x:CX-48,y:82,d:0},{x:CX+46,y:80,d:0.55},{x:CX-52,y:120,d:1.0},{x:CX+50,y:118,d:1.5},{x:CX,y:62,d:0.8}].map((p,i)=>(
+                                    <motion.text key={i} x={p.x} y={p.y} fontSize="10" textAnchor="middle" fill={th.b}
+                                      animate={{y:[p.y,p.y-14,p.y],opacity:[0.05,1,0.05]}}
+                                      transition={{duration:2.5,repeat:Infinity,delay:p.d}}>✦</motion.text>
+                                  ))}
+                                </g>
                               )}
                             </g>
                           )}
                         </svg>
                       </div>
 
-                      {/* Goal checkboxes */}
+                      {/* Goal checkboxes — clicking marks goal complete */}
                       {N > 0 && (
                         <div style={{position:'relative',zIndex:1,maxHeight:54,overflowY:'auto',marginBottom:5}}>
                           <div style={{display:'flex',flexWrap:'wrap',gap:'4px 6px'}}>
                             {bloomGoals.map((goal) => {
                               const gKey = goal.id || goal.title;
-                              const done = !!checkedGoals[gKey];
-                              const [c1, c2] = domainColor(goal.domain||goal.category);
+                              const done = !!checkedGoals[gKey] || (goal.progress || 0) >= 100 ||
+                                (goal.targetMetric ? computeGoalProgress(goal, health||{}, finance||{}, career||{}).progress >= 100 : false);
+                              const [c1, c2] = getDomainColors(goal.domain || goal.category);
                               return (
                                 <div key={gKey}
-                                  onClick={() => setCheckedGoals(p => ({ ...p, [gKey]: !p[gKey] }))}
+                                  onClick={() => {
+                                    const newDone = !done;
+                                    setCheckedGoals(p => ({ ...p, [gKey]: newDone }));
+                                    updateGoals((goals || []).map(g =>
+                                      (g.id != null ? g.id === goal.id : g.title === goal.title)
+                                        ? { ...g, progress: newDone ? 100 : 0 }
+                                        : g
+                                    ));
+                                  }}
                                   style={{ display:'flex', alignItems:'center', gap:4, cursor:'pointer', background: done ? `${c1}22` : 'rgba(255,255,255,0.04)', border:`1px solid ${done ? c1+'55' : 'rgba(255,255,255,0.08)'}`, borderRadius:99, padding:'2px 7px 2px 4px', transition:'all 0.2s' }}>
                                   <div style={{ width:10, height:10, borderRadius:'50%', border: done ? 'none' : `1.5px solid ${c1}55`, background: done ? c1 : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.2s' }}>
                                     {done && <svg width="5" height="5" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>}

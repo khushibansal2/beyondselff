@@ -11,28 +11,36 @@
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE + '/ai';
-const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key');
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_PROXY_BASE = import.meta.env.VITE_API_BASE + '/groq';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
-async function callGroqDirect(systemPrompt, history, userMessage) {
+function getAuthToken() {
+  try {
+    const raw = localStorage.getItem('dt_auth');
+    if (!raw) return null;
+    return JSON.parse(raw)?.token || null;
+  } catch { return null; }
+}
+
+/** Route Groq calls through the backend proxy (key stays server-side). */
+async function callGroqViaBackend(systemPrompt, history, userMessage, maxTokens = 500) {
+  const token = getAuthToken();
   const messages = [
     { role: 'system', content: systemPrompt },
     ...history,
     { role: 'user', content: userMessage },
   ];
-  const res = await fetch(GROQ_API_URL, {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${GROQ_PROXY_BASE}/chat`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GROQ_KEY}`,
-    },
-    body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: 500, temperature: 0.7 }),
-    signal: AbortSignal.timeout(12000),
+    headers,
+    body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: maxTokens, temperature: 0.7 }),
+    signal: AbortSignal.timeout(15000),
   });
-  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  if (!res.ok) throw new Error(`Groq proxy ${res.status}`);
   const data = await res.json();
-  return data.choices[0].message.content;
+  return data.choices?.[0]?.message?.content ?? '';
 }
 
 /** Strip PII from user data before sending to AI. */
@@ -164,14 +172,12 @@ export async function chatWithAI(message, context = {}, history = []) {
     console.warn('Backend AI unavailable, trying Groq direct:', error.message);
   }
 
-  // 2. Direct Groq fallback (uses VITE_GROQ_API_KEY — no backend needed)
-  if (GROQ_KEY) {
-    try {
-      const response = await callGroqDirect(systemPrompt, conversationHistory, message);
-      return { response, source: 'groq-direct' };
-    } catch (error) {
-      console.warn('Groq direct failed, using deterministic fallback:', error.message);
-    }
+  // 2. Groq via backend proxy (key stays server-side)
+  try {
+    const response = await callGroqViaBackend(systemPrompt, conversationHistory, message);
+    if (response) return { response, source: 'groq-proxy' };
+  } catch (error) {
+    console.warn('Groq backend proxy failed, using deterministic fallback:', error.message);
   }
 
   // 3. Deterministic fallback — no external calls required
@@ -251,18 +257,16 @@ export async function fetchRecommendations(context = {}) {
     }
   } catch (_) { /* backend unavailable */ }
 
-  // 2. Try Groq direct
-  if (GROQ_KEY) {
-    try {
-      const sysPr = buildSystemPrompt(context);
-      const prompt = 'Based on the user state in the system prompt, return ONLY a JSON array of exactly 3 recommendation objects with fields: domain, priority, title, action, reason, impact. No markdown, no extra text.';
-      const raw = await callGroqDirect(sysPr, [], prompt);
-      const cleaned = raw.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-      const recs = JSON.parse(cleaned);
-      if (Array.isArray(recs) && recs.length > 0)
-        return { recommendations: recs, source: 'groq-direct' };
-    } catch (_) { /* parse or network error */ }
-  }
+  // 2. Try Groq via backend proxy
+  try {
+    const sysPr = buildSystemPrompt(context);
+    const prompt = 'Based on the user state in the system prompt, return ONLY a JSON array of exactly 3 recommendation objects with fields: domain, priority, title, action, reason, impact. No markdown, no extra text.';
+    const raw = await callGroqViaBackend(sysPr, [], prompt);
+    const cleaned = raw.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+    const recs = JSON.parse(cleaned);
+    if (Array.isArray(recs) && recs.length > 0)
+      return { recommendations: recs, source: 'groq-proxy' };
+  } catch (_) { /* proxy unavailable or parse error — fall through to deterministic */ }
 
   // 3. Deterministic fallback
   return { recommendations: _fallbackRecommendations(context), source: 'fallback' };

@@ -6,6 +6,7 @@ import { healthApi } from '../services/backendApi';
 import { generateTrendData, generateInsights } from '../data/demoData';
 import { analyzeMealImage, analyzeSupplementImage, hasApiKey, saveApiKey, getDemoMealResult, getDemoSupplementResult } from '../services/visionService';
 import { generateMealPlan, regenerateSingleMeal } from '../services/nutritionService';
+import { chatWithAI } from '../services/aiService';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -419,11 +420,38 @@ function NutritionPanel({ healthData, updateDomain }) {
 
   const [loading, setLoading] = useState(false);
   const [loadingMeal, setLoadingMeal] = useState(null);
+  const [showCustomMeal, setShowCustomMeal] = useState(false);
+  const [customMeal, setCustomMeal] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', mealType: 'Snack' });
   const [form, setForm] = useState({
     dietaryPreference: profile.dietaryPreference || 'Veg',
     cuisine: profile.cuisine || 'North Indian',
     targetCalories: profile.targetCalories || 2000
   });
+
+  const handleAddCustomMeal = () => {
+    const cal = Number(customMeal.calories);
+    if (!customMeal.name.trim() || !cal) { showToast('Enter meal name and calories', 'error'); return; }
+    const newMeal = {
+      type: customMeal.mealType,
+      name: customMeal.name.trim(),
+      calories: cal,
+      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+      macros: { protein: Number(customMeal.protein) || 0, carbs: Number(customMeal.carbs) || 0, fat: Number(customMeal.fat) || 0 },
+      completed: true,
+      icon: '🍽️',
+    };
+    const updatedMeals = [...plan.meals, newMeal];
+    const newTotalCalories = updatedMeals.reduce((s, m) => s + m.calories, 0);
+    const newMacros = {
+      protein: updatedMeals.reduce((s, m) => s + (m.macros?.protein || 0), 0),
+      carbs: updatedMeals.reduce((s, m) => s + (m.macros?.carbs || 0), 0),
+      fat: updatedMeals.reduce((s, m) => s + (m.macros?.fat || 0), 0),
+    };
+    updateDomain('health', { ...healthData, dailyMealPlan: { ...plan, meals: updatedMeals, totalCalories: newTotalCalories, macros: newMacros } });
+    setCustomMeal({ name: '', calories: '', protein: '', carbs: '', fat: '', mealType: 'Snack' });
+    setShowCustomMeal(false);
+    showToast(`Added ${newMeal.name} (${cal} kcal)`, 'success');
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -489,19 +517,30 @@ function NutritionPanel({ healthData, updateDomain }) {
   const calPercent = Math.min(100, Math.round((currentCalories / targetCalories) * 100));
 
   const proteinTarget = 120;
-  const currentProtein = healthData?.protein || 92;
-  const proteinPercent = Math.min(100, Math.round((currentProtein / proteinTarget) * 100));
+  const currentProtein = healthData?.protein ?? (plan?.macros?.protein || 0);
+  const proteinPercent = currentProtein > 0 ? Math.min(100, Math.round((currentProtein / proteinTarget) * 100)) : 0;
 
   const waterTarget = 8;
-  const currentWater = healthData?.waterIntake || 6;
-  const waterPercent = Math.min(100, Math.round((currentWater / waterTarget) * 100));
+  const currentWater = healthData?.waterIntake || 0;
+  const waterPercent = currentWater > 0 ? Math.min(100, Math.round((currentWater / waterTarget) * 100)) : 0;
 
-  const macroProtein = plan?.macros?.protein || 57;
-  const macroCarbs = plan?.macros?.carbs || 210;
-  const macroFat = plan?.macros?.fat || 55;
-  const macroTotalCal = plan?.totalCalories || 1990;
+  const macroProtein = healthData?.protein ?? plan?.macros?.protein ?? null;
+  const macroCarbs = healthData?.carbs ?? plan?.macros?.carbs ?? null;
+  const macroFat = healthData?.fat ?? plan?.macros?.fat ?? null;
+  const macroTotalCal = plan?.totalCalories || (healthData?.calories || 0);
 
-  const score = healthData?.score || 78;
+  // Compute nutrition score from actual logged calories vs target
+  const targetCals = profile.targetCalories || 2000;
+  const loggedCals = healthData?.calories || 0;
+  const score = loggedCals > 0
+    ? (() => {
+        const dev = Math.abs(loggedCals - targetCals) / targetCals;
+        if (dev <= 0.05) return 95;
+        if (dev <= 0.15) return 80;
+        if (dev <= 0.30) return 60;
+        return 35;
+      })()
+    : 0;
 
   return (
     <div style={{ fontFamily: 'var(--font-primary)' }} className="grid grid-cols-1 lg:grid-cols-[1.8fr_1fr] gap-6 items-stretch w-full px-1">
@@ -715,28 +754,32 @@ function NutritionPanel({ healthData, updateDomain }) {
           <div style={{ marginTop: '8px' }}>
             <button
               type="button"
-              style={{
-                height: '38px',
-                padding: '0 16px',
-                borderRadius: '10px',
-                backgroundColor: '#0c0e16',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontWeight: '700',
-                fontSize: '12px',
-                fontFamily: 'var(--font-display)',
-                color: '#8b5cf6',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
+              onClick={() => setShowCustomMeal(v => !v)}
+              style={{ height: '38px', padding: '0 16px', borderRadius: '10px', backgroundColor: '#0c0e16', border: `1px solid ${showCustomMeal ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)'}`, display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '12px', fontFamily: 'var(--font-display)', color: '#8b5cf6', cursor: 'pointer', transition: 'all 0.2s ease', outline: 'none' }}
               className="hover:text-[#7c3aed] active:scale-[0.98]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5v14"/></svg>
-              Add Custom Meal
+              {showCustomMeal ? 'Cancel' : 'Add Custom Meal'}
             </button>
+            {showCustomMeal && (
+              <div style={{ marginTop: 10, padding: '14px 16px', borderRadius: 12, background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <input value={customMeal.name} onChange={e => setCustomMeal(p => ({ ...p, name: e.target.value }))} placeholder="Meal name (e.g. Grilled Chicken)" style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#f1f5f9', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <select value={customMeal.mealType} onChange={e => setCustomMeal(p => ({ ...p, mealType: e.target.value }))} style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#f1f5f9', fontSize: 12, outline: 'none' }}>
+                    {['Breakfast','Lunch','Snack','Dinner'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <input type="number" value={customMeal.calories} onChange={e => setCustomMeal(p => ({ ...p, calories: e.target.value }))} placeholder="Calories (kcal)" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#f1f5f9', fontSize: 12, outline: 'none' }} />
+                  <input type="number" value={customMeal.protein} onChange={e => setCustomMeal(p => ({ ...p, protein: e.target.value }))} placeholder="Protein (g)" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#f1f5f9', fontSize: 12, outline: 'none' }} />
+                  <input type="number" value={customMeal.carbs} onChange={e => setCustomMeal(p => ({ ...p, carbs: e.target.value }))} placeholder="Carbs (g)" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#f1f5f9', fontSize: 12, outline: 'none' }} />
+                  <input type="number" value={customMeal.fat} onChange={e => setCustomMeal(p => ({ ...p, fat: e.target.value }))} placeholder="Fat (g)" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#f1f5f9', fontSize: 12, outline: 'none' }} />
+                </div>
+                <button onClick={handleAddCustomMeal} style={{ padding: '8px 16px', borderRadius: 8, background: '#7c3aed', color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer', alignSelf: 'flex-start' }}>
+                  Add to Plan
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -766,8 +809,8 @@ function NutritionPanel({ healthData, updateDomain }) {
               <span style={{ fontFamily: 'var(--font-display)' }} className="text-xl font-extrabold text-white">{score}</span>
               <span className="text-[10px] text-slate-500 font-medium">/100</span>
             </div>
-            <span className="text-[10px] text-emerald-400 font-bold mt-1">
-              Good Nutrition · ↑ 6 pts vs last 7 days
+            <span className={`text-[10px] font-bold mt-1 ${score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-yellow-400' : score > 0 ? 'text-red-400' : 'text-slate-500'}`}>
+              {score >= 80 ? 'Good Nutrition' : score >= 50 ? 'Needs Improvement' : score > 0 ? 'Poor Nutrition' : 'No data logged yet'}
             </span>
           </div>
         </div>
@@ -894,7 +937,7 @@ function NutritionPanel({ healthData, updateDomain }) {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#10b981]">{macroProtein}g</span>
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#10b981]">{macroProtein != null ? `${macroProtein}g` : '–'}</span>
               <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Protein</span>
             </div>
 
@@ -909,7 +952,7 @@ function NutritionPanel({ healthData, updateDomain }) {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#f97316]">{macroCarbs}g</span>
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#f97316]">{macroCarbs != null ? `${macroCarbs}g` : '–'}</span>
               <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Carbs</span>
             </div>
 
@@ -924,7 +967,7 @@ function NutritionPanel({ healthData, updateDomain }) {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#ef4444]">{macroFat}g</span>
+              <span style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-extrabold text-[#ef4444]">{macroFat != null ? `${macroFat}g` : '–'}</span>
               <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">Fats</span>
             </div>
           </div>
@@ -935,7 +978,7 @@ function NutritionPanel({ healthData, updateDomain }) {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between text-xs font-semibold text-slate-200 leading-none">
                 <span>Protein</span>
-                <span className="text-slate-400 font-medium">{macroProtein}g / 120g</span>
+                <span className="text-slate-400 font-medium">{macroProtein != null ? `${macroProtein}g / 120g` : '– / 120g'}</span>
               </div>
               <div style={{ height: '6px' }} className="w-full bg-white/5 rounded-full overflow-hidden">
                 <div style={{ width: `${Math.min(100, Math.round((macroProtein / 120) * 100))}%`, backgroundColor: '#10b981' }} className="h-full rounded-full transition-all duration-500" />
@@ -1073,43 +1116,9 @@ function HealthRecommendations({ recommendations, h, score }) {
 
       {/* ── PRIORITY RECOMMENDATIONS ── */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-200 m-0">Priority Recommendations</h2>
-            <span title="Sorted by impact on your health score" className="text-xs text-slate-500 cursor-help">ⓘ</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="text-xs text-[#818cf8] hover:text-[#6366f1] transition-all font-semibold bg-transparent border-none cursor-pointer">
-              View All
-            </button>
-            <button
-              onClick={() => {
-                const scanBtn = document.querySelector('button[style*="Scan AI"]');
-                if (scanBtn) scanBtn.click();
-              }}
-              style={{
-                height: '38px',
-                padding: '0 16px',
-                borderRadius: '10px',
-                backgroundColor: '#161925',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: '700',
-                fontSize: '12px',
-                fontFamily: 'inherit',
-                color: '#cbd5e1',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                outline: 'none'
-              }}
-              className="hover:bg-[#1f2335] active:bg-[#252a3f] transition-all"
-            >
-              <Eye size={14} className="text-slate-400" /> Scan with AI Vision
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <h2 style={{ fontFamily: 'var(--font-display)' }} className="text-sm font-bold text-slate-200 m-0">Priority Recommendations</h2>
+          <span title="Sorted by impact on your health score" className="text-xs text-slate-500 cursor-help">ⓘ</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
@@ -1117,15 +1126,7 @@ function HealthRecommendations({ recommendations, h, score }) {
             const theme = getRecTheme(rec.id);
             const scoreDelta = Math.round(rec.confidence / 12);
             
-            // Format cardText exactly like Image 2 for the target mockups
-            let cardText = rec.text;
-            if (rec.id.includes('sleep')) {
-              cardText = `You're averaging 0h — 8h.\nOh below the 7-8h target.\nSevere sleep debt detected.`;
-            } else if (rec.id.includes('mood')) {
-              cardText = `Mood averaging 0/10 — critically low.\nThree high-impact actions (10-min gratitude\njournaling before sleep, (2) one social connection\nper day, (3) reduce doomscrolling)`;
-            } else if (rec.id.includes('workout')) {
-              cardText = `Only 0 sessions/week — target is 4.\nAdd 4 sessions: try 2x 25-min cardio\n+ 1 strength. Even a 10-min walk counts.`;
-            }
+            const cardText = rec.text;
 
             return (
               <div
@@ -1395,13 +1396,10 @@ function HealthRecommendations({ recommendations, h, score }) {
           className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col justify-between shadow-lg h-full"
           style={{ padding: '24px', minHeight: '260px' }}
         >
-          <div className="flex items-center justify-between border-b border-white/5 pb-3.5">
+          <div className="border-b border-white/5 pb-3.5">
             <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold text-slate-300 m-0">
               Recent Recommendations (History)
             </p>
-            <button className="text-xs text-[#818cf8] hover:text-[#6366f1] transition-all font-semibold bg-transparent border-none cursor-pointer">
-              View All
-            </button>
           </div>
 
           <div className="flex-1 flex flex-col justify-center items-center py-6 text-center">
@@ -1468,6 +1466,10 @@ export default function Health() {
   const score = Number(computed?.healthScore?.score) || 0;
   const burnout = computed?.burnout?.risk || 0;
   const [form, setForm] = useState({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
+  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [coachInput, setCoachInput] = useState('');
+  const [coachMessages, setCoachMessages] = useState([]);
+  const [coachLoading, setCoachLoading] = useState(false);
   const [planChecked, setPlanChecked] = useState({});
 
   // Load health records from backend on mount (for real users)
@@ -1514,9 +1516,12 @@ export default function Health() {
   }, [healthRecords]);
 
   // Recent log entries for history panel
-  const recentLogs = useMemo(() =>
-    [...healthRecords].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 7),
+  const sortedLogs = useMemo(() =>
+    [...healthRecords].sort((a, b) => new Date(b.date) - new Date(a.date)),
   [healthRecords]);
+  const recentLogs = useMemo(() =>
+    showAllHistory ? sortedLogs : sortedLogs.slice(0, 7),
+  [sortedLogs, showAllHistory]);
 
   const currentState = useMemo(() => ({
     health: h,
@@ -1588,10 +1593,33 @@ export default function Health() {
     }
   };
 
+  const handleCoachSend = async () => {
+    const msg = coachInput.trim();
+    if (!msg || coachLoading) return;
+    const userMsg = { role: 'user', content: msg };
+    setCoachMessages(prev => [...prev, userMsg]);
+    setCoachInput('');
+    setCoachLoading(true);
+    try {
+      const ctx = { domain: 'health', health: h, healthScore: score, userName: user?.name || 'User' };
+      const history = coachMessages.map(m => ({ role: m.role, content: m.content }));
+      const { response } = await chatWithAI(msg, ctx, history);
+      setCoachMessages(prev => [...prev, { role: 'assistant', content: response }]);
+    } catch {
+      setCoachMessages(prev => [...prev, { role: 'assistant', content: 'Unable to connect right now. Please check your API key in Settings.' }]);
+    } finally {
+      setCoachLoading(false);
+    }
+  };
+
   const handleApplyCalories = (nutrition) => {
     const calories = typeof nutrition === 'number' ? nutrition : (nutrition?.calories ?? 0);
     if (calories > 0) {
-      addRecords('health', [{ date: new Date().toISOString(), calories }]);
+      const record = { date: new Date().toISOString(), calories };
+      if (nutrition?.protein != null) record.protein = nutrition.protein;
+      if (nutrition?.carbs   != null) record.carbs   = nutrition.carbs;
+      if (nutrition?.fat     != null) record.fat     = nutrition.fat;
+      addRecords('health', [record]);
     }
     setForm(prev => ({ ...prev, calories: calories.toString() }));
     setTab('log');
@@ -1715,12 +1743,12 @@ export default function Health() {
   })();
 
   const wellnessFactors = [
-    { label: 'Sleep Quality',    score: Math.round(Math.min(100, (h.sleepAvg / 8) * 100)),                    icon: '😴', color: '#8b5cf6' },
-    { label: 'Stress Level',     score: Math.round(Math.max(0, (10 - h.stressLevel) / 10 * 100)),             icon: '😰', color: '#f43f5e' },
-    { label: 'Mood',             score: Math.round((h.moodAvg / 10) * 100),                                   icon: '😊', color: '#f59e0b' },
-    { label: 'Physical Activity',score: Math.round(Math.min(100, (h.workoutsPerWeek / 5) * 100)),             icon: '💪', color: '#10b981' },
-    { label: 'Hydration',        score: Math.round(Math.min(100, (h.waterIntake / 8) * 100)),                 icon: '💧', color: '#06b6d4' },
-    { label: 'Nutrition',        score: nutritionScore,                                                        icon: '🥗', color: '#f97316' },
+    { label: 'Sleep Quality',    score: Math.round(Math.min(100, (h.sleepAvg / 8) * 100)),                    icon: '😴', color: '#8b5cf6', rawValue: h.sleepAvg > 0 ? `${h.sleepAvg}h` : null },
+    { label: 'Stress Level',     score: Math.round(Math.max(0, (10 - h.stressLevel) / 10 * 100)),             icon: '😰', color: '#f43f5e', rawValue: h.stressLevel > 0 ? `${h.stressLevel}/10` : null },
+    { label: 'Mood',             score: Math.round((h.moodAvg / 10) * 100),                                   icon: '😊', color: '#f59e0b', rawValue: h.moodAvg > 0 ? `${h.moodAvg}/10` : null },
+    { label: 'Physical Activity',score: Math.round(Math.min(100, (h.workoutsPerWeek / 5) * 100)),             icon: '💪', color: '#10b981', rawValue: h.workoutsPerWeek > 0 ? `${h.workoutsPerWeek}x/wk` : null },
+    { label: 'Hydration',        score: Math.round(Math.min(100, (h.waterIntake / 8) * 100)),                 icon: '💧', color: '#06b6d4', rawValue: h.waterIntake > 0 ? `${h.waterIntake} gl` : null },
+    { label: 'Nutrition',        score: nutritionScore,                                                        icon: '🥗', color: '#f97316', rawValue: h.calories > 0 ? `${h.calories} kcal` : null },
   ];
 
   return (
@@ -2069,24 +2097,74 @@ export default function Health() {
             </div>
           </div>
 
-          {/* ── Row 3: AI Health Coach ── */}
-          <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '20px 24px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#a78bfa' }}>
-                <Brain size={20} />
-              </div>
-              <div style={{ flex: 1, position: 'relative', zIndex: 2 }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#f0f0f3', margin: '0 0 4px' }}>AI Health Coach</p>
-                <p style={{ fontSize: 13, color: '#a1a1aa', lineHeight: 1.5, margin: 0 }}>
-                  Your stress levels are slightly elevated in the evenings. Try a 10-minute breathing exercise before bed to improve sleep quality and recovery.
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10 }}>
-                  <button style={{ padding: '6px 12px', borderRadius: 8, background: '#2e1065', color: '#d8b4fe', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    Start Breathing Exercise →
-                  </button>
-                  <button style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>
-                    💡 More tips
-                  </button>
+          {/* ── Row 3: AI Health Coach (chat) ── */}
+          <div style={{ background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '20px 24px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#a78bfa' }}>
+                  <Brain size={18} />
                 </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f0f3', margin: 0 }}>AI Health Coach</p>
+                  <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Ask anything about your health — powered by AI</p>
+                </div>
+              </div>
+
+              {/* Context tip */}
+              {coachMessages.length === 0 && (
+                <p style={{ fontSize: 12, color: '#71717a', lineHeight: 1.5, margin: '0 0 12px', padding: '10px 12px', background: 'rgba(167,139,250,0.06)', borderRadius: 10, border: '1px solid rgba(167,139,250,0.12)' }}>
+                  {h.stressLevel > 7 ? `⚠️ Stress at ${h.stressLevel}/10 is critical. Try asking: "How can I lower my stress quickly?"`
+                    : h.sleepAvg > 0 && h.sleepAvg < 6 ? `😴 Sleep at ${h.sleepAvg}h. Try: "What's the best sleep routine for me?"`
+                    : h.workoutsPerWeek < 2 ? `💪 Only ${h.workoutsPerWeek} workouts this week. Try: "Give me a beginner workout plan."`
+                    : `Ask me anything: "Analyse my health data", "What should I eat today?", "How to improve my score?"`}
+                </p>
+              )}
+
+              {/* Chat messages */}
+              {coachMessages.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12, maxHeight: 240, overflowY: 'auto' }}>
+                  {coachMessages.map((m, i) => (
+                    <div key={i} style={{
+                      alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                      maxWidth: '85%',
+                      padding: '8px 12px',
+                      borderRadius: m.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                      background: m.role === 'user' ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${m.role === 'user' ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                      fontSize: 12, color: '#e2e8f0', lineHeight: 1.5,
+                    }}>
+                      {m.content}
+                    </div>
+                  ))}
+                  {coachLoading && (
+                    <div style={{ alignSelf: 'flex-start', padding: '8px 14px', borderRadius: '12px 12px 12px 2px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', fontSize: 12, color: '#64748b' }}>
+                      Thinking…
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Input row */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  value={coachInput}
+                  onChange={e => setCoachInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleCoachSend()}
+                  placeholder="Ask your health coach…"
+                  style={{ flex: 1, height: 40, padding: '0 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f1f5f9', fontSize: 12, outline: 'none' }}
+                />
+                <button
+                  onClick={handleCoachSend}
+                  disabled={coachLoading || !coachInput.trim()}
+                  style={{ height: 40, padding: '0 16px', borderRadius: 10, background: coachInput.trim() ? '#7c3aed' : 'rgba(255,255,255,0.05)', border: 'none', color: coachInput.trim() ? '#fff' : '#475569', fontSize: 12, fontWeight: 700, cursor: coachInput.trim() ? 'pointer' : 'default', transition: 'all 0.2s' }}
+                >
+                  Send
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                {['Analyse my health data', 'Sleep tips for me', 'Reduce my stress'].map(q => (
+                  <button key={q} onClick={() => { setCoachInput(q); }} style={{ fontSize: 10, padding: '4px 10px', borderRadius: 8, background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.15)', color: '#a78bfa', cursor: 'pointer' }}>{q}</button>
+                ))}
               </div>
               {/* Decorative Meditating Figure */}
               <div style={{ position: 'absolute', right: 10, bottom: -10, opacity: 0.75, pointerEvents: 'none' }}>
@@ -2241,11 +2319,12 @@ export default function Health() {
               </span>
               <button
                 type="button"
+                onClick={() => setShowAllHistory(v => !v)}
                 style={{ fontFamily: 'var(--font-display)' }}
                 className="flex items-center gap-1.5 text-[#8b5cf6] hover:text-[#7c3aed] transition-all text-xs font-bold cursor-pointer bg-none border-none"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><path d="M9 17h6M9 12h6M9 7h6"></path></svg>
-                View All History
+                {showAllHistory ? 'Show Less' : `View All (${sortedLogs.length})`}
               </button>
             </div>
 
@@ -2301,8 +2380,13 @@ export default function Health() {
                             {parts.join(' • ')}
                           </div>
                           <div className="text-right text-slate-500">
-                            <button type="button" className="text-slate-500 hover:text-slate-300 cursor-pointer bg-transparent border-none">
-                              <MoreHorizontal size={15} />
+                            <button
+                              type="button"
+                              title="Delete entry"
+                              onClick={() => setRecords('health', healthRecords.filter(r => r !== entry))}
+                              className="text-slate-600 hover:text-red-400 cursor-pointer bg-transparent border-none transition-colors"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                             </button>
                           </div>
                         </motion.div>
@@ -2383,7 +2467,10 @@ export default function Health() {
                     <motion.div key={wf.label} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
                       style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 28, height: 28, borderRadius: 8, background: wf.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{wf.icon}</div>
-                      <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 500, width: 110, flexShrink: 0 }}>{wf.label}</span>
+                      <div style={{ width: 110, flexShrink: 0 }}>
+                        <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 500, display: 'block' }}>{wf.label}</span>
+                        {wf.rawValue && <span style={{ fontSize: 10, color: wf.color, fontWeight: 700 }}>{wf.rawValue}</span>}
+                      </div>
                       <div style={{ flex: 1, height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                         <motion.div initial={{ width: 0 }} animate={{ width: `${wf.score}%` }} transition={{ duration: 0.9, delay: i * 0.07, ease: 'easeOut' }}
                           style={{ height: '100%', borderRadius: 99, background: wf.color, boxShadow: `0 0 6px ${wf.color}50` }} />

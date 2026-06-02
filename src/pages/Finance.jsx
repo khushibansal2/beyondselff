@@ -13,6 +13,7 @@ import {
   parseTransactionSMS, detectOTP, CATEGORY_META, SAMPLE_MESSAGES, MERCHANT_MAP,
 } from '../services/transactionParserService';
 import { generateMockTransaction, SPEED_OPTIONS } from '../services/mockTransactionService';
+import { chatWithAI } from '../services/aiService';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#84cc16'];
 
@@ -190,7 +191,24 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
         </div>
 
         {/* Description */}
-        <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.7, marginBottom: 28 }}>{p.desc}</p>
+        <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.7, marginBottom: 16 }}>{p.desc}</p>
+
+        {/* AI Analysis */}
+        {aiAnalysis ? (
+          <div style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 20 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#818cf8', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>AI Analysis</p>
+            <p style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{aiAnalysis}</p>
+            <button onClick={() => setAiAnalysis(null)} style={{ marginTop: 8, fontSize: 10, color: '#475569', background: 'none', border: 'none', cursor: 'pointer' }}>✕ Dismiss</button>
+          </div>
+        ) : (
+          <button
+            onClick={handleGetAIAnalysis}
+            disabled={aiLoading}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.25)', color: '#818cf8', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginBottom: 20 }}
+          >
+            {aiLoading ? '⏳ Analyzing…' : '✨ Get AI Analysis'}
+          </button>
+        )}
 
         {/* Allocation bars */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -327,15 +345,14 @@ const FUND_RECS = {
 };
 
 function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
-  // exact mockup values as fallback when real stats are 0
-  const dispIncome = f.income || 215430;
-  const dispExpenses = f.expenses || 78230;
-  const dispSavings = f.savings || 47200; // Net Savings
-  const dispInvestments = f.investments || 215600; // Investments
-  const dispSubscriptions = f.subscriptions || 1280; // Subscriptions
-  const dispScore = score || 72;
+  const dispIncome = f.income || 0;
+  const dispExpenses = f.expenses || 0;
+  const dispSavings = f.savings || 0;
+  const dispInvestments = f.investments || 0;
+  const dispSubscriptions = f.subscriptions || 0;
+  const dispScore = score || 0;
   const dispDebt = f.debt || 0;
-  const dispNetWorth = f.income > 0 ? ((f.savings || 0) + (f.investments || 0) - (f.debt || 0)) : 468230;
+  const dispNetWorth = (f.savings || 0) + (f.investments || 0) - (f.debt || 0);
 
   const savingsRate = dispIncome > 0 ? Math.round(((dispIncome - dispExpenses) / dispIncome) * 100) : 0;
   const riskProfile = dispScore >= 70 && savingsRate >= 25 ? 'aggressive'
@@ -371,6 +388,27 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
 
   const [sipAmt, setSipAmt] = useState(() => Math.max(500, Math.round((f.income || 0) * 0.1 / 500) * 500) || 500);
   const [sipYrs, setSipYrs] = useState(10);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleGetAIAnalysis = async () => {
+    setAiLoading(true);
+    try {
+      const ctx = {
+        domain: 'finance',
+        finance: { income: dispIncome, expenses: dispExpenses, savings: dispSavings, investments: dispInvestments, debt: dispDebt, subscriptions: dispSubscriptions, savingsRate, netWorth: dispNetWorth },
+        financeScore: dispScore,
+        riskProfile: activeProfile,
+      };
+      const prompt = `Give me a concise 3-point AI financial analysis and 2 specific action items based on my profile: income ₹${dispIncome.toLocaleString()}/month, expenses ₹${dispExpenses.toLocaleString()}, savings ₹${dispSavings.toLocaleString()}, investments ₹${dispInvestments.toLocaleString()}, debt ₹${dispDebt.toLocaleString()}, ${activeProfile} risk profile, savings rate ${savingsRate}%. Be specific with numbers.`;
+      const { response } = await chatWithAI(prompt, ctx, []);
+      setAiAnalysis(response);
+    } catch {
+      setAiAnalysis('Unable to get AI analysis right now. Check your API key in Settings or try again.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
   const annualRate = activeProfile === 'aggressive' ? 0.13 : activeProfile === 'moderate' ? 0.11 : 0.09;
   const mr = annualRate / 12;
   const months = sipYrs * 12;
@@ -499,12 +537,31 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'space-between' }} className="lg:col-span-6">
           {/* 3x2 Grid of 6 Metrics Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {[
+            {(() => {
+              // Compute real trends from financeRecords (last 30 vs previous 30 days)
+              const now = Date.now();
+              const DAY = 86400000;
+              const recent = financeRecords.filter(r => (now - new Date(r.date).getTime()) < 30 * DAY);
+              const older  = financeRecords.filter(r => { const a = now - new Date(r.date).getTime(); return a >= 30 * DAY && a < 60 * DAY; });
+              const sumDebits = (arr) => arr.filter(r => (r.transactionType || r.type || 'debit').toLowerCase() !== 'credit').reduce((s, r) => s + (r.amount || 0), 0);
+              const sumCredits = (arr) => arr.filter(r => (r.transactionType || r.type || 'debit').toLowerCase() === 'credit').reduce((s, r) => s + (r.amount || 0), 0);
+              const pctChange = (curr, prev) => {
+                if (!prev) return null;
+                const d = Math.round(((curr - prev) / prev) * 100);
+                return d === 0 ? '→ Unchanged' : `${d > 0 ? '↑' : '↓'} ${Math.abs(d)}% vs last 30d`;
+              };
+              const recentExp = sumDebits(recent); const olderExp = sumDebits(older);
+              const recentInc = sumCredits(recent); const olderInc = sumCredits(older);
+              const recentSav = recentInc - recentExp; const olderSav = olderInc - olderExp;
+              const expTrend = pctChange(recentExp, olderExp) || (financeRecords.length ? `${financeRecords.filter(r=>(r.transactionType||'debit').toLowerCase()!=='credit').length} debit records` : 'No records yet');
+              const incTrend = pctChange(recentInc, olderInc) || (dispIncome > 0 ? `₹${dispIncome.toLocaleString()} total` : 'No records yet');
+              const savTrend = olderSav !== 0 ? pctChange(recentSav, Math.abs(olderSav)) : (dispSavings > 0 ? `₹${dispSavings.toLocaleString()} saved` : 'Log income to track');
+              return [
               {
                 title: 'Income',
                 val: dispIncome,
                 sub: 'This month',
-                trend: '↑ 12.4% vs last month',
+                trend: incTrend,
                 isGreen: true,
                 icon: <Wallet size={16} />,
                 bg: 'rgba(16, 185, 129, 0.1)',
@@ -514,8 +571,8 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
                 title: 'Expenses',
                 val: dispExpenses,
                 sub: 'This month',
-                trend: '↑ 8.2% vs last month',
-                isGreen: false,
+                trend: expTrend,
+                isGreen: recentExp <= olderExp,
                 icon: <CreditCard size={16} />,
                 bg: 'rgba(244, 63, 94, 0.1)',
                 color: '#f43f5e'
@@ -524,8 +581,8 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
                 title: 'Net Savings',
                 val: dispSavings,
                 sub: 'This month',
-                trend: '↑ 18.5% vs last month',
-                isGreen: true,
+                trend: savTrend,
+                isGreen: recentSav >= olderSav,
                 icon: <Coins size={16} />,
                 bg: 'rgba(16, 185, 129, 0.1)',
                 color: '#10b981'
@@ -534,7 +591,7 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
                 title: 'Investments',
                 val: dispInvestments,
                 sub: 'Total value',
-                trend: '↑ 9.3% all time',
+                trend: dispInvestments > 0 ? `₹${dispInvestments.toLocaleString()} tracked` : 'Set in Log → Profile',
                 isGreen: true,
                 icon: <TrendingUp size={16} />,
                 bg: 'rgba(59, 130, 246, 0.1)',
@@ -543,8 +600,8 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
               {
                 title: 'Subscriptions',
                 val: dispSubscriptions,
-                sub: 'Active',
-                trend: '4 active',
+                sub: 'Monthly',
+                trend: dispSubscriptions > 0 ? `₹${dispSubscriptions.toLocaleString()}/month` : 'Set in Log → Profile',
                 isText: true,
                 icon: <Clipboard size={16} />,
                 bg: 'rgba(139, 92, 246, 0.1)',
@@ -554,13 +611,13 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
                 title: 'Net Worth',
                 val: dispNetWorth,
                 sub: 'Total value',
-                trend: '↑ 7.1% all time',
-                isGreen: true,
+                trend: dispNetWorth > 0 ? `Assets – Liabilities` : 'Add investments & debt',
+                isGreen: dispNetWorth >= 0,
                 icon: <Award size={16} />,
                 bg: 'rgba(6, 182, 212, 0.1)',
                 color: '#06b6d4'
               }
-            ].map((card, idx) => (
+            ]})().map((card, idx) => (
               <div 
                 key={idx} 
                 style={{ 
@@ -1489,6 +1546,7 @@ export default function Finance() {
 
   // ── Legacy log form ───────────────────────────────────────────────────────
   const [form, setForm] = useState({ income: '', expense: '', category: 'food', amount: '' });
+  const [profileForm, setProfileForm] = useState({ investments: '', debt: '', subscriptions: '' });
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
 
@@ -1499,15 +1557,17 @@ export default function Finance() {
   // Sync parsedTxs totals → DataContext so the finance score always reflects what's displayed
   useEffect(() => {
     if (!parsedTxs.length) return;
-    const totalExpenses = parsedTxs
+    const totalExpenses = Math.round(parsedTxs
       .filter(t => t.type !== 'Credit' && t.type !== 'Transfer')
-      .reduce((s, t) => s + (t.amount || 0), 0);
-    const totalIncome = parsedTxs
+      .reduce((s, t) => s + (t.amount || 0), 0));
+    const totalIncome = Math.round(parsedTxs
       .filter(t => t.type === 'Credit')
-      .reduce((s, t) => s + (t.amount || 0), 0);
-    const update = { expenses: Math.round(totalExpenses) };
-    if (totalIncome > 0) update.income = Math.round(totalIncome);
-    update.savings = Math.max(0, Math.round((totalIncome > 0 ? totalIncome : (finance?.income || 0)) - totalExpenses));
+      .reduce((s, t) => s + (t.amount || 0), 0));
+    const update = {
+      expenses: totalExpenses,
+      income:   totalIncome,  // always set income (0 if no credits — stale closure fixed)
+      savings:  Math.max(0, totalIncome - totalExpenses),
+    };
     updateDomain('finance', update);
   }, [parsedTxs]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1688,10 +1748,22 @@ export default function Finance() {
     }
     
     if (changes > 0) {
+      // Add to parsedTxs so the parsedTxs→score sync useEffect fires
+      const now = new Date().toISOString();
+      const newTxs = [];
+      if (form.income) {
+        newTxs.push({ id: `manual-${Date.now()}-inc`, merchant: 'Income', category: 'Income', type: 'Credit', amount: parseInt(form.income, 10), bank: 'Manual', mask: null, parsedAt: now, ref: 'Manual Log', source: 'manual-log' });
+      }
+      if (form.amount) {
+        const cat = form.category || 'others';
+        newTxs.push({ id: `manual-${Date.now()}-exp`, merchant: cat.charAt(0).toUpperCase() + cat.slice(1), category: cat.charAt(0).toUpperCase() + cat.slice(1), type: 'Debit', amount: parseInt(form.amount, 10), bank: 'Manual', mask: null, parsedAt: now, ref: 'Manual Log', source: 'manual-log' });
+      }
+      if (newTxs.length) saveTxs([...newTxs, ...parsedTxs]);
+
       addRecords('finance', recordsToLog);
       setForm({ income: '', expense: '', category: 'food', amount: '' });
       showToast('Financial data saved', 'success');
-      
+
       // Persist to backend
       if (financeApi.isEnabled()) {
         try {
@@ -3191,6 +3263,48 @@ export default function Finance() {
       {/* ── LOG TAB ───────────────────────────────────────────────────────── */}
       {tab === 'log' && (
         <div className="flex flex-col gap-6 relative z-10 w-full px-1">
+
+          {/* ── Financial Profile Card ── */}
+          <div style={{ padding: '20px 24px' }} className="rounded-2xl border border-white/5 bg-[#0b0c10]">
+            <p style={{ fontFamily: 'var(--font-display)' }} className="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">Financial Profile</p>
+            <form onSubmit={e => {
+              e.preventDefault();
+              const updates = {};
+              if (profileForm.investments !== '') updates.investments = Number(profileForm.investments);
+              if (profileForm.debt !== '')        updates.debt        = Number(profileForm.debt);
+              if (profileForm.subscriptions !== '') updates.subscriptions = Number(profileForm.subscriptions);
+              if (Object.keys(updates).length === 0) { showToast('Enter at least one value', 'error'); return; }
+              updateDomain('finance', updates);
+              setProfileForm({ investments: '', debt: '', subscriptions: '' });
+              showToast('Financial profile updated', 'success');
+            }} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { key: 'investments', label: 'Monthly Investments (SIP / MF)', placeholder: `Current: ₹${(f.investments||0).toLocaleString()}`, color: '#10b981' },
+                { key: 'debt',        label: 'Total Debt Balance',             placeholder: `Current: ₹${(f.debt||0).toLocaleString()}`,        color: '#f43f5e' },
+                { key: 'subscriptions', label: 'Monthly Subscriptions',       placeholder: `Current: ₹${(f.subscriptions||0).toLocaleString()}`, color: '#8b5cf6' },
+              ].map(({ key, label, placeholder, color }) => (
+                <div key={key} className="flex flex-col gap-1.5">
+                  <label style={{ fontFamily: 'var(--font-display)', color }} className="text-[10px] font-bold uppercase tracking-wider">{label}</label>
+                  <input
+                    type="number" min="0" value={profileForm[key]}
+                    onChange={e => setProfileForm(p => ({ ...p, [key]: e.target.value }))}
+                    placeholder={placeholder}
+                    style={{ height: 42, padding: '10px 14px', backgroundColor: '#050608', border: `1px solid ${color}30`, borderRadius: 10, color: '#f1f5f9', fontSize: 12, outline: 'none' }}
+                    className="w-full"
+                  />
+                </div>
+              ))}
+              <div className="sm:col-span-3 flex items-center gap-4">
+                <button type="submit" style={{ height: 42, backgroundColor: '#4f46e5', borderRadius: 10, fontFamily: 'var(--font-display)', padding: '0 20px' }}
+                  className="text-white font-bold text-xs tracking-wide cursor-pointer transition-all hover:bg-indigo-500 active:scale-[0.98]">
+                  Save Profile
+                </button>
+                <span className="text-xs text-slate-500">
+                  Investments ₹{(f.investments||0).toLocaleString()} · Debt ₹{(f.debt||0).toLocaleString()} · Subs ₹{(f.subscriptions||0).toLocaleString()}
+                </span>
+              </div>
+            </form>
+          </div>
           
           {/* Form Section Header */}
           <div>
@@ -3433,6 +3547,10 @@ export default function Finance() {
                                 if (window.confirm(`Are you sure you want to delete this ledger entry of ₹${rec.amount.toLocaleString()} for ${rec.category}?`)) {
                                   const updated = financeRecords.filter((_, i) => i !== idx);
                                   setRecords('finance', updated);
+                                  // Also remove from parsedTxs so parsedTxs sync doesn't overwrite this deletion
+                                  const matchType = (rec.transactionType || 'debit').toLowerCase() === 'credit' ? 'Credit' : 'Debit';
+                                  const matchedIdx = parsedTxs.findIndex(t => t.amount === rec.amount && (t.type === matchType) && Math.abs(new Date(t.parsedAt) - new Date(rec.date)) < 60000);
+                                  if (matchedIdx !== -1) saveTxs(parsedTxs.filter((_, i) => i !== matchedIdx));
                                   showToast('Ledger entry deleted successfully', 'success');
                                 }
                               }}

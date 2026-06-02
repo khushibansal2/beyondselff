@@ -194,6 +194,10 @@ export default function CascadeMap() {
   const hasCascades = activeCascades.length > 0;
 
   const selectedEdgeData = EDGES.find(e => e.id === selectedEdge && e.kind === 'cross');
+  // Augment with real computed cascade if one matches this edge's cascadeId
+  const selectedRealCascade = selectedEdgeData?.cascadeId
+    ? crossDomain.find(c => c.id === selectedEdgeData.cascadeId)
+    : null;
 
   // SVG gradient defs for cross-domain edges — guard against missing nodes
   const gradientDefs = EDGES.filter(e => e.kind === 'cross').map(e => {
@@ -446,8 +450,20 @@ export default function CascadeMap() {
                       {nodeById(selectedEdgeData.to).label}
                     </span>
                   </div>
-                  <p style={{ fontSize:14, fontWeight:800, color:'#f1f5f9', marginBottom:6 }}>{selectedEdgeData.label}</p>
-                  <p style={{ fontSize:12, color:'#94a3b8', lineHeight:1.6 }}>{selectedEdgeData.why}</p>
+                  <p style={{ fontSize:14, fontWeight:800, color:'#f1f5f9', marginBottom:6 }}>
+                    {selectedRealCascade?.trigger || selectedEdgeData.label}
+                  </p>
+                  <p style={{ fontSize:12, color:'#94a3b8', lineHeight:1.6, marginBottom: selectedRealCascade ? 6 : 0 }}>
+                    {selectedRealCascade?.effect || selectedEdgeData.why}
+                  </p>
+                  {selectedRealCascade && (
+                    <p style={{ fontSize:11, color:'#64748b', lineHeight:1.5 }}>{selectedRealCascade.mechanism}</p>
+                  )}
+                  {!selectedRealCascade && (
+                    <p style={{ fontSize:10, color:'#475569', marginTop:6, fontStyle:'italic' }}>
+                      Log health, finance &amp; career data for live impact data
+                    </p>
+                  )}
                 </div>
                 <button onClick={() => setSelectedEdge(null)}
                   style={{ color:'#475569', background:'none', border:'none', cursor:'pointer', fontSize:14, flexShrink:0, padding:'2px 6px' }}>✕</button>

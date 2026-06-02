@@ -1654,7 +1654,7 @@ const TABS = [
 
 export default function Gamification() {
   const { user }                                    = useAuth();
-  const { computed, gamification, updateGamification, health, finance, career } = useData();
+  const { computed, gamification, updateGamification, health, finance, career, records } = useData();
   const [tab,       setTab]       = useState('identity');
   const [showPopup, setShowPopup] = useState(null);
   const [myGuild,   setMyGuild]   = useState(() => localStorage.getItem('my_guild_id'));
@@ -1668,11 +1668,54 @@ export default function Gamification() {
   const tier     = useMemo(() => getTier(xp), [xp]);
   const stats    = useMemo(() => computeLifeStats(h, f, c, xp), [h, f, c, xp]);
 
-  // Simulate 30-days-ago shadow self (slightly lower on all stats)
+  // Shadow Self: compute from records that are 30+ days old to show real historical state
   const prevStats = useMemo(() => {
-    const seed = 0.72 + (xp % 7) * 0.01;
-    return Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, Math.max(10, Math.round(v * seed))]));
-  }, [stats, xp]);
+    const cutoff = Date.now() - 30 * 86400000;
+    const oldHealth  = (records?.health  || []).filter(r => new Date(r.date || r.recordDate).getTime() < cutoff);
+    const oldFinance = (records?.finance || []).filter(r => new Date(r.date).getTime() < cutoff);
+    const oldCareer  = (records?.career  || []).filter(r => new Date(r.date).getTime() < cutoff);
+
+    if (oldHealth.length === 0 && oldFinance.length === 0 && oldCareer.length === 0) {
+      // No historical records — estimate shadow self as 72-78% of current (first-time user)
+      const seed = 0.72 + (xp % 7) * 0.01;
+      return Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, Math.max(10, Math.round(v * seed))]));
+    }
+
+    const avg = (arr, field, fallbackField) => {
+      const vals = arr.map(r => r[field] ?? r[fallbackField]).filter(v => v != null && !isNaN(Number(v)));
+      return vals.length ? vals.reduce((s, v) => s + Number(v), 0) / vals.length : null;
+    };
+
+    const oldSleepAvg       = avg(oldHealth, 'sleepHours', 'sleep') ?? h.sleepAvg ?? 6;
+    const oldStressLevel    = avg(oldHealth, 'stressLevel', 'stress') ?? h.stressLevel ?? 6;
+    const oldWorkouts       = avg(oldHealth, 'workoutsPerWeek', 'workout') ?? h.workoutsPerWeek ?? 1;
+    const oldWater          = avg(oldHealth, 'waterGlasses', 'water') ?? h.waterIntake ?? 4;
+    const oldStudyHours     = avg(oldCareer, 'studyHours') ?? c.studyHoursDaily ?? 0;
+    const oldDsa            = avg(oldCareer, 'dsaProblems') ?? c.dsaPractice ?? 0;
+    const oldIncome         = oldFinance.filter(r => (r.transactionType || 'debit').toLowerCase() === 'credit').reduce((s, r) => s + (r.amount || 0), 0);
+    const oldExpenses       = oldFinance.filter(r => (r.transactionType || 'debit').toLowerCase() !== 'credit').reduce((s, r) => s + (r.amount || 0), 0);
+    const oldSavRate        = oldIncome > 0 ? Math.max(0, (oldIncome - oldExpenses) / oldIncome) : (f.income > 0 ? Math.max(0, (f.income - f.expenses) / f.income) * 0.8 : 0.2);
+
+    const oldXpEst = Math.max(0, xp - 200); // estimate XP was ~200 less 30 days ago
+    const oldXpScore = Math.min(100, Math.round(Math.log10(oldXpEst + 10) * 18));
+    const oldSleep   = Math.min(100, Math.round((oldSleepAvg / 9) * 100));
+    const oldStress  = Math.min(100, Math.round(((10 - oldStressLevel) / 10) * 100));
+    const oldWorkout = Math.min(100, Math.round((oldWorkouts / 7) * 100));
+    const oldWaterS  = Math.min(100, Math.round((oldWater / 8) * 100));
+    const oldStudy   = Math.min(100, Math.round((oldStudyHours / 8) * 100));
+    const oldDsaS    = Math.min(100, Math.round((oldDsa / 5) * 100));
+
+    return {
+      focus:            Math.max(10, Math.round((oldStudy + oldDsaS) / 2)),
+      discipline:       Math.max(10, Math.round(oldXpScore * 0.6 + oldStudy * 0.4)),
+      calmness:         Math.max(10, Math.round((oldStress + oldSleep) / 2)),
+      energy:           Math.max(10, Math.round((oldSleep + oldWorkout + oldWaterS) / 3)),
+      financialWisdom:  Math.max(10, Math.round(oldSavRate * 100)),
+      socialConfidence: Math.max(15, Math.min(100, 35 + Math.round((c.linkedinConnections || 0) / 30))),
+      consistency:      Math.max(10, oldXpScore),
+      recoveryStrength: Math.max(25, Math.min(100, 45 + Math.round(oldXpScore * 0.3))),
+    };
+  }, [stats, xp, records, h, f, c]);
 
   // Recovery Arc: backend determines if streak is 0
   const streaks = [

@@ -1960,11 +1960,18 @@ export default function Career() {
     { id: 'career-sleep', icon: '💤', title: 'Sleep & Learning', text: (health?.sleepAvg || 7) < 6 ? `Low sleep (${health?.sleepAvg || '?'}h) cuts effective study by 40%. Your ${c.studyHoursDaily}h may yield only ${Math.round(c.studyHoursDaily * 0.6)}h of actual retention.` : 'Good sleep! Your study sessions are running efficiently.', risk: (health?.sleepAvg || 7) < 6 ? 'high' : 'low', confidence: 78 },
   ];
 
+  // Growth stages: status is fully dynamic; items incorporate user's actual skills where possible
+  const userSkillSet = new Set((c.skills || []).map(s => s.toLowerCase()));
+  const coreSkillItems = c.skills.length > 0
+    ? [...c.skills.slice(0, 3), ...['REST/GraphQL', 'Testing'].filter(i => !userSkillSet.has(i.toLowerCase()))].slice(0, 4)
+    : ['Frontend (React)', 'Backend (Node/Spring)', 'REST/GraphQL', 'Testing'];
+  const dsaLabel = c.dsaPractice > 0 ? `${c.dsaPractice} DSA problems solved` : '250+ DSA Problems';
+  const projectLabel = c.projectsCompleted > 0 ? `${c.projectsCompleted} project${c.projectsCompleted !== 1 ? 's' : ''} completed` : 'Full-Stack App';
   const roadmap = [
     { phase: 'Foundation', items: ['Data Structures & Algorithms', 'OOP', 'Databases', 'Git'], status: c.dsaPractice >= 2 ? 'done' : 'active' },
-    { phase: 'Core Skills', items: ['Frontend (React)', 'Backend (Node/Spring)', 'REST/GraphQL', 'Testing'], status: c.skills.length >= 4 ? 'done' : c.dsaPractice >= 2 ? 'active' : 'locked' },
-    { phase: 'Projects', items: ['Full-Stack App', 'ML/AI Project', 'Open Source', 'Tech Blog'], status: c.projectsCompleted >= 3 ? 'done' : c.skills.length >= 4 ? 'active' : 'locked' },
-    { phase: 'Interview Prep', items: ['250+ DSA', 'System Design', 'Mock Interviews', 'Resume'], status: c.projectsCompleted >= 3 ? 'active' : 'locked' },
+    { phase: 'Core Skills', items: coreSkillItems, status: c.skills.length >= 4 ? 'done' : c.dsaPractice >= 2 ? 'active' : 'locked' },
+    { phase: 'Projects', items: [projectLabel, 'ML/AI Project', 'Open Source', 'Tech Blog'], status: c.projectsCompleted >= 3 ? 'done' : c.skills.length >= 4 ? 'active' : 'locked' },
+    { phase: 'Interview Prep', items: [dsaLabel, 'System Design', 'Mock Interviews', 'Resume'], status: c.projectsCompleted >= 3 ? 'active' : 'locked' },
   ];
 
   const platformColor = (p) => p === 'Coursera' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' : p === 'Udemy' ? 'text-purple-400 bg-purple-500/10 border-purple-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20';
@@ -2150,7 +2157,20 @@ export default function Career() {
                       </div>
                     </div>
 
-                    {/* Skills Portfolio */}
+                      {/* Coding Hours */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                        <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>💻</span> Coding Hours
+                        </span>
+                        <span style={{ color: '#3b82f6', fontWeight: 700 }}>{c.codingHoursDaily}h / 4h daily</span>
+                      </div>
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(100, (c.codingHoursDaily / 4) * 100)}%`, background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', height: '100%', borderRadius: 999 }} />
+                      </div>
+                    </div>
+
+                  {/* Skills Portfolio */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
                         <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -2161,6 +2181,16 @@ export default function Career() {
                       <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
                         <div style={{ width: `${Math.min(100, (c.skills.length / 8) * 100)}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', height: '100%', borderRadius: 999 }} />
                       </div>
+                      {c.skills.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                          {c.skills.slice(0, 10).map(sk => (
+                            <span key={sk} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#fbbf24', fontWeight: 600 }}>{sk}</span>
+                          ))}
+                          {c.skills.length > 10 && <span style={{ fontSize: 10, color: '#64748b' }}>+{c.skills.length - 10} more</span>}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: 10, color: '#475569', margin: '2px 0 0' }}>Log skills in the Log tab to track your portfolio</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3024,11 +3054,17 @@ export default function Career() {
                   <input type="text" value={lpTargetRole} onChange={e => setLpTargetRole(e.target.value)} placeholder="e.g. Machine Learning Engineer"
                     style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', color: '#f1f5f9', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                   <button type="submit" disabled={lpLoading}
                     style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: lpLoading ? 'not-allowed' : 'pointer', opacity: lpLoading ? 0.6 : 1, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
                     {lpLoading ? <><div style={{ width: 14, height: 14, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} className="animate-spin" /> Building…</> : 'Generate Path 🚀'}
                   </button>
+                  {lpResult && !lpLoading && (
+                    <button type="button" onClick={() => setLpResult(null)}
+                      style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#64748b', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      Reset
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
