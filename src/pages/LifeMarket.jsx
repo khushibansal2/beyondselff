@@ -82,7 +82,7 @@ const TEMPLATES = [
       { domain: 'career', label: '30h deep work first', target: 30, unit: 'hours',    icon: '⚡' },
       { domain: 'health', label: '6 workout sessions',  target: 6,  unit: 'sessions', icon: '🏃' },
     ],
-    penaltyLabel: 'Rest revoked — back to grind mode', color: '#06b6d4',
+    penaltyLabel: 'Rest revoked — back to grind mode', color: '#8b5cf6',
   },
 ];
 

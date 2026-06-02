@@ -1155,7 +1155,7 @@ export default function Dashboard() {
     if (h.workoutsPerWeek > 0 && h.workoutsPerWeek < 3)
       tasks.push({ id: 'workout', icon: '💪', text: `Add ${3 - h.workoutsPerWeek} more workout day${3 - h.workoutsPerWeek > 1 ? 's' : ''} this week`, domain: 'Health', pts: '+2 pts', iconColor: '#10b981', link: '/health' });
     if (todayWater < 8)
-      tasks.push({ id: 'water', icon: '💧', text: todayWater > 0 ? `Drink ${8 - Math.round(todayWater)} more glasses of water today` : 'Log your water intake today (target 8 glasses)', domain: 'Health', pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
+      tasks.push({ id: 'water', icon: '💧', text: todayWater > 0 ? `Drink ${8 - Math.round(todayWater)} more glasses of water today` : 'Log your water intake today (target 8 glasses)', domain: 'Health', pts: '+2 pts', iconColor: '#8b5cf6', link: '/health' });
     if (h.stressLevel > 6)
       tasks.push({ id: 'stress', icon: '🧘', text: 'Take a 15-min meditation or walk break', domain: 'Health', pts: '+2 pts', iconColor: '#f43f5e', link: '/health' });
     if (savingsRate < 20 && f.income > 0)
@@ -1167,10 +1167,10 @@ export default function Dashboard() {
     if (hasCareerData && c.studyHoursDaily > 0 && c.studyHoursDaily < 4)
       tasks.push({ id: 'study', icon: '📋', text: `+1h study today`, domain: 'Career', pts: '+2-3 pts', iconColor: '#22c55e', link: '/career' });
     if (hasCareerData && c.skills.length < 5)
-      tasks.push({ id: 'skill', icon: '🎯', text: 'Add one new skill to your profile today', domain: 'Career', pts: '+2 pts', iconColor: '#06b6d4', link: '/career' });
+      tasks.push({ id: 'skill', icon: '🎯', text: 'Add one new skill to your profile today', domain: 'Career', pts: '+2 pts', iconColor: '#8b5cf6', link: '/career' });
     if (tasks.length === 0) {
       const empties = [];
-      if (!hasHealthData) empties.push({ id: 'log-health', icon: '💧', text: 'Drink 5 more glasses of water today', domain: 'Health', pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
+      if (!hasHealthData) empties.push({ id: 'log-health', icon: '💧', text: 'Drink 5 more glasses of water today', domain: 'Health', pts: '+2 pts', iconColor: '#8b5cf6', link: '/health' });
       if (!hasFinanceData) empties.push({ id: 'log-finance', icon: '✗', text: '+1 DSA problem today', domain: 'Career', pts: '+2 pts', iconColor: '#22c55e', link: '/career' });
       if (!hasCareerData) empties.push({ id: 'log-career', icon: '📋', text: '+1h study today', domain: 'Career', pts: '+2-3 pts', iconColor: '#22c55e', link: '/career' });
       if (empties.length === 0)
@@ -1424,7 +1424,7 @@ export default function Dashboard() {
                 { label: 'Finance', score: financeScore, trend: '▼ 3% this week', color: '#fbbf24', icon: '💰', points: [72, 70, 68, 65, 67, 66, financeScore] },
                 { label: 'Career', score: careerScore, trend: '▲ 11% this week', color: '#6366f1', icon: '🎯', points: [25, 30, 28, 35, 32, 40, careerScore] },
                 { label: 'Mindset', score: mindScore, trend: '▲ 10% this week', color: '#d946ef', icon: '🧠', points: [55, 60, 58, 64, 62, 70, mindScore] },
-                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#06b6d4', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance] },
+                { label: 'Life Balance', score: lifeBalance, trend: '▲ 7% this week', color: '#8b5cf6', icon: '⚖️', points: [50, 55, 52, 60, 58, 62, lifeBalance] },
               ].map((card) => {
                 const rk = card.ringKey || card.label;
                 const isActive = !!openRings[rk];
@@ -1599,8 +1599,8 @@ export default function Dashboard() {
                       {/* Segment 1: Top Right (Cyan/Blue) */}
                       <circle
                         cx="90" cy="90" r="72" fill="none"
-                        stroke="#06b6d4" strokeWidth="6" strokeDasharray="67.8 384.6" strokeLinecap="round"
-                        transform="rotate(270, 90, 90)" style={{ filter: 'drop-shadow(0 0 4px #06b6d4)' }}
+                        stroke="#8b5cf6" strokeWidth="6" strokeDasharray="67.8 384.6" strokeLinecap="round"
+                        transform="rotate(270, 90, 90)" style={{ filter: 'drop-shadow(0 0 4px #8b5cf6)' }}
                       />
                       {/* Segment 2: Top Left (Green) */}
                       <circle
@@ -2467,13 +2467,13 @@ export default function Dashboard() {
                       <svg width="100%" height="50" viewBox="0 0 220 50" style={{ overflow: 'visible' }}>
                         <defs>
                           <linearGradient id="projAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+                            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
                           </linearGradient>
                           <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
                             <stop offset="0%" stopColor="#8b5cf6" />
                             <stop offset="50%" stopColor="#3b82f6" />
-                            <stop offset="100%" stopColor="#14b8a6" />
+                            <stop offset="100%" stopColor="#8b5cf6" />
                           </linearGradient>
                         </defs>
                         {/* Faint vertical lines grid */}
@@ -2488,11 +2488,11 @@ export default function Dashboard() {
                         <circle cx="10" cy={y0} r="2.5" fill="#8b5cf6" stroke="#07090e" strokeWidth="1" />
                         <circle cx="60" cy={y1} r="2.5" fill="#8b5cf6" stroke="#07090e" strokeWidth="1" />
                         <circle cx="110" cy={y2} r="2.5" fill="#3b82f6" stroke="#07090e" strokeWidth="1" />
-                        <circle cx="160" cy={y3} r="2.5" fill="#14b8a6" stroke="#07090e" strokeWidth="1" />
+                        <circle cx="160" cy={y3} r="2.5" fill="#8b5cf6" stroke="#07090e" strokeWidth="1" />
                         
                         {/* Final peak glow point */}
                         <g>
-                          <circle cx="210" cy={y4} r="6" fill="#14b8a6" opacity="0.4" />
+                          <circle cx="210" cy={y4} r="6" fill="#8b5cf6" opacity="0.4" />
                           <circle cx="210" cy={y4} r="3" fill="#ffffff" style={{ filter: 'drop-shadow(0 0 3px #ffffff)' }} />
                         </g>
                       </svg>

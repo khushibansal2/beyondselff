@@ -15,7 +15,7 @@ import {
 import { generateMockTransaction, SPEED_OPTIONS } from '../services/mockTransactionService';
 import { chatWithAI } from '../services/aiService';
 
-const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#84cc16'];
+const COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#84cc16'];
 
 const TX_LS_KEY = 'finance_parsed_transactions';
 
@@ -177,11 +177,11 @@ function RoboAdvisor({ f, h, c, savingsRate }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,216,182,0.12)', border: '1px solid rgba(0,216,182,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#00d8b6', boxShadow: '0 0 8px #00d8b6' }} />
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#8b5cf6', boxShadow: '0 0 8px #8b5cf6' }} />
             </div>
             <div>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#00d8b6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#8b5cf6', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 3 }}>Active Strategy</p>
               <p style={{ fontSize: 20, fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>{p.label}</p>
             </div>
           </div>
@@ -614,8 +614,8 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [], onNavigate }) {
                 trend: dispNetWorth > 0 ? `Assets – Liabilities` : 'Add investments & debt',
                 isGreen: dispNetWorth >= 0,
                 icon: <Award size={16} />,
-                bg: 'rgba(6, 182, 212, 0.1)',
-                color: '#06b6d4'
+                bg: 'rgba(139, 92, 246, 0.1)',
+                color: '#8b5cf6'
               }
             ]})().map((card, idx) => (
               <div 
@@ -1163,8 +1163,8 @@ const REC_ICONS = {
     )
   },
   'fin-subscriptions': {
-    bg: 'rgba(6, 182, 212, 0.1)',
-    color: '#06b6d4',
+    bg: 'rgba(139, 92, 246, 0.1)',
+    color: '#8b5cf6',
     svg: (
       <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
@@ -1209,8 +1209,8 @@ const REC_ICONS = {
     )
   },
   'fin-parser': {
-    bg: 'rgba(6, 182, 212, 0.1)',
-    color: '#06b6d4',
+    bg: 'rgba(139, 92, 246, 0.1)',
+    color: '#8b5cf6',
     svg: (
       <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l8.982-8.979M18 3.612V9M6 13.062V18M6 8.188v.031M18 13.062v.031" />
@@ -1977,7 +1977,7 @@ export default function Finance() {
       {tab === 'overview' && (() => {
         const netWorth   = (f.savings||0)+(f.investments||0)-(f.debt||0);
         const netSavings = Math.max(0,(f.income||0)-(f.expenses||0));
-        const scoreColor = score>=70?'#00d8b6':score>=45?'#f59e0b':'#f43f5e';
+        const scoreColor = score>=70?'#8b5cf6':score>=45?'#f59e0b':'#f43f5e';
         const col = 'gridTemplateColumns';
         const card = {background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16};
         const METRICS = [
@@ -1992,7 +1992,7 @@ export default function Finance() {
         if (savingsRate < 10)  flags.push({label:`Low Savings Rate: ${savingsRate}%`, color:'#f43f5e'});
         if (f.debt > f.income) flags.push({label:'Debt exceeds monthly income',        color:'#f97316'});
         if (burnoutRisk > 60)  flags.push({label:`High burnout risk: ${burnoutRisk}%`, color:'#f59e0b'});
-        const flag = flags[0] || {label:`Savings Rate: ${savingsRate}%`, color:'#00d8b6'};
+        const flag = flags[0] || {label:`Savings Rate: ${savingsRate}%`, color:'#8b5cf6'};
         const action = flags.length===0 ? 'Keep building your emergency fund.'
           : f.debt>0 ? 'Prioritise clearing high-interest debt before investing.'
           : savingsRate<15 ? 'Automate savings — set up a recurring transfer on payday.'
@@ -2077,10 +2077,10 @@ export default function Finance() {
                       <span style={{ color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span>💰</span> Savings Index
                       </span>
-                      <span style={{ color: '#00d8b6', fontWeight: 700 }}>{Math.min(100, Math.max(0, savingsRate))}%</span>
+                      <span style={{ color: '#8b5cf6', fontWeight: 700 }}>{Math.min(100, Math.max(0, savingsRate))}%</span>
                     </div>
                     <div style={{ height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 999, overflow: 'hidden' }}>
-                      <div style={{ width: `${Math.min(100, Math.max(0, savingsRate))}%`, background: 'linear-gradient(90deg, #00d8b6, #00ffd5)', height: '100%', borderRadius: 999 }} />
+                      <div style={{ width: `${Math.min(100, Math.max(0, savingsRate))}%`, background: 'linear-gradient(90deg, #8b5cf6, #00ffd5)', height: '100%', borderRadius: 999 }} />
                     </div>
                   </div>
 
@@ -2301,7 +2301,7 @@ export default function Finance() {
       {tab === 'parse' && (() => {
         const pCard = {background:'#12141a', border:'1px solid #20222a', borderRadius:16, padding:'24px', display:'flex', flexDirection:'column'};
         const BRAND_COLORS = { Uber:'#1a1a1a', Ola:'#2b9348', Swiggy:'#fc8019', Zomato:'#cb202d', Netflix:'#e50914', Amazon:'#ff9900', Flipkart:'#2874f0', Dunzo:'#00d25b', BigBasket:'#84c225', Blinkit:'#f8cc1b', Rapido:'#333', PhonePe:'#5f259f', Paytm:'#00b9f5' };
-        const hashColor = s => { const c=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#10b981','#06b6d4','#3b82f6']; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffffff; return c[Math.abs(h)%c.length]; };
+        const hashColor = s => { const c=['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#10b981','#8b5cf6','#3b82f6']; let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffffff; return c[Math.abs(h)%c.length]; };
         const merchantBg = m => BRAND_COLORS[m] || hashColor(m||'X');
         const inputStyle = {width:'100%', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'5px 8px', color:'#f1f5f9', fontSize:11, outline:'none', boxSizing:'border-box'};
         return (
@@ -3045,8 +3045,8 @@ export default function Finance() {
                           </svg>
                         );
                       } else if (tx.category === 'Transfer') {
-                        catColor = 'rgba(6, 182, 212, 0.08)';
-                        catBorder = '1px solid rgba(6, 182, 212, 0.15)';
+                        catColor = 'rgba(139, 92, 246, 0.08)';
+                        catBorder = '1px solid rgba(139, 92, 246, 0.15)';
                         catTextColor = '#22d3ee';
                         catIcon = (
                           <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -3066,8 +3066,8 @@ export default function Finance() {
                           </svg>
                         );
                       } else if (tx.category === 'Bills') {
-                        catColor = 'rgba(6, 182, 212, 0.08)';
-                        catBorder = '1px solid rgba(6, 182, 212, 0.15)';
+                        catColor = 'rgba(139, 92, 246, 0.08)';
+                        catBorder = '1px solid rgba(139, 92, 246, 0.15)';
                         catTextColor = '#22d3ee';
                         catIcon = (
                           <svg style={{ width: 11, height: 11 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

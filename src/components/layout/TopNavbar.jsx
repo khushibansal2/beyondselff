@@ -34,7 +34,7 @@ export default function TopNavbar() {
       className="sticky top-0 z-30 w-full"
       style={{
         background: isLight ? 'rgba(240,244,248,0.92)' : 'rgba(6,11,20,0.88)',
-        borderBottom: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(0,216,182,0.08)',
+        borderBottom: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(139,92,246,0.08)',
         backdropFilter: 'blur(20px)',
       }}
     >

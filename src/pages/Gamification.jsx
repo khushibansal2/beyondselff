@@ -19,7 +19,7 @@ const ROLES      = ['Monk','Architect','Strategist','Sentinel','Coder','Weaver',
 const TIERS = [
   { name: 'Wanderer',    min: 0,      color: '#71717a', bg: 'rgba(113,113,122,0.12)' },
   { name: 'Apprentice',  min: 500,    color: '#10b981', bg: 'rgba(16,185,129,0.12)'  },
-  { name: 'Seeker',      min: 2000,   color: '#06b6d4', bg: 'rgba(6,182,212,0.12)'   },
+  { name: 'Seeker',      min: 2000,   color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)'   },
   { name: 'Forged',      min: 6000,   color: '#6366f1', bg: 'rgba(99,102,241,0.12)'  },
   { name: 'Disciplined', min: 15000,  color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)'  },
   { name: 'Sovereign',   min: 30000,  color: '#f59e0b', bg: 'rgba(245,158,11,0.12)'  },
@@ -32,7 +32,7 @@ const TIERS = [
 const STAT_META = [
   { key: 'focus',            label: 'Focus',            icon: Brain,     color: '#6366f1', desc: 'Deep work quality & study depth'         },
   { key: 'discipline',       label: 'Discipline',       icon: Shield,    color: '#8b5cf6', desc: 'Consistency and habit strength'           },
-  { key: 'calmness',         label: 'Calmness',         icon: Wind,      color: '#06b6d4', desc: 'Stress management & mental clarity'       },
+  { key: 'calmness',         label: 'Calmness',         icon: Wind,      color: '#8b5cf6', desc: 'Stress management & mental clarity'       },
   { key: 'energy',           label: 'Energy',           icon: Zap,       color: '#f59e0b', desc: 'Physical vitality & sleep quality'        },
   { key: 'financialWisdom',  label: 'Fin. Wisdom',      icon: TrendingUp,color: '#10b981', desc: 'Savings rate & spending discipline'       },
   { key: 'socialConfidence', label: 'Confidence',       icon: Users,     color: '#ec4899', desc: 'Interpersonal growth & presence'          },
@@ -588,7 +588,7 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
     c2: { icon: '🥡', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
     c3: { icon: '🧩', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.15)', color: '#10b981' },
     c4: { icon: '🧘', bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.15)', color: '#f97316' },
-    c5: { icon: '📊', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.15)', color: '#06b6d4' }
+    c5: { icon: '📊', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.15)', color: '#8b5cf6' }
   };
 
   return (
@@ -1027,7 +1027,7 @@ function PeersPanel({ userScores, codename }) {
   const cohortTier = useMemo(() => {
     if (percentile >= 90) return { name: 'Elite Ascendant', color: '#ec4899', bg: 'rgba(236,72,153,0.12)', desc: 'You are among the most disciplined and balanced individuals globally.' };
     if (percentile >= 75) return { name: 'High Performer', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', desc: 'Outstanding consistency. You are pacing well ahead of the average user.' };
-    if (percentile >= 50) return { name: 'Consistent Seeker', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)', desc: 'Solid habits. You maintain healthy averages across most categories.' };
+    if (percentile >= 50) return { name: 'Consistent Seeker', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', desc: 'Solid habits. You maintain healthy averages across most categories.' };
     return { name: 'Rising Wanderer', color: '#71717a', bg: 'rgba(113,113,122,0.12)', desc: 'Building momentum. Consistency is starting to compound.' };
   }, [percentile]);
 

@@ -239,7 +239,7 @@ export default function Settings() {
       {/* Cyber Grid Pattern Background */}
       <div className="cyber-grid" style={{ position: 'absolute', inset: -20, opacity: 0.6, pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'absolute', top: '10%', right: '-10%', width: 260, height: 260, background: 'rgba(99,102,241,0.06)', filter: 'blur(100px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
-      <div style={{ position: 'absolute', bottom: '20%', left: '-10%', width: 280, height: 280, background: 'rgba(6,182,212,0.05)', filter: 'blur(110px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '20%', left: '-10%', width: 280, height: 280, background: 'rgba(139,92,246,0.05)', filter: 'blur(110px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
 
       {/* ── Page Header ── */}
       <div style={{ marginBottom: 28, position: 'relative', zIndex: 1 }}>
@@ -313,7 +313,7 @@ export default function Settings() {
               <p style={{ fontSize: 10, color: '#64748b', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
                 Authorization Tier
               </p>
-              <p style={{ fontSize: 12.5, fontWeight: 700, color: '#06b6d4', margin: 0, textShadow: '0 0 8px rgba(6,182,212,0.2)' }}>
+              <p style={{ fontSize: 12.5, fontWeight: 700, color: '#8b5cf6', margin: 0, textShadow: '0 0 8px rgba(139,92,246,0.2)' }}>
                 Demo User • Full Decrypt
               </p>
             </div>

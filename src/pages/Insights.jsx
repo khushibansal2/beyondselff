@@ -525,8 +525,8 @@ export default function Insights() {
         style={{
           padding: 20,
           borderRadius: 16,
-          border: '1px solid rgba(6,182,212,0.15)',
-          background: 'rgba(6,182,212,0.04)',
+          border: '1px solid rgba(139,92,246,0.15)',
+          background: 'rgba(139,92,246,0.04)',
         }}
       >
         <h3 style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0', margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 6 }}>

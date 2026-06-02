@@ -109,7 +109,7 @@ const SCENARIOS = [
     id: 'academic',
     label: 'Academic / Career Failure',
     tagline: 'The path you built collapses underfoot.',
-    color: '#06b6d4',
+    color: '#8b5cf6',
     impacts: { health: -25, finance: -15, career: -50 },
     cascades: [
       { from: 'Career', to: 'Health', why: 'Shame, identity crisis, and lost direction damage mental health' },
@@ -119,7 +119,7 @@ const SCENARIOS = [
     resilience: 'Skill breadth and portfolio depth are your alternatives when the primary path closes.',
     recovery: { mild: 16, moderate: 30, severe: 52, catastrophic: 78 },
     iconSvg: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
         <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
       </svg>

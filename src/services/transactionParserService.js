@@ -152,7 +152,7 @@ export const CATEGORY_META = {
   Transport:     { icon: '🚗', color: '#3b82f6', bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400' },
   Shopping:      { icon: '🛍️', color: '#8b5cf6', bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400' },
   Entertainment: { icon: '🎬', color: '#f59e0b', bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400' },
-  Bills:         { icon: '⚡', color: '#06b6d4', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', text: 'text-cyan-400' },
+  Bills:         { icon: '⚡', color: '#8b5cf6', bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400' },
   Health:        { icon: '💊', color: '#10b981', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400' },
   Education:     { icon: '📚', color: '#ec4899', bg: 'bg-pink-500/10', border: 'border-pink-500/20', text: 'text-pink-400' },
   Groceries:     { icon: '🛒', color: '#84cc16', bg: 'bg-lime-500/10', border: 'border-lime-500/20', text: 'text-lime-400' },

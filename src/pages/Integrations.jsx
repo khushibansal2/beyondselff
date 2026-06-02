@@ -2345,7 +2345,7 @@ const INDIA_CATS = [
   { label: 'Investments & SIP', amount:  5000, color: '#10b981', pct: 10 },
   { label: 'Insurance & LIC',   amount:  4200, color: '#8b5cf6', pct:  8 },
   { label: 'Shopping',          amount:  1299, color: '#ec4899', pct:  2 },
-  { label: 'Transport',         amount:   234, color: '#06b6d4', pct:  1 },
+  { label: 'Transport',         amount:   234, color: '#8b5cf6', pct:  1 },
   { label: 'Utilities',         amount:   999, color: '#ef4444', pct:  2 },
   { label: 'Cash & Others',     amount:  2000, color: '#71717a', pct:  4 },
 ];
@@ -2406,7 +2406,7 @@ function buildCatsFromTxns(txns) {
   const map = {};
   txns.forEach(t => { if (t.debit) map[t.category] = (map[t.category] ?? 0) + t.debit; });
   const total = Object.values(map).reduce((a, b) => a + b, 0) || 1;
-  const clrs = ['#6366f1','#f97316','#10b981','#8b5cf6','#f59e0b','#ec4899','#06b6d4','#ef4444','#71717a'];
+  const clrs = ['#6366f1','#f97316','#10b981','#8b5cf6','#f59e0b','#ec4899','#8b5cf6','#ef4444','#71717a'];
   return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 9).map(([label, amount], i) => ({
     label, amount: Math.round(amount), color: clrs[i] ?? '#71717a',
     pct: Math.round((amount / total) * 100),
@@ -3497,7 +3497,7 @@ function CourseraPanel() {
               { id: 'rec-1', name: 'Python for Everybody', partner: 'University of Michigan', logo: '🐍', color: '#10b981', badge: 'Beginner', badgeColor: '#34d399', badgeBg: 'rgba(16,185,129,0.08)', badgeBorder: 'rgba(16,185,129,0.2)', rating: '4.8', size: '18 Weeks' },
               { id: 'rec-2', name: 'Machine Learning Specialization', partner: 'DeepLearning.AI', logo: '🧠', color: '#fbbf24', badge: 'Intermediate', badgeColor: '#fbbf24', badgeBg: 'rgba(245,158,11,0.08)', badgeBorder: 'rgba(245,158,11,0.2)', rating: '4.9', size: '4 Courses' },
               { id: 'rec-3', name: 'Google Cloud Professional', partner: 'Google Cloud', logo: '☁️', color: '#3b82f6', badge: 'Advanced', badgeColor: '#60a5fa', badgeBg: 'rgba(59,130,246,0.08)', badgeBorder: 'rgba(59,130,246,0.2)', rating: '4.7', size: '12 Weeks' },
-              { id: 'rec-4', name: 'React Developer', partner: 'Meta', logo: '⚛️', color: '#06b6d4', badge: 'Intermediate', badgeColor: '#34d399', badgeBg: 'rgba(16,185,129,0.08)', badgeBorder: 'rgba(16,185,129,0.2)', rating: '4.6', size: '10 Weeks' },
+              { id: 'rec-4', name: 'React Developer', partner: 'Meta', logo: '⚛️', color: '#8b5cf6', badge: 'Intermediate', badgeColor: '#34d399', badgeBg: 'rgba(16,185,129,0.08)', badgeBorder: 'rgba(16,185,129,0.2)', rating: '4.6', size: '10 Weeks' },
               { id: 'rec-5', name: 'Data Science Specialization', partner: 'Johns Hopkins Univ.', logo: '📊', color: '#ec4899', badge: 'Intermediate', badgeColor: '#f472b6', badgeBg: 'rgba(244,114,182,0.08)', badgeBorder: 'rgba(244,114,182,0.2)', rating: '4.8', size: '6 Courses' },
             ].map(rec => (
               <div 
@@ -3957,7 +3957,7 @@ export default function Integrations() {
       {/* Cyber Grid & Glowing Ambient Blurs */}
       <div className="cyber-grid" style={{ position: 'absolute', inset: -20, opacity: 0.6, pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'absolute', top: '15%', left: '10%', width: 280, height: 280, background: 'rgba(99,102,241,0.06)', filter: 'blur(100px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
-      <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(6,182,212,0.05)', filter: 'blur(120px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(139,92,246,0.05)', filter: 'blur(120px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
 
       {/* ── Page Header ── */}
       <div style={{ position: 'relative', zIndex: 2 }}>

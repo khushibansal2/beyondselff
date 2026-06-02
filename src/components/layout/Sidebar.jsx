@@ -32,7 +32,7 @@ const navSections = [
   {
     label: 'Intelligence',
     items: [
-      { path: '/simulator',   label: 'Simulator',   icon: Sparkles,       color: '#06b6d4' },
+      { path: '/simulator',   label: 'Simulator',   icon: Sparkles,       color: '#8b5cf6' },
       { path: '/insights',    label: 'Insights',    icon: Brain,          color: '#8b5cf6' },
       { path: '/neural-core', label: 'Neural Core', icon: Dna,            color: '#10b981' },
       { path: '/coach',       label: 'AI Coach',    icon: MessageSquare,  color: '#6366f1' },
@@ -48,7 +48,7 @@ const navSections = [
     label: 'Tools',
     items: [
       { path: '/sustainability', label: 'Sustainability', icon: Leaf,     color: '#10b981' },
-      { path: '/upload',         label: 'Data Import',   icon: Upload,   color: '#06b6d4' },
+      { path: '/upload',         label: 'Data Import',   icon: Upload,   color: '#8b5cf6' },
       { path: '/integrations',   label: 'Integrations',  icon: Link2,    color: '#8b5cf6' },
     ],
   },
@@ -70,7 +70,7 @@ export default function Sidebar() {
   const { theme } = useTheme();
   const isLight = theme === 'light';
   const sidebarBg = isLight ? '#ffffff' : '#07090e';
-  const borderColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(0,216,182,0.08)';
+  const borderColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(139,92,246,0.08)';
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({});
@@ -138,7 +138,7 @@ export default function Sidebar() {
       <div className={`${collapsed && !mobile ? 'px-4 py-5' : 'px-5 py-5'} flex-shrink-0`} style={{ borderBottom: `1px solid ${borderColor}` }}>
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-violet-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-teal-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-violet-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-violet-500/20">
               <Zap size={17} className="text-white" />
             </div>
             {(!collapsed || mobile) && (
@@ -314,7 +314,7 @@ export default function Sidebar() {
             <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1.5 text-slate-400 hover:text-white transition-colors">
               <Menu size={19} />
             </button>
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-400 to-violet-500 flex items-center justify-center shadow-sm">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-violet-500 flex items-center justify-center shadow-sm">
               <Zap size={13} className="text-white" />
             </div>
             <span className="text-[14px] font-bold text-white tracking-tight">BeyondSelf</span>

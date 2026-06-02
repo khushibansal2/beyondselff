@@ -1749,7 +1749,7 @@ export default function Health() {
     { label: 'Stress Level',     score: Math.round(Math.max(0, (10 - h.stressLevel) / 10 * 100)),             icon: '😰', color: '#f43f5e', rawValue: h.stressLevel > 0 ? `${h.stressLevel}/10` : null },
     { label: 'Mood',             score: Math.round((h.moodAvg / 10) * 100),                                   icon: '😊', color: '#f59e0b', rawValue: h.moodAvg > 0 ? `${h.moodAvg}/10` : null },
     { label: 'Physical Activity',score: Math.round(Math.min(100, (h.workoutsPerWeek / 5) * 100)),             icon: '💪', color: '#10b981', rawValue: h.workoutsPerWeek > 0 ? `${h.workoutsPerWeek}x/wk` : null },
-    { label: 'Hydration',        score: Math.round(Math.min(100, (h.waterIntake / 8) * 100)),                 icon: '💧', color: '#06b6d4', rawValue: h.waterIntake > 0 ? `${h.waterIntake} gl` : null },
+    { label: 'Hydration',        score: Math.round(Math.min(100, (h.waterIntake / 8) * 100)),                 icon: '💧', color: '#8b5cf6', rawValue: h.waterIntake > 0 ? `${h.waterIntake} gl` : null },
     { label: 'Nutrition',        score: nutritionScore,                                                        icon: '🥗', color: '#f97316', rawValue: h.calories > 0 ? `${h.calories} kcal` : null },
   ];
 
@@ -2241,7 +2241,7 @@ export default function Health() {
                 { key: 'water',    label: 'Water (glasses)',      placeholder: '8',    icon: <Droplets size={16} />, color: '#38bdf8', bg: 'rgba(59, 130, 246, 0.12)', maxVal: 12 },
                 { key: 'calories', label: 'Calories (kcal)',      placeholder: '2200', icon: <Flame size={16} />,    color: '#fb923c', bg: 'rgba(234, 88, 12, 0.12)', maxVal: 3000 },
                 { key: 'weight',   label: 'Body Weight (kg)',     placeholder: '70',   icon: <Scale size={16} />,     color: '#c084fc', bg: 'rgba(167, 139, 250, 0.12)', maxVal: 120 },
-                { key: 'bmi',      label: 'BMI',                  placeholder: '22.5', icon: <User size={16} />,     color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.12)', maxVal: 35 }
+                { key: 'bmi',      label: 'BMI',                  placeholder: '22.5', icon: <User size={16} />,     color: '#a78bfa', bg: 'rgba(45, 212, 191, 0.12)', maxVal: 35 }
               ].map(f => {
                 const currentVal = Number(form[f.key] || f.placeholder);
                 const percent = Math.min(100, Math.max(0, Math.round((currentVal / f.maxVal) * 100)));

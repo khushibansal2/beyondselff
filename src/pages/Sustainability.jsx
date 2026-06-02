@@ -320,7 +320,7 @@ export default function Sustainability() {
         style={{
           padding: '18px 22px', borderRadius: 16, marginBottom: 20,
           background: sustainabilitySyncEnabled
-            ? 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(6,182,212,0.04) 100%)'
+            ? 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(139,92,246,0.04) 100%)'
             : 'rgba(255,255,255,0.02)',
           border: sustainabilitySyncEnabled
             ? '1px solid rgba(16,185,129,0.25)'

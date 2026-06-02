@@ -11,7 +11,7 @@ const DOC_TYPES = {
   hospital_bill:  { label: 'Hospital Bill',    icon: '🏥', color: '#ef4444', logLabel: 'Log medical expense to Finance' },
   lab_report:     { label: 'Lab Report',       icon: '🧪', color: '#8b5cf6', logLabel: 'Log health markers' },
   utility_bill:   { label: 'Utility Bill',     icon: '⚡', color: '#f59e0b', logLabel: 'Log expense to Finance' },
-  bank_statement: { label: 'Bank Statement',   icon: '🏦', color: '#06b6d4', logLabel: 'Log transactions to Finance' },
+  bank_statement: { label: 'Bank Statement',   icon: '🏦', color: '#8b5cf6', logLabel: 'Log transactions to Finance' },
   invoice:        { label: 'Invoice',          icon: '🧾', color: '#f97316', logLabel: 'Log expense to Finance' },
   unknown:        { label: 'Document',         icon: '📄', color: '#71717a', logLabel: 'Review extracted data' },
 };
@@ -22,7 +22,7 @@ const DEMO_DOCS = {
 };
 
 /* ─── Cybernetic Corner Overlays ────────────────────────────────── */
-function CyberCorners({ color = '#06b6d4' }) {
+function CyberCorners({ color = '#8b5cf6' }) {
   return (
     <>
       <div style={{ position: 'absolute', top: 0, left: 0, width: 14, height: 14, borderTop: `2px solid ${color}`, borderLeft: `2px solid ${color}`, pointerEvents: 'none' }} />
@@ -106,17 +106,17 @@ function SmartDocScanner({ onLogData }) {
         overflow: 'hidden'
       }}
     >
-      <CyberCorners color="rgba(6,182,212,0.3)" />
+      <CyberCorners color="rgba(139,92,246,0.3)" />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{
               width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(6,182,212,0.06)', border: '1px solid rgba(6,182,212,0.2)',
-              boxShadow: '0 0 15px rgba(6,182,212,0.1)'
+              background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)',
+              boxShadow: '0 0 15px rgba(139,92,246,0.1)'
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 4px rgba(6,182,212,0.4))' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 4px rgba(139,92,246,0.4))' }}>
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                 <circle cx="12" cy="13" r="4" />
               </svg>
@@ -218,8 +218,8 @@ function SmartDocScanner({ onLogData }) {
         onClick={() => !preview && fileRef.current?.click()}
         style={{
           borderRadius: 16, 
-          border: `2px dashed ${dragOver ? '#06b6d4' : 'rgba(255,255,255,0.08)'}`, 
-          background: dragOver ? 'rgba(6,182,212,0.05)' : 'rgba(0,0,0,0.15)',
+          border: `2px dashed ${dragOver ? '#8b5cf6' : 'rgba(255,255,255,0.08)'}`, 
+          background: dragOver ? 'rgba(139,92,246,0.05)' : 'rgba(0,0,0,0.15)',
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center', 
@@ -229,7 +229,7 @@ function SmartDocScanner({ onLogData }) {
           position: 'relative', 
           overflow: 'hidden',
           transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', 
-          boxShadow: dragOver ? 'inset 0 0 20px rgba(6,182,212,0.1)' : 'none'
+          boxShadow: dragOver ? 'inset 0 0 20px rgba(139,92,246,0.1)' : 'none'
         }}
       >
         <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) processFile(e.target.files[0]); e.target.value = ''; }} />
@@ -237,11 +237,11 @@ function SmartDocScanner({ onLogData }) {
         {!preview ? (
           <div style={{ padding: '36px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
             <div style={{
-              width: 50, height: 50, borderRadius: '50%', background: 'rgba(6,182,212,0.04)',
-              border: '1px solid rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 15px rgba(6,182,212,0.05)', animation: 'float 4s ease-in-out infinite'
+              width: 50, height: 50, borderRadius: '50%', background: 'rgba(139,92,246,0.04)',
+              border: '1px solid rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 15px rgba(139,92,246,0.05)', animation: 'float 4s ease-in-out infinite'
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" strokeWidth="2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2">
                 <polyline points="16 16 12 12 8 16" />
                 <line x1="12" y1="12" x2="12" y2="21" />
                 <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
@@ -267,8 +267,8 @@ function SmartDocScanner({ onLogData }) {
                 right: 12,
                 top: 12,
                 height: '3px',
-                background: 'linear-gradient(90deg, transparent, #06b6d4, transparent)',
-                boxShadow: '0 0 15px #06b6d4, 0 0 5px #06b6d4',
+                background: 'linear-gradient(90deg, transparent, #8b5cf6, transparent)',
+                boxShadow: '0 0 15px #8b5cf6, 0 0 5px #8b5cf6',
                 animation: 'scanline 2s linear infinite',
                 zIndex: 10
               }} />
@@ -276,10 +276,10 @@ function SmartDocScanner({ onLogData }) {
 
             {scanning && (
               <div style={{ position: 'absolute', inset: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, background: 'rgba(9,13,22,0.85)', backdropFilter: 'blur(4px)', borderRadius: 12 }}>
-                <div style={{ width: 36, height: 36, border: '3px solid rgba(6,182,212,0.2)', borderTopColor: '#06b6d4', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                <div style={{ width: 36, height: 36, border: '3px solid rgba(139,92,246,0.2)', borderTopColor: '#8b5cf6', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
                 <div>
                   <p style={{ fontSize: 13.5, color: '#f1f5f9', fontWeight: 800, margin: '0 0 3px', textAlign: 'center' }}>Scanning Quantum Ingestion Port...</p>
-                  <p style={{ fontSize: 11, color: '#06b6d4', margin: 0, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Extracting key value pairs</p>
+                  <p style={{ fontSize: 11, color: '#8b5cf6', margin: 0, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Extracting key value pairs</p>
                 </div>
               </div>
             )}
@@ -613,8 +613,8 @@ export default function Upload() {
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .glass-card-glow-cyan:hover {
-          border-color: rgba(6, 182, 212, 0.35) !important;
-          box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.08), 0 0 25px rgba(6, 182, 212, 0.12) !important;
+          border-color: rgba(139, 92, 246, 0.35) !important;
+          box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.08), 0 0 25px rgba(139, 92, 246, 0.12) !important;
           transform: translateY(-2px);
         }
         .glass-card-glow-indigo:hover {
@@ -633,15 +633,15 @@ export default function Upload() {
           transform: translateY(-2px);
         }
         .cyber-button-cyan {
-          background: linear-gradient(135deg, rgba(6, 182, 212, 0.18) 0%, rgba(6, 182, 212, 0.04) 100%);
-          border: 1px solid rgba(6, 182, 212, 0.28);
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.04) 100%);
+          border: 1px solid rgba(139, 92, 246, 0.28);
           color: #22d3ee;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .cyber-button-cyan:hover {
-          background: linear-gradient(135deg, rgba(6, 182, 212, 0.32) 0%, rgba(6, 182, 212, 0.08) 100%);
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.32) 0%, rgba(139, 92, 246, 0.08) 100%);
           border-color: #22d3ee;
-          box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+          box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
           transform: translateY(-1px);
         }
         .cyber-button-indigo {
@@ -662,8 +662,8 @@ export default function Upload() {
           transition: all 0.2s ease;
         }
         .cyber-input:focus {
-          border-color: rgba(6, 182, 212, 0.5) !important;
-          box-shadow: 0 0 12px rgba(6, 182, 212, 0.3) !important;
+          border-color: rgba(139, 92, 246, 0.5) !important;
+          box-shadow: 0 0 12px rgba(139, 92, 246, 0.3) !important;
           outline: none !important;
         }
         .preview-table::-webkit-scrollbar {
@@ -686,7 +686,7 @@ export default function Upload() {
       {/* Cyber Grid & Glowing Ambient Blurs */}
       <div className="cyber-grid" style={{ position: 'absolute', inset: 0, opacity: 0.7, pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'absolute', top: '15%', left: '10%', width: 280, height: 280, background: 'rgba(99,102,241,0.08)', filter: 'blur(110px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
-      <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(6,182,212,0.06)', filter: 'blur(130px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '25%', right: '8%', width: 340, height: 340, background: 'rgba(139,92,246,0.06)', filter: 'blur(130px)', borderRadius: '50%', pointerEvents: 'none', zIndex: 0 }} />
       
       {/* ── Page Header ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28, position: 'relative', zIndex: 1 }}>
@@ -828,7 +828,7 @@ export default function Upload() {
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
                   {[
-                    { label: 'Ingested Records', val: preview.records, color: '#06b6d4', glow: 'rgba(6,182,212,0.2)' },
+                    { label: 'Ingested Records', val: preview.records, color: '#8b5cf6', glow: 'rgba(139,92,246,0.2)' },
                     { label: 'Mapped Columns', val: preview.columns.length, color: '#818cf8', glow: 'rgba(129,140,248,0.2)' },
                     { label: 'Payload Weight', val: preview.size, color: '#10b981', glow: 'rgba(16,185,129,0.2)' }
                   ].map(stat => (
