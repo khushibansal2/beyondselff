@@ -344,7 +344,7 @@ const FUND_RECS = {
   ],
 };
 
-function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
+function InvestmentRoboAdvisor({ f, score, financeRecords = [], onNavigate }) {
   const dispIncome = f.income || 0;
   const dispExpenses = f.expenses || 0;
   const dispSavings = f.savings || 0;
@@ -920,7 +920,7 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
             {/* Action Buttons */}
             <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
               <button 
-                onClick={() => showToast(`Claiming ₹67,500 in deductions simulated!`, 'success')}
+                onClick={() => { onNavigate?.('log'); showToast('Opening Finance Log — add your deduction entries there', 'success'); }}
                 style={{ 
                   flex: 1, 
                   padding: '9px', 
@@ -1086,7 +1086,7 @@ function InvestmentRoboAdvisor({ f, score, financeRecords = [] }) {
 
             {/* Set Up SIP Button */}
             <button 
-              onClick={() => showToast(`SIP Wealth Plan of ₹${sipAmt.toLocaleString()}/month activated!`, 'success')}
+              onClick={() => { window.open('https://groww.in/mutual-funds/category/index-funds', '_blank'); showToast(`Opening Groww to set up ₹${sipAmt.toLocaleString()}/mo SIP`, 'success'); }}
               style={{ 
                 width: '100%', 
                 padding: '10px', 
@@ -3751,7 +3751,7 @@ export default function Finance() {
 
       {/* ── INVEST TAB ────────────────────────────────────────────────────── */}
       {tab === 'invest' && (
-        <InvestmentRoboAdvisor f={f} score={score} financeRecords={financeRecords} />
+        <InvestmentRoboAdvisor f={f} score={score} financeRecords={financeRecords} onNavigate={setTab} />
       )}
     </div>
   );
