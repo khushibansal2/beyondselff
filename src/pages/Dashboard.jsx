@@ -1022,6 +1022,15 @@ export default function Dashboard() {
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
   const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
 
+  // Today's actual logged values (from records, not profile averages)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayHealthRecs = (records?.health || []).filter(r => (r.date || r.recordDate || '').startsWith(todayStr));
+  const todayCareerRecs = (records?.career || []).filter(r => (r.date || r.activityDate || '').startsWith(todayStr));
+  const todayWater    = todayHealthRecs.reduce((s, r) => s + (r.water ?? r.waterGlasses ?? 0), 0) || h.waterIntake || 0;
+  const todaySleep    = todayHealthRecs.reduce((s, r) => s + (r.sleep ?? r.sleepHours ?? 0), 0) || h.sleepAvg || 0;
+  const todayWorkout  = todayHealthRecs.some(r => (r.workout ?? r.workoutMinutes ?? 0) > 0);
+  const todayStudyMin = todayCareerRecs.reduce((s, r) => s + ((r.studyHours ?? r.studyHoursDaily ?? 0) * 60), 0) || (c.studyHoursDaily * 60) || 0;
+
   const healthScore = computed?.healthScore?.score ?? 0;
   const financeScore = computed?.financeScore?.score ?? 0;
   const careerScore = computed?.careerScore?.score ?? 0;
@@ -1145,8 +1154,8 @@ export default function Dashboard() {
       tasks.push({ id: 'sleep', icon: '😴', text: `Go to bed ${Math.max(0.5, 7 - h.sleepAvg).toFixed(1)}h earlier tonight`, domain: 'Health', pts: '+2 pts', iconColor: '#8b5cf6', link: '/health' });
     if (h.workoutsPerWeek > 0 && h.workoutsPerWeek < 3)
       tasks.push({ id: 'workout', icon: '💪', text: `Add ${3 - h.workoutsPerWeek} more workout day${3 - h.workoutsPerWeek > 1 ? 's' : ''} this week`, domain: 'Health', pts: '+2 pts', iconColor: '#10b981', link: '/health' });
-    if (h.waterIntake > 0 && h.waterIntake < 7)
-      tasks.push({ id: 'water', icon: '💧', text: `Drink ${8 - Math.round(h.waterIntake)} more glasses of water today`, domain: 'Health', pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
+    if (todayWater < 8)
+      tasks.push({ id: 'water', icon: '💧', text: todayWater > 0 ? `Drink ${8 - Math.round(todayWater)} more glasses of water today` : 'Log your water intake today (target 8 glasses)', domain: 'Health', pts: '+2 pts', iconColor: '#06b6d4', link: '/health' });
     if (h.stressLevel > 6)
       tasks.push({ id: 'stress', icon: '🧘', text: 'Take a 15-min meditation or walk break', domain: 'Health', pts: '+2 pts', iconColor: '#f43f5e', link: '/health' });
     if (savingsRate < 20 && f.income > 0)
@@ -1169,13 +1178,7 @@ export default function Dashboard() {
       return empties.slice(0, 3);
     }
 
-    // Ensure the two requested chips are always present to match exact spec
-    const firstTask = tasks.length > 0 ? tasks[0] : { id: 'sleep', icon: '😴', text: 'Go to bed 1.0h earlier tonight', domain: 'Health', pts: '+2 pts', iconColor: '#8b5cf6', link: '/health' };
-    return [
-      firstTask,
-      { id: 'water-extra', icon: '💧', text: 'Drink 5 more glasses of water today', domain: 'Health', pts: '+2 pts', iconColor: '#60a5fa', link: '/health' },
-      { id: 'dsa-extra', icon: '💻', text: 'Solve 1 DSA problem today', domain: 'Career', pts: '+2 pts', iconColor: '#818cf8', link: '/career' }
-    ];
+    return tasks.slice(0, 4);
   }, [h, f, c, savingsRate, hasHealthData, hasFinanceData, hasCareerData]);
 
   const avgGoalProgress = useMemo(() => {
@@ -2221,12 +2224,13 @@ export default function Dashboard() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {(() => {
-                  const waterActual = Math.min(h.waterIntake || 0, 8);
+                  const waterActual = Math.min(todayWater, 8);
                   const waterTarget = 8;
-                  const studyActual = Math.round((c.studyHoursDaily || 0) * 60);
+                  const studyActual = Math.round(todayStudyMin);
                   const studyTarget = 60;
-                  const sleepActual = h.sleepAvg || 0;
-                  const workoutActual = Math.round((h.workoutsPerWeek || 0) / 7 * 30);
+                  const sleepActual = todaySleep || h.sleepAvg || 0;
+                  const workoutDone = todayWorkout || (h.workoutsPerWeek || 0) / 7 >= 1;
+                  const workoutActual = workoutDone ? 30 : Math.round((h.workoutsPerWeek || 0) / 7 * 30);
                   const workoutTarget = 30;
                   return [
                   {
