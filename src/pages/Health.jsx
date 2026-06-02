@@ -2086,7 +2086,7 @@ export default function Health() {
                       const idx = d.findIndex(x => x.date === v);
                       return idx >= 0 ? days[idx] : '';
                     }} axisLine={false} tickLine={false} dy={4} />
-                    <YAxis tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false} domain={([dataMin, dataMax]) => [Math.max(0, Math.floor(dataMin * 0.85)), Math.ceil(dataMax * 1.1)]} />
                     <Tooltip content={<CustomTooltip />} />
                     <Area type="monotone" dataKey="mood"  stroke="#22c55e" fill="transparent" strokeWidth={2} dot={{ r: 4, fill: '#22c55e', strokeWidth: 0 }} activeDot={{ r: 6 }} />
                     <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="transparent" strokeWidth={2} dot={{ r: 4, fill: '#a78bfa', strokeWidth: 0 }} activeDot={{ r: 6 }} />
