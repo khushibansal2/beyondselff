@@ -970,6 +970,11 @@ export default function Dashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkedTasks, setCheckedTasks] = useState({});
   const [checkedGoals, setCheckedGoals] = useState({});
+  const [showAddGoal, setShowAddGoal] = useState(false);
+  const [newGoalText, setNewGoalText] = useState('');
+  const [customTasks, setCustomTasks] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('dt_custom_tasks_' + new Date().toISOString().split('T')[0]) || '[]'); } catch { return []; }
+  });
   const [futureSelfOpen, setFutureSelfOpen] = useState(false);
   const [futureSelfMessages, setFutureSelfMessages] = useState([]);
   const [futureSelfInput, setFutureSelfInput] = useState('');
@@ -1279,13 +1284,33 @@ export default function Dashboard() {
     { label: 'Balance', score: lifeBalance,   display: String(lifeBalance),   color: '#8b5cf6', change: '-22%', up: false, icon: '⚖️', link: '/neural-core' },
   ];
 
-  // Today's plan
-  const todayPlan = actionPlan.slice(0, 5).map((t, i) => ({
-    ...t,
-    time: ['6:00 AM', '8:00 AM', '1:00 PM', '5:00 PM', '9:00 PM', '10:00 PM'][i] || '—',
-    done: !!checkedTasks[t.id],
-  }));
+  // Today's plan — auto-generated tasks + user-added custom tasks
+  const todayPlan = [
+    ...actionPlan.slice(0, 4).map((t, i) => ({
+      ...t,
+      time: ['6:00 AM', '8:00 AM', '1:00 PM', '5:00 PM'][i] || '—',
+      done: !!checkedTasks[t.id],
+    })),
+    ...customTasks.map(t => ({ ...t, done: !!checkedTasks[t.id] })),
+  ];
   const planDoneCount = todayPlan.filter(t => t.done).length;
+
+  const addCustomTask = () => {
+    const text = newGoalText.trim();
+    if (!text) return;
+    const task = { id: 'custom-' + Date.now(), text, icon: '🎯', domain: 'Custom', pts: '+5 pts', iconColor: '#8b5cf6', link: '/goals', time: '—', custom: true };
+    const updated = [...customTasks, task];
+    setCustomTasks(updated);
+    localStorage.setItem('dt_custom_tasks_' + new Date().toISOString().split('T')[0], JSON.stringify(updated));
+    setNewGoalText('');
+    setShowAddGoal(false);
+  };
+
+  const removeCustomTask = (id) => {
+    const updated = customTasks.filter(t => t.id !== id);
+    setCustomTasks(updated);
+    localStorage.setItem('dt_custom_tasks_' + new Date().toISOString().split('T')[0], JSON.stringify(updated));
+  };
 
   const currentYear = new Date().getFullYear();
   const futureYear = currentYear + 5;
@@ -1682,19 +1707,48 @@ export default function Dashboard() {
               <div style={{ ...S('#111827'), padding: '12px 14px', flexShrink: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0' }}>Today's Plan</div>
-                  <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 600 }}>{planDoneCount} / {todayPlan.length} completed</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 600 }}>{planDoneCount} / {todayPlan.length} done</div>
+                    <button onClick={() => setShowAddGoal(s => !s)}
+                      style={{ width: 18, height: 18, borderRadius: '50%', background: showAddGoal ? 'rgba(139,92,246,0.3)' : 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)', color: '#a78bfa', fontSize: 13, lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, outline: 'none' }}>
+                      {showAddGoal ? '×' : '+'}
+                    </button>
+                  </div>
                 </div>
                 <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
-                
+
+                {/* Inline add-goal input */}
+                {showAddGoal && (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                    <input
+                      autoFocus
+                      value={newGoalText}
+                      onChange={e => setNewGoalText(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') addCustomTask(); if (e.key === 'Escape') { setShowAddGoal(false); setNewGoalText(''); } }}
+                      placeholder="Add today's goal..."
+                      style={{ flex: 1, fontSize: 10, background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, padding: '5px 8px', color: '#e2e8f0', outline: 'none' }}
+                    />
+                    <button onClick={addCustomTask}
+                      style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.4)', color: '#a78bfa', fontSize: 10, fontWeight: 700, cursor: 'pointer', outline: 'none' }}>
+                      Add
+                    </button>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
                   {todayPlan.map((task) => (
-                    <div key={task.id} onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                      <div style={{ width: 14, height: 14, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+                    <div key={task.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
+                        style={{ width: 14, height: 14, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s', cursor: 'pointer' }}>
                         {task.done && <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>}
                       </div>
-                      <span style={{ flex: 1, fontSize: 10, color: task.done ? '#64748b' : '#cbd5e1', textDecoration: task.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.text}</span>
+                      <span onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
+                        style={{ flex: 1, fontSize: 10, color: task.done ? '#64748b' : '#cbd5e1', textDecoration: task.done ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}>{task.text}</span>
                       <span style={{ fontSize: 9, color: '#475569', flexShrink: 0 }}>{task.time}</span>
+                      {task.custom && (
+                        <button onClick={() => removeCustomTask(task.id)}
+                          style={{ background: 'none', border: 'none', color: '#475569', fontSize: 10, cursor: 'pointer', padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>×</button>
+                      )}
                     </div>
                   ))}
                 </div>
