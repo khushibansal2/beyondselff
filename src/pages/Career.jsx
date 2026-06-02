@@ -1229,44 +1229,123 @@ function CareerIntelligenceTab({ userSkills, targetRole, health, computed }) {
                 </GlassCard>
               )}
 
-              {/* Dynamic Demand Trends Summary */}
-              {!trendsLoading && trends && (
-                <GlassCard>
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp size={13} className="text-emerald-400" />
-                    <h3 className="text-[13px] font-semibold text-[#f0f0f3]">{trends.query} Market Trajectory</h3>
-                    <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)', color: '#34d399', marginLeft: 'auto' }}>
-                      {trends.hiringVelocity} Velocity
-                    </span>
-                  </div>
-                  <p className="text-[12px] text-[#a1a1aa] leading-relaxed mb-4">{trends.marketBrief}</p>
-                  
-                  {/* Trajectory Sparkline for the top skill */}
-                  {trends.topSkills[0] && (
-                    <div>
-                      <div className="flex items-center justify-between text-[11px] text-[#64748b] mb-1">
-                        <span>{trends.topSkills[0].skill} Growth Pattern</span>
-                        <span className="text-[#10b981] font-bold">{trends.topSkills[0].growth}</span>
-                      </div>
-                      <div style={{ position: 'relative', height: 36, marginTop: 4 }}>
-                        <svg width="100%" height="32" viewBox="0 0 200 32">
-                          <polyline
-                            points={trends.topSkills[0].trend.map((val, i) => `${i * 40},${32 - (val / 100) * 26}`).join(' ')}
-                            fill="none"
-                            stroke="#10b981"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                          {trends.topSkills[0].trend.map((val, i) => (
-                            <circle key={i} cx={i * 40} cy={32 - (val / 100) * 26} r="2.5" fill="#10b981" />
-                          ))}
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                  <span className="text-[9px] text-[#475569] block text-right mt-2">Data Source: {trends.source}</span>
+              {/* Skill Demand Intelligence — full redesign */}
+              {trendsLoading && (
+                <GlassCard className="text-center py-6">
+                  <Loader2 size={18} className="mx-auto mb-2 text-violet-400 animate-spin" />
+                  <p className="text-[12px] text-slate-400">Analysing skill demand trends…</p>
                 </GlassCard>
               )}
+
+              {!trendsLoading && trends && (() => {
+                const SKILL_COLORS = ['#8b5cf6','#6366f1','#3b82f6','#10b981','#f59e0b'];
+                const DIR_STYLE = {
+                  rising:   { color: '#10b981', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.25)',  icon: '↑' },
+                  stable:   { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.25)',  icon: '→' },
+                  declining:{ color: '#f43f5e', bg: 'rgba(244,63,94,0.1)',   border: 'rgba(244,63,94,0.25)',   icon: '↓' },
+                };
+                // Build chart data: each month across all top skills
+                const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+                const chartData = months.map((m, i) => {
+                  const pt = { month: m };
+                  (trends.topSkills || []).forEach(s => { pt[s.skill] = s.trend?.[i] ?? 0; });
+                  return pt;
+                });
+                return (
+                  <div className="space-y-4">
+                    {/* Market overview card */}
+                    <GlassCard>
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <TrendingUp size={14} className="text-violet-400" />
+                            <h3 className="text-[14px] font-bold text-white">{trends.query} — Market Intelligence</h3>
+                          </div>
+                          <p className="text-[12px] text-slate-400 leading-relaxed max-w-xl">{trends.marketBrief}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <div style={{ padding: '4px 12px', borderRadius: 8, background: trends.hiringVelocity === 'Critical' ? 'rgba(244,63,94,0.12)' : trends.hiringVelocity === 'High' ? 'rgba(139,92,246,0.12)' : 'rgba(16,185,129,0.12)', border: `1px solid ${trends.hiringVelocity === 'Critical' ? 'rgba(244,63,94,0.3)' : trends.hiringVelocity === 'High' ? 'rgba(139,92,246,0.3)' : 'rgba(16,185,129,0.3)'}`, color: trends.hiringVelocity === 'Critical' ? '#f87171' : trends.hiringVelocity === 'High' ? '#a78bfa' : '#34d399', fontSize: 11, fontWeight: 700 }}>
+                            {trends.hiringVelocity} Hiring Velocity
+                          </div>
+                          <div style={{ padding: '4px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: '#818cf8', fontSize: 11, fontWeight: 700 }}>
+                            +{trends.demandGrowth}% YoY Growth
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 6-month multi-skill trend chart */}
+                      <div className="mb-3">
+                        <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold mb-3">6-Month Demand Trend (% of job listings)</p>
+                        <div style={{ height: 160 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                              <defs>
+                                {(trends.topSkills || []).map((s, i) => (
+                                  <linearGradient key={s.skill} id={`grad-skill-${i}`} x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="10%" stopColor={SKILL_COLORS[i]} stopOpacity={0.25} />
+                                    <stop offset="95%" stopColor={SKILL_COLORS[i]} stopOpacity={0} />
+                                  </linearGradient>
+                                ))}
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 0" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                              <XAxis dataKey="month" tick={{ fill: '#52525b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                              <YAxis domain={[0, 100]} tick={{ fill: '#52525b', fontSize: 9 }} axisLine={false} tickLine={false} ticks={[25, 50, 75, 100]} />
+                              <Tooltip contentStyle={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, fontSize: 11 }} labelStyle={{ color: '#94a3b8', marginBottom: 4 }} />
+                              {(trends.topSkills || []).map((s, i) => (
+                                <Area key={s.skill} type="monotone" dataKey={s.skill} stroke={SKILL_COLORS[i]} strokeWidth={2} fill={`url(#grad-skill-${i})`} dot={false} activeDot={{ r: 4, fill: SKILL_COLORS[i] }} />
+                              ))}
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                        {/* Legend */}
+                        <div className="flex flex-wrap gap-3 mt-2">
+                          {(trends.topSkills || []).map((s, i) => (
+                            <div key={s.skill} className="flex items-center gap-1.5">
+                              <div style={{ width: 8, height: 8, borderRadius: '50%', background: SKILL_COLORS[i] }} />
+                              <span style={{ fontSize: 10, color: '#71717a' }}>{s.skill}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </GlassCard>
+
+                    {/* Per-skill demand bars */}
+                    <GlassCard>
+                      <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold mb-4">Top Skills — Current Demand & Growth</p>
+                      <div className="space-y-3">
+                        {(trends.topSkills || []).map((s, i) => {
+                          const dir = s.direction || (s.growth?.startsWith('+') ? 'rising' : 'stable');
+                          const ds  = DIR_STYLE[dir] || DIR_STYLE.stable;
+                          return (
+                            <div key={s.skill}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex items-center gap-2">
+                                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: SKILL_COLORS[i] }} />
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0' }}>{s.skill}</span>
+                                  <span style={{ fontSize: 9, fontWeight: 700, color: '#64748b', background: s.demandLevel === 'critical' ? 'rgba(244,63,94,0.08)' : s.demandLevel === 'high' ? 'rgba(245,158,11,0.08)' : 'rgba(99,102,241,0.08)', padding: '1px 6px', borderRadius: 4, textTransform: 'uppercase' }}>{s.demandLevel}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: ds.color, background: ds.bg, border: `1px solid ${ds.border}`, padding: '1px 8px', borderRadius: 6 }}>{ds.icon} {s.growth}</span>
+                                  <span style={{ fontSize: 12, fontWeight: 800, color: SKILL_COLORS[i] }}>{s.percentage}%</span>
+                                </div>
+                              </div>
+                              <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${s.percentage}%` }}
+                                  transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
+                                  style={{ height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${SKILL_COLORS[i]}cc, ${SKILL_COLORS[i]})` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p style={{ fontSize: 9, color: '#374151', marginTop: 12, textAlign: 'right' }}>{trends.source}</p>
+                    </GlassCard>
+                  </div>
+                );
+              })()}
 
               {/* Critical gap skills */}
               {missingAgg.length > 0 && (
