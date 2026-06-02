@@ -1665,10 +1665,13 @@ function NutritionixPanel() {
       const res = await analyzeFood(query.trim());
       setResult(res);
     } catch (e) {
-      if (e.message === 'NO_KEY') {
-        const demo = getDemoFoodResult(query.trim());
-        setResult(demo); setIsDemo(true);
-      } else { setError(e.message); }
+      // Always fall back to demo data — show it with a note about the error
+      const demo = getDemoFoodResult(query.trim());
+      setResult(demo);
+      setIsDemo(true);
+      if (e.message !== 'NO_KEY') {
+        setError(`API error (${e.message}) — showing estimated values instead`);
+      }
     } finally { setLoading(false); }
   }
 
@@ -1988,7 +1991,8 @@ function NutritionixPanel() {
 
 // ── FITBIT PANEL (real OAuth) ─────────────────────────────────────────────────
 
-const BACKEND = import.meta.env.VITE_API_BASE || 'http://localhost:8080';
+// Strip trailing /api so fetch calls that add /api/fitbit/... don't double up
+const BACKEND = (import.meta.env.VITE_API_BASE || 'http://localhost:8080/api').replace(/\/api$/, '');
 
 function FitbitPanel() {
   const { userId, updateDomain } = useData();
@@ -2081,7 +2085,7 @@ function FitbitPanel() {
       }
     } catch {
       setStatus('error');
-      setErrorMsg('Cannot reach backend. Is the Spring Boot server running on port 8080?');
+      setErrorMsg('Cannot reach the backend server. Please try again in a moment.');
     }
   };
 
