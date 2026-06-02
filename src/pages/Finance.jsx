@@ -3629,7 +3629,9 @@ export default function Finance() {
 
                   {/* Buttons */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-                    <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '7px 14px', color: '#94a3b8', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                    <button
+                      onClick={() => showToast(rec.text, 'success')}
+                      style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '7px 14px', color: '#94a3b8', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <svg style={{ width: 13, height: 13 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                         <circle cx="12" cy="12" r="10" />
@@ -3637,7 +3639,20 @@ export default function Finance() {
                       </svg>
                       Learn More
                     </button>
-                    <button style={{ background: 'transparent', border: '1px solid #10b981', borderRadius: 8, padding: '7px 18px', color: '#10b981', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                    <button
+                      onClick={() => {
+                        const destMap = {
+                          'fin-investment':    'invest',
+                          'fin-spending':      'transactions',
+                          'fin-emergency':     'log',
+                          'fin-subscriptions': 'transactions',
+                          'fin-career':        'invest',
+                        };
+                        const dest = destMap[rec.id] || 'overview';
+                        setTab(dest);
+                        showToast(`${rec.title} — opening ${dest} section`, 'success');
+                      }}
+                      style={{ background: 'transparent', border: '1px solid #10b981', borderRadius: 8, padding: '7px 18px', color: '#10b981', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       Apply ✓
                     </button>
