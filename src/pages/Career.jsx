@@ -742,7 +742,7 @@ function JobCard({ job, userSkills }) {
 const ROLE_CHIPS = ['Frontend', 'Backend', 'Full Stack', 'AI Engineer', 'ML Engineer', 'Product Engineer'];
 const LOCATIONS  = [{ label: 'Anywhere', value: '' }, { label: 'Remote', value: 'remote' }, { label: 'Bengaluru', value: 'Bengaluru' }, { label: 'Mumbai', value: 'Mumbai' }, { label: 'Hyderabad', value: 'Hyderabad' }, { label: 'Delhi', value: 'Delhi' }];
 
-function JobsTab({ userSkills, targetRole }) {
+function JobsTab({ userSkills, targetRole, onNavigate }) {
   const [query,    setQuery]    = useState('');
   const [location, setLocation] = useState('');
   const [jobs,     setJobs]     = useState([]);
@@ -971,7 +971,7 @@ function JobsTab({ userSkills, targetRole }) {
                 </div>
               </>
             )}
-            <button onClick={() => setTab('roadmap')} style={{ marginTop: 'auto', width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <button onClick={() => onNavigate?.('roadmap')} style={{ marginTop: 'auto', width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               Create Learning Plan →
             </button>
           </div>
@@ -3215,7 +3215,7 @@ export default function Career() {
               </button>
             </div>
           )}
-          <JobsTab userSkills={userSkills} targetRole={c.targetRole} />
+          <JobsTab userSkills={userSkills} targetRole={c.targetRole} onNavigate={setTab} />
         </div>
       )}
 
