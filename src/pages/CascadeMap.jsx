@@ -35,51 +35,77 @@ const NODES = [
 
 // ─── Edge definitions ─────────────────────────────────────────────────────────
 const EDGES = [
-  // Within-domain (thin, same-color)
+  // Within-domain (same-domain connections — correct directions)
   { id: 'sl-en',  from: 'sleep',    to: 'energy',   kind: 'within' },
   { id: 'ex-en',  from: 'exercise', to: 'energy',   kind: 'within' },
-  { id: 'sa-sp',  from: 'savings',  to: 'spending', kind: 'within' },
+  { id: 'sp-de',  from: 'spending', to: 'debt',     kind: 'within' },  // overspending creates debt (was wrong: savings→spending)
   { id: 'st-fo',  from: 'study',    to: 'focus',    kind: 'within' },
   { id: 'fo-sk',  from: 'focus',    to: 'skills',   kind: 'within' },
-  // Core (domain → center)
+  // Core (domain → life balance)
   { id: 'en-li',  from: 'energy',   to: 'life',     kind: 'core' },
   { id: 'sa-li',  from: 'savings',  to: 'life',     kind: 'core' },
   { id: 'sk-li',  from: 'skills',   to: 'life',     kind: 'core' },
-  // Cross-domain cascades — THE KEY FEATURE
+  // Cross-domain cascades
   {
-    id: 'sl-fo',  from: 'sleep',   to: 'focus',    kind: 'cross',
+    id: 'sl-fo',  from: 'sleep',    to: 'focus',    kind: 'cross',
     label: 'Sleep → Focus Crash',
-    why: 'Every hour below 7h sleep costs ~15% of working memory. Sleep debt accumulates silently until cognitive performance collapses.',
+    labelGood: 'Sleep Fuels Focus',
+    why: 'Every hour below 7h costs ~15% working memory. Sleep debt collapses cognitive performance silently.',
+    whyGood: 'Good sleep consolidates memory and sharpens working memory — your focus is running at capacity.',
     cascadeId: 'sleep-productivity',
+    negativeWhen: 'sleep', // active as negative when sleep score is low
   },
   {
-    id: 'sl-sp',  from: 'sleep',   to: 'spending', kind: 'cross',
-    label: 'Sleep Debt → Impulse Spending',
-    why: 'Cortisol from poor sleep reduces prefrontal inhibition — the brain defaults to reward-seeking. Emotionally fatigued people spend more.',
+    id: 'sl-sp',  from: 'sleep',    to: 'spending', kind: 'cross',
+    label: 'Poor Sleep → Impulse Spending',
+    labelGood: 'Rested = Disciplined Spending',
+    why: 'Cortisol from sleep deprivation reduces prefrontal inhibition — brain defaults to reward-seeking and impulse purchases.',
+    whyGood: 'Quality sleep keeps the prefrontal cortex in control, reducing impulsive financial decisions.',
     cascadeId: 'stress-spending',
+    negativeWhen: 'sleep',
   },
   {
-    id: 'de-sl',  from: 'debt',    to: 'sleep',    kind: 'cross',
-    label: 'Financial Stress → Insomnia',
-    why: 'Money anxiety is the #1 cause of stress-related insomnia. Debt below 1 month of savings triggers chronic cortisol elevation at night.',
+    id: 'de-sl',  from: 'debt',     to: 'sleep',    kind: 'cross',
+    label: 'Debt Stress → Insomnia',
+    labelGood: 'Low Debt, Clear Mind',
+    why: 'Financial anxiety is the #1 cause of stress-related insomnia. High debt triggers chronic cortisol elevation at night.',
+    whyGood: 'Manageable debt removes a key cortisol trigger — your nervous system can properly down-regulate at night.',
     cascadeId: 'financial-stress',
+    negativeWhen: 'debt', // active as negative when debt is high (low score)
   },
   {
-    id: 'en-st',  from: 'energy',  to: 'study',    kind: 'cross',
-    label: 'Energy → Study Capacity',
-    why: 'Physical energy directly caps the number of effective study hours. Low energy means high hours spent, low output absorbed.',
+    id: 'en-st',  from: 'energy',   to: 'study',    kind: 'cross',
+    label: 'Low Energy Limits Study',
+    labelGood: 'Energy Amplifies Study',
+    why: 'Physical energy directly caps effective study hours. Low energy = hours spent but little retained.',
+    whyGood: 'High physical energy extends effective study duration and improves information retention.',
     cascadeId: 'exercise-focus',
+    negativeWhen: 'energy',
   },
   {
-    id: 'sa-fo',  from: 'savings', to: 'focus',    kind: 'cross',
-    label: 'Financial Security → Focus',
-    why: 'Cognitive Load Theory: financial worry occupies ~13 IQ points of working memory. A savings buffer liberates focus capacity.',
+    id: 'ex-fo',  from: 'exercise', to: 'focus',    kind: 'cross',
+    label: 'No Exercise → Focus Loss',
+    labelGood: 'Exercise Boosts Focus',
+    why: 'Exercise releases BDNF (brain-derived neurotrophic factor), which directly improves memory consolidation and sustained attention.',
+    whyGood: 'Regular exercise has been shown to increase BDNF by 200–300%, significantly boosting memory and focus.',
+    negativeWhen: 'exercise',
+  },
+  {
+    id: 'sa-fo',  from: 'savings',  to: 'focus',    kind: 'cross',
+    label: 'Financial Worry → Brain Drain',
+    labelGood: 'Financial Security → Focus',
+    why: 'Cognitive Load Theory: financial worry consumes ~13 IQ points of working memory, leaving less for deep work.',
+    whyGood: 'A healthy savings buffer eliminates background financial anxiety, freeing full cognitive capacity.',
     cascadeId: 'financial-stress',
+    negativeWhen: 'savings', // negative when savings is low
   },
   {
-    id: 'sk-sa',  from: 'skills',  to: 'savings',  kind: 'cross',
-    label: 'Upskilling → Income → Savings',
-    why: 'Skills compound. Each verifiable skill increases expected salary by 8–15%. This directly feeds monthly savings capacity.',
+    id: 'sk-sa',  from: 'skills',   to: 'savings',  kind: 'cross',
+    label: 'Skill Gap → Income Gap',
+    labelGood: 'Skills Compound Into Savings',
+    why: 'Falling behind on skills reduces earning potential. Income stagnation makes savings targets impossible.',
+    whyGood: 'Each verifiable skill increases expected salary 8–15%. More income directly feeds monthly savings capacity.',
+    negativeWhen: 'skills',
   },
 ];
 
@@ -153,6 +179,35 @@ function AnimEdge({ edge, active, highlighted, hovered }) {
   );
 }
 
+// ─── Compute per-node score from real data (0-100) ───────────────────────────
+function computeNodeScores(health = {}, finance = {}, career = {}) {
+  const sleepScore    = Math.min(100, Math.round(((health.sleepAvg    || 6) / 8)  * 100));
+  const exerciseScore = Math.min(100, Math.round(((health.workoutsPerWeek || 0) / 5) * 100));
+  const energyScore   = Math.round((sleepScore + exerciseScore) / 2);
+  const savingsScore  = finance.savings > 0
+    ? Math.min(100, Math.round((finance.savings / Math.max(finance.income || 50000, 10000)) * 100))
+    : 0;
+  const spendingScore = finance.income > 0
+    ? Math.max(0, Math.round(100 - (finance.expenses / finance.income) * 100))
+    : 50;
+  const debtScore     = finance.debt > 0
+    ? Math.max(0, Math.round(100 - Math.min(100, (finance.debt / Math.max(finance.income || 50000, 10000)) * 100)))
+    : 100; // no debt = perfect score
+  const studyScore    = Math.min(100, Math.round(((career.studyHoursDaily || 0) / 2) * 100));
+  const focusScore    = Math.round((sleepScore + Math.min(100, 100 - (health.stressLevel || 5) * 8)) / 2);
+  const skillsScore   = Math.min(100, Math.round(((career.skills?.length || 0) / 5) * 100));
+  return { sleep: sleepScore, exercise: exerciseScore, energy: energyScore, savings: savingsScore, spending: spendingScore, debt: debtScore, study: studyScore, focus: focusScore, skills: skillsScore, life: 65 };
+}
+
+// Edge severity: is the cascade currently a problem for this user?
+function edgeSeverity(edge, nodeScores) {
+  if (!edge.negativeWhen) return 'positive';
+  const score = nodeScores[edge.negativeWhen] ?? 50;
+  if (score < 35) return 'critical';
+  if (score < 55) return 'warning';
+  return 'positive';
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function CascadeMap() {
   const { computed, health = {}, finance = {}, career = {} } = useData();
@@ -163,6 +218,8 @@ export default function CascadeMap() {
   const careerScore  = computed?.careerScore?.score  ?? 68;
   const burnoutRisk  = computed?.burnout?.risk ?? 30;
   const balance      = computed?.balance ?? 66;
+
+  const nodeScores = useMemo(() => computeNodeScores(health, finance, career), [health, finance, career]);
 
   const [hoveredNode, setHoveredNode] = useState(null);
   const [selectedEdge, setSelectedEdge] = useState(null);
@@ -199,15 +256,20 @@ export default function CascadeMap() {
     ? crossDomain.find(c => c.id === selectedEdgeData.cascadeId)
     : null;
 
-  // SVG gradient defs for cross-domain edges — guard against missing nodes
+  // Severity color per cross edge based on real node scores
+  const SEVERITY_COLOR = { critical: '#ef4444', warning: '#f97316', positive: '#10b981' };
+
+  // SVG gradient defs for cross-domain edges — colored by severity
   const gradientDefs = EDGES.filter(e => e.kind === 'cross').map(e => {
     const n1 = nodeById(e.from), n2 = nodeById(e.to);
     if (!n1 || !n2) return null;
+    const sev = edgeSeverity(e, nodeScores);
+    const col = SEVERITY_COLOR[sev];
     return (
       <linearGradient key={e.id} id={`g-${e.id}`}
         x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stopColor={DC[n1.domain]?.p || '#6366f1'} />
-        <stop offset="100%" stopColor={DC[n2.domain]?.p || '#8b5cf6'} />
+        <stop offset="0%"   stopColor={col} stopOpacity="0.9" />
+        <stop offset="100%" stopColor={col} stopOpacity="0.5" />
       </linearGradient>
     );
   }).filter(Boolean);
@@ -333,31 +395,35 @@ export default function CascadeMap() {
             {EDGES.filter(e => e.kind === 'cross').map(edge => {
               const n1 = nodeById(edge.from), n2 = nodeById(edge.to);
               const d = bezierPath(n1, n2, 'cross');
-              const isActive = activeCascades.some(c => c.id === edge.cascadeId);
+              const sev = edgeSeverity(edge, nodeScores);
+              const isProblematic = sev === 'critical' || sev === 'warning';
               const isSelected = selectedEdge === edge.id;
+              const sevCol = SEVERITY_COLOR[sev];
               const op = hoveredNode
                 ? nodeEdges(hoveredNode).map(e => e.id).includes(edge.id) ? 1 : 0.08
-                : selectedEdge ? (isSelected ? 1 : 0.1) : (isActive ? 0.75 : 0.45);
+                : selectedEdge ? (isSelected ? 1 : 0.1) : (isProblematic ? 0.85 : 0.45);
 
               return (
                 <g key={edge.id} opacity={op} style={{ transition: 'opacity 0.3s', cursor: 'pointer' }}
                   onClick={() => setSelectedEdge(isSelected ? null : edge.id)}>
-                  {/* Fat glow */}
-                  <path d={d} stroke={`url(#g-${edge.id})`} strokeWidth={10} fill="none" opacity={0.07} />
-                  {/* Animated main */}
-                  <motion.path d={d} stroke={`url(#g-${edge.id})`} strokeWidth={isActive ? 2.6 : 2.0}
+                  {/* Glow underlay */}
+                  <path d={d} stroke={sevCol} strokeWidth={10} fill="none" opacity={0.08} />
+                  {/* Animated main line */}
+                  <motion.path d={d} stroke={`url(#g-${edge.id})`} strokeWidth={isProblematic ? 2.6 : 1.8}
                     strokeDasharray="8 5" fill="none" strokeLinecap="round"
                     initial={{ strokeDashoffset: 0 }}
                     animate={{ strokeDashoffset: -26 }}
-                    transition={{ duration: isActive ? 1.2 : 1.8, ease: 'linear', repeat: Infinity, repeatType: 'loop' }} />
-                  {/* Active cascade dot at midpoint */}
-                  {isActive && (() => {
+                    transition={{ duration: isProblematic ? 1.1 : 2.2, ease: 'linear', repeat: Infinity, repeatType: 'loop' }} />
+                  {/* Severity dot at midpoint — pulsing for critical/warning */}
+                  {(() => {
                     const mx = (n1.x + n2.x) / 2 + (CX - (n1.x + n2.x) / 2) * 0.12;
                     const my = (n1.y + n2.y) / 2 + (CY - (n1.y + n2.y) / 2) * 0.12;
                     return (
-                      <motion.circle cx={mx} cy={my} r={4} fill={DC[n1.domain].p}
-                        animate={{ scale: [1, 1.5, 1], opacity: [0.8, 0.3, 0.8] }}
-                        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }} />
+                      <motion.circle cx={mx} cy={my} r={isProblematic ? 4.5 : 3} fill={sevCol}
+                        animate={isProblematic
+                          ? { scale: [1, 1.6, 1], opacity: [0.9, 0.35, 0.9] }
+                          : { opacity: [0.5, 0.8, 0.5] }}
+                        transition={{ duration: isProblematic ? 1.4 : 2.5, repeat: Infinity, ease: 'easeInOut' }} />
                     );
                   })()}
                 </g>
@@ -419,6 +485,14 @@ export default function CascadeMap() {
                       {Math.round(balance)}
                     </text>
                   )}
+                  {/* Score inside non-center nodes */}
+                  {!node.isCenter && nodeScores[node.id] != null && (
+                    <text x={node.x} y={node.y + 4} textAnchor="middle"
+                      fontSize={8} fill={colors.p} fontWeight="800"
+                      style={{ userSelect:'none', pointerEvents:'none' }}>
+                      {nodeScores[node.id]}
+                    </text>
+                  )}
                   {/* Label below node */}
                   <text x={node.x} y={node.y + node.r + 14} textAnchor="middle"
                     fontSize={node.isCenter ? 10 : 9}
@@ -440,31 +514,39 @@ export default function CascadeMap() {
             <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:4 }}
               style={{ background:'rgba(99,102,241,0.06)', border:'1px solid rgba(99,102,241,0.25)', borderRadius:12, padding:'16px 20px' }}>
               <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-                    <span style={{ fontSize:12, fontWeight:700, color: DC[nodeById(selectedEdgeData.from).domain].p }}>
-                      {nodeById(selectedEdgeData.from).label}
-                    </span>
-                    <ArrowRight size={12} style={{ color:'#64748b' }} />
-                    <span style={{ fontSize:12, fontWeight:700, color: DC[nodeById(selectedEdgeData.to).domain].p }}>
-                      {nodeById(selectedEdgeData.to).label}
-                    </span>
-                  </div>
-                  <p style={{ fontSize:14, fontWeight:800, color:'#f1f5f9', marginBottom:6 }}>
-                    {selectedRealCascade?.trigger || selectedEdgeData.label}
-                  </p>
-                  <p style={{ fontSize:12, color:'#94a3b8', lineHeight:1.6, marginBottom: selectedRealCascade ? 6 : 0 }}>
-                    {selectedRealCascade?.effect || selectedEdgeData.why}
-                  </p>
-                  {selectedRealCascade && (
-                    <p style={{ fontSize:11, color:'#64748b', lineHeight:1.5 }}>{selectedRealCascade.mechanism}</p>
-                  )}
-                  {!selectedRealCascade && (
-                    <p style={{ fontSize:10, color:'#475569', marginTop:6, fontStyle:'italic' }}>
-                      Log health, finance &amp; career data for live impact data
-                    </p>
-                  )}
-                </div>
+                {(() => {
+                  const sev = edgeSeverity(selectedEdgeData, nodeScores);
+                  const isGood = sev === 'positive';
+                  const sevCol = SEVERITY_COLOR[sev];
+                  const sevLabel = sev.charAt(0).toUpperCase() + sev.slice(1);
+                  const displayLabel = isGood ? (selectedEdgeData.labelGood || selectedEdgeData.label) : selectedEdgeData.label;
+                  const displayWhy   = isGood ? (selectedEdgeData.whyGood   || selectedEdgeData.why)   : selectedEdgeData.why;
+                  return (
+                    <div style={{ flex:1 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+                        <span style={{ fontSize:12, fontWeight:700, color: DC[nodeById(selectedEdgeData.from).domain].p }}>
+                          {nodeById(selectedEdgeData.from).label}
+                        </span>
+                        <ArrowRight size={12} style={{ color:'#64748b' }} />
+                        <span style={{ fontSize:12, fontWeight:700, color: DC[nodeById(selectedEdgeData.to).domain].p }}>
+                          {nodeById(selectedEdgeData.to).label}
+                        </span>
+                        <span style={{ marginLeft:6, padding:'2px 8px', borderRadius:999, fontSize:10, fontWeight:700, background:`${sevCol}20`, color:sevCol, border:`1px solid ${sevCol}40` }}>
+                          {sevLabel}
+                        </span>
+                      </div>
+                      <p style={{ fontSize:14, fontWeight:800, color:'#f1f5f9', marginBottom:6 }}>
+                        {selectedRealCascade?.trigger || displayLabel}
+                      </p>
+                      <p style={{ fontSize:12, color:'#94a3b8', lineHeight:1.6 }}>
+                        {selectedRealCascade?.effect || displayWhy}
+                      </p>
+                      {selectedRealCascade && (
+                        <p style={{ fontSize:11, color:'#64748b', lineHeight:1.5, marginTop:4 }}>{selectedRealCascade.mechanism}</p>
+                      )}
+                    </div>
+                  );
+                })()}
                 <button onClick={() => setSelectedEdge(null)}
                   style={{ color:'#475569', background:'none', border:'none', cursor:'pointer', fontSize:14, flexShrink:0, padding:'2px 6px' }}>✕</button>
               </div>
