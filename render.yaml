@@ -1,0 +1,78 @@
+databases:
+  - name: digitaltwin
+    databaseName: digitaltwin
+    user: digitaltwin_user
+    plan: free
+
+services:
+  # ── Spring Boot Backend ─────────────────────────────────────────────────────
+  - type: web
+    name: beyondselff-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      # Render injects PORT automatically — do NOT set it here
+      - key: DB_HOST
+        fromDatabase:
+          name: digitaltwin
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: digitaltwin
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: digitaltwin
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: digitaltwin
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: digitaltwin
+          property: password
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://beyondselff.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      # Fill these in the Render dashboard after first deploy:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ADZUNA_APP_ID
+        sync: false
+      - key: ADZUNA_APP_KEY
+        sync: false
+      - key: JOOBLE_API_KEY
+        sync: false
+      - key: FITBIT_CLIENT_ID
+        sync: false
+      - key: FITBIT_CLIENT_SECRET
+        sync: false
+
+  # ── React / Vite Frontend (Static Site) ────────────────────────────────────
+  - type: web
+    name: beyondselff
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Set to https://<your-backend>.onrender.com/api after backend is live
+      - key: VITE_API_BASE
+        sync: false
+      # Fill these in the Render dashboard:
+      - key: VITE_GROQ_API_KEY
+        sync: false
+      - key: VITE_GITHUB_TOKEN
+        sync: false
+      - key: VITE_NUTRITIONIX_APP_ID
+        sync: false
+      - key: VITE_NUTRITIONIX_APP_KEY
+        sync: false
