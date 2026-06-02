@@ -67,34 +67,40 @@ function buildChartData(lifeBalance, healthScore, financeScore, careerScore, hea
 
 function buildMilestones(lifeBalance, healthScore, financeScore, careerScore, studyHours, savingsRate, burnoutRisk) {
   const ghostGap = Math.round(90 - lifeBalance);
+  const now = new Date();
+  // Compute dynamic month labels: +1 through +5 from today
+  const monthLabel = (offset) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    return d.toLocaleDateString('en', { month: 'short', year: 'numeric' });
+  };
   return [
     {
       month: 1,
-      label: 'Jun 2026',
+      label: monthLabel(1),
       ghost: `Ghost Twin will be ${ghostGap > 0 ? ghostGap + ' points ahead' : 'on track'} if you start today.`,
       you: `Your study pace: ${studyHours || 0}h/day vs Ghost's 4h/day target.`,
     },
     {
       month: 2,
-      label: 'Jul 2026',
+      label: monthLabel(2),
       ghost: `Burnout risk drops to ~${Math.max(10, burnoutRisk - 18)}% on Ghost path.`,
       you: `At current trend, burnout probability: ${Math.min(95, burnoutRisk + 12)}%.`,
     },
     {
       month: 3,
-      label: 'Aug 2026',
+      label: monthLabel(3),
       ghost: `Ghost Twin savings rate: 25%.`,
       you: `Your current savings rate: ${savingsRate}%. Gap: ${Math.max(0, 25 - savingsRate)}%.`,
     },
     {
       month: 4,
-      label: 'Sep 2026',
+      label: monthLabel(4),
       ghost: `Ghost Twin Health score: 85+, full sleep optimized.`,
       you: `Your health trajectory: ${healthScore < 55 ? 'declining without intervention.' : 'stable.'}`,
     },
     {
       month: 5,
-      label: 'Oct 2026',
+      label: monthLabel(5),
       ghost: `Ghost Twin is fully placement-ready. Finance secured.`,
       you: `You are ${Math.max(0, Math.round((4 - (studyHours || 0)) * 5))} weeks behind at current pace.`,
     },
@@ -260,7 +266,7 @@ export function GhostTimeline({ lifeBalance = 55, healthScore = 50, financeScore
               }}
             />
           </div>
-          <span className="text-[10px] text-slate-500 w-16">Oct 2026</span>
+          <span className="text-[10px] text-slate-500 w-16">{milestones[milestones.length - 1]?.label}</span>
         </div>
 
         {/* Milestone text */}
