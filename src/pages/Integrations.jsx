@@ -15,7 +15,7 @@ import {
   Star, GitFork, Code2, Users, Key, Plus,
   Zap, Brain, ChevronRight, Loader2, Heart, Moon, Footprints, X,
   Trash2, MapPin, ShieldCheck, Calendar, Filter, ChevronDown, ChevronLeft, MoreVertical,
-  Link, Cable
+  Link, Cable, Info
 } from 'lucide-react';
 
 const Github = ({ size = 24, ...props }) => (
@@ -2297,7 +2297,7 @@ const AA_PROVIDERS = [
     name: 'Setu AA',
     subtitle: 'RBI Account Aggregator',
     desc: "Consent-based open banking. Real-time data from 50+ banks via India's AA framework with full audit trail.",
-    badge: 'RBI Licensed',
+    badge: 'Developer API →',
     color: '#6366f1',
     banks: 50,
     site: 'setu.co/products/aa',
@@ -2307,7 +2307,7 @@ const AA_PROVIDERS = [
     name: 'Finvu',
     subtitle: 'NBFC-AA · 30+ Banks',
     desc: "India's leading AA platform with granular bank statement data and real-time consent management dashboard.",
-    badge: 'NBFC-AA',
+    badge: 'Developer API →',
     color: '#10b981',
     banks: 30,
     site: 'finvu.in',
@@ -2317,7 +2317,7 @@ const AA_PROVIDERS = [
     name: 'Perfios',
     subtitle: 'Statement API · 100+ Banks',
     desc: 'Trusted by 800+ lenders & fintechs. Deep categorisation, fraud signals, and income verification on PDF statements.',
-    badge: 'Fintech API',
+    badge: 'Developer API →',
     color: '#f59e0b',
     banks: 100,
     site: 'perfios.com',
@@ -2427,14 +2427,6 @@ function IndiaBankingPanel() {
   const [activeView, setActiveView] = useState('transactions');
   const [synced, setSynced] = useState(false);
 
-  // ── RBI Account Aggregator Simulated Flow States ──
-  const [showAaModal, setShowAaModal] = useState(false);
-  const [selectedAaProvider, setSelectedAaProvider] = useState(null);
-  const [aaStep, setAaStep] = useState('phone'); // phone | otp | discover | success
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otpValue, setOtpValue] = useState(['', '', '', '', '', '']);
-  const [isDiscovering, setIsDiscovering] = useState(false);
-  const [selectedAccounts, setSelectedAccounts] = useState(['hdfc', 'icici']);
   const [aaProviderConnected, setAaProviderConnected] = useState(null);
 
   const isDemo = phase === 'demo';
@@ -2460,11 +2452,8 @@ function IndiaBankingPanel() {
   }
 
   function handleProviderClick(p) {
-    setSelectedAaProvider(p);
-    setPhoneNumber('');
-    setOtpValue(['', '', '', '', '', '']);
-    setAaStep('phone');
-    setShowAaModal(true);
+    // Open the real provider's developer/signup page — no fake consent flow
+    window.open(`https://${p.site}`, '_blank', 'noopener');
   }
 
   function handleSyncFinance() {
@@ -2530,7 +2519,7 @@ function IndiaBankingPanel() {
                 )}
               </div>
               <p style={{ fontSize: 12.5, color: '#8b949e', margin: 0 }}>
-                Consent-based secure open banking powered by India's RBI-regulated Account Aggregator (AA) framework.
+                Upload your bank statement PDF for AI-powered analysis, or get API credentials from an AA provider below.
               </p>
             </div>
           </div>
@@ -2539,19 +2528,19 @@ function IndiaBankingPanel() {
             {phase === 'landing' ? (
               <>
                 <button
-                  onClick={() => handleProviderClick(AA_PROVIDERS[0])}
+                  onClick={() => fileRef.current?.click()}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderRadius: 10, 
-                    fontWeight: 600, fontSize: 13, color: '#34d399', border: '1px solid rgba(16,185,129,0.3)',
-                    background: 'rgba(16, 185, 129, 0.12)', cursor: 'pointer', transition: 'all 0.2s'
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 20px', borderRadius: 10,
+                    fontWeight: 600, fontSize: 13, color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)',
+                    background: 'rgba(139, 92, 246, 0.12)', cursor: 'pointer', transition: 'all 0.2s'
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.2)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.12)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.2)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139, 92, 246, 0.12)'; }}
                 >
-                  Connect Banking <ExternalLink size={13} />
+                  Upload Statement PDF
                 </button>
                 <div className="flex items-center gap-1 text-[11px] text-[#8b949e]">
-                  <ShieldCheck size={12} /> Secure OAuth 2.0
+                  AI-powered OCR parsing
                 </div>
               </>
             ) : (
@@ -2566,6 +2555,14 @@ function IndiaBankingPanel() {
       {/* ── Landing Phase ── */}
       {phase === 'landing' && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+          {/* AA provider info */}
+          <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.18)', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Info size={14} style={{ color: '#818cf8', flexShrink: 0 }} />
+            <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+              Live bank connection requires API credentials from one of these providers. Click a card to visit their developer portal. Until then, upload your bank statement PDF below — our AI parses it instantly.
+            </p>
+          </div>
 
           {/* 3-column provider cards */}
           <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: '20px' }}>
@@ -2603,7 +2600,7 @@ function IndiaBankingPanel() {
                       <Landmark size={13} />{p.banks}+ banks
                     </span>
                     <span className="text-[12px] font-semibold group-hover:translate-x-0.5 transition-transform" style={{ color: p.color }}>
-                      Connect →
+                      Get API Keys ↗
                     </span>
                   </div>
                 </div>
@@ -3021,9 +3018,9 @@ function IndiaBankingPanel() {
         </motion.div>
       )}
 
-      {/* ── RBI ACCOUNT AGGREGATOR CONSENT FLOW MODAL ── */}
+      {/* AA providers redirect to their real developer portals — no fake consent flow */}
       <AnimatePresence>
-        {showAaModal && selectedAaProvider && (
+        {false && (
           <div className="fixed inset-0 z-50 bg-[#060814]/85 backdrop-blur-md flex items-center justify-center p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
