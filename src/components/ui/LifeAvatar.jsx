@@ -80,11 +80,13 @@ const STATES = {
 
 function computeState(h, f, c, burn) {
   const avg = (h + f + c) / 3;
-  if (burn > 60 || avg < 28) return 'burnout';
-  if (c > 65 && h < 44)      return 'overworked';
-  if (h < 44)                 return 'tired';
-  if (f < 33)                 return 'broke';
-  if (avg > 72)               return 'thriving';
+  const min = Math.min(h, f, c);
+  if (burn > 60 || avg < 22)  return 'burnout';
+  if (min < 30 || avg < 38)   return 'broke';      // any domain critically low → STRUGGLING
+  if (c > 65 && h < 44)       return 'overworked';
+  if (h < 44 || avg < 50)     return 'tired';
+  if (f < 40)                  return 'broke';
+  if (avg > 72)                return 'thriving';
   return 'normal';
 }
 
