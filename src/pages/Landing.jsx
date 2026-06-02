@@ -365,8 +365,8 @@ export default function Landing() {
               AI-POWERED PERSONAL DIGITAL TWIN
             </motion.div>
             <motion.h1 {...f(0.2)} style={{fontSize:70,lineHeight:1.05,fontWeight:700,marginBottom:20,margin:'0 0 20px'}}>
-              <span style={{color:'#fff',display:'block'}}>Meet Your</span>
-              <span style={{display:'block',background:'linear-gradient(135deg,#00d8b6,#8b5cf6)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Future Self.</span>
+              <span style={{color:'#fff',display:'block'}}>Your Digital Twin</span>
+              <span style={{display:'block',background:'linear-gradient(135deg,#00d8b6,#8b5cf6)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Today.</span>
             </motion.h1>
             <motion.p {...f(0.3)} style={{color:'#94a3b8',fontSize:15,lineHeight:1.65,maxWidth:420,marginBottom:36}}>
               BeyondSelf is your AI-powered digital twin that learns from your habits, goals, and decisions to help you live healthier, wealthier, and more purposefully.
