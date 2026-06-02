@@ -1704,10 +1704,11 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Life Bloom — growing plant, one branch per goal */}
+              {/* Life Bloom — grows as Today's Plan tasks are checked */}
               <div style={{ flex: 1, minHeight: 0 }}>
                 {(() => {
-                  const bloomGoals = goals.slice(0, 12);
+                  // bloomGoals = today's action plan tasks (drives the plant)
+                  const bloomGoals = todayPlan;
                   const N = bloomGoals.length;
 
                   const getDomainColors = (domain) => {
@@ -1719,15 +1720,8 @@ export default function Dashboard() {
                     return ['#f59e0b', '#fbbf24'];
                   };
 
-                  const completedCount = bloomGoals.filter(g => {
-                    const gKey = g.id || g.title;
-                    if (checkedGoals[gKey]) return true;
-                    if (g.targetMetric) {
-                      const { progress } = computeGoalProgress(g, health || {}, finance || {}, career || {});
-                      return progress >= 100;
-                    }
-                    return (g.progress || 0) >= 100;
-                  }).length;
+                  // A task is complete when the user checks it in Today's Plan
+                  const completedCount = bloomGoals.filter(t => !!checkedTasks[t.id]).length;
                   const pct = N > 0 ? completedCount / N : 0;
 
                   const th = N === 0 || pct < 0.01
@@ -1757,13 +1751,10 @@ export default function Dashboard() {
                     const dir = i % 2 === 0 ? -1 : 1;
                     const tipX = CX + dir * branchLen;
                     const tipY = y - 7;
-                    const gKey = goal.id || goal.title;
-                    const isComplete = !!checkedGoals[gKey] ||
-                      (goal.targetMetric
-                        ? computeGoalProgress(goal, health || {}, finance || {}, career || {}).progress >= 100
-                        : (goal.progress || 0) >= 100);
+                    // Complete when checked in Today's Plan
+                    const isComplete = !!checkedTasks[goal.id];
                     const [c1, c2] = getDomainColors(goal.domain || goal.category);
-                    return { goal, i, y, tipX, tipY, dir, isComplete, c1, c2, gKey };
+                    return { goal, i, y, tipX, tipY, dir, isComplete, c1, c2 };
                   });
 
                   return (
@@ -1781,7 +1772,7 @@ export default function Dashboard() {
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4,position:'relative',zIndex:1}}>
                         <div>
                           <div style={{fontSize:12,fontWeight:700,color:'#e2e8f0'}}>Life Bloom</div>
-                          <div style={{fontSize:8,color:'#4b5563'}}>{N===0 ? 'Add goals to start growing' : `${N} branch${N!==1?'es':''} · complete goals to bloom`}</div>
+                          <div style={{fontSize:8,color:'#4b5563'}}>{N===0 ? 'Complete today\'s plan to grow' : `${N} task${N!==1?'s':''} · check plan items to bloom`}</div>
                         </div>
                         <span style={{fontSize:9,fontWeight:700,color:th.a,background:th.bg,border:`1px solid ${th.a}40`,padding:'2px 9px',borderRadius:999}}>{label}</span>
                       </div>
@@ -1825,7 +1816,7 @@ export default function Dashboard() {
                                 animate={{pathLength:[0.3,1,0.3],opacity:[0.4,1,0.4]}} transition={{duration:2.5,repeat:Infinity}}/>
                               <motion.path d={`M ${CX} ${soilY-40} Q ${CX+13} ${soilY-52} ${CX+18} ${soilY-63}`} fill="none" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round"
                                 animate={{pathLength:[0,1,0],opacity:[0,0.8,0]}} transition={{duration:2.8,repeat:Infinity,delay:0.55}}/>
-                              <text x={CX} y={soilY+28} textAnchor="middle" fontSize="8.5" fill="#4b5563" fontWeight="600">Create goals to bloom ✦</text>
+                              <text x={CX} y={soilY+28} textAnchor="middle" fontSize="8.5" fill="#4b5563" fontWeight="600">Check today's plan to bloom ✦</text>
                             </g>
                           ) : (
                             <g>
@@ -1849,57 +1840,67 @@ export default function Dashboard() {
                                 stroke={pct > 0.2 ? '#4ade80' : '#a16207'} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.3"
                               />
 
-                              {/* Branches + leaves */}
+                              {/* Branches + leaves — all driven by checkedTasks via Framer Motion */}
                               {nodes.map(({ i, y, tipX, tipY, dir, isComplete, c1, c2 }) => {
                                 const lx = tipX, ly = tipY;
                                 const lh = 32, lw = 11;
-                                // Organic upward-pointing leaf path
                                 const leafPath = `M ${lx} ${ly} C ${lx+dir*lw} ${ly-lh*0.28} ${lx+dir*lw*0.65} ${ly-lh*0.72} ${lx} ${ly-lh} C ${lx-dir*lw*0.65} ${ly-lh*0.72} ${lx-dir*lw} ${ly-lh*0.28} ${lx} ${ly} Z`;
                                 return (
                                   <g key={`node_${i}`}>
-                                    {/* Ghost branch */}
-                                    <line x1={CX} y1={y} x2={tipX} y2={tipY}
-                                      stroke="#1a2332" strokeWidth="2" strokeLinecap="round"/>
-                                    {/* Live branch */}
-                                    <line x1={CX} y1={y} x2={tipX} y2={tipY}
-                                      stroke={isComplete ? c1 : '#2d3748'} strokeWidth={isComplete ? 2.5 : 1.2}
-                                      strokeLinecap="round"
-                                      style={{ transition: 'stroke 0.45s, stroke-width 0.45s' }}/>
-                                    {/* Leaf — scales from branch tip upward */}
-                                    <path
+                                    {/* Ghost branch baseline */}
+                                    <line x1={CX} y1={y} x2={tipX} y2={tipY} stroke="#1a2332" strokeWidth="2" strokeLinecap="round"/>
+                                    {/* Animated branch — Framer Motion animates stroke opacity */}
+                                    <motion.line
+                                      x1={CX} y1={y} x2={tipX} y2={tipY}
+                                      stroke={c1} strokeWidth="2.5" strokeLinecap="round"
+                                      animate={{ opacity: isComplete ? 1 : 0 }}
+                                      transition={{ duration: 0.4 }}
+                                    />
+                                    {/* Dim branch when incomplete */}
+                                    <line x1={CX} y1={y} x2={tipX} y2={tipY} stroke="#2d3748" strokeWidth="1.2" strokeLinecap="round" opacity={isComplete ? 0 : 1}/>
+                                    {/* Leaf — Framer Motion scale+opacity from branch base */}
+                                    <motion.path
                                       d={leafPath}
-                                      fill={isComplete ? c1 : '#1e2d3d'}
-                                      opacity={isComplete ? 0.88 : 0.22}
-                                      style={{
-                                        transform: `scale(${isComplete ? 1 : 0.18})`,
-                                        transformOrigin: `${lx}px ${ly}px`,
-                                        transition: 'transform 0.65s cubic-bezier(0.34,1.56,0.64,1), opacity 0.45s ease, fill 0.4s ease',
+                                      fill={c1}
+                                      animate={{
+                                        scale: isComplete ? 1 : 0.08,
+                                        opacity: isComplete ? 0.9 : 0.06,
                                       }}
+                                      transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1], delay: isComplete ? 0.1 : 0 }}
+                                      style={{ transformBox: 'fill-box', transformOrigin: '50% 100%' }}
                                     />
-                                    {/* Leaf vein */}
-                                    {isComplete && (
-                                      <line x1={lx} y1={ly-2} x2={lx} y2={ly-lh+4}
-                                        stroke={c2} strokeWidth="0.9" strokeLinecap="round" opacity="0.45"
-                                        style={{ transition: 'opacity 0.4s' }}/>
-                                    )}
-                                    {/* Tip bud / flower */}
-                                    <circle
-                                      cx={lx} cy={isComplete ? ly - lh : ly - 9}
-                                      r={isComplete ? 4.2 : 2.8}
-                                      fill={isComplete ? c2 : '#374151'}
-                                      style={{ transition: 'cy 0.55s ease, r 0.4s ease, fill 0.4s ease' }}
+                                    {/* Leaf vein — fades in on complete */}
+                                    <motion.line
+                                      x1={lx} y1={ly-2} x2={lx} y2={ly-lh+4}
+                                      stroke={c2} strokeWidth="0.9" strokeLinecap="round"
+                                      animate={{ opacity: isComplete ? 0.45 : 0 }}
+                                      transition={{ duration: 0.4, delay: 0.2 }}
                                     />
-                                    {/* Glow pulse on complete */}
-                                    {isComplete && (
-                                      <motion.circle cx={lx} cy={ly - lh/2} r="9" fill={c1} opacity={0}
-                                        animate={{opacity:[0, 0.22, 0], r:[8,17,8]}}
-                                        transition={{duration:2.8, repeat:Infinity, delay: i*0.28}}/>
-                                    )}
-                                    {/* Checkmark label on complete */}
-                                    {isComplete && (
-                                      <text x={lx + dir*8} y={ly - lh - 6}
-                                        fontSize="7" fill={c2} fontWeight="800" opacity="0.85" textAnchor="middle">✓</text>
-                                    )}
+                                    {/* Tip bud — moves up and grows when complete */}
+                                    <motion.circle
+                                      cx={lx} fill={c2}
+                                      animate={{
+                                        cy: isComplete ? ly - lh : ly - 9,
+                                        r: isComplete ? 4 : 2.8,
+                                        opacity: isComplete ? 1 : 0.35,
+                                      }}
+                                      transition={{ duration: 0.55, ease: 'easeOut' }}
+                                    />
+                                    {/* Glow ring on complete */}
+                                    <motion.circle
+                                      cx={lx} cy={ly - lh / 2} fill={c1}
+                                      animate={isComplete
+                                        ? { opacity: [0, 0.28, 0], r: [6, 18, 6] }
+                                        : { opacity: 0, r: 6 }}
+                                      transition={{ duration: 2.6, repeat: isComplete ? Infinity : 0, delay: i * 0.3 }}
+                                    />
+                                    {/* ✓ checkmark */}
+                                    <motion.text
+                                      x={lx + dir * 9} y={ly - lh - 5}
+                                      fontSize="7" fill={c2} fontWeight="800" textAnchor="middle"
+                                      animate={{ opacity: isComplete ? 0.9 : 0, y: isComplete ? ly - lh - 5 : ly - lh + 4 }}
+                                      transition={{ duration: 0.3, delay: 0.25 }}
+                                    >✓</motion.text>
                                   </g>
                                 );
                               })}
@@ -1907,11 +1908,14 @@ export default function Dashboard() {
                               {/* Crown bud → flower at top of trunk */}
                               {pct < 1 ? (
                                 <motion.circle cx={CX+2} cy={trunkTop}
-                                  r={5 + pct * 10} fill={th.a}
-                                  opacity={0.35 + pct * 0.55}
-                                  animate={{scale:[1, 1.1, 1], opacity:[0.35+pct*0.55, 0.85+pct*0.15, 0.35+pct*0.55]}}
-                                  transition={{duration:2.2, repeat:Infinity}}
-                                  style={{transformOrigin:`${CX+2}px ${trunkTop}px`, transformBox:'fill-box'}}
+                                  fill={th.a}
+                                  animate={{
+                                    r: 5 + pct * 10,
+                                    opacity: 0.35 + pct * 0.55,
+                                    scale: [1, 1.1, 1],
+                                  }}
+                                  transition={{ r: { duration: 0.5 }, opacity: { duration: 0.5 }, scale: { duration: 2.2, repeat: Infinity } }}
+                                  style={{ transformBox:'fill-box', transformOrigin:'50% 50%' }}
                                   filter="url(#lb_soft2)"
                                 />
                               ) : (
@@ -1944,48 +1948,29 @@ export default function Dashboard() {
                         </svg>
                       </div>
 
-                      {/* Goal checkboxes — clicking marks goal complete */}
-                      {N > 0 && (
-                        <div style={{position:'relative',zIndex:1,maxHeight:54,overflowY:'auto',marginBottom:5}}>
-                          <div style={{display:'flex',flexWrap:'wrap',gap:'4px 6px'}}>
-                            {bloomGoals.map((goal) => {
-                              const gKey = goal.id || goal.title;
-                              const done = !!checkedGoals[gKey] || (goal.progress || 0) >= 100 ||
-                                (goal.targetMetric ? computeGoalProgress(goal, health||{}, finance||{}, career||{}).progress >= 100 : false);
-                              const [c1, c2] = getDomainColors(goal.domain || goal.category);
+                      {/* Progress bar + task tags */}
+                      <div style={{position:'relative',zIndex:1}}>
+                        {/* Mini task pills showing which plan items are done */}
+                        {N > 0 && (
+                          <div style={{display:'flex',flexWrap:'wrap',gap:'3px 5px',marginBottom:6}}>
+                            {bloomGoals.map((t) => {
+                              const done = !!checkedTasks[t.id];
+                              const [c1] = getDomainColors(t.domain);
                               return (
-                                <div key={gKey}
-                                  onClick={() => {
-                                    const newDone = !done;
-                                    setCheckedGoals(p => ({ ...p, [gKey]: newDone }));
-                                    updateGoals((goals || []).map(g =>
-                                      (g.id != null ? g.id === goal.id : g.title === goal.title)
-                                        ? { ...g, progress: newDone ? 100 : 0 }
-                                        : g
-                                    ));
-                                  }}
-                                  style={{ display:'flex', alignItems:'center', gap:4, cursor:'pointer', background: done ? `${c1}22` : 'rgba(255,255,255,0.04)', border:`1px solid ${done ? c1+'55' : 'rgba(255,255,255,0.08)'}`, borderRadius:99, padding:'2px 7px 2px 4px', transition:'all 0.2s' }}>
-                                  <div style={{ width:10, height:10, borderRadius:'50%', border: done ? 'none' : `1.5px solid ${c1}55`, background: done ? c1 : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.2s' }}>
-                                    {done && <svg width="5" height="5" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg>}
-                                  </div>
-                                  <span style={{ fontSize:8, color: done ? c2 : '#6b7280', fontWeight: done ? 700 : 500, whiteSpace:'nowrap', maxWidth:55, overflow:'hidden', textOverflow:'ellipsis' }}>
-                                    {(goal.title || 'Goal').slice(0, 10)}
-                                  </span>
+                                <div key={t.id} style={{ display:'flex', alignItems:'center', gap:3, background: done ? `${c1}20` : 'rgba(255,255,255,0.03)', border:`1px solid ${done ? c1+'50' : 'rgba(255,255,255,0.07)'}`, borderRadius:99, padding:'2px 6px', transition:'all 0.2s' }}>
+                                  <div style={{ width:6, height:6, borderRadius:'50%', background: done ? c1 : '#374151', flexShrink:0, transition:'background 0.2s' }}/>
+                                  <span style={{ fontSize:8, color: done ? c1 : '#4b5563', fontWeight: done ? 700 : 500, whiteSpace:'nowrap' }}>{t.icon} {t.domain}</span>
                                 </div>
                               );
                             })}
                           </div>
-                        </div>
-                      )}
-
-                      {/* Progress bar */}
-                      <div style={{position:'relative',zIndex:1}}>
+                        )}
                         <div style={{height:4,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
                           <motion.div animate={{width:`${pct*100}%`}} transition={{duration:0.5,ease:'easeOut'}}
                             style={{height:'100%',background:`linear-gradient(90deg,${th.a},${th.b})`,borderRadius:999}}/>
                         </div>
                         <div style={{display:'flex',justifyContent:'space-between',marginTop:3}}>
-                          <span style={{fontSize:8,color:'#4b5563'}}>{N===0?'No goals yet · add goals to bloom':`${N-completedCount} goal${(N-completedCount)!==1?'s':''} left to full bloom`}</span>
+                          <span style={{fontSize:8,color:'#4b5563'}}>check today's plan to bloom</span>
                           <span style={{fontSize:8,color:th.a,fontWeight:700}}>{completedCount}/{N}</span>
                         </div>
                       </div>

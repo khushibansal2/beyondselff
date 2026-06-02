@@ -3,12 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Palettes ──────────────────────────────────────────────────────────────────
 const SKIN_TONES = [
-  '#fde8c8', '#f5cfa0', '#e8b887', '#d4956a',
-  '#b8724e', '#8d5524', '#6b3e26', '#4a2912',
+  '#fde8c8', '#f5d5b0', '#f5cfa0', '#e8c49a',
+  '#d4956a', '#c07844', '#8d5524', '#6b3e26',
+  '#4a2912', '#3a1a0a',
 ];
 const HAIR_COLORS = [
-  '#1a1a2e', '#2d1b00', '#4a2c00', '#8b5e3c',
-  '#c4a35a', '#f0c040', '#c0392b', '#7b2fbe',
+  // Natural tones
+  '#0f0f0f', '#2d1b00', '#4a2c00', '#8b5e3c',
+  '#c4a35a', '#e8d5b0',
+  // Fun / expressive
+  '#c0392b', '#e91e8c', '#7b2fbe', '#2563eb', '#059669', '#f59e0b',
 ];
 const HAIR_STYLES = ['boycut', 'short', 'medium', 'long', 'curly', 'bun'];
 const FACE_SHAPES = ['slim', 'oval', 'round', 'square'];
@@ -427,87 +431,178 @@ function CameraSnap({ onCapture, onClose }) {
   );
 }
 
-// ── PersonaEditor ─────────────────────────────────────────────────────────────
+// ── luminance helper — picks dark or light checkmark based on bg color ────────
+function isLight(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114) / 1000 > 140;
+}
+
+// ── Swatch ────────────────────────────────────────────────────────────────────
+function Swatch({ color, selected, onClick, size = 32 }) {
+  const tick = isLight(color) ? '#1a1a2e' : '#ffffff';
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ scale: 1.14 }}
+      whileTap={{ scale: 0.9 }}
+      style={{
+        width: size, height: size, borderRadius: '50%',
+        background: color,
+        border: selected ? `3px solid ${tick}` : '2px solid rgba(255,255,255,0.1)',
+        boxShadow: selected ? `0 0 0 3px #6366f1, 0 0 14px ${color}99` : '0 1px 4px rgba(0,0,0,0.4)',
+        cursor: 'pointer', outline: 'none', flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'box-shadow 0.18s, border 0.15s, transform 0.15s',
+        position: 'relative',
+      }}
+    >
+      {selected && (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+          stroke={tick} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      )}
+    </motion.button>
+  );
+}
+
+// ── StyleChip ─────────────────────────────────────────────────────────────────
+function StyleChip({ label, selected, onClick }) {
+  return (
+    <motion.button
+      onClick={onClick} whileTap={{ scale: 0.93 }}
+      style={{
+        padding: '6px 14px', borderRadius: 99, fontSize: 11, fontWeight: 600,
+        cursor: 'pointer', border: selected ? 'none' : '1px solid rgba(255,255,255,0.1)',
+        outline: 'none', textTransform: 'capitalize',
+        background: selected ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'rgba(255,255,255,0.05)',
+        color: selected ? '#fff' : '#9ca3af',
+        boxShadow: selected ? '0 2px 12px rgba(99,102,241,0.4)' : 'none',
+        transition: 'all 0.15s',
+      }}
+    >{label}</motion.button>
+  );
+}
+
+// ── Section label ─────────────────────────────────────────────────────────────
+function SLabel({ children, preview }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 10 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{children}</div>
+      {preview && (
+        <div style={{ width:20, height:20, borderRadius:'50%', background: preview, border:'2px solid rgba(255,255,255,0.15)', boxShadow:`0 0 8px ${preview}80` }}/>
+      )}
+    </div>
+  );
+}
+
+// ── PersonaEditor — uses local state so selections don't stale-spread ─────────
 function PersonaEditor({ persona, onChange, onClose }) {
+  // Local draft — edits are applied immediately to the avatar via onChange,
+  // but we keep a local copy so we never spread a stale prop.
+  const [draft, setDraft] = useState({ ...persona });
+
+  const set = (key, val) => {
+    const next = { ...draft, [key]: val };
+    setDraft(next);
+    onChange(next); // live preview on avatar as user picks
+  };
+
+  const save = () => { onChange(draft); onClose(); };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
-      className="absolute inset-x-0 bottom-0 z-40 rounded-b-2xl p-4 space-y-3 overflow-y-auto"
-      style={{ background: 'rgba(10,10,18,0.97)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '100%' }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+      }}
     >
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold text-white">Personalise Avatar</p>
-        <button onClick={onClose} className="text-slate-500 hover:text-white text-xs">✕</button>
-      </div>
-
-      {/* Face shape */}
-      <div>
-        <p className="text-[10px] text-slate-500 mb-1.5">Face shape</p>
-        <div className="flex gap-1.5 flex-wrap">
-          {FACE_SHAPES.map(sh => (
-            <button key={sh} onClick={() => onChange({ ...persona, shape: sh })}
-              className="text-[10px] px-2 py-1 rounded-lg capitalize transition-all"
-              style={{
-                background: persona.shape === sh ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)',
-                color: persona.shape === sh ? '#a5b4fc' : '#6b7280',
-                border: `1px solid ${persona.shape === sh ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'}`,
-              }}>
-              {sh}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Skin tone */}
-      <div>
-        <p className="text-[10px] text-slate-500 mb-1.5">Skin tone</p>
-        <div className="flex gap-2 flex-wrap">
-          {SKIN_TONES.map(c => (
-            <button key={c} onClick={() => onChange({ ...persona, skin: c })}
-              className="w-6 h-6 rounded-full transition-all hover:scale-110"
-              style={{ background: c, outline: persona.skin === c ? '2px solid white' : 'none', outlineOffset: 2 }} />
-          ))}
-        </div>
-      </div>
-
-      {/* Hair color */}
-      <div>
-        <p className="text-[10px] text-slate-500 mb-1.5">Hair color</p>
-        <div className="flex gap-2 flex-wrap">
-          {HAIR_COLORS.map(c => (
-            <button key={c} onClick={() => onChange({ ...persona, hair: c })}
-              className="w-6 h-6 rounded-full transition-all hover:scale-110"
-              style={{ background: c, outline: persona.hair === c ? '2px solid white' : 'none', outlineOffset: 2 }} />
-          ))}
-        </div>
-      </div>
-
-      {/* Hair style */}
-      <div>
-        <p className="text-[10px] text-slate-500 mb-1.5">Hair style</p>
-        <div className="flex gap-1.5 flex-wrap">
-          {HAIR_STYLES.map(s => (
-            <button key={s} onClick={() => onChange({ ...persona, style: s })}
-              className="text-[10px] px-2.5 py-1 rounded-lg capitalize transition-all"
-              style={{
-                background: persona.style === s ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)',
-                color: persona.style === s ? '#a5b4fc' : '#6b7280',
-                border: `1px solid ${persona.style === s ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'}`,
-              }}>
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Done button */}
-      <button
-        onClick={onClose}
-        className="w-full py-2 rounded-xl text-[11px] font-bold text-white transition-all active:scale-[0.98]"
-        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', cursor: 'pointer', marginTop: 4 }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.93, y: 18 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.93, y: 12 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'linear-gradient(160deg,#0f1220 0%,#0a0d18 100%)',
+          border: '1px solid rgba(99,102,241,0.28)',
+          borderRadius: 20, padding: '20px 20px 18px',
+          width: '100%', maxWidth: 380,
+          boxShadow: '0 24px 64px rgba(0,0,0,0.75)',
+          display: 'flex', flexDirection: 'column', gap: 18,
+          maxHeight: '90vh', overflowY: 'auto',
+        }}
       >
-        ✓ Done — Save Avatar
-      </button>
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div>
+            <div style={{ fontSize:15, fontWeight:800, color:'#fff', letterSpacing:'-0.02em' }}>Personalise Avatar</div>
+            <div style={{ fontSize:10, color:'#6b7280', marginTop:2 }}>Pick once — changes preview live ✦</div>
+          </div>
+          <motion.button onClick={onClose} whileHover={{ scale:1.1 }} whileTap={{ scale:0.9 }}
+            style={{ width:28, height:28, borderRadius:8, border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'#9ca3af', cursor:'pointer', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            ✕
+          </motion.button>
+        </div>
+
+        {/* Face shape */}
+        <div>
+          <SLabel>Face Shape</SLabel>
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+            {FACE_SHAPES.map(sh => (
+              <StyleChip key={sh} label={sh} selected={draft.shape === sh} onClick={() => set('shape', sh)} />
+            ))}
+          </div>
+        </div>
+
+        {/* Skin tone — preview swatch shows current selection */}
+        <div>
+          <SLabel preview={draft.skin}>Skin Tone</SLabel>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10 }}>
+            {SKIN_TONES.map(c => (
+              <Swatch key={c} color={c} selected={draft.skin === c} onClick={() => set('skin', c)} size={38} />
+            ))}
+          </div>
+        </div>
+
+        {/* Hair color — ALL colors in ONE flat grid, no confusing groups */}
+        <div>
+          <SLabel preview={draft.hair}>Hair Color</SLabel>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:10 }}>
+            {HAIR_COLORS.map(c => (
+              <Swatch key={c} color={c} selected={draft.hair === c} onClick={() => set('hair', c)} size={34} />
+            ))}
+          </div>
+          <div style={{ display:'flex', gap:8, marginTop:8 }}>
+            <span style={{ fontSize:9, color:'#374151' }}>⬆ natural</span>
+            <span style={{ fontSize:9, color:'#374151' }}>· expressive →</span>
+          </div>
+        </div>
+
+        {/* Hair style */}
+        <div>
+          <SLabel>Hair Style</SLabel>
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+            {HAIR_STYLES.map(s => (
+              <StyleChip key={s} label={s} selected={draft.style === s} onClick={() => set('style', s)} />
+            ))}
+          </div>
+        </div>
+
+        {/* Save */}
+        <motion.button
+          onClick={save} whileHover={{ scale:1.02 }} whileTap={{ scale:0.97 }}
+          style={{
+            width:'100%', padding:'11px 0', borderRadius:12, border:'none',
+            background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+            color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer',
+            boxShadow:'0 4px 16px rgba(99,102,241,0.35)', marginTop:2,
+          }}
+        >✓ Save Avatar</motion.button>
+      </motion.div>
     </motion.div>
   );
 }
@@ -518,7 +613,7 @@ export function LifeAvatar({
   burnoutRisk = 20, doomMode = false, hideLabel = false,
 }) {
   const [persona, setPersona] = useState(() => loadPersona() || {
-    skin: '#f5cfa0', hair: '#1a1a2e', style: 'short', shape: 'oval',
+    skin: '#d4956a', hair: '#2d1b00', style: 'short', shape: 'oval',
   });
   const [showCamera, setShowCamera] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
@@ -548,6 +643,17 @@ export function LifeAvatar({
 
   return (
     <div className="flex flex-col items-center select-none relative">
+      {/* PersonaEditor modal — fixed overlay, outside avatar box */}
+      <AnimatePresence>
+        {showEditor && (
+          <PersonaEditor
+            persona={persona}
+            onChange={p => { setPersona(p); savePersona(p); }}
+            onClose={() => setShowEditor(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Status badge — hidden when parent already shows balance status */}
       {!hideLabel && (
         <motion.div key={stateKey}
@@ -564,13 +670,6 @@ export function LifeAvatar({
       <div className="w-44 h-56 relative">
         <AnimatePresence>
           {showCamera && <CameraSnap onCapture={handleCapture} onClose={() => setShowCamera(false)} />}
-        </AnimatePresence>
-        <AnimatePresence>
-          {showEditor && (
-            <PersonaEditor persona={persona}
-              onChange={p => { setPersona(p); savePersona(p); }}
-              onClose={() => setShowEditor(false)} />
-          )}
         </AnimatePresence>
         <AnimatePresence>
           {snapFlash && (
