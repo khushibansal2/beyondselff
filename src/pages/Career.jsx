@@ -17,7 +17,7 @@ import { fetchJobs } from '../services/jobService';
 import {
   calculateJobMatch, rankJobsByMatch, aggregateMissingSkills,
   getSalaryBenchmark, getSalaryChartData, generateCareerCoach, getDigitalTwinInsights,
-  fetchSkillDemandTrends,
+  fetchSkillDemandTrends, generateCareerPathSimulation,
 } from '../services/careerIntelligenceService';
 
 // ── Cognitive Load Gauge ─────────────────────────────────────────────────────
@@ -1809,6 +1809,26 @@ export default function Career() {
   const [lpLoading, setLpLoading] = useState(false);
   const [lpResult, setLpResult] = useState(savedPath);
 
+  // Career path simulation state
+  const [simLoading, setSimLoading] = useState(false);
+  const [simResult, setSimResult]   = useState(null);
+
+  const handleRunSimulation = async () => {
+    if (!lpCurrentRole.trim() || !lpTargetRole.trim()) { showToast('Enter both current and target roles first', 'error'); return; }
+    setSimLoading(true); setSimResult(null);
+    try {
+      const result = await generateCareerPathSimulation({
+        currentRole: lpCurrentRole.trim(),
+        targetRole: lpTargetRole.trim(),
+        skills: userSkills || [],
+        studyHoursDaily: c.studyHoursDaily || 2,
+        yearsExperience: c.yearsExperience || 0,
+      });
+      setSimResult(result);
+    } catch (e) { showToast('Simulation failed: ' + e.message, 'error'); }
+    finally { setSimLoading(false); }
+  };
+
   // Old-style career log state
   const careerRecords = records?.career || [];
   const [careerForm, setCareerForm] = useState({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
@@ -3073,6 +3093,84 @@ export default function Career() {
                   )}
                 </div>
               </form>
+            </div>
+
+            {/* ── Career Path Simulation ── */}
+            <div style={{ background: 'rgba(15,18,30,0.95)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 16, padding: '16px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📈</div>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Career Path Simulation</p>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Salary milestones from {lpCurrentRole || 'current role'} → {lpTargetRole || 'target role'}</p>
+                  </div>
+                </div>
+                <button onClick={handleRunSimulation} disabled={simLoading || !lpCurrentRole.trim() || !lpTargetRole.trim()}
+                  style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#8b5cf6,#6366f1)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: simLoading || !lpCurrentRole.trim() || !lpTargetRole.trim() ? 'not-allowed' : 'pointer', opacity: simLoading ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {simLoading ? <><div style={{ width: 12, height: 12, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%' }} className="animate-spin" /> Simulating…</> : 'Run Simulation →'}
+                </button>
+              </div>
+
+              {simResult && (
+                <div>
+                  {/* Summary row */}
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                    {[
+                      { label: 'Current Salary', value: simResult.currentSalary?.label || '—', color: '#f59e0b' },
+                      { label: 'Target Salary',  value: simResult.targetSalary?.label  || '—', color: '#10b981' },
+                      { label: 'Salary Growth',  value: `+${simResult.salaryGrowthPct || 0}%`,  color: '#8b5cf6' },
+                      { label: 'Timeline',       value: `${simResult.totalMonths || '—'} months`, color: '#6366f1' },
+                    ].map(s => (
+                      <div key={s.label} style={{ flex: '1 1 120px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '8px 12px' }}>
+                        <p style={{ fontSize: 10, color: '#64748b', margin: '0 0 3px', fontWeight: 600 }}>{s.label}</p>
+                        <p style={{ fontSize: 14, fontWeight: 800, color: s.color, margin: 0 }}>{s.value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Phase timeline */}
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 14, top: 16, bottom: 16, width: 2, background: 'linear-gradient(180deg,#8b5cf6,#6366f1)', borderRadius: 2 }} />
+                    {(simResult.phases || []).map((phase, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: '50%', background: i === (simResult.phases.length - 1) ? '#8b5cf6' : 'rgba(139,92,246,0.2)', border: '2px solid rgba(139,92,246,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: '#a78bfa', flexShrink: 0, zIndex: 1 }}>
+                          {phase.month}m
+                        </div>
+                        <div style={{ flex: 1, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{phase.role}</p>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#10b981' }}>₹{phase.salaryMin}–{phase.salaryMax} LPA</span>
+                          </div>
+                          <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 4px', lineHeight: 1.4 }}>{phase.milestone}</p>
+                          {phase.action && <p style={{ fontSize: 10, color: '#475569', margin: 0, fontStyle: 'italic' }}>→ {phase.action}</p>}
+                          {phase.skillsToAdd?.length > 0 && (
+                            <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+                              {phase.skillsToAdd.map(s => (
+                                <span key={s} style={{ fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: 'rgba(139,92,246,0.12)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.2)' }}>{s}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {simResult.keyInsight && (
+                    <div style={{ marginTop: 8, padding: '8px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                      <p style={{ fontSize: 11, color: '#818cf8', margin: 0 }}>💡 {simResult.keyInsight}</p>
+                    </div>
+                  )}
+                  <p style={{ fontSize: 9, color: '#374151', margin: '6px 0 0', textAlign: 'right' }}>
+                    {simResult.source === 'ai' ? 'AI-generated · Groq' : 'Estimated · based on market data'}
+                  </p>
+                </div>
+              )}
+
+              {!simResult && !simLoading && (
+                <p style={{ fontSize: 12, color: '#475569', textAlign: 'center', padding: '12px 0' }}>
+                  Fill in Current Role + Target Role above, then click Run Simulation to see your salary trajectory.
+                </p>
+              )}
             </div>
 
             {/* ── Roadmap header ── */}

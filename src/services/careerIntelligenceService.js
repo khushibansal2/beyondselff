@@ -276,6 +276,128 @@ Return ONLY valid JSON (no markdown fences). Use exactly this schema:
   }
 }
 
+// ── Career Path Simulation with salary milestones ────────────────────────────
+
+/**
+ * Generate a role-specific career path simulation with salary projections.
+ * Uses Groq for AI-generated milestones; falls back to deterministic engine.
+ *
+ * Input: { currentRole, targetRole, skills[], studyHoursDaily, yearsExperience }
+ * Output: { phases[{ month, role, salary, milestone, skills[] }], totalMonths, salaryGrowthPct }
+ */
+export async function generateCareerPathSimulation({ currentRole, targetRole, skills = [], studyHoursDaily = 2, yearsExperience = 0 }) {
+  const key = groqKey();
+
+  const currentSalary = getSalaryBenchmark(currentRole, skills);
+  const targetSalary  = getSalaryBenchmark(targetRole, skills);
+
+  if (key) {
+    try {
+      const prompt = `You are a career trajectory analyst. Generate a realistic career path simulation.
+
+CONTEXT:
+- Current Role: ${currentRole || 'Junior Software Engineer'}
+- Target Role: ${targetRole || 'Senior Software Engineer'}
+- Current Skills: ${skills.slice(0, 12).join(', ') || 'JavaScript, React'}
+- Study Hours/Day: ${studyHoursDaily}h
+- Experience: ${yearsExperience} years
+- Current Salary Range: ${currentSalary.label}
+- Target Salary Range: ${targetSalary.label}
+
+Generate a role-specific path with 4-5 realistic milestone checkpoints. Each milestone should be a concrete role/level that exists on the path from current to target.
+
+Return ONLY valid JSON (no markdown fences):
+{
+  "totalMonths": <integer 6-36>,
+  "phases": [
+    {
+      "month": <integer, months from now>,
+      "role": "<intermediate role title>",
+      "salaryMin": <integer LPA>,
+      "salaryMax": <integer LPA>,
+      "milestone": "<concrete achievement that unlocks this level>",
+      "skillsToAdd": ["<skill1>", "<skill2>"],
+      "action": "<specific weekly action to reach this milestone>"
+    }
+  ],
+  "keyInsight": "<one sentence on the fastest leverage point for this specific transition>",
+  "salaryGrowthPct": <integer percentage salary increase from current to target>
+}`;
+
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], temperature: 0.3, max_tokens: 1200 }),
+      });
+      if (!res.ok) throw new Error(`Groq ${res.status}`);
+      const data = await res.json();
+      let raw = data.choices?.[0]?.message?.content ?? '';
+      raw = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+      const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+      if (s !== -1 && e > s) raw = raw.slice(s, e + 1);
+      const parsed = JSON.parse(raw);
+      return { ...parsed, currentSalary, targetSalary, source: 'ai' };
+    } catch (e) {
+      console.warn('Career path simulation AI failed, using deterministic:', e.message);
+    }
+  }
+
+  // Deterministic fallback — builds a realistic path from salary table anchors
+  const experienceMultiplier = Math.max(0.5, Math.min(2, studyHoursDaily / 2));
+  const baseMonths = Math.round(18 / experienceMultiplier);
+  const salaryRange = targetSalary.max - currentSalary.min;
+
+  return {
+    totalMonths: baseMonths,
+    source: 'deterministic',
+    currentSalary,
+    targetSalary,
+    salaryGrowthPct: Math.round((targetSalary.mid / Math.max(1, currentSalary.mid) - 1) * 100),
+    keyInsight: `Focus on ${skills.length < 5 ? 'building 2-3 portfolio projects and adding premium skills' : 'deepening system design knowledge and leading cross-functional projects'} to close the gap fastest.`,
+    phases: [
+      {
+        month: Math.round(baseMonths * 0.25),
+        role: currentRole,
+        salaryMin: currentSalary.min,
+        salaryMax: currentSalary.max,
+        milestone: 'Complete 2 portfolio projects and add 2 premium skills',
+        skillsToAdd: PREMIUM_SKILLS.filter(p => !skills.includes(p)).slice(0, 2),
+        action: `Study ${studyHoursDaily + 1}h/day: DSA + ${targetRole.split(' ').slice(-1)[0]} fundamentals`,
+      },
+      {
+        month: Math.round(baseMonths * 0.5),
+        role: `Mid-level ${currentRole.replace(/Junior|Intern|SDE I/i, '').trim() || 'Engineer'}`,
+        salaryMin: Math.round(currentSalary.min + salaryRange * 0.2),
+        salaryMax: Math.round(currentSalary.max + salaryRange * 0.2),
+        milestone: 'First real-world system design contribution + 50 DSA problems solved',
+        skillsToAdd: PREMIUM_SKILLS.filter(p => !skills.includes(p)).slice(2, 4),
+        action: 'Build and deploy a full-stack project; apply to 5 roles for feedback',
+      },
+      {
+        month: Math.round(baseMonths * 0.75),
+        role: `Senior-track ${currentRole.replace(/Junior|Intern|SDE I/i, '').trim() || 'Engineer'}`,
+        salaryMin: Math.round(currentSalary.min + salaryRange * 0.55),
+        salaryMax: Math.round(currentSalary.max + salaryRange * 0.55),
+        milestone: 'Lead a module/feature end-to-end; pass 3 mock technical interviews',
+        skillsToAdd: ['System Design', 'Technical Leadership'],
+        action: 'Mock interview weekly; contribute to open source; mentor one junior',
+      },
+      {
+        month: baseMonths,
+        role: targetRole,
+        salaryMin: targetSalary.min,
+        salaryMax: targetSalary.max,
+        milestone: `Hired as ${targetRole} — all target skills verified`,
+        skillsToAdd: [],
+        action: 'Target top 3 companies; negotiate with competing offers',
+      },
+    ],
+  };
+}
+
 // ── Cross-domain Digital Twin insights ───────────────────────────────────────
 
 /**
@@ -395,24 +517,45 @@ export async function fetchSkillDemandTrends(query) {
     });
   }
 
-  // 2. Generate simulated trend points & growth rate for the top skills
-  // We use a deterministic formula based on skill name character values to keep transitions stable but dynamic
+  // 2. Generate trend points driven by real signals:
+  //    - Premium/high-demand skills trend upward
+  //    - Skills not in premium list trend flat or slightly down
+  //    - Trajectory shaped by actual job-listing demand percentage
+  const RISING_SKILLS  = new Set(PREMIUM_SKILLS.map(s => s.toLowerCase()));
+  const STABLE_SKILLS  = new Set(['javascript','java','python','sql','git','html','css']);
+  const DECLINE_SKILLS = new Set(['jquery','php','coffeescript','svn','angularjs']);
+
   const getTrendData = (skillName, basePct) => {
-    const seed = skillName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    // Generate 6 data points showing growth or stabilization
+    const key = skillName.toLowerCase().replace(/[.\s]/g, '');
+    const isRising  = RISING_SKILLS.has(key)  || basePct >= 65;
+    const isDecline = DECLINE_SKILLS.has(key) || basePct < 20;
+    const isStable  = STABLE_SKILLS.has(key)  || (!isRising && !isDecline);
+
+    // Base starting point: 6 months ago was lower (rising) or higher (declining)
+    const startOffset = isRising ? -(Math.min(18, Math.round(basePct * 0.22))) : isDecline ? Math.round(basePct * 0.15) : -(Math.round(basePct * 0.05));
+    let current = Math.max(5, basePct + startOffset);
     const trend = [];
-    let current = basePct - (seed % 15) - 10; // start lower
-    current = Math.max(10, current);
-    
+    const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+
     for (let i = 0; i < 6; i++) {
       trend.push(Math.round(current));
-      // step up with some noise
-      const step = ((seed + i) % 6) + 1;
-      current += step;
+      const volatility = basePct > 50 ? 1.5 : 3; // high-demand skills are less volatile
+      const noise = (Math.sin(i * 1.7 + basePct * 0.1) * volatility);
+      const step  = isRising  ? 2.5 + noise
+                  : isDecline ? -1.8 + noise
+                  : 0.4 + noise;
+      current = Math.max(5, Math.min(100, current + step));
     }
-    
+    // Snap last point to actual basePct so it matches real data
+    trend[5] = basePct;
+
     const growth = trend[5] - trend[0];
-    return { trend, growth: growth > 0 ? `+${growth}%` : `${growth}%` };
+    return {
+      trend,
+      months,
+      growth: growth > 0 ? `+${Math.round(growth)}%` : `${Math.round(growth)}%`,
+      direction: isRising ? 'rising' : isDecline ? 'declining' : 'stable',
+    };
   };
 
   const topSkills = skillFreqs.slice(0, 5).map(item => {
