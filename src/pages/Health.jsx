@@ -1563,25 +1563,27 @@ export default function Health() {
     setForm({ sleep: '', mood: '', stress: '', workout: '', water: '', calories: '', weight: '', bmi: '' });
     showToast(`Health data saved (${changes} field${changes > 1 ? 's' : ''})`, 'success');
 
-    // 2. Persist to backend (non-blocking for real users)
+    // 2. Award XP locally always, then sync with backend if available
+    const localXpGain = changes * 10;
+    updateGamification({ xp: (gamification?.xp || 0) + localXpGain });
+    showToast(`+${localXpGain} XP earned! ⚡`, 'success');
+
     if (healthApi.isEnabled()) {
       try {
         const { award } = await healthApi.create(record);
         if (award) {
+          // Use backend's authoritative total, but never go below what we've earned locally
           updateGamification({
-            xp: award.totalXp,
+            xp: Math.max((gamification?.xp || 0) + localXpGain, award.totalXp),
             level: award.level,
             streak: award.streak,
             badges: award.newBadges && award.newBadges.length > 0
               ? [...(gamification?.badges || []), ...award.newBadges]
               : (gamification?.badges || [])
           });
-          if (award.xpGained > 0) {
-            showToast(`Earned +${award.xpGained} XP! ⚡`, 'success');
-          }
           if (award.newBadges && award.newBadges.length > 0) {
             award.newBadges.forEach(badge => {
-              showToast(`🏆 New Badge Unlocked: ${badge.badgeName || badge.badgeId}!`, 'success');
+              showToast(`🏆 New Badge: ${badge.badgeName || badge.badgeId}!`, 'success');
             });
           }
         }

@@ -1712,22 +1712,20 @@ export default function Career() {
   useAuth();
   const { career, health, records, updateDomain, addRecords, setRecords, computed, gamification, updateGamification } = useData();
 
-  const handleAward = (award) => {
+  const handleAward = (award, localXpAlreadyAdded = 0) => {
     if (award) {
       updateGamification({
-        xp: award.totalXp,
+        // Never decrease local XP — take backend total only if it's higher
+        xp: Math.max((gamification?.xp || 0), award.totalXp),
         level: award.level,
         streak: award.streak,
         badges: award.newBadges && award.newBadges.length > 0
           ? [...(gamification?.badges || []), ...award.newBadges]
           : (gamification?.badges || [])
       });
-      if (award.xpGained > 0) {
-        showToast(`Earned +${award.xpGained} XP! ⚡`, 'success');
-      }
       if (award.newBadges && award.newBadges.length > 0) {
         award.newBadges.forEach(badge => {
-          showToast(`🏆 New Badge Unlocked: ${badge.badgeName || badge.badgeId}!`, 'success');
+          showToast(`🏆 New Badge: ${badge.badgeName || badge.badgeId}!`, 'success');
         });
       }
     }
@@ -1880,7 +1878,11 @@ export default function Career() {
       // Also update career domain for cross-domain effects
       const todayHours = (logForm.durationMinutes / 60);
       addRecords('career', [{ date: new Date().toISOString(), studyHours: todayHours, topic: logForm.topic }]);
-      // Persist to backend
+      // Award XP locally always
+      const sessionXp = Math.round(logForm.durationMinutes / 2); // ~1 XP per 2 min
+      updateGamification({ xp: (gamification?.xp || 0) + sessionXp });
+      showToast(`+${sessionXp} XP earned! ⚡`, 'success');
+      // Sync with backend if available
       if (careerApi.isEnabled()) {
         try {
           const { award } = await careerApi.create({ date: new Date().toISOString(), studyHours: todayHours, skillLearned: logForm.topic });
@@ -1912,7 +1914,11 @@ export default function Career() {
     addRecords('career', [record]);
     setCareerForm({ studyHours: '', codingHours: '', dsa: '', skill: '', projects: '' });
     showToast(`Career data saved (${changes} field${changes > 1 ? 's' : ''})`, 'success');
-    // Persist to backend
+    // Award XP locally always
+    const careerXp = changes * 15;
+    updateGamification({ xp: (gamification?.xp || 0) + careerXp });
+    showToast(`+${careerXp} XP earned! ⚡`, 'success');
+    // Sync with backend if available
     if (careerApi.isEnabled()) {
       try {
         const { award } = await careerApi.create(record);
