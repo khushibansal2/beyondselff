@@ -96,17 +96,18 @@ export function AuthProvider({ children }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
+      let data = {};
+      try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
       if (!res.ok) return { success: false, error: data.error || data.message || 'Invalid credentials' };
       const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤' };
       setUser(userObj); setToken(data.token); setIsDemo(false);
       localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
       return { success: true, isDemo: false };
     } catch {
-      // Backend offline — fall through to localStorage custom users
+      // Network error or backend unavailable
     }
 
-    return { success: false, error: 'Cannot connect to server. Please ensure the backend is running on port 8080.' };
+    return { success: false, error: 'Cannot connect to the server. The backend may be starting up — please wait a moment and try again.' };
   };
 
   // ── Unified login — picks demo or real path automatically ────────────────────
@@ -130,17 +131,18 @@ export function AuthProvider({ children }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
-      const data = await res.json();
+      let data = {};
+      try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
       if (!res.ok) return { success: false, error: data.error || data.message || 'Signup failed' };
       const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤' };
       setUser(userObj); setToken(data.token); setIsDemo(false);
       localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
       return { success: true, isNew: true };
     } catch {
-      // Backend offline — save to localStorage
+      // Network error or backend unavailable
     }
 
-    return { success: false, error: 'Signup requires the backend (port 8080). Please start the backend server and try again.' };
+    return { success: false, error: 'Cannot connect to the server. The backend may be starting up — please wait a moment and try again.' };
   };
 
   const logout = () => {
