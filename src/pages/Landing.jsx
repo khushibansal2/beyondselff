@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Eye, ShieldCheck, Heart, Briefcase, Wallet, ArrowRight, Brain, PlayCircle, CheckCircle2, Activity } from 'lucide-react';
 
 const f = (d=0) => ({ initial:{opacity:0,y:20}, animate:{opacity:1,y:0}, transition:{duration:0.7,delay:d,ease:[0.16,1,0.3,1]} });
@@ -143,7 +144,7 @@ function WhatIf() {
   };
 
   return (
-    <section style={{ padding:'80px 32px', borderTop:'1px solid rgba(255,255,255,0.05)', position:'relative', overflow:'hidden' }}>
+    <section id="security" style={{ padding:'80px 32px', borderTop:'1px solid rgba(255,255,255,0.05)', position:'relative', overflow:'hidden' }}>
       {/* Radial bg glow */}
       <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 65%)', pointerEvents:'none' }} />
 
@@ -175,7 +176,7 @@ function WhatIf() {
 
           {/* Centre text */}
           <div style={{ position:'relative', zIndex:5, textAlign:'center', maxWidth:480, padding:'0 48px' }}>
-            <motion.h2
+            <motion.h2 className="ldg-whatif-h2"
               initial={{ opacity:0, y:22 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}
               style={{ fontSize:52, fontWeight:700, lineHeight:1.06, color:'#fff', margin:'0 0 16px' }}>
               Travel <span style={{ color:'#8b5cf6' }}>your</span><br/>
@@ -190,7 +191,7 @@ function WhatIf() {
 
           {/* Floating panels */}
           {SIM_PANELS.map((p, i) => (
-            <motion.div key={p.n}
+            <motion.div key={p.n} className="ldg-sim-panel"
               initial={{ opacity:0, x: p.side==='left' ? -28 : 28 }}
               whileInView={{ opacity:1, x:0 }}
               viewport={{ once:true }}
@@ -232,7 +233,7 @@ function Orbits() {
   };
 
   return (
-    <section style={{ padding: '80px 32px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="how-it-works" style={{ padding: '80px 32px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
       {/* Heading */}
       <div style={{ textAlign: 'center', marginBottom: 52 }}>
         <p style={{ color: '#475569', fontSize: 11, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 14 }}>
@@ -247,8 +248,8 @@ function Orbits() {
       </div>
 
       {/* Arena — flex centres it on all screen sizes */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ position: 'relative', width: 540, height: 540 }}>
+      <div className="ldg-orbit-wrap" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div className="ldg-orbit-arena" style={{ position: 'relative', width: 540, height: 540 }}>
 
           {/* Nebula glow */}
           <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.09) 0%, rgba(139,92,246,0.05) 45%, transparent 70%)' }} />
@@ -332,54 +333,131 @@ function Orbits() {
 }
 
 export default function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const NAV = [
+    {label:'Features',    href:'#features'},
+    {label:'How It Works',href:'#how-it-works'},
+    {label:'Security',    href:'#security'},
+    {label:'About',       href:'#about'},
+  ];
+  const scrollTo = (href) => {
+    document.querySelector(href)?.scrollIntoView({behavior:'smooth'});
+    setMenuOpen(false);
+  };
+
   return (
     <main style={{background:'#060b14',color:'#f1f5f9',minHeight:'100vh',fontFamily:"'Inter',sans-serif"}}>
-      
+
+      {/* ── Mobile-responsive overrides ── */}
+      <style>{`
+        .ldg-nav { display: flex; }
+        .ldg-nav-buttons { display: flex; }
+        .ldg-hamburger { display: none; }
+        .ldg-mobile-menu { display: none; }
+        .ldg-hero-visual { display: flex; }
+        .ldg-sim-panel { display: block; }
+        @media (max-width: 767px) {
+          .ldg-nav { display: none !important; }
+          .ldg-nav-buttons { display: none !important; }
+          .ldg-hamburger { display: flex !important; }
+          .ldg-mobile-menu { display: flex !important; flex-direction: column; position: fixed; top: 72px; left: 0; right: 0; background: rgba(6,11,20,0.98); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 24px 24px; gap: 20px; z-index: 49; }
+          .ldg-mobile-menu.closed { display: none !important; }
+          .ldg-hero-grid { grid-template-columns: 1fr !important; padding: 0 20px !important; }
+          .ldg-hero-visual { display: none !important; }
+          .ldg-hero-h1 { font-size: 38px !important; }
+          .ldg-hero-sub { font-size: 14px !important; }
+          .ldg-hero-cta { flex-direction: column !important; align-items: stretch !important; }
+          .ldg-hero-cta a, .ldg-hero-cta button { justify-content: center !important; }
+          .ldg-hero-badges { display: none !important; }
+          .ldg-trusted-bar { gap: 20px !important; }
+          .ldg-section-pad { padding: 60px 20px !important; }
+          .ldg-features-grid { grid-template-columns: repeat(2,1fr) !important; gap: 14px !important; }
+          .ldg-section-h2 { font-size: 28px !important; }
+          .ldg-orbit-wrap { overflow: hidden; }
+          .ldg-orbit-arena { transform: scale(0.52) !important; transform-origin: center top !important; margin-bottom: -145px !important; }
+          .ldg-sim-panel { display: none !important; }
+          .ldg-whatif-h2 { font-size: 32px !important; }
+          .ldg-dash-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .ldg-dash-preview { display: none !important; }
+          .ldg-cta-h2 { font-size: 30px !important; line-height: 1.2 !important; }
+          .ldg-footer-inner { flex-direction: column !important; gap: 16px !important; text-align: center !important; align-items: center !important; }
+        }
+      `}</style>
+
       {/* NAV */}
       <header style={{position:'fixed',top:0,left:0,right:0,zIndex:50,background:'rgba(6,11,20,0.92)',backdropFilter:'blur(16px)',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-        <div style={{maxWidth:1200,margin:'0 auto',padding:'0 32px',height:72,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px',height:72,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{display:'flex',alignItems:'center',gap:10}}>
             <Brain size={26} strokeWidth={1.5} style={{color:'#8b5cf6'}}/>
             <span style={{fontSize:19,fontWeight:600,color:'#fff'}}>BeyondSelf</span>
           </div>
-          <nav style={{display:'flex',alignItems:'center',gap:36}}>
-            {['Features','How It Works','Security','Pricing','About'].map(l=>(
-              <a key={l} href="#" style={{color:'#94a3b8',textDecoration:'none',fontSize:14,fontWeight:500}}>{l}</a>
+
+          {/* Desktop nav */}
+          <nav className="ldg-nav" style={{alignItems:'center',gap:36}}>
+            {NAV.map(({label,href})=>(
+              <a key={label} href={href} onClick={e=>{e.preventDefault();scrollTo(href);}}
+                style={{color:'#94a3b8',textDecoration:'none',fontSize:14,fontWeight:500,cursor:'pointer'}}>
+                {label}
+              </a>
             ))}
           </nav>
-          <div style={{display:'flex',alignItems:'center',gap:12}}>
+
+          {/* Desktop auth buttons */}
+          <div className="ldg-nav-buttons" style={{alignItems:'center',gap:12}}>
             <Link to="/login" style={{padding:'8px 20px',border:'1px solid #334155',borderRadius:8,color:'#fff',textDecoration:'none',fontSize:14,fontWeight:500}}>Log in</Link>
             <Link to="/signup" style={{padding:'8px 20px',background:'#8b5cf6',borderRadius:8,color:'#060b14',textDecoration:'none',fontSize:14,fontWeight:600,display:'flex',alignItems:'center',gap:6}}>
-              Get Started Free <ArrowRight size={15}/>
+              Get Started <ArrowRight size={15}/>
             </Link>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button className="ldg-hamburger" onClick={()=>setMenuOpen(o=>!o)}
+            style={{alignItems:'center',justifyContent:'center',width:40,height:40,background:'none',border:'1px solid #334155',borderRadius:8,cursor:'pointer',color:'#fff',flexDirection:'column',gap:5,padding:10}}>
+            <span style={{display:'block',width:18,height:2,background:'#fff',borderRadius:2,transition:'all 0.2s',transform:menuOpen?'rotate(45deg) translateY(7px)':'none'}}/>
+            <span style={{display:'block',width:18,height:2,background:'#fff',borderRadius:2,opacity:menuOpen?0:1,transition:'all 0.2s'}}/>
+            <span style={{display:'block',width:18,height:2,background:'#fff',borderRadius:2,transition:'all 0.2s',transform:menuOpen?'rotate(-45deg) translateY(-7px)':'none'}}/>
+          </button>
+        </div>
+
+        {/* Mobile menu dropdown */}
+        <div className={`ldg-mobile-menu ${menuOpen?'':'closed'}`}>
+          {NAV.map(({label,href})=>(
+            <a key={label} href={href} onClick={e=>{e.preventDefault();scrollTo(href);}}
+              style={{color:'#f1f5f9',textDecoration:'none',fontSize:16,fontWeight:500,padding:'4px 0',cursor:'pointer'}}>
+              {label}
+            </a>
+          ))}
+          <div style={{display:'flex',flexDirection:'column',gap:10,paddingTop:8,borderTop:'1px solid rgba(255,255,255,0.08)'}}>
+            <Link to="/login" onClick={()=>setMenuOpen(false)} style={{padding:'11px',border:'1px solid #334155',borderRadius:8,color:'#fff',textDecoration:'none',fontSize:14,fontWeight:500,textAlign:'center'}}>Log in</Link>
+            <Link to="/signup" onClick={()=>setMenuOpen(false)} style={{padding:'11px',background:'#8b5cf6',borderRadius:8,color:'#060b14',textDecoration:'none',fontSize:14,fontWeight:600,textAlign:'center'}}>Get Started Free</Link>
           </div>
         </div>
       </header>
 
       {/* HERO */}
       <section style={{paddingTop:110,paddingBottom:40,minHeight:'92vh',display:'flex',alignItems:'center',overflow:'hidden'}}>
-        <div style={{maxWidth:1200,margin:'0 auto',padding:'0 32px',width:'100%',display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'center'}}>
+        <div className="ldg-hero-grid" style={{maxWidth:1200,margin:'0 auto',padding:'0 32px',width:'100%',display:'grid',gridTemplateColumns:'1fr 1fr',gap:0,alignItems:'center'}}>
           {/* Left */}
           <div style={{paddingTop:30}}>
             <motion.div {...f(0.1)} style={{display:'inline-flex',alignItems:'center',padding:'6px 16px',borderRadius:100,border:'1px solid rgba(139,92,246,0.3)',color:'#8b5cf6',background:'rgba(139,92,246,0.05)',fontSize:10,fontWeight:700,letterSpacing:'0.15em',marginBottom:32}}>
               AI-POWERED PERSONAL DIGITAL TWIN
             </motion.div>
-            <motion.h1 {...f(0.2)} style={{fontSize:70,lineHeight:1.05,fontWeight:700,marginBottom:20,margin:'0 0 20px'}}>
+            <motion.h1 {...f(0.2)} className="ldg-hero-h1" style={{fontSize:70,lineHeight:1.05,fontWeight:700,margin:'0 0 20px'}}>
               <span style={{color:'#fff',display:'block'}}>Your Digital Twin</span>
               <span style={{display:'block',background:'linear-gradient(135deg,#8b5cf6,#8b5cf6)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Today.</span>
             </motion.h1>
-            <motion.p {...f(0.3)} style={{color:'#94a3b8',fontSize:15,lineHeight:1.65,maxWidth:420,marginBottom:36}}>
+            <motion.p {...f(0.3)} className="ldg-hero-sub" style={{color:'#94a3b8',fontSize:15,lineHeight:1.65,maxWidth:420,marginBottom:36}}>
               BeyondSelf is your AI-powered digital twin that learns from your habits, goals, and decisions to help you live healthier, wealthier, and more purposefully.
             </motion.p>
-            <motion.div {...f(0.4)} style={{display:'flex',alignItems:'center',gap:14,marginBottom:44}}>
+            <motion.div {...f(0.4)} className="ldg-hero-cta" style={{display:'flex',alignItems:'center',gap:14,marginBottom:44}}>
               <Link to="/signup" style={{display:'flex',alignItems:'center',gap:8,padding:'13px 24px',background:'#8b5cf6',borderRadius:10,color:'#060b14',fontWeight:600,fontSize:15,textDecoration:'none'}}>
                 Start Your Journey <ArrowRight size={16}/>
               </Link>
-              <button style={{display:'flex',alignItems:'center',gap:8,padding:'13px 24px',border:'1px solid #334155',borderRadius:10,color:'#fff',background:'none',fontWeight:500,fontSize:15,cursor:'pointer'}}>
+              <button onClick={()=>scrollTo('#how-it-works')} style={{display:'flex',alignItems:'center',gap:8,padding:'13px 24px',border:'1px solid #334155',borderRadius:10,color:'#fff',background:'none',fontWeight:500,fontSize:15,cursor:'pointer'}}>
                 See How It Works <PlayCircle size={18} strokeWidth={1.5}/>
               </button>
             </motion.div>
-            <motion.div {...f(0.5)} style={{display:'flex',alignItems:'flex-start',gap:36}}>
+            <motion.div {...f(0.5)} className="ldg-hero-badges" style={{display:'flex',alignItems:'flex-start',gap:36}}>
               {[[Lock,'End-to-end\nencrypted'],[ShieldCheck,'Your data.\nYour control.'],[Eye,'Privacy by\ndesign']].map(([Icon,label],i)=>(
                 <div key={i} style={{display:'flex',alignItems:'flex-start',gap:8}}>
                   <Icon size={16} strokeWidth={1.5} style={{color:'#64748b',marginTop:2,flexShrink:0}}/>
@@ -390,7 +468,7 @@ export default function Landing() {
           </div>
 
           {/* Right - Human visual */}
-          <motion.div {...f(0.2)} style={{position:'relative',height:660,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <motion.div {...f(0.2)} className="ldg-hero-visual" style={{position:'relative',height:660,alignItems:'center',justifyContent:'center'}}>
             <HumanSVG/>
             <Card icon={Heart} title="Health" desc={"Optimize your\nbody & mind"} style={{top:'12%',left:'2%'}} delay={0.5}/>
             <Card icon={Briefcase} title="Career" desc={"Build skills.\nUnlock potential."} style={{top:'48%',left:'-8%'}} delay={0.7}/>
@@ -400,11 +478,11 @@ export default function Landing() {
       </section>
 
       {/* TRUSTED BY */}
-      <section style={{padding:'40px 32px',borderTop:'1px solid rgba(255,255,255,0.05)'}}>
+      <section className="ldg-section-pad" style={{padding:'40px 32px',borderTop:'1px solid rgba(255,255,255,0.05)'}}>
         <div style={{maxWidth:1200,margin:'0 auto',textAlign:'center'}}>
           <p style={{color:'#475569',fontSize:11,fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',marginBottom:32}}>Trusted By Innovators</p>
-          <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',justifyContent:'center',gap:48,opacity:0.55}}>
-            {[' Apple Health','fitbit','Google Fit','PLAID','LinkedIn','coursera','GitHub'].map(b=>(
+          <div className="ldg-trusted-bar" style={{display:'flex',flexWrap:'wrap',alignItems:'center',justifyContent:'center',gap:48,opacity:0.55}}>
+            {['Apple Health','Fitbit','Google Fit','PLAID','LinkedIn','Coursera','GitHub'].map(b=>(
               <span key={b} style={{fontSize:17,fontWeight:700,color:'#fff',letterSpacing:'-0.02em'}}>{b}</span>
             ))}
           </div>
@@ -412,13 +490,13 @@ export default function Landing() {
       </section>
 
       {/* FEATURES */}
-      <section style={{padding:'80px 32px',borderTop:'1px solid rgba(255,255,255,0.05)'}}>
+      <section id="features" className="ldg-section-pad" style={{padding:'80px 32px',borderTop:'1px solid rgba(255,255,255,0.05)'}}>
         <div style={{maxWidth:1200,margin:'0 auto'}}>
           <div style={{textAlign:'center',marginBottom:56}}>
             <p style={{color:'#475569',fontSize:11,fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',marginBottom:14}}>All Parts Of You. Working Together.</p>
-            <h2 style={{fontSize:42,fontWeight:700,color:'#fff'}}>One Twin. <span style={{color:'#8b5cf6'}}>Limitless Possibilities.</span></h2>
+            <h2 className="ldg-section-h2" style={{fontSize:42,fontWeight:700,color:'#fff'}}>One Twin. <span style={{color:'#8b5cf6'}}>Limitless Possibilities.</span></h2>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:20}}>
+          <div className="ldg-features-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:20}}>
             {[['🔗','Unified Insights','Connect health, finance, and career data to see the big picture.'],['✨','AI Recommendations','Get personalized actions that adapt to you.'],['⚡','What-If Simulations','Test scenarios, compare outcomes, make confident decisions.'],['🏆','Stay Motivated','Earn points, unlock badges, and build streaks.']].map(([icon,title,desc])=>(
               <div key={title} style={{background:'#0b1021',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:'28px 24px',textAlign:'center'}}>
                 <div style={{fontSize:28,marginBottom:16}}>{icon}</div>
@@ -434,19 +512,19 @@ export default function Landing() {
       <WhatIf />
 
       {/* DASHBOARD PREVIEW */}
-      <section style={{padding:'60px 32px'}}>
+      <section className="ldg-section-pad" style={{padding:'60px 32px'}}>
         <div style={{maxWidth:1200,margin:'0 auto'}}>
-          <div style={{background:'#0b1021',border:'1px solid rgba(255,255,255,0.08)',borderRadius:32,padding:'48px',display:'grid',gridTemplateColumns:'1fr 1.6fr',gap:48,alignItems:'center'}}>
+          <div className="ldg-dash-grid" style={{background:'#0b1021',border:'1px solid rgba(255,255,255,0.08)',borderRadius:32,padding:'48px',display:'grid',gridTemplateColumns:'1fr 1.6fr',gap:48,alignItems:'center'}}>
             <div>
               <p style={{color:'#8b5cf6',fontSize:10,fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>Sneak Peek</p>
-              <h2 style={{fontSize:36,fontWeight:700,lineHeight:1.1,marginBottom:16}}>Your Digital Twin,<br/>Working <span style={{color:'#8b5cf6'}}>for You</span></h2>
+              <h2 className="ldg-section-h2" style={{fontSize:36,fontWeight:700,lineHeight:1.1,marginBottom:16}}>Your Digital Twin,<br/>Working <span style={{color:'#8b5cf6'}}>for You</span></h2>
               <p style={{color:'#64748b',fontSize:14,lineHeight:1.7,marginBottom:28}}>Real-time insights, smart recommendations, and progress that moves with you.</p>
               <Link to="/signup" style={{display:'inline-flex',alignItems:'center',gap:8,padding:'12px 24px',background:'#8b5cf6',borderRadius:10,color:'#060b14',fontWeight:600,fontSize:14,textDecoration:'none'}}>
                 Explore Dashboard <ArrowRight size={16}/>
               </Link>
               <p style={{color:'#475569',fontSize:12,marginTop:14,display:'flex',alignItems:'center',gap:6}}><CheckCircle2 size={14}/>No credit card required</p>
             </div>
-            <div style={{borderRadius:16,overflow:'hidden',border:'1px solid rgba(255,255,255,0.08)'}}>
+            <div className="ldg-dash-preview" style={{borderRadius:16,overflow:'hidden',border:'1px solid rgba(255,255,255,0.08)'}}>
               <DashPreview/>
             </div>
           </div>
@@ -454,10 +532,10 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section style={{padding:'80px 32px',textAlign:'center',borderTop:'1px solid rgba(255,255,255,0.05)'}}>
-        <div style={{maxWidth:720,margin:'0 auto'}}>
-          <h2 style={{fontSize:46,fontWeight:700,lineHeight:1.1,marginBottom:8}}>You don't need to predict the future.</h2>
-          <h2 style={{fontSize:46,fontWeight:700,lineHeight:1.1,color:'#8b5cf6',marginBottom:20}}>You just need to prepare for it.</h2>
+      <section id="about" className="ldg-section-pad" style={{padding:'80px 32px',textAlign:'center',borderTop:'1px solid rgba(255,255,255,0.05)'}}>
+        <div style={{maxWidth:720,margin:'0 auto',padding:'0 16px'}}>
+          <h2 className="ldg-cta-h2" style={{fontSize:46,fontWeight:700,lineHeight:1.1,marginBottom:8}}>You don't need to predict the future.</h2>
+          <h2 className="ldg-cta-h2" style={{fontSize:46,fontWeight:700,lineHeight:1.1,color:'#8b5cf6',marginBottom:20}}>You just need to prepare for it.</h2>
           <p style={{color:'#64748b',fontSize:16,marginBottom:36}}>Start your journey. Become your best future self.</p>
           <Link to="/signup" style={{display:'inline-flex',alignItems:'center',gap:8,padding:'16px 36px',background:'#8b5cf6',borderRadius:12,color:'#060b14',fontWeight:700,fontSize:17,textDecoration:'none'}}>
             Get Started Free <ArrowRight size={20}/>
@@ -467,7 +545,7 @@ export default function Landing() {
 
       {/* FOOTER */}
       <footer style={{padding:'32px',borderTop:'1px solid rgba(255,255,255,0.07)',background:'#060b14'}}>
-        <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',color:'#475569',fontSize:13}}>
+        <div className="ldg-footer-inner" style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',color:'#475569',fontSize:13}}>
           <span>© 2026 · BeyondSelf</span>
           <div style={{display:'flex',gap:28}}>
             <Link to="/login" style={{color:'#475569',textDecoration:'none'}}>Sign In</Link>
