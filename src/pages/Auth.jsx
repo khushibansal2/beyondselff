@@ -108,6 +108,8 @@ export function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
@@ -116,10 +118,11 @@ export function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (age && (parseInt(age) < 10 || parseInt(age) > 120)) { setError('Please enter a valid age'); return; }
     setLoading(true);
     setError('');
     try {
-      const result = await signup(name, email, password);
+      const result = await signup(name, email, password, age ? parseInt(age) : null, gender || null);
       if (result.success) navigate('/dashboard');
       else setError(result.error || 'Signup failed');
     } catch {
@@ -163,6 +166,21 @@ export function Signup() {
             <div>
               <label className="text-xs text-slate-400 mb-1.5 block">Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="input-premium" placeholder="Min 6 characters" required />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-400 mb-1.5 block">Age</label>
+                <input type="number" value={age} onChange={e => setAge(e.target.value)} className="input-premium" placeholder="e.g. 22" min="10" max="120" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 mb-1.5 block">Gender</label>
+                <select value={gender} onChange={e => setGender(e.target.value)} className="input-premium w-full">
+                  <option value="">Prefer not to say</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="non-binary">Non-binary</option>
+                </select>
+              </div>
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2">
               {loading ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity }} className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" /> : 'Create Account →'}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><title>BeyondSelf — References</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#eee;font-family:'Inter',sans-serif;}
+.slide{width:1400px;height:900px;margin:0 auto;background:#f8fafc;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.blob{position:absolute;border-radius:50%;pointer-events:none;}
+.b1{width:380px;height:380px;background:#e2e8f0;top:-120px;right:-90px;opacity:.5;}
+.b2{width:260px;height:260px;background:#cbd5e1;bottom:-70px;left:-50px;opacity:.35;}
+.top-bar{height:6px;background:linear-gradient(to right,#334155,#475569,#64748b,#e2e8f0);}
+.header{padding:28px 60px 0;display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0;}
+.tag{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#64748b;margin-bottom:6px;}
+.slide-title{font-size:40px;font-weight:900;color:#0f172a;line-height:1.05;}
+.slide-title span{color:#475569;}
+.pg{font-size:11px;color:#94a3b8;font-weight:700;letter-spacing:1px;}
+.body{flex:1;padding:18px 60px 28px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.ref-group{background:#fff;border-radius:14px;padding:18px 18px;border:1.5px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,0.05);display:flex;flex-direction:column;gap:0;}
+.group-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1.5px solid;}
+.ref-item{padding:8px 0;border-bottom:1px solid #f1f5f9;display:flex;flex-direction:column;gap:2px;}
+.ref-item:last-child{border-bottom:none;}
+.ref-name{font-size:12px;font-weight:700;color:#0f172a;}
+.ref-url{font-family:'Fira Code',monospace;font-size:9.5px;color:#64748b;}
+.ref-desc{font-size:10px;color:#94a3b8;margin-top:1px;}
+/* group colors */
+.g1 .group-title{color:#7c3aed;border-color:#ddd6fe;}
+.g2 .group-title{color:#1d4ed8;border-color:#bfdbfe;}
+.g3 .group-title{color:#be185d;border-color:#fce7f3;}
+.g4 .group-title{color:#c2410c;border-color:#fed7aa;}
+.g5 .group-title{color:#0f766e;border-color:#99f6e4;}
+.g6 .group-title{color:#334155;border-color:#e2e8f0;}
+.branding{position:absolute;bottom:14px;left:60px;font-size:11px;color:#94a3b8;font-weight:600;}
+.thanks{position:absolute;bottom:10px;right:60px;font-size:22px;font-weight:900;color:#e2e8f0;letter-spacing:-1px;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="top-bar"></div>
+  <div class="header">
+    <div>
+      <div class="tag">10 · Sources</div>
+      <div class="slide-title"><span>References</span></div>
+    </div>
+    <div class="pg">10 / 10</div>
+  </div>
+  <div class="body">
+    <div class="ref-group g1">
+      <div class="group-title">⚛️ Frontend</div>
+      <div class="ref-item"><div class="ref-name">React 19 Documentation</div><div class="ref-url">react.dev</div></div>
+      <div class="ref-item"><div class="ref-name">Vite Documentation</div><div class="ref-url">vitejs.dev</div></div>
+      <div class="ref-item"><div class="ref-name">Tailwind CSS v4</div><div class="ref-url">tailwindcss.com</div></div>
+      <div class="ref-item"><div class="ref-name">Framer Motion</div><div class="ref-url">framer.com/motion</div></div>
+      <div class="ref-item"><div class="ref-name">Recharts</div><div class="ref-url">recharts.org</div></div>
+      <div class="ref-item"><div class="ref-name">Lucide React Icons</div><div class="ref-url">lucide.dev</div></div>
+    </div>
+    <div class="ref-group g2">
+      <div class="group-title">🍃 Backend</div>
+      <div class="ref-item"><div class="ref-name">Spring Boot 3.2</div><div class="ref-url">spring.io/projects/spring-boot</div></div>
+      <div class="ref-item"><div class="ref-name">PostgreSQL 16</div><div class="ref-url">postgresql.org</div></div>
+      <div class="ref-item"><div class="ref-name">Flyway Migrations</div><div class="ref-url">flywaydb.org</div></div>
+      <div class="ref-item"><div class="ref-name">JJWT (JWT Library)</div><div class="ref-url">github.com/jwtk/jjwt</div></div>
+      <div class="ref-item"><div class="ref-name">Bucket4j Rate Limiting</div><div class="ref-url">bucket4j.com</div></div>
+      <div class="ref-item"><div class="ref-name">Apache PDFBox</div><div class="ref-url">pdfbox.apache.org</div></div>
+    </div>
+    <div class="ref-group g3">
+      <div class="group-title">🤖 AI &amp; ML</div>
+      <div class="ref-item"><div class="ref-name">Groq API (LLaMA 3.3)</div><div class="ref-url">console.groq.com</div></div>
+      <div class="ref-item"><div class="ref-name">Google Gemini 2.0 Flash</div><div class="ref-url">ai.google.dev</div></div>
+      <div class="ref-item"><div class="ref-name">Meta LLaMA 4 Scout Vision</div><div class="ref-url">llama.meta.com</div></div>
+      <div class="ref-item"><div class="ref-name">Tesseract.js OCR</div><div class="ref-url">tesseract.projectnaptha.com</div></div>
+      <div class="ref-item"><div class="ref-name">PDF.js</div><div class="ref-url">mozilla.github.io/pdf.js</div></div>
+    </div>
+    <div class="ref-group g4">
+      <div class="group-title">🔗 External APIs</div>
+      <div class="ref-item"><div class="ref-name">GitHub REST API v3</div><div class="ref-url">docs.github.com/en/rest</div></div>
+      <div class="ref-item"><div class="ref-name">Fitbit Web API</div><div class="ref-url">dev.fitbit.com</div></div>
+      <div class="ref-item"><div class="ref-name">Adzuna Job Search API</div><div class="ref-url">developer.adzuna.com</div></div>
+      <div class="ref-item"><div class="ref-name">Jooble Job API</div><div class="ref-url">jooble.org/api</div></div>
+      <div class="ref-item"><div class="ref-name">Nutritionix API</div><div class="ref-url">developer.nutritionix.com</div></div>
+    </div>
+    <div class="ref-group g5">
+      <div class="group-title">📦 Libraries</div>
+      <div class="ref-item"><div class="ref-name">date-fns</div><div class="ref-url">date-fns.org</div></div>
+      <div class="ref-item"><div class="ref-name">UUID (npm)</div><div class="ref-url">npmjs.com/package/uuid</div></div>
+      <div class="ref-item"><div class="ref-name">Apache POI (Excel)</div><div class="ref-url">poi.apache.org</div></div>
+      <div class="ref-item"><div class="ref-name">OpenCSV</div><div class="ref-url">opencsv.sourceforge.net</div></div>
+      <div class="ref-item"><div class="ref-name">Lombok</div><div class="ref-url">projectlombok.org</div></div>
+    </div>
+    <div class="ref-group g6">
+      <div class="group-title">📚 Concepts</div>
+      <div class="ref-item"><div class="ref-name">Digital Twin Technology</div><div class="ref-desc">Grieves, M. — Origin of the Digital Twin concept, 2002</div></div>
+      <div class="ref-item"><div class="ref-name">Cascade Effects in Complex Systems</div><div class="ref-desc">Inspired by stress-spending research in behavioural economics</div></div>
+      <div class="ref-item"><div class="ref-name">Retrieval-Augmented Generation</div><div class="ref-desc">Lewis et al. — RAG patterns for context-aware AI coaching</div></div>
+      <div class="ref-item"><div class="ref-name">Deterministic vs Probabilistic AI</div><div class="ref-desc">Hybrid approach — rule engines + LLM narratives</div></div>
+    </div>
+  </div>
+  <div class="branding">◈ BeyondSelf · Digital Twin</div>
+  <div class="thanks">Thank You 🙏</div>
+</div>
+</body></html>

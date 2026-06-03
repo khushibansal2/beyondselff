@@ -121,7 +121,7 @@ export function AuthProvider({ children }) {
   };
 
   // ── Real signup — backend registers user & issues signed JWT ─────────────────
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, age = null, gender = null) => {
     if (Object.values(demoUsers).find(u => u.email === email))
       return { success: false, error: 'Email already exists' };
 
@@ -129,12 +129,12 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, age, gender }),
       });
       let data = {};
       try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
       if (!res.ok) return { success: false, error: data.error || data.message || 'Signup failed' };
-      const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤' };
+      const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: age ?? data.age ?? null, gender: gender ?? data.gender ?? null };
       setUser(userObj); setToken(data.token); setIsDemo(false);
       localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
       return { success: true, isNew: true };

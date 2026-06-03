@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1400" />
+<title>BeyondSelf — Agenda</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #ececec; font-family: 'Inter', sans-serif; }
+
+  .slide {
+    width: 1400px; height: 900px;
+    margin: 0 auto;
+    background: #ffffff;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+  }
+
+  /* ── decorative background shapes ── */
+  .deco {
+    position: absolute; border-radius: 50%;
+    pointer-events: none; z-index: 0;
+  }
+  .deco-1 { width:520px; height:520px; background:#f3e8ff; top:-160px; right:-120px; }
+  .deco-2 { width:360px; height:360px; background:#dbeafe; bottom:-100px; left:220px; }
+  .deco-3 { width:200px; height:200px; background:#d1fae5; bottom:60px; right:60px; }
+  .deco-4 { width:140px; height:140px; background:#fce7f3; top:60px; left:300px; }
+
+  /* ── LEFT PANEL ── */
+  .left {
+    width: 300px; flex-shrink: 0;
+    background: #faf7ff;
+    border-right: 1px solid #ede9fe;
+    padding: 52px 32px 44px 44px;
+    display: flex; flex-direction: column;
+    position: relative; z-index: 1;
+  }
+
+  .brand-row { display:flex; align-items:center; gap:8px; margin-bottom:44px; }
+  .brand-dot {
+    width:28px; height:28px; border-radius:8px;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; color:white; font-weight:900;
+  }
+  .brand-name { font-size:13px; font-weight:800; color:#4c1d95; }
+  .brand-sub  { font-size:8px; font-weight:600; letter-spacing:1.5px; color:#a78bfa; text-transform:uppercase; }
+
+  .agenda-tag {
+    font-size:10px; font-weight:700; letter-spacing:3px;
+    text-transform:uppercase; color:#a855f7; margin-bottom:10px;
+  }
+  .agenda-title {
+    font-size:46px; font-weight:900; color:#1e1b4b; line-height:1.0;
+    margin-bottom:14px;
+  }
+  .agenda-title em { color:#a855f7; font-style:normal; display:block; }
+  .agenda-rule { width:40px; height:4px; border-radius:2px; background:#a855f7; margin-bottom:20px; }
+
+  .agenda-desc {
+    font-size:12px; color:#6b7280; line-height:1.7; margin-bottom:auto;
+  }
+
+  .left-footer { padding-top:24px; }
+  .count-label { font-size:10px; color:#a78bfa; font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+  .count-num   { font-size:34px; font-weight:900; color:#1e1b4b; line-height:1; }
+  .count-num span { font-size:14px; font-weight:500; color:#9ca3af; }
+
+  /* ── RIGHT GRID ── */
+  .right {
+    flex: 1;
+    padding: 36px 40px 36px 36px;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative; z-index: 1;
+  }
+
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .item {
+    border-radius: 14px;
+    padding: 15px 18px;
+    display: flex; align-items: center; gap: 14px;
+    border: 1px solid transparent;
+    position: relative; overflow: hidden;
+  }
+
+  /* color themes per item */
+  .i1  { background:#faf5ff; border-color:#e9d5ff; }
+  .i2  { background:#eff6ff; border-color:#bfdbfe; }
+  .i3  { background:#fdf2f8; border-color:#fbcfe8; }
+  .i4  { background:#ecfdf5; border-color:#a7f3d0; }
+  .i5  { background:#fff7ed; border-color:#fed7aa; }
+  .i6  { background:#f0fdf4; border-color:#bbf7d0; }
+  .i7  { background:#eef2ff; border-color:#c7d2fe; }
+  .i8  { background:#fffbeb; border-color:#fde68a; }
+  .i9  { background:#f0fdfa; border-color:#99f6e4; }
+  .i10 { background:#f8fafc; border-color:#e2e8f0; }
+
+  /* number badge */
+  .num {
+    width: 38px; height: 38px; flex-shrink: 0;
+    border-radius: 10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 14px; font-weight: 900; color: white;
+    letter-spacing: -0.5px;
+  }
+  .i1  .num { background: #7c3aed; }
+  .i2  .num { background: #1d4ed8; }
+  .i3  .num { background: #be185d; }
+  .i4  .num { background: #065f46; }
+  .i5  .num { background: #c2410c; }
+  .i6  .num { background: #15803d; }
+  .i7  .num { background: #4338ca; }
+  .i8  .num { background: #92400e; }
+  .i9  .num { background: #0f766e; }
+  .i10 .num { background: #475569; }
+
+  .item-icon { font-size: 22px; flex-shrink: 0; }
+
+  .item-body { flex: 1; min-width: 0; }
+  .item-cat {
+    font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 3px;
+  }
+  .i1  .item-cat { color: #a855f7; }
+  .i2  .item-cat { color: #3b82f6; }
+  .i3  .item-cat { color: #ec4899; }
+  .i4  .item-cat { color: #10b981; }
+  .i5  .item-cat { color: #f97316; }
+  .i6  .item-cat { color: #22c55e; }
+  .i7  .item-cat { color: #6366f1; }
+  .i8  .item-cat { color: #f59e0b; }
+  .i9  .item-cat { color: #14b8a6; }
+  .i10 .item-cat { color: #64748b; }
+
+  .item-title {
+    font-size: 13.5px; font-weight: 700; color: #1e1b4b;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* decorative corner bar on each card */
+  .item::after {
+    content: '';
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: 0 14px 14px 0;
+  }
+  .i1::after  { background: #a855f7; }
+  .i2::after  { background: #3b82f6; }
+  .i3::after  { background: #ec4899; }
+  .i4::after  { background: #10b981; }
+  .i5::after  { background: #f97316; }
+  .i6::after  { background: #22c55e; }
+  .i7::after  { background: #6366f1; }
+  .i8::after  { background: #f59e0b; }
+  .i9::after  { background: #14b8a6; }
+  .i10::after { background: #64748b; }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <!-- background shapes -->
+  <div class="deco deco-1"></div>
+  <div class="deco deco-2"></div>
+  <div class="deco deco-3"></div>
+  <div class="deco deco-4"></div>
+
+  <!-- LEFT PANEL -->
+  <div class="left">
+    <div class="brand-row">
+      <div class="brand-dot">◈</div>
+      <div>
+        <div class="brand-name">BeyondSelf</div>
+        <div class="brand-sub">Digital Twin</div>
+      </div>
+    </div>
+
+    <div class="agenda-tag">Presentation</div>
+    <div class="agenda-title">What<br>We'll<br><em>Cover</em></div>
+    <div class="agenda-rule"></div>
+    <div class="agenda-desc">
+      A walkthrough of our AI-powered Digital Twin — from the problem we solve to the technology powering it all.
+    </div>
+
+    <div class="left-footer">
+      <div class="count-label">Total Sections</div>
+      <div class="count-num">10 <span>topics</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT GRID -->
+  <div class="right">
+    <div class="grid">
+
+      <div class="item i1">
+        <div class="num">01</div>
+        <div class="item-icon">🎯</div>
+        <div class="item-body">
+          <div class="item-cat">Foundation</div>
+          <div class="item-title">Problem Statement / Objective</div>
+        </div>
+      </div>
+
+      <div class="item i6">
+        <div class="num">06</div>
+        <div class="item-icon">🚀</div>
+        <div class="item-body">
+          <div class="item-cat">Result</div>
+          <div class="item-title">Outcome / Demo</div>
+        </div>
+      </div>
+
+      <div class="item i2">
+        <div class="num">02</div>
+        <div class="item-icon">🏗️</div>
+        <div class="item-body">
+          <div class="item-cat">Design</div>
+          <div class="item-title">Architecture Diagram</div>
+        </div>
+      </div>
+
+      <div class="item i7">
+        <div class="num">07</div>
+        <div class="item-icon">💡</div>
+        <div class="item-body">
+          <div class="item-cat">Differentiator</div>
+          <div class="item-title">Novelty / Innovation</div>
+        </div>
+      </div>
+
+      <div class="item i3">
+        <div class="num">03</div>
+        <div class="item-icon">🖥️</div>
+        <div class="item-body">
+          <div class="item-cat">Experience</div>
+          <div class="item-title">UI / UX Mock Ups</div>
+        </div>
+      </div>
+
+      <div class="item i8">
+        <div class="num">08</div>
+        <div class="item-icon">🧗</div>
+        <div class="item-body">
+          <div class="item-cat">Reflection</div>
+          <div class="item-title">Challenges / Learnings</div>
+        </div>
+      </div>
+
+      <div class="item i4">
+        <div class="num">04</div>
+        <div class="item-icon">🔄</div>
+        <div class="item-body">
+          <div class="item-cat">Flow</div>
+          <div class="item-title">Data Flow Diagram</div>
+        </div>
+      </div>
+
+      <div class="item i9">
+        <div class="num">09</div>
+        <div class="item-icon">👥</div>
+        <div class="item-body">
+          <div class="item-cat">Team</div>
+          <div class="item-title">Individual Team Contributions</div>
+        </div>
+      </div>
+
+      <div class="item i5">
+        <div class="num">05</div>
+        <div class="item-icon">⚙️</div>
+        <div class="item-body">
+          <div class="item-cat">Engineering</div>
+          <div class="item-title">Tech Stack Selection &amp; Reason</div>
+        </div>
+      </div>
+
+      <div class="item i10">
+        <div class="num">10</div>
+        <div class="item-icon">📚</div>
+        <div class="item-body">
+          <div class="item-cat">Sources</div>
+          <div class="item-title">References</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

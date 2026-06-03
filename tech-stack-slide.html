@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1400" />
+<title>BeyondSelf — Tech Stack</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #050508; font-family: 'Inter', sans-serif; color: #f1f5f9; }
+
+  .slide { width:1400px; height:900px; margin:0 auto; background:#09091a; overflow:hidden; position:relative; display:flex; }
+  .slide + .slide { border-top: 3px solid #050508; }
+
+  /* ══════════════════════════════════
+     SLIDE 1 — DARK FUNNEL
+  ══════════════════════════════════ */
+  .funnel-slide { background: #09091a; }
+
+  /* subtle ambient glow */
+  .funnel-slide::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 60% 55% at 80% 50%, rgba(168,85,247,0.08) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 40% at 10% 80%, rgba(34,211,238,0.05) 0%, transparent 60%);
+  }
+
+  /* LEFT PANEL */
+  .fl { width:258px; flex-shrink:0; background:#0d0d22; border-right:1px solid rgba(255,255,255,0.07); padding:36px 22px 36px 36px; display:flex; flex-direction:column; position:relative; z-index:1; }
+  .fl-brand { display:flex; align-items:center; gap:9px; margin-bottom:28px; }
+  .fl-brand-icon { width:28px; height:28px; border-radius:7px; background:rgba(168,85,247,0.2); border:1px solid rgba(168,85,247,0.4); display:flex; align-items:center; justify-content:center; font-size:14px; color:#a855f7; }
+  .fl-brand-name { font-size:13px; font-weight:800; color:#ffffff; }
+  .fl-brand-tag  { font-size:7.5px; font-weight:600; letter-spacing:1.5px; color:rgba(255,255,255,0.3); text-transform:uppercase; }
+
+  .fl-tagline { font-size:22px; font-weight:900; line-height:1.2; margin-bottom:10px; margin-top:28px; }
+  .fl-tagline .w { color:#ffffff; }
+  .fl-tagline .p { color:#a855f7; }
+  .fl-rule { width:30px; height:3px; background:#a855f7; border-radius:2px; margin-bottom:12px; }
+  .fl-desc { font-size:11px; color:rgba(255,255,255,0.38); line-height:1.65; margin-bottom:auto; }
+  .fl-desc strong { color:#a855f7; font-weight:600; }
+
+  .fl-pillars { display:flex; flex-direction:column; gap:8px; padding-top:18px; }
+  .fl-pillar  { display:flex; align-items:center; gap:8px; }
+  .fl-pill-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+  .fl-pill-text { font-size:10.5px; color:rgba(255,255,255,0.35); font-weight:500; }
+
+  /* FUNNEL */
+  .fr { flex:1; padding:18px 22px 18px 16px; display:flex; flex-direction:column; justify-content:center; gap:4px; position:relative; z-index:1; }
+
+  .fr-row { border-radius:5px; display:flex; align-items:center; height:94px; flex-shrink:0; margin:0 auto; overflow:hidden; position:relative; }
+  .fr-row.ra { width:100%;  background:rgba(168,85,247,0.13); border-left:3px solid #a855f7; }
+  .fr-row.rb { width: 93%;  background:rgba(34,211,238,0.10);  border-left:3px solid #22d3ee; }
+  .fr-row.rc { width: 86%;  background:rgba(249,115,22,0.10);  border-left:3px solid #f97316; }
+  .fr-row.rd { width: 79%;  background:rgba(59,130,246,0.10);  border-left:3px solid #3b82f6; }
+  .fr-row.re { width: 70%;  background:rgba(16,185,129,0.10);  border-left:3px solid #10b981; }
+
+  .fr-inner { width:100%; height:100%; display:flex; align-items:center; padding:0 14px; gap:10px; }
+  .fr-lbl { flex-shrink:0; width:100px; }
+  .fr-lbl-cat { font-size:7.5px; font-weight:800; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
+  .ra .fr-lbl-cat { color:#a855f7; } .rb .fr-lbl-cat { color:#22d3ee; } .rc .fr-lbl-cat { color:#f97316; }
+  .rd .fr-lbl-cat { color:#3b82f6; } .re .fr-lbl-cat { color:#10b981; }
+  .fr-lbl-name { font-size:11px; font-weight:700; color:#ffffff; line-height:1.3; }
+  .fr-sep { width:1px; height:30px; flex-shrink:0; background:rgba(255,255,255,0.1); }
+  .fr-cards { display:flex; align-items:center; gap:7px; flex:1; justify-content:center; }
+  .fr-card { width:76px; height:74px; flex-shrink:0; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; padding:6px 3px; }
+  .ra .fr-card { background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.3); }
+  .rb .fr-card { background:rgba(34,211,238,0.12);  border:1px solid rgba(34,211,238,0.28); }
+  .rc .fr-card { background:rgba(249,115,22,0.12);  border:1px solid rgba(249,115,22,0.28); }
+  .rd .fr-card { background:rgba(59,130,246,0.12);  border:1px solid rgba(59,130,246,0.28); }
+  .re .fr-card { background:rgba(16,185,129,0.12);  border:1px solid rgba(16,185,129,0.28); }
+  .fr-card i { font-size:22px; }
+  .li { width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; letter-spacing:-0.5px; }
+  .fr-card-name { font-size:9px; font-weight:600; text-align:center; color:rgba(255,255,255,0.8); line-height:1.25; }
+
+  /* ══════════════════════════════════
+     SLIDES 2 & 3 — DARK DETAIL
+  ══════════════════════════════════ */
+  .detail-slide { background:#09091a; flex-direction:column; padding:44px 56px 36px; }
+  .detail-slide::before {
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(ellipse 55% 50% at 8%  15%, rgba(168,85,247,0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 45% 40% at 92% 85%, rgba(34,211,238,0.07) 0%, transparent 55%);
+  }
+  .detail-slide > * { position:relative; z-index:1; }
+
+  .header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:26px; flex-shrink:0; }
+  .slide-label { font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#a855f7; opacity:.9; margin-bottom:6px; }
+  .title { font-size:34px; font-weight:900; line-height:1.1; color:#ffffff; }
+  .title span { color:#a855f7; }
+  .subtitle { font-size:12.5px; color:rgba(255,255,255,0.35); margin-top:5px; }
+  .header-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .badge { background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.35); border-radius:100px; padding:5px 14px; font-size:11px; font-weight:600; color:#a855f7; }
+  .page-num { font-size:11px; color:rgba(255,255,255,0.2); font-weight:600; letter-spacing:1px; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1; min-height:0; }
+  .section { border-radius:18px; border:1px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.04); padding:20px 20px 18px; display:flex; flex-direction:column; overflow:hidden; }
+  .section.frontend     { border-color:rgba(168,85,247,0.25); }
+  .section.backend      { border-color:rgba(59,130,246,0.25);  }
+  .section.ai           { border-color:rgba(34,211,238,0.25);  }
+  .section.integrations { border-color:rgba(245,158,11,0.25);  }
+  .section-header { display:flex; align-items:center; gap:10px; padding-bottom:13px; border-bottom:1px solid rgba(255,255,255,0.07); margin-bottom:13px; flex-shrink:0; }
+  .section-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .frontend     .section-icon { background:rgba(168,85,247,0.18); }
+  .backend      .section-icon { background:rgba(59,130,246,0.18);  }
+  .ai           .section-icon { background:rgba(34,211,238,0.18);  }
+  .integrations .section-icon { background:rgba(245,158,11,0.18);  }
+  .section-title { font-size:14px; font-weight:800; }
+  .frontend     .section-title { color:#a855f7; }
+  .backend      .section-title { color:#3b82f6; }
+  .ai           .section-title { color:#22d3ee; }
+  .integrations .section-title { color:#f59e0b; }
+  .section-desc { font-size:10.5px; color:rgba(255,255,255,0.25); margin-left:auto; text-align:right; line-height:1.4; }
+  .tech-list { display:flex; flex-direction:column; gap:9px; flex:1; }
+  .tech-item { display:grid; grid-template-columns:176px 1fr; gap:12px; align-items:center; }
+  .tech-left { display:flex; align-items:center; gap:9px; }
+  .t-icon { width:26px; height:26px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-radius:7px; }
+  .t-icon i { font-size:18px; }
+  .letter-icon { width:26px; height:26px; flex-shrink:0; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; letter-spacing:-0.5px; }
+  .tech-meta { display:flex; flex-direction:column; gap:3px; }
+  .tech-name { font-size:12.5px; font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .tech-version { font-family:'Fira Code',monospace; font-size:9px; color:rgba(255,255,255,0.22); background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:4px; padding:1px 5px; }
+  .tech-tag { font-size:9px; font-weight:700; letter-spacing:.5px; padding:2px 7px; border-radius:100px; width:fit-content; }
+  .tag-purple { background:rgba(168,85,247,0.18); color:#c084fc; border:1px solid rgba(168,85,247,0.3); }
+  .tag-blue   { background:rgba(59,130,246,0.18);  color:#93c5fd; border:1px solid rgba(59,130,246,0.3); }
+  .tag-cyan   { background:rgba(34,211,238,0.18);  color:#67e8f9; border:1px solid rgba(34,211,238,0.3); }
+  .tag-amber  { background:rgba(245,158,11,0.18);  color:#fcd34d; border:1px solid rgba(245,158,11,0.3); }
+  .tech-why { font-size:11px; color:rgba(255,255,255,0.42); line-height:1.4; padding-top:1px; }
+  .tech-why strong { color:rgba(255,255,255,0.78); font-weight:600; }
+  .tech-divider { height:1px; background:rgba(255,255,255,0.06); }
+  .engines-strip { flex-shrink:0; margin-top:14px; border-radius:13px; border:1px solid rgba(16,185,129,0.22); background:rgba(16,185,129,0.07); padding:12px 18px; display:flex; align-items:center; gap:12px; }
+  .engines-label { font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#10b981; white-space:nowrap; flex-shrink:0; }
+  .engines-sep { width:1px; height:26px; background:rgba(16,185,129,0.25); flex-shrink:0; }
+  .engines-list { display:flex; flex-wrap:wrap; gap:5px; flex:1; }
+  .engine-chip { font-size:10px; font-weight:600; padding:3px 10px; border-radius:100px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); color:#6ee7b7; white-space:nowrap; }
+  .engines-note { font-size:10px; color:rgba(255,255,255,0.25); flex-shrink:0; max-width:200px; line-height:1.4; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SLIDE 1 — DARK FUNNEL ══════════════ -->
+<div class="slide funnel-slide">
+  <div class="fl">
+    <div class="fl-brand">
+      <div class="fl-brand-icon">◈</div>
+      <div>
+        <div class="fl-brand-name">BeyondSelf</div>
+        <div class="fl-brand-tag">Digital Twin</div>
+      </div>
+    </div>
+
+    <div class="fl-tagline">
+      <div class="w">One Twin.</div>
+      <div class="p">Limitless<br>Possibilities.</div>
+    </div>
+    <div class="fl-rule"></div>
+    <div class="fl-desc">Every technology chosen to power <strong>BeyondSelf's</strong> AI-driven life intelligence platform — from browser to brain.</div>
+
+    <div class="fl-pillars">
+      <div class="fl-pillar"><div class="fl-pill-dot" style="background:#a855f7;"></div><div class="fl-pill-text">100% Offline Capable</div></div>
+      <div class="fl-pillar"><div class="fl-pill-dot" style="background:#22d3ee;"></div><div class="fl-pill-text">Privacy First Design</div></div>
+      <div class="fl-pillar"><div class="fl-pill-dot" style="background:#10b981;"></div><div class="fl-pill-text">Free-tier AI, Zero Cost</div></div>
+      <div class="fl-pillar"><div class="fl-pill-dot" style="background:#f97316;"></div><div class="fl-pill-text">Built for Performance</div></div>
+    </div>
+  </div>
+
+  <div class="fr">
+    <!-- ROW 1: AI -->
+    <div class="fr-row ra">
+      <div class="fr-inner">
+        <div class="fr-lbl"><div class="fr-lbl-cat">AI &amp; Intelligence</div><div class="fr-lbl-name">Models &amp; OCR</div></div>
+        <div class="fr-sep"></div>
+        <div class="fr-cards">
+          <div class="fr-card"><div class="li" style="background:rgba(249,115,22,0.25);color:#fb923c;">GRQ</div><div class="fr-card-name">Groq<br>LLaMA 3.3</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(59,130,246,0.25);color:#93c5fd;">GEM</div><div class="fr-card-name">Gemini<br>2.0 Flash</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(249,115,22,0.25);color:#fb923c;">L4V</div><div class="fr-card-name">LLaMA 4<br>Scout Vision</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(16,185,129,0.25);color:#6ee7b7;">OCR</div><div class="fr-card-name">Tesseract.js<br>OCR</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: INTEGRATIONS -->
+    <div class="fr-row rb">
+      <div class="fr-inner">
+        <div class="fr-lbl"><div class="fr-lbl-cat">Integrations</div><div class="fr-lbl-name">Data Sources</div></div>
+        <div class="fr-sep"></div>
+        <div class="fr-cards">
+          <div class="fr-card"><i class="devicon-github-original" style="color:#e2e8f0;"></i><div class="fr-card-name">GitHub<br>API v3</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(34,211,238,0.25);color:#67e8f9;">FIT</div><div class="fr-card-name">Fitbit<br>OAuth 2.0</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(245,158,11,0.25);color:#fcd34d;">ADZ</div><div class="fr-card-name">Adzuna<br>+ Jooble</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(16,185,129,0.25);color:#6ee7b7;">NX</div><div class="fr-card-name">Nutritionix<br>API</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(34,211,238,0.25);color:#67e8f9;">PDF</div><div class="fr-card-name">CSV · PDF<br>Excel</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: BACKEND -->
+    <div class="fr-row rc">
+      <div class="fr-inner">
+        <div class="fr-lbl"><div class="fr-lbl-cat">Backend</div><div class="fr-lbl-name">API &amp; Engine</div></div>
+        <div class="fr-sep"></div>
+        <div class="fr-cards">
+          <div class="fr-card"><i class="devicon-spring-original colored"></i><div class="fr-card-name">Spring Boot<br>3.2</div></div>
+          <div class="fr-card"><i class="devicon-postgresql-original colored"></i><div class="fr-card-name">PostgreSQL</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(59,130,246,0.25);color:#93c5fd;">JWT</div><div class="fr-card-name">JWT +<br>BCrypt</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(239,68,68,0.25);color:#fca5a5;">FW</div><div class="fr-card-name">Flyway<br>Migrations</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(249,115,22,0.25);color:#fb923c;">B4j</div><div class="fr-card-name">Bucket4j<br>Rate Limit</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(168,85,247,0.25);color:#c084fc;">POI</div><div class="fr-card-name">POI ·<br>PDFBox</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 4: FRONTEND -->
+    <div class="fr-row rd">
+      <div class="fr-inner">
+        <div class="fr-lbl"><div class="fr-lbl-cat">Frontend</div><div class="fr-lbl-name">Web App</div></div>
+        <div class="fr-sep"></div>
+        <div class="fr-cards">
+          <div class="fr-card"><i class="devicon-react-original colored"></i><div class="fr-card-name">React 19</div></div>
+          <div class="fr-card"><i class="devicon-vitejs-plain colored"></i><div class="fr-card-name">Vite 8</div></div>
+          <div class="fr-card"><i class="devicon-tailwindcss-original colored"></i><div class="fr-card-name">Tailwind<br>CSS v4</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(99,102,241,0.25);color:#a5b4fc;">FM</div><div class="fr-card-name">Framer<br>Motion</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(34,211,238,0.25);color:#67e8f9;">RC</div><div class="fr-card-name">Recharts<br>Data Viz</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 5: DEVOPS -->
+    <div class="fr-row re">
+      <div class="fr-inner">
+        <div class="fr-lbl"><div class="fr-lbl-cat">DevOps</div><div class="fr-lbl-name">Deployment</div></div>
+        <div class="fr-sep"></div>
+        <div class="fr-cards">
+          <div class="fr-card"><i class="devicon-github-original" style="color:#e2e8f0;"></i><div class="fr-card-name">GitHub</div></div>
+          <div class="fr-card"><i class="devicon-docker-plain colored"></i><div class="fr-card-name">Docker</div></div>
+          <div class="fr-card"><div class="li" style="background:rgba(16,185,129,0.25);color:#6ee7b7;font-size:9px;">RND</div><div class="fr-card-name">Render<br>/ VPS</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ SLIDE 2 ══════════════ -->
+<div class="slide detail-slide">
+  <div class="header">
+    <div>
+      <div class="slide-label">Tech Stack Selection &amp; Reason</div>
+      <div class="title">What We Built With <span>&amp; Why</span></div>
+      <div class="subtitle">Every choice driven by a specific constraint — speed, zero cost, or offline resilience</div>
+    </div>
+    <div class="header-right">
+      <div class="badge">BeyondSelf · Digital Twin</div>
+      <div class="page-num">Slide 2 of 3</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="section frontend">
+      <div class="section-header">
+        <div class="section-icon">⚡</div>
+        <div class="section-title">Frontend</div>
+        <div class="section-desc">React 19 · Vite 8 · Tailwind v4</div>
+      </div>
+      <div class="tech-list">
+        <div class="tech-item">
+          <div class="tech-left"><div class="t-icon"><i class="devicon-react-original colored"></i></div><div class="tech-meta"><div class="tech-name">React 19 <span class="tech-version">v19.2</span></div><span class="tech-tag tag-purple">Concurrent Rendering</span></div></div>
+          <div class="tech-why">Concurrent model keeps UI smooth while <strong>9 engines compute simultaneously</strong></div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="t-icon"><i class="devicon-vitejs-plain colored"></i></div><div class="tech-meta"><div class="tech-name">Vite 8 <span class="tech-version">v8.0</span></div><span class="tech-tag tag-purple">Build Tool</span></div></div>
+          <div class="tech-why"><strong>Sub-100ms HMR</strong>; heavy pages lazy-bundle only when visited</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="t-icon"><i class="devicon-tailwindcss-original colored"></i></div><div class="tech-meta"><div class="tech-name">Tailwind CSS v4 <span class="tech-version">v4.3</span></div><span class="tech-tag tag-purple">Styling</span></div></div>
+          <div class="tech-why">Custom <code style="font-size:9.5px;color:#c084fc;">glass-card</code> &amp; <code style="font-size:9.5px;color:#c084fc;">bg-mesh</code> classes — zero raw CSS files</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(99,102,241,0.2);color:#a5b4fc;">FM</div><div class="tech-meta"><div class="tech-name">Framer Motion <span class="tech-version">v12.38</span></div><span class="tech-tag tag-purple">Animation</span></div></div>
+          <div class="tech-why">Spring physics for <strong>score rings &amp; page transitions</strong> — no manual loops</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(34,211,238,0.2);color:#67e8f9;">RC</div><div class="tech-meta"><div class="tech-name">Recharts <span class="tech-version">v3.8</span></div><span class="tech-tag tag-purple">Data Viz</span></div></div>
+          <div class="tech-why"><strong>AreaChart, BarChart, RadialBarChart</strong> — pure SVG, no canvas</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section backend">
+      <div class="section-header">
+        <div class="section-icon">🖥️</div>
+        <div class="section-title">Backend</div>
+        <div class="section-desc">Spring Boot 3.2 · Java 21 · PostgreSQL</div>
+      </div>
+      <div class="tech-list">
+        <div class="tech-item">
+          <div class="tech-left"><div class="t-icon"><i class="devicon-spring-original colored"></i></div><div class="tech-meta"><div class="tech-name">Spring Boot 3.2 <span class="tech-version">Java 21</span></div><span class="tech-tag tag-blue">API Server</span></div></div>
+          <div class="tech-why"><strong>Virtual threads (Loom)</strong> handle concurrent AI proxy calls without exhaustion</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(59,130,246,0.2);color:#93c5fd;">JWT</div><div class="tech-meta"><div class="tech-name">JWT + BCrypt <span class="tech-version">JJWT 0.12</span></div><span class="tech-tag tag-blue">Auth</span></div></div>
+          <div class="tech-why">Supports <strong>real JWT + demo tokens</strong> simultaneously — works offline for judges</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(59,130,246,0.2);color:#93c5fd;">B4j</div><div class="tech-meta"><div class="tech-name">Bucket4j <span class="tech-version">v8.10</span></div><span class="tech-tag tag-blue">Rate Limiting</span></div></div>
+          <div class="tech-why">Per-IP cap at <strong>20 req/min</strong> — shields free-tier Groq quota</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(239,68,68,0.2);color:#fca5a5;">FW</div><div class="tech-meta"><div class="tech-name">Flyway <span class="tech-version">v10.10</span></div><span class="tech-tag tag-blue">DB Migrations</span></div></div>
+          <div class="tech-why">Versioned SQL prevents <strong>schema drift</strong> across teammates</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="t-icon"><i class="devicon-postgresql-original colored"></i></div><div class="tech-meta"><div class="tech-name">POI · PDFBox · OpenCSV</div><span class="tech-tag tag-blue">File Parsing</span></div></div>
+          <div class="tech-why">Server-side <strong>Excel, PDF &amp; CSV parsing</strong>; files encrypted AES-256 at rest</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ SLIDE 3 ══════════════ -->
+<div class="slide detail-slide">
+  <div class="header">
+    <div>
+      <div class="slide-label">Tech Stack Selection &amp; Reason</div>
+      <div class="title">AI Layer <span>&amp; Integrations</span></div>
+      <div class="subtitle">Free-tier AI with deterministic fallbacks — fully functional with zero API keys</div>
+    </div>
+    <div class="header-right">
+      <div class="badge">BeyondSelf · Digital Twin</div>
+      <div class="page-num">Slide 3 of 3</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="section ai">
+      <div class="section-header">
+        <div class="section-icon">🧠</div>
+        <div class="section-title">AI &amp; Intelligence</div>
+        <div class="section-desc">Groq · Gemini · Tesseract</div>
+      </div>
+      <div class="tech-list">
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(249,115,22,0.2);color:#fb923c;font-size:9px;">GRQ</div><div class="tech-meta"><div class="tech-name">Groq · LLaMA 3.3-70b</div><span class="tech-tag tag-cyan">Chat / Coach</span></div></div>
+          <div class="tech-why"><strong>200 tok/s</strong> — instant coach replies; free tier, same quality as GPT-4</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(249,115,22,0.2);color:#fb923c;font-size:9px;">L4V</div><div class="tech-meta"><div class="tech-name">LLaMA 4 Scout Vision</div><span class="tech-tag tag-cyan">Multimodal</span></div></div>
+          <div class="tech-why">Reads <strong>meal photos, reports &amp; statements</strong> → auto-logs to correct domain</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(59,130,246,0.2);color:#93c5fd;font-size:9px;">GEM</div><div class="tech-meta"><div class="tech-name">Gemini 2.0 Flash</div><span class="tech-tag tag-cyan">Backend Proxy</span></div></div>
+          <div class="tech-why">Backend-proxied — <strong>key never hits browser</strong>; PII stripped before LLM</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(16,185,129,0.2);color:#6ee7b7;font-size:9px;">OCR</div><div class="tech-meta"><div class="tech-name">Tesseract.js <span class="tech-version">v7.0</span></div><span class="tech-tag tag-cyan">OCR</span></div></div>
+          <div class="tech-why"><strong>In-browser WASM OCR</strong> for receipts &amp; scanned PDFs — no upload needed</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(168,85,247,0.2);color:#c084fc;font-size:8px;">9×</div><div class="tech-meta"><div class="tech-name">Deterministic Engines</div><span class="tech-tag tag-cyan">Resilience</span></div></div>
+          <div class="tech-why">Pure rule-based math — <strong>fully functional offline</strong>, zero hallucination</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section integrations">
+      <div class="section-header">
+        <div class="section-icon">🔗</div>
+        <div class="section-title">Integrations</div>
+        <div class="section-desc">GitHub · Fitbit · Jobs · Nutrition</div>
+      </div>
+      <div class="tech-list">
+        <div class="tech-item">
+          <div class="tech-left"><div class="t-icon" style="background:rgba(255,255,255,0.08)"><i class="devicon-github-original" style="color:#e2e8f0;"></i></div><div class="tech-meta"><div class="tech-name">GitHub API v3</div><span class="tech-tag tag-amber">Developer</span></div></div>
+          <div class="tech-why">Real <strong>contribution heatmap &amp; language stats</strong> → auto-feeds Career Score</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(34,211,238,0.2);color:#67e8f9;font-size:9px;">FIT</div><div class="tech-meta"><div class="tech-name">Fitbit OAuth 2.0</div><span class="tech-tag tag-amber">Wearable</span></div></div>
+          <div class="tech-why">Syncs <strong>sleep, heart rate &amp; steps</strong> → Health Score, no manual entry</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(245,158,11,0.2);color:#fcd34d;font-size:9px;">JOB</div><div class="tech-meta"><div class="tech-name">Adzuna + Jooble</div><span class="tech-tag tag-amber">Job Boards</span></div></div>
+          <div class="tech-why">Dual-API for <strong>Indian + global listings</strong> matched to skill gaps</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="letter-icon" style="background:rgba(16,185,129,0.2);color:#6ee7b7;font-size:9px;">NX</div><div class="tech-meta"><div class="tech-name">Nutritionix API</div><span class="tech-tag tag-amber">Nutrition</span></div></div>
+          <div class="tech-why"><strong>500k+ foods</strong> with macros; Groq fallback when quota exceeded</div>
+        </div>
+        <div class="tech-divider"></div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="t-icon"><i class="devicon-postgresql-original colored"></i></div><div class="tech-meta"><div class="tech-name">PostgreSQL</div><span class="tech-tag tag-amber">Persistence</span></div></div>
+          <div class="tech-why">Production DB with <strong>Flyway versioned schema</strong> and JPA entities</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="engines-strip">
+    <div class="engines-label">⚙️ Scoring Engines</div>
+    <div class="engines-sep"></div>
+    <div class="engines-list">
+      <span class="engine-chip">Life Balance</span><span class="engine-chip">Health Score</span><span class="engine-chip">Finance Score</span><span class="engine-chip">Career Score</span><span class="engine-chip">Burnout Risk</span><span class="engine-chip">Anomaly Detection</span><span class="engine-chip">Trajectory</span><span class="engine-chip">Goal Progress</span><span class="engine-chip">Neural Engine</span>
+    </div>
+    <div class="engines-note">Cross-domain cascades in &lt;5ms — pure math, no AI dependency.</div>
+  </div>
+</div>
+
+</body>
+</html>

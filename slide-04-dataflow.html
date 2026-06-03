@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — DFD</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#06060f;font-family:'Inter',sans-serif;}
+.slide{
+  width:1400px;height:900px;margin:0 auto;
+  background:#07071a;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;
+}
+.slide::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 40% 40% at 15% 50%,rgba(139,92,246,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 35% 35% at 85% 50%,rgba(34,211,238,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 30% 30% at 50% 95%,rgba(59,130,246,0.07) 0%,transparent 60%);
+}
+.slide>*{position:relative;z-index:1;}
+
+/* HEADER */
+.hd{padding:18px 52px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hd-left{display:flex;flex-direction:column;gap:2px;}
+.tag{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#8b5cf6;}
+.title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.3px;}
+.title em{color:#8b5cf6;font-style:normal;}
+.hd-right{font-size:10px;color:rgba(255,255,255,0.15);font-weight:700;letter-spacing:1px;}
+
+/* LEGEND */
+.legend{
+  margin:8px 52px 0;
+  display:flex;gap:20px;align-items:center;
+  padding:7px 16px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:8px;
+  flex-shrink:0;
+}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:9.5px;color:rgba(255,255,255,0.4);font-weight:600;}
+.leg-box{width:18px;height:12px;border-radius:2px;border:1.5px solid;}
+.leg-circle{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);}
+.leg-store{width:20px;height:12px;border-top:2px solid rgba(255,255,255,0.5);border-bottom:2px solid rgba(255,255,255,0.5);}
+.leg-arr{display:flex;align-items:center;gap:2px;font-size:12px;color:rgba(255,255,255,0.4);}
+
+/* DFD CANVAS WRAPPER — 3D perspective tilt */
+.dfd-outer{
+  flex:1;
+  padding:10px 40px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.dfd-scene{
+  position:relative;
+  width:1300px;
+  height:640px;
+  /* Deep 3D perspective effect */
+  transform: perspective(1800px) rotateX(14deg) rotateY(-2deg) rotateZ(0deg);
+  transform-style: preserve-3d;
+  transform-origin: 50% 40%;
+}
+
+/* SVG overlay for arrows — full canvas */
+.arrows-svg{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  overflow:visible;
+  pointer-events:none;
+}
+
+/* NODE BASE */
+.node{
+  position:absolute;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:3px;
+  transform-style:preserve-3d;
+}
+
+/* External Entity */
+.ext{
+  border-radius:6px;
+  border:1.5px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.06);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    4px 6px 0 rgba(0,0,0,0.4),
+    8px 12px 20px rgba(0,0,0,0.5);
+}
+.ext::after{
+  content:'';position:absolute;
+  top:0;right:-6px;width:6px;height:100%;
+  background:rgba(255,255,255,0.05);
+  transform:skewY(-45deg);transform-origin:top right;
+  border-right:1px solid rgba(255,255,255,0.1);
+}
+.ext::before{
+  content:'';position:absolute;
+  top:-6px;left:0;right:0;height:6px;
+  background:rgba(255,255,255,0.1);
+  transform:skewX(-45deg);transform-origin:bottom left;
+  border-top:1px solid rgba(255,255,255,0.15);
+}
+
+/* Process (rounded) */
+.proc{
+  border-radius:12px;
+  border:1.5px solid;
+  box-shadow:
+    4px 8px 0 rgba(0,0,0,0.4),
+    8px 16px 24px rgba(0,0,0,0.5),
+    0 0 30px var(--glow,rgba(139,92,246,0.15));
+}
+.proc::after{
+  content:'';position:absolute;
+  top:0;right:-7px;width:7px;height:100%;
+  background:var(--side,rgba(139,92,246,0.1));
+  transform:skewY(-40deg);transform-origin:top right;
+  border-right:1px solid var(--border-side,rgba(139,92,246,0.2));
+  border-radius:0 4px 4px 0;
+}
+.proc::before{
+  content:'';position:absolute;
+  top:-6px;left:6px;right:-1px;height:6px;
+  background:var(--top,rgba(139,92,246,0.2));
+  transform:skewX(-40deg);transform-origin:bottom left;
+  border-top:1px solid var(--border-top,rgba(139,92,246,0.3));
+  border-radius:4px 4px 0 0;
+}
+
+/* Data Store */
+.store{
+  border-top:2px solid;
+  border-bottom:2px solid;
+  border-left:none;border-right:none;
+  padding:0 !important;
+  box-shadow:
+    3px 6px 0 rgba(0,0,0,0.4),
+    6px 12px 18px rgba(0,0,0,0.45);
+}
+.store::after{
+  content:'';position:absolute;
+  top:0;right:-5px;width:5px;height:100%;
+  background:var(--side,rgba(59,130,246,0.08));
+  transform:skewY(-40deg);transform-origin:top right;
+  border-top:2px solid var(--border-top,rgba(59,130,246,0.3));
+  border-bottom:2px solid var(--border-top,rgba(59,130,246,0.3));
+}
+
+/* node text */
+.n-icon{font-size:18px;line-height:1;margin-bottom:1px;}
+.n-label{font-size:9px;font-weight:800;letter-spacing:.5px;text-align:center;line-height:1.2;}
+.n-sub{font-size:7.5px;font-weight:500;text-align:center;opacity:.55;line-height:1.3;}
+
+/* colors */
+.purple{ --glow:rgba(139,92,246,0.2); --side:rgba(139,92,246,0.12); --top:rgba(139,92,246,0.22); --border-side:rgba(139,92,246,0.3); --border-top:rgba(139,92,246,0.4); border-color:rgba(139,92,246,0.5)!important; background:rgba(139,92,246,0.1)!important; }
+.purple .n-label{color:#c4b5fd;}
+.cyan  { --glow:rgba(34,211,238,0.15); --side:rgba(34,211,238,0.1); --top:rgba(34,211,238,0.18); --border-side:rgba(34,211,238,0.25); --border-top:rgba(34,211,238,0.35); border-color:rgba(34,211,238,0.45)!important; background:rgba(34,211,238,0.08)!important; }
+.cyan   .n-label{color:#67e8f9;}
+.green { --glow:rgba(74,222,128,0.15); --side:rgba(74,222,128,0.1); --top:rgba(74,222,128,0.18); --border-side:rgba(74,222,128,0.25); --border-top:rgba(74,222,128,0.35); border-color:rgba(74,222,128,0.45)!important; background:rgba(74,222,128,0.08)!important; }
+.green  .n-label{color:#86efac;}
+.amber { --glow:rgba(251,191,36,0.15); --side:rgba(251,191,36,0.1); --top:rgba(251,191,36,0.18); --border-side:rgba(251,191,36,0.25); --border-top:rgba(251,191,36,0.35); border-color:rgba(251,191,36,0.45)!important; background:rgba(251,191,36,0.08)!important; }
+.amber  .n-label{color:#fcd34d;}
+.pink  { --glow:rgba(236,72,153,0.15); --side:rgba(236,72,153,0.1); --top:rgba(236,72,153,0.18); --border-side:rgba(236,72,153,0.25); --border-top:rgba(236,72,153,0.35); border-color:rgba(236,72,153,0.45)!important; background:rgba(236,72,153,0.08)!important; }
+.pink   .n-label{color:#f9a8d4;}
+.blue  { border-color:rgba(59,130,246,0.5)!important; background:rgba(59,130,246,0.08)!important; --side:rgba(59,130,246,0.1); --border-top:rgba(59,130,246,0.4); }
+.blue   .n-label{color:#93c5fd;}
+
+/* white ext entity text */
+.ext .n-label{color:#e2e8f0;}
+
+/* bottom strip */
+.strip{
+  padding:8px 52px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.strip-left{font-size:9.5px;color:rgba(255,255,255,0.18);font-weight:600;}
+.strip-right{font-size:10px;font-weight:800;color:rgba(255,255,255,0.1);}
+.strip-right em{color:rgba(139,92,246,0.3);font-style:normal;}
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <div class="hd">
+    <div class="hd-left">
+      <div class="tag">04 · System Architecture</div>
+      <div class="title">Data Flow <em>Diagram</em> — BeyondSelf</div>
+    </div>
+    <div class="hd-right">◈ BeyondSelf · 04 / 10</div>
+  </div>
+
+  <div class="legend">
+    <div class="leg-item"><div class="leg-box" style="border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.05);"></div>External Entity</div>
+    <div class="leg-item"><div style="width:18px;height:12px;border-radius:5px;border:1.5px solid rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);"></div>Process</div>
+    <div class="leg-item"><div class="leg-store"></div>Data Store</div>
+    <div class="leg-item"><div class="leg-arr">──▶</div>Data Flow</div>
+    <div class="leg-item" style="margin-left:8px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.08);">
+      <span style="font-size:9px;color:rgba(255,255,255,0.25);">DFD Notation: rectangles = external, rounded = process, parallel lines = store</span>
+    </div>
+  </div>
+
+  <div class="dfd-outer">
+    <div class="dfd-scene">
+
+      <!-- ══════ SVG ARROWS ══════ -->
+      <svg class="arrows-svg" viewBox="0 0 1300 640">
+        <defs>
+          <!-- Glow filter -->
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <!-- Arrow markers -->
+          <marker id="ap" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,1 L9,5 L0,9 Z" fill="#a855f7"/>
+          </marker>
+          <marker id="ac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,1 L9,5 L0,9 Z" fill="#22d3ee"/>
+          </marker>
+          <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,1 L9,5 L0,9 Z" fill="#4ade80"/>
+          </marker>
+          <marker id="aa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,1 L9,5 L0,9 Z" fill="#fbbf24"/>
+          </marker>
+          <marker id="apk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,1 L9,5 L0,9 Z" fill="#ec4899"/>
+          </marker>
+          <marker id="aw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,1 L9,5 L0,9 Z" fill="rgba(255,255,255,0.5)"/>
+          </marker>
+          <!-- Label background -->
+          <filter id="lbg">
+            <feFlood flood-color="#07071a" result="bg"/>
+            <feMerge><feMergeNode in="bg"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- ── User → P1 Auth (login creds) -->
+        <path d="M 112 195 C 150 195 155 175 185 175" stroke="rgba(255,255,255,0.3)" stroke-width="1.8" fill="none" stroke-dasharray="none" marker-end="url(#aw)" filter="url(#glow)"/>
+        <text x="148" y="167" font-size="8" fill="rgba(255,255,255,0.35)" text-anchor="middle" font-family="Inter" font-weight="600">credentials</text>
+
+        <!-- ── User → P2 Ingestion (manual entry) -->
+        <path d="M 112 230 C 150 280 155 290 185 290" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" fill="none" marker-end="url(#aw)" filter="url(#glow)"/>
+        <text x="148" y="276" font-size="8" fill="rgba(255,255,255,0.35)" text-anchor="middle" font-family="Inter" font-weight="600">manual entry</text>
+
+        <!-- ── Ext APIs → P2 Ingestion -->
+        <path d="M 112 440 C 148 440 150 370 185 355" stroke="rgba(34,211,238,0.5)" stroke-width="1.8" fill="none" marker-end="url(#ac)" filter="url(#glow)"/>
+        <text x="138" y="410" font-size="8" fill="rgba(34,211,238,0.6)" text-anchor="middle" font-family="Inter" font-weight="600">real-time data</text>
+
+        <!-- ── Groq/Gemini → P4 AI (response) -->
+        <path d="M 835 95 C 835 115 835 120 835 145" stroke="rgba(251,191,36,0.6)" stroke-width="1.8" fill="none" marker-end="url(#aa)" filter="url(#glow)"/>
+        <text x="858" y="120" font-size="8" fill="rgba(251,191,36,0.7)" text-anchor="start" font-family="Inter" font-weight="600">response</text>
+
+        <!-- ── P4 AI → Groq/Gemini (prompt via proxy) -->
+        <path d="M 795 145 C 795 115 795 108 800 95" stroke="rgba(139,92,246,0.6)" stroke-width="1.8" fill="none" marker-end="url(#ap)" filter="url(#glow)"/>
+        <text x="758" y="118" font-size="8" fill="rgba(139,92,246,0.7)" text-anchor="middle" font-family="Inter" font-weight="600">prompt + scores</text>
+
+        <!-- ── P1 Auth → D1 PostgreSQL (user record) -->
+        <path d="M 255 215 C 255 255 270 270 280 540" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none" marker-end="url(#aw)" filter="url(#glow)" stroke-dasharray="5,3"/>
+        <text x="236" y="385" font-size="8" fill="rgba(255,255,255,0.25)" text-anchor="middle" font-family="Inter" font-weight="600">user record</text>
+
+        <!-- ── P2 Ingestion → P3 Engines (domain data) -->
+        <path d="M 335 315 C 395 315 430 315 455 315" stroke="rgba(139,92,246,0.7)" stroke-width="2" fill="none" marker-end="url(#ap)" filter="url(#glow)"/>
+        <text x="395" y="306" font-size="8.5" fill="rgba(139,92,246,0.8)" text-anchor="middle" font-family="Inter" font-weight="700">domain data</text>
+
+        <!-- ── P2 Ingestion → D2 localStorage -->
+        <path d="M 260 370 C 260 430 430 480 460 540" stroke="rgba(74,222,128,0.45)" stroke-width="1.5" fill="none" marker-end="url(#ag)" filter="url(#glow)" stroke-dasharray="5,3"/>
+        <text x="330" y="470" font-size="8" fill="rgba(74,222,128,0.55)" text-anchor="middle" font-family="Inter" font-weight="600">offline save</text>
+
+        <!-- ── D1 PostgreSQL ↔ P3 Engines (historical) -->
+        <path d="M 320 540 C 320 490 440 420 455 370" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none" marker-end="url(#aw)" filter="url(#glow)" stroke-dasharray="4,3"/>
+        <text x="355" y="460" font-size="8" fill="rgba(255,255,255,0.25)" text-anchor="middle" font-family="Inter" font-weight="600">historical data</text>
+
+        <!-- ── D2 localStorage → P3 Engines -->
+        <path d="M 560 540 C 560 490 555 420 555 370" stroke="rgba(74,222,128,0.4)" stroke-width="1.5" fill="none" marker-end="url(#ag)" filter="url(#glow)" stroke-dasharray="4,3"/>
+        <text x="588" y="463" font-size="8" fill="rgba(74,222,128,0.5)" text-anchor="start" font-family="Inter" font-weight="600">cached state</text>
+
+        <!-- ── P3 Engines → P4 AI Intelligence (scores + context) -->
+        <path d="M 640 285 C 700 240 740 210 755 210" stroke="rgba(139,92,246,0.8)" stroke-width="2.2" fill="none" marker-end="url(#ap)" filter="url(#glow)"/>
+        <text x="697" y="236" font-size="8.5" fill="rgba(139,92,246,0.9)" text-anchor="middle" font-family="Inter" font-weight="700">scores + context</text>
+
+        <!-- ── P3 Engines → P5 Simulator (current state) -->
+        <path d="M 640 345 C 700 380 740 390 755 390" stroke="rgba(34,211,238,0.7)" stroke-width="2" fill="none" marker-end="url(#ac)" filter="url(#glow)"/>
+        <text x="697" y="378" font-size="8.5" fill="rgba(34,211,238,0.8)" text-anchor="middle" font-family="Inter" font-weight="700">current state</text>
+
+        <!-- ── P3 Engines → Dashboard (life scores) -->
+        <path d="M 640 315 C 800 315 930 315 960 315" stroke="rgba(139,92,246,0.5)" stroke-width="1.8" fill="none" marker-end="url(#ap)" filter="url(#glow)" stroke-dasharray="6,3"/>
+        <text x="800" y="307" font-size="8" fill="rgba(139,92,246,0.6)" text-anchor="middle" font-family="Inter" font-weight="600">life scores</text>
+
+        <!-- ── P4 AI → Dashboard (narratives + recs) -->
+        <path d="M 915 230 C 940 270 950 290 960 305" stroke="rgba(251,191,36,0.7)" stroke-width="2" fill="none" marker-end="url(#aa)" filter="url(#glow)"/>
+        <text x="952" y="260" font-size="8.5" fill="rgba(251,191,36,0.8)" text-anchor="middle" font-family="Inter" font-weight="700">AI narratives</text>
+
+        <!-- ── P5 Simulator → Dashboard (projections) -->
+        <path d="M 915 390 C 940 370 950 350 960 330" stroke="rgba(34,211,238,0.7)" stroke-width="2" fill="none" marker-end="url(#ac)" filter="url(#glow)"/>
+        <text x="954" y="364" font-size="8.5" fill="rgba(34,211,238,0.8)" text-anchor="middle" font-family="Inter" font-weight="700">projections</text>
+
+        <!-- ── P4 AI → D3 AI Cache -->
+        <path d="M 835 260 C 835 380 835 480 835 540" stroke="rgba(251,191,36,0.35)" stroke-width="1.5" fill="none" marker-end="url(#aa)" filter="url(#glow)" stroke-dasharray="5,3"/>
+        <text x="858" y="415" font-size="8" fill="rgba(251,191,36,0.45)" text-anchor="start" font-family="Inter" font-weight="600">cache response</text>
+
+        <!-- ── D3 AI Cache → P4 AI (serve cached) -->
+        <path d="M 800 540 C 800 450 800 350 800 265" stroke="rgba(74,222,128,0.3)" stroke-width="1.5" fill="none" marker-end="url(#ag)" filter="url(#glow)" stroke-dasharray="4,3"/>
+
+        <!-- ── Dashboard → User (insights) -->
+        <path d="M 1080 285 C 1130 240 1180 210 1200 170" stroke="rgba(74,222,128,0.7)" stroke-width="2.2" fill="none" marker-end="url(#ag)" filter="url(#glow)"/>
+        <text x="1155" y="218" font-size="8.5" fill="rgba(74,222,128,0.8)" text-anchor="middle" font-family="Inter" font-weight="700">insights + UI</text>
+
+        <!-- ── Anomaly/Trajectory loop back to Dashboard -->
+        <path d="M 640 325 C 650 490 850 510 960 340" stroke="rgba(236,72,153,0.4)" stroke-width="1.5" fill="none" marker-end="url(#apk)" filter="url(#glow)" stroke-dasharray="5,3"/>
+        <text x="798" y="508" font-size="8" fill="rgba(236,72,153,0.5)" text-anchor="middle" font-family="Inter" font-weight="600">anomaly alerts · burnout risk</text>
+      </svg>
+
+      <!-- ══════ NODES ══════ -->
+
+      <!-- EXTERNAL: User (left center) -->
+      <div class="node ext" style="left:18px;top:165px;width:95px;height:85px;padding:10px 8px;">
+        <div class="n-icon">👤</div>
+        <div class="n-label" style="color:#f1f5f9;">USER</div>
+        <div class="n-sub" style="color:rgba(255,255,255,0.4);">Arjun · Priya<br>Demo Personas</div>
+      </div>
+
+      <!-- EXTERNAL: APIs (left bottom) -->
+      <div class="node ext" style="left:10px;top:390px;width:110px;height:100px;padding:10px 8px;">
+        <div class="n-icon">🔗</div>
+        <div class="n-label" style="color:#f1f5f9;font-size:8px;">EXTERNAL APIs</div>
+        <div class="n-sub" style="color:rgba(255,255,255,0.4);font-size:7px;">GitHub · Fitbit<br>Nutritionix</div>
+      </div>
+
+      <!-- EXTERNAL: AI APIs (top center) -->
+      <div class="node ext" style="left:710px;top:18px;width:160px;height:65px;padding:8px 12px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:16px;">🤖</span>
+          <div>
+            <div class="n-label" style="color:#fcd34d;font-size:9px;">GROQ · GEMINI</div>
+            <div class="n-sub" style="color:rgba(255,220,100,0.5);font-size:7px;">LLM APIs via Backend Proxy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXTERNAL: Output User (right) -->
+      <div class="node ext" style="left:1170px;top:110px;width:110px;height:80px;padding:8px;">
+        <div class="n-icon">📱</div>
+        <div class="n-label" style="color:#f1f5f9;font-size:8px;">USER<br>BROWSER</div>
+        <div class="n-sub" style="color:rgba(255,255,255,0.35);font-size:7px;">React 19 Frontend</div>
+      </div>
+
+      <!-- PROCESS: P1 Auth -->
+      <div class="node proc purple" style="left:183px;top:145px;width:150px;height:80px;padding:10px 12px;">
+        <div class="n-icon">🔐</div>
+        <div class="n-label">P1 · AUTH</div>
+        <div class="n-sub">JWT + BCrypt<br>Dual Token Format</div>
+      </div>
+
+      <!-- PROCESS: P2 Data Ingestion -->
+      <div class="node proc cyan" style="left:183px;top:260px;width:152px;height:100px;padding:10px 12px;">
+        <div class="n-icon">📥</div>
+        <div class="n-label">P2 · DATA INGESTION</div>
+        <div class="n-sub">CSV · PDF · OCR<br>Voice · Camera<br>Manual · API Sync</div>
+      </div>
+
+      <!-- PROCESS: P3 Scoring Engines (CENTER, LARGE) -->
+      <div class="node proc purple" style="left:450px;top:255px;width:196px;height:120px;padding:12px 14px;">
+        <div class="n-icon">⚙️</div>
+        <div class="n-label" style="font-size:10px;">P3 · SCORING ENGINES</div>
+        <div class="n-sub" style="font-size:7.5px;margin-top:3px;">Health · Finance · Career<br>Burnout · Life Balance<br>Anomaly · Trajectory · Neural</div>
+      </div>
+
+      <!-- PROCESS: P4 AI Intelligence -->
+      <div class="node proc amber" style="left:754px;top:145px;width:162px;height:105px;padding:10px 12px;">
+        <div class="n-icon">🧠</div>
+        <div class="n-label">P4 · AI INTELLIGENCE</div>
+        <div class="n-sub">Chat · Narrative<br>Recommendations<br>PII Strip → Proxy</div>
+      </div>
+
+      <!-- PROCESS: P5 Simulator & Analytics -->
+      <div class="node proc cyan" style="left:754px;top:345px;width:162px;height:100px;padding:10px 12px;">
+        <div class="n-icon">🔮</div>
+        <div class="n-label">P5 · SIMULATOR</div>
+        <div class="n-sub">What-If Engine<br>Confidence Decay<br>Cross-Domain Impact</div>
+      </div>
+
+      <!-- PROCESS: P6 Dashboard (output process) -->
+      <div class="node proc green" style="left:955px;top:255px;width:135px;height:120px;padding:10px 12px;">
+        <div class="n-icon">📊</div>
+        <div class="n-label">P6 · DASHBOARD</div>
+        <div class="n-sub" style="font-size:7.5px;">Life Score · Charts<br>AI Coach · Goals<br>Gamification · Bloom</div>
+      </div>
+
+      <!-- DATA STORE: D1 PostgreSQL -->
+      <div class="node store blue" style="left:222px;top:545px;width:168px;height:60px;padding:8px 14px;display:flex;flex-direction:row;align-items:center;gap:8px;">
+        <span style="font-size:16px;">🐘</span>
+        <div>
+          <div class="n-label" style="font-size:9px;">D1 · PostgreSQL</div>
+          <div class="n-sub" style="font-size:7px;">Users · Records · Goals<br>Flyway Migrations</div>
+        </div>
+      </div>
+
+      <!-- DATA STORE: D2 localStorage / DataContext -->
+      <div class="node store green" style="left:458px;top:545px;width:190px;height:60px;padding:8px 14px;display:flex;flex-direction:row;align-items:center;gap:8px;">
+        <span style="font-size:16px;">💾</span>
+        <div>
+          <div class="n-label" style="font-size:9px;">D2 · DataContext / localStorage</div>
+          <div class="n-sub" style="font-size:7px;">Scores · State · Offline Cache<br>Tab-sync via storage events</div>
+        </div>
+      </div>
+
+      <!-- DATA STORE: D3 AI Cache -->
+      <div class="node store amber" style="left:762px;top:545px;width:165px;height:60px;padding:8px 14px;display:flex;flex-direction:row;align-items:center;gap:8px;">
+        <span style="font-size:16px;">⚡</span>
+        <div>
+          <div class="n-label" style="font-size:9px;">D3 · AI Cache</div>
+          <div class="n-sub" style="font-size:7px;">Narratives · Recs<br>Groq response store</div>
+        </div>
+      </div>
+
+    </div><!-- /dfd-scene -->
+  </div><!-- /dfd-outer -->
+
+  <div class="strip">
+    <div class="strip-left">DFD Level 1 · Context Diagram · All data flows shown · Dashed = async/cache · Solid = synchronous</div>
+    <div class="strip-right">One Twin. <em>Limitless Possibilities.</em></div>
+  </div>
+
+</div>
+</body>
+</html>

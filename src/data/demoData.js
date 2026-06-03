@@ -20,8 +20,8 @@ export const demoUsers = {
   },
   fitness_learner: {
     id: 'demo-2', name: 'Priya Sharma', email: 'priya@demo.com',
-    avatar: '💪', role: 'user', persona: 'Fitness-Focused Learner',
-    health: { sleepAvg: 7.5, stressLevel: 4, moodAvg: 7.5, workoutsPerWeek: 5, waterIntake: 8, calories: 2200, bmi: 22.1 },
+    avatar: '💪', role: 'user', persona: 'Fitness-Focused Learner', gender: 'female', age: 22,
+    health: { sleepAvg: 7.5, stressLevel: 4, moodAvg: 7.5, workoutsPerWeek: 5, waterIntake: 8, calories: 2200, bmi: 22.1, menstrualCycle: { lastPeriodDate: '2026-05-25', cycleLength: 28, remindDaysBefore: 3 } },
     finance: { income: 20000, expenses: 14000, savings: 45000, investments: 15000, subscriptions: 1500, debt: 0 },
     career: { studyHoursDaily: 4, codingHoursDaily: 3, dsaPractice: 1, coursesActive: 2, projectsCompleted: 5, skills: ['Python','ML','Data Science','SQL'], gpa: 8.5 },
     goals: [
@@ -52,8 +52,8 @@ export const demoUsers = {
   },
   burnout_risk: {
     id: 'demo-4', name: 'Sneha Reddy', email: 'sneha@demo.com',
-    avatar: '🔥', role: 'user', persona: 'Burnout-Risk Student',
-    health: { sleepAvg: 4.8, stressLevel: 9, moodAvg: 3.5, workoutsPerWeek: 0, waterIntake: 3, calories: 3000, bmi: 23.8 },
+    avatar: '🔥', role: 'user', persona: 'Burnout-Risk Student', gender: 'female', age: 21,
+    health: { sleepAvg: 4.8, stressLevel: 9, moodAvg: 3.5, workoutsPerWeek: 0, waterIntake: 3, calories: 3000, bmi: 23.8, menstrualCycle: { lastPeriodDate: '2026-05-30', cycleLength: 29, remindDaysBefore: 3 } },
     finance: { income: 12000, expenses: 11000, savings: 3000, investments: 0, subscriptions: 2000, debt: 5000 },
     career: { studyHoursDaily: 10, codingHoursDaily: 8, dsaPractice: 5, coursesActive: 5, projectsCompleted: 4, skills: ['Java','C++','Python','React','Node.js','SQL','AWS'], gpa: 9.1 },
     goals: [

@@ -11,7 +11,9 @@ import { chatWithAI } from '../services/aiService';
 import { ScoreRing, GlassCard, PageHeader, TabBar, showToast, SecurityBadge, RecommendationCard } from '../components/ui/Components';
 import { loadFeedback, sortByFeedback } from '../services/recommendationFeedbackService';
 import { CartesianGrid, AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Moon, Sun, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw, Calendar, Check, Brain, Activity, User, Heart, Scale, MoreHorizontal, Leaf, Crown, Target, Mic, Apple } from 'lucide-react';
+import { Moon, Sun, Flame, Smile, Dumbbell, Droplets, UtensilsCrossed, Eye, Upload, X, Key, CheckCircle, Pill, RefreshCw, Calendar, Check, Brain, Activity, User, Heart, Scale, MoreHorizontal, Leaf, Crown, Target, Mic, Apple, Bell } from 'lucide-react';
+import { getCycleDay, getPhaseKey, getDaysUntilNextPeriod, isNearPeriod, periodCountdownLabel, PHASES, PHASE_DIET } from '../services/menstrualCycleService';
+import { analyzeFood, hasNutritionixKey } from '../services/nutritionixService';
 
 function HealthMetric({ icon: Icon, color, label, value, subtitle, delay = 0 }) {
   return (
@@ -1622,6 +1624,14 @@ export default function Health() {
     return all.filter(ins => ins.domains.includes('health')).slice(0, 2);
   }, [currentState]);
 
+  const isFemale = user?.gender === 'female';
+  const cycleData = h.menstrualCycle || {};
+  const cycleDay = getCycleDay(cycleData.lastPeriodDate, cycleData.cycleLength);
+  const phaseKey = getPhaseKey(cycleDay);
+  const phase = phaseKey ? PHASES[phaseKey] : null;
+  const daysUntil = getDaysUntilNextPeriod(cycleData.lastPeriodDate, cycleData.cycleLength);
+  const nearPeriod = isNearPeriod(cycleData.lastPeriodDate, cycleData.cycleLength, cycleData.remindDaysBefore ?? 3);
+
   const tabs = [
     { id: 'overview',        label: 'Overview' },
     { id: 'log',             label: 'Log Data' },
@@ -1629,6 +1639,8 @@ export default function Health() {
     { id: 'wellness',        label: 'Wellness' },
     { id: 'nutrition',       label: 'Nutrition' },
     { id: 'recommendations', label: 'AI Recommendations' },
+    { id: 'tracker',         label: 'Food Tracker' },
+    ...(isFemale ? [{ id: 'cycle', label: '♀ Cycle' }] : []),
   ];
 
   const handleLog = async (e) => {
@@ -1860,6 +1872,30 @@ export default function Health() {
         <h1 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>Health &amp; Wellness</h1>
       </div>
       <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>Track, understand, and optimize your physical and mental wellbeing.</p>
+
+      {/* ── Period Reminder Banner ── */}
+      {isFemale && nearPeriod && cycleData.lastPeriodDate && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', marginBottom: 16, borderRadius: 12, background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.25)' }}
+        >
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(244,63,94,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Bell size={15} style={{ color: '#f43f5e' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#fda4af', margin: 0 }}>
+              {daysUntil === 1 ? 'Period expected tomorrow' : `Period in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`}
+            </p>
+            <p style={{ fontSize: 11, color: '#9f1239', margin: '2px 0 0' }}>
+              Stock up on iron-rich foods, magnesium, and a heating pad. Head to the Cycle tab for tailored diet tips.
+            </p>
+          </div>
+          <button onClick={() => setTab('cycle')}
+            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'rgba(244,63,94,0.2)', color: '#fda4af', fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+            View →
+          </button>
+        </motion.div>
+      )}
 
       {/* ── Tab Bar ── */}
       <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 24, gap: 24, overflowX: 'auto', paddingBottom: 0 }}>
@@ -2674,6 +2710,465 @@ export default function Health() {
       {tab === 'recommendations' && (
         <HealthRecommendations recommendations={recommendations} h={h} score={score} />
       )}
+
+      {tab === 'tracker' && (
+        <FoodTrackerPanel
+          health={health}
+          updateDomain={updateDomain}
+          addRecords={addRecords}
+        />
+      )}
+
+      {tab === 'cycle' && isFemale && (
+        <CycleTrackerPanel
+          cycleData={cycleData}
+          cycleDay={cycleDay}
+          phaseKey={phaseKey}
+          phase={phase}
+          daysUntil={daysUntil}
+          onSave={(updates) => updateDomain('health', { menstrualCycle: { ...cycleData, ...updates } })}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Nutritionix Food Tracker Panel ───────────────────────────────────────────
+
+const MEAL_TYPES = ['Breakfast', 'Lunch', 'Snack', 'Dinner', 'Other'];
+
+const SUGGESTIONS = [
+  '2 eggs and toast', '1 cup oats with banana', 'dal rice and salad',
+  'chicken breast with broccoli', '1 bowl poha', 'paneer paratha with dahi',
+  '2 roti with sabji', 'greek yogurt with almonds', '1 banana and peanut butter',
+  'biryani 1 cup', 'rajma chawal', '3 idli with sambar',
+];
+
+function FoodTrackerPanel({ health, updateDomain, addRecords }) {
+  const [query, setQuery] = useState('');
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [mealType, setMealType] = useState('Lunch');
+  const foodLog = health?.foodLog || [];
+  const today = new Date().toISOString().split('T')[0];
+  const todayLog = foodLog.filter(e => e.date === today);
+
+  const todayTotals = todayLog.reduce((acc, e) => ({
+    calories: acc.calories + (e.calories || 0),
+    protein:  acc.protein  + (e.protein  || 0),
+    carbs:    acc.carbs    + (e.carbs    || 0),
+    fat:      acc.fat      + (e.fat      || 0),
+  }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+  const targetCal = health?.nutritionProfile?.targetCalories || 2000;
+  const calPct = Math.min(100, Math.round((todayTotals.calories / targetCal) * 100));
+  const calColor = calPct > 105 ? '#f43f5e' : calPct >= 80 ? '#22c55e' : '#f59e0b';
+
+  const handleAnalyze = async (q = query) => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const r = await analyzeFood(trimmed);
+      setResult(r);
+    } catch (err) {
+      setError(err.message || 'Analysis failed. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLog = () => {
+    if (!result) return;
+    const entry = {
+      id: Date.now(),
+      date: today,
+      mealType,
+      query: query.trim(),
+      calories: result.total.calories,
+      protein:  result.total.protein,
+      carbs:    result.total.carbs,
+      fat:      result.total.fat,
+      fiber:    result.total.fiber,
+      sodium:   result.total.sodium,
+      items:    result.items,
+      isMock:   result.isMock,
+    };
+    const updated = [...foodLog, entry];
+    updateDomain('health', { foodLog: updated });
+    // Also push a health record for calorie tracking
+    addRecords('health', [{ date: new Date().toISOString(), calories: result.total.calories, protein: result.total.protein, carbs: result.total.carbs, fat: result.total.fat }]);
+    showToast(`${mealType} logged — ${result.total.calories} kcal`, 'success');
+    setResult(null);
+    setQuery('');
+  };
+
+  const handleDelete = (id) => {
+    updateDomain('health', { foodLog: foodLog.filter(e => e.id !== id) });
+  };
+
+  const card = { background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16 };
+  const scoreColor = result ? (result.healthScore >= 70 ? '#22c55e' : result.healthScore >= 45 ? '#f59e0b' : '#f43f5e') : '#64748b';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+      {/* ── Daily Progress Bar ── */}
+      <div style={{ ...card, padding: '18px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Today's Intake</p>
+          <span style={{ fontSize: 11, color: '#64748b' }}>{today}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 14 }}>
+          {[
+            { label: 'Calories', val: Math.round(todayTotals.calories), target: targetCal, unit: 'kcal', color: calColor },
+            { label: 'Protein',  val: Math.round(todayTotals.protein),  target: 60,  unit: 'g', color: '#10b981' },
+            { label: 'Carbs',    val: Math.round(todayTotals.carbs),    target: 250, unit: 'g', color: '#f59e0b' },
+            { label: 'Fat',      val: Math.round(todayTotals.fat),      target: 70,  unit: 'g', color: '#ef4444' },
+          ].map(m => (
+            <div key={m.label} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: '10px 12px' }}>
+              <p style={{ fontSize: 10, color: '#64748b', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{m.label}</p>
+              <p style={{ fontSize: 20, fontWeight: 800, color: m.color, margin: '0 0 6px', lineHeight: 1 }}>{m.val}</p>
+              <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.06)' }}>
+                <div style={{ height: '100%', borderRadius: 99, background: m.color, width: `${Math.min(100, Math.round((m.val / m.target) * 100))}%`, transition: 'width 0.6s ease' }} />
+              </div>
+              <p style={{ fontSize: 9, color: '#475569', margin: '4px 0 0' }}>/ {m.target} {m.unit}</p>
+            </div>
+          ))}
+        </div>
+        {/* Calorie bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ flex: 1, height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+            <motion.div initial={{ width: 0 }} animate={{ width: `${calPct}%` }} transition={{ duration: 0.8 }}
+              style={{ height: '100%', borderRadius: 99, background: calColor, boxShadow: `0 0 8px ${calColor}50` }} />
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: calColor, minWidth: 36, textAlign: 'right' }}>{calPct}%</span>
+        </div>
+      </div>
+
+      {/* ── Search Panel ── */}
+      <div style={{ ...card, padding: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(249,115,22,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316', flexShrink: 0 }}>
+            <Apple size={16} />
+          </div>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Food Search</p>
+            <p style={{ fontSize: 10, color: '#64748b', margin: '1px 0 0' }}>
+              Natural language — "2 eggs and toast", "1 cup dal rice"
+              {!hasNutritionixKey() && <span style={{ color: '#f59e0b', marginLeft: 6 }}>· Mock data</span>}
+            </p>
+          </div>
+        </div>
+
+        {/* Input row */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <input
+            type="text" value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
+            placeholder='e.g. "2 eggs and 1 cup oats"'
+            className="input-premium"
+            style={{ flex: 1 }}
+          />
+          <select value={mealType} onChange={e => setMealType(e.target.value)}
+            className="input-premium" style={{ width: 110 }}>
+            {MEAL_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <button onClick={() => handleAnalyze()} disabled={loading || !query.trim()}
+            style={{ padding: '0 18px', borderRadius: 10, border: 'none', background: loading ? 'rgba(249,115,22,0.3)' : 'linear-gradient(135deg,#f97316,#ea580c)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {loading
+              ? <><div style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> Analyzing…</>
+              : 'Analyze →'}
+          </button>
+        </div>
+
+        {/* Quick suggestions */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: error || result ? 14 : 0 }}>
+          {SUGGESTIONS.slice(0, 8).map(s => (
+            <button key={s} onClick={() => { setQuery(s); handleAnalyze(s); }}
+              style={{ fontSize: 10, padding: '4px 10px', borderRadius: 99, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', color: '#94a3b8', cursor: 'pointer' }}>
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {/* Error */}
+        {error && <p style={{ fontSize: 12, color: '#f87171', padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: 8, margin: 0 }}>⚠️ {error}</p>}
+
+        {/* Result */}
+        {result && (
+          <AnimatePresence>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              {/* Mock badge */}
+              {result.isMock && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', marginBottom: 12 }}>
+                  <span style={{ fontSize: 11, color: '#fbbf24' }}>⚡ Mock data — add Nutritionix keys in Settings → Integrations for live lookup</span>
+                </div>
+              )}
+              {result.unrecognized && (
+                <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 8 }}>
+                  ⚠️ Could not identify: {result.unrecognized.join(', ')} — used estimates.
+                </div>
+              )}
+
+              {/* Per-item rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                {result.items.map((item, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 60px 60px 60px 60px', gap: 8, alignItems: 'center', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', textTransform: 'capitalize' }}>{item.name}</span>
+                      <span style={{ fontSize: 10, color: '#64748b', marginLeft: 6 }}>{item.qty}</span>
+                      {item.estimated && <span style={{ fontSize: 9, color: '#f59e0b', marginLeft: 6 }}>~est</span>}
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#f97316', textAlign: 'right' }}>{item.calories} kcal</span>
+                    <span style={{ fontSize: 11, color: '#10b981', textAlign: 'right' }}>{item.protein}g P</span>
+                    <span style={{ fontSize: 11, color: '#f59e0b', textAlign: 'right' }}>{item.carbs}g C</span>
+                    <span style={{ fontSize: 11, color: '#ef4444', textAlign: 'right' }}>{item.fat}g F</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8, padding: '12px', background: 'rgba(249,115,22,0.06)', borderRadius: 12, border: '1px solid rgba(249,115,22,0.15)', marginBottom: 14 }}>
+                {[
+                  { label: 'Total Cal', val: result.total.calories, unit: 'kcal', color: '#f97316' },
+                  { label: 'Protein',   val: result.total.protein,  unit: 'g',    color: '#10b981' },
+                  { label: 'Carbs',     val: result.total.carbs,    unit: 'g',    color: '#f59e0b' },
+                  { label: 'Fat',       val: result.total.fat,      unit: 'g',    color: '#ef4444' },
+                  { label: 'Score',     val: result.healthScore,    unit: '/100', color: scoreColor },
+                ].map(m => (
+                  <div key={m.label} style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: 10, color: '#64748b', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{m.label}</p>
+                    <p style={{ fontSize: 18, fontWeight: 800, color: m.color, margin: 0, lineHeight: 1 }}>{m.val}<span style={{ fontSize: 10, marginLeft: 2 }}>{m.unit}</span></p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Log button */}
+              <button onClick={handleLog}
+                style={{ width: '100%', padding: '10px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                + Log as {mealType} ({result.total.calories} kcal) →
+              </button>
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* ── Today's Log ── */}
+      {todayLog.length > 0 && (
+        <div style={{ ...card, padding: '18px 20px' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 14px' }}>
+            Today's Meals
+            <span style={{ fontSize: 11, color: '#64748b', fontWeight: 400, marginLeft: 8 }}>{todayLog.length} entr{todayLog.length === 1 ? 'y' : 'ies'}</span>
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {todayLog.map((entry, i) => (
+              <motion.div key={entry.id || i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(249,115,22,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>
+                  {entry.mealType === 'Breakfast' ? '🌅' : entry.mealType === 'Lunch' ? '☀️' : entry.mealType === 'Dinner' ? '🌙' : '🍎'}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', margin: 0, textTransform: 'capitalize' }}>{entry.query}</p>
+                  <p style={{ fontSize: 10, color: '#64748b', margin: '2px 0 0' }}>
+                    {entry.mealType} · {entry.calories} kcal · {entry.protein}g P · {entry.carbs}g C · {entry.fat}g F
+                  </p>
+                </div>
+                <button onClick={() => handleDelete(entry.id)}
+                  style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
+                  <X size={13} />
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {todayLog.length === 0 && !result && (
+        <div style={{ ...card, padding: '32px', textAlign: 'center' }}>
+          <div style={{ fontSize: 32, marginBottom: 10 }}>🥗</div>
+          <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>No meals logged today. Search for food above to start tracking.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Menstrual Cycle Tracker Panel ────────────────────────────────────────────
+function CycleTrackerPanel({ cycleData, cycleDay, phaseKey, phase, daysUntil, onSave }) {
+  const [lastPeriod, setLastPeriod] = useState(cycleData.lastPeriodDate || '');
+  const [cycleLength, setCycleLength] = useState(cycleData.cycleLength || 28);
+  const [remindDays, setRemindDays] = useState(cycleData.remindDaysBefore ?? 3);
+  const [saved, setSaved] = useState(false);
+
+  const diet = phaseKey ? PHASE_DIET[phaseKey] : null;
+  const card = { background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16 };
+
+  const handleSave = () => {
+    onSave({ lastPeriodDate: lastPeriod, cycleLength: Number(cycleLength), remindDaysBefore: Number(remindDays) });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  // Phase progress ring (SVG)
+  const ringRadius = 46;
+  const ringCirc = 2 * Math.PI * ringRadius;
+  const phaseProgress = cycleDay && cycleLength ? cycleDay / cycleLength : 0;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+      {/* ── Row 1: Cycle Status + Setup ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 14 }}>
+
+        {/* Phase Ring */}
+        <div style={{ ...card, padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Current Phase</p>
+          <div style={{ position: 'relative', width: 110, height: 110 }}>
+            <svg viewBox="0 0 110 110" width="110" height="110">
+              <circle cx="55" cy="55" r={ringRadius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+              {cycleDay && (
+                <circle cx="55" cy="55" r={ringRadius} fill="none"
+                  stroke={phase?.color || '#64748b'} strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={`${ringCirc * phaseProgress} ${ringCirc}`}
+                  style={{ transform: 'rotate(-90deg)', transformOrigin: '55px 55px', filter: `drop-shadow(0 0 8px ${phase?.color || '#64748b'}60)` }}
+                />
+              )}
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 26, lineHeight: 1 }}>{phase?.emoji || '🌀'}</span>
+              {cycleDay && <span style={{ fontSize: 10, color: '#475569', marginTop: 3 }}>Day {cycleDay}</span>}
+            </div>
+          </div>
+          {phase ? (
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: phase.color }}>{phase.name} Phase</span>
+              {daysUntil !== null && (
+                <p style={{ fontSize: 11, color: '#64748b', margin: '4px 0 0' }}>
+                  {daysUntil <= 1 ? '🔴 Period expected tomorrow' : daysUntil <= 3 ? `🔴 Period in ${daysUntil} days` : `Next period in ${daysUntil} days`}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p style={{ fontSize: 12, color: '#64748b', textAlign: 'center', margin: 0 }}>Set your last period date to see your phase.</p>
+          )}
+        </div>
+
+        {/* Setup Form */}
+        <div style={{ ...card, padding: '20px' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: '0 0 14px' }}>Cycle Settings</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Last Period Start Date</label>
+              <input type="date" value={lastPeriod} onChange={e => setLastPeriod(e.target.value)}
+                className="input-premium" style={{ width: '100%' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Cycle Length (days)</label>
+              <input type="number" value={cycleLength} onChange={e => setCycleLength(e.target.value)}
+                min="21" max="40" className="input-premium" style={{ width: '100%' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Remind me before period (days)</label>
+              <select value={remindDays} onChange={e => setRemindDays(Number(e.target.value))} className="input-premium" style={{ width: '100%' }}>
+                {[1, 2, 3, 5, 7].map(d => <option key={d} value={d}>{d} day{d > 1 ? 's' : ''} before</option>)}
+              </select>
+            </div>
+            <button onClick={handleSave}
+              style={{ width: '100%', padding: '9px', borderRadius: 9, border: 'none', background: saved ? 'rgba(16,185,129,0.2)' : 'linear-gradient(135deg,#f43f5e,#e11d48)', color: saved ? '#34d399' : '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              {saved ? '✅ Saved' : 'Save Settings →'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Row 2: Diet Recommendations ── */}
+      {diet && (
+        <div style={{ ...card, padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: (phase?.bg || 'rgba(99,102,241,0.1)'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: `1px solid ${phase?.border || 'rgba(99,102,241,0.2)'}` }}>
+              🥗
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{diet.focus}</p>
+              <p style={{ fontSize: 10, color: phase?.color || '#64748b', margin: '2px 0 0' }}>{phase?.name} Phase Diet</p>
+            </div>
+            <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: phase?.bg, color: phase?.color, border: `1px solid ${phase?.border}` }}>
+              {diet.calorie_note}
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            {/* Eat */}
+            <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 12, padding: '14px' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>✅ Eat More</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {diet.foods.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 7 }}>
+                    <span style={{ color: '#22c55e', fontSize: 10, marginTop: 2, flexShrink: 0 }}>•</span>
+                    <span style={{ fontSize: 11.5, color: '#cbd5e1', lineHeight: 1.4 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Avoid */}
+            <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 12, padding: '14px' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>⚠️ Limit / Avoid</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {diet.avoid.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 7 }}>
+                    <span style={{ color: '#f87171', fontSize: 10, marginTop: 2, flexShrink: 0 }}>•</span>
+                    <span style={{ fontSize: 11.5, color: '#cbd5e1', lineHeight: 1.4 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Tip + extras row */}
+          <div style={{ background: phase?.bg, border: `1px solid ${phase?.border}`, borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+            <p style={{ fontSize: 12, color: '#e2e8f0', lineHeight: 1.5, margin: 0 }}>💡 {diet.tip}</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 10, padding: '12px 14px' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>💊 Supplements</p>
+              {diet.supplements.map((s, i) => (
+                <p key={i} style={{ fontSize: 11.5, color: '#cbd5e1', margin: '0 0 3px' }}>• {s}</p>
+              ))}
+            </div>
+            <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 10, padding: '12px 14px' }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>🏃 Workout</p>
+              <p style={{ fontSize: 11.5, color: '#cbd5e1', margin: 0, lineHeight: 1.4 }}>{diet.workout}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Row 3: Phase Timeline ── */}
+      <div style={{ ...card, padding: '18px 20px' }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 14px' }}>Cycle Phases</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {Object.entries(PHASES).map(([key, p]) => {
+            const isActive = key === phaseKey;
+            return (
+              <motion.div key={key} animate={{ scale: isActive ? 1.03 : 1 }}
+                style={{ padding: '12px', borderRadius: 12, background: isActive ? p.bg : 'rgba(255,255,255,0.02)', border: `1px solid ${isActive ? p.border : 'rgba(255,255,255,0.06)'}`, textAlign: 'center' }}>
+                <div style={{ fontSize: 20, marginBottom: 6 }}>{p.emoji}</div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: isActive ? p.color : '#94a3b8', margin: '0 0 3px' }}>{p.name}</p>
+                <p style={{ fontSize: 10, color: '#64748b', margin: 0 }}>Day {p.days[0]}–{p.days[1]}</p>
+                {isActive && <span style={{ display: 'inline-block', marginTop: 6, fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: p.color + '22', color: p.color }}>NOW</span>}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
   );
 }

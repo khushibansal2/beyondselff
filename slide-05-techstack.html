@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><title>BeyondSelf — Tech Stack</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#eee;font-family:'Inter',sans-serif;}
+.slide{width:1400px;height:900px;margin:0 auto;background:#fff7ed;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.blob{position:absolute;border-radius:50%;pointer-events:none;}
+.b1{width:420px;height:420px;background:#fed7aa;top:-130px;right:-100px;opacity:.45;}
+.b2{width:280px;height:280px;background:#fdba74;bottom:-70px;left:-50px;opacity:.3;}
+.top-bar{height:6px;background:linear-gradient(to right,#c2410c,#f97316,#fb923c,#fed7aa);}
+.header{padding:28px 60px 0;display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0;}
+.tag{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#f97316;margin-bottom:6px;}
+.slide-title{font-size:40px;font-weight:900;color:#7c2d12;line-height:1.05;}
+.slide-title span{color:#c2410c;}
+.pg{font-size:11px;color:#fdba74;font-weight:700;letter-spacing:1px;}
+.body{flex:1;padding:18px 60px 30px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.quadrant{background:#fff;border-radius:16px;padding:18px 20px;border:1.5px solid;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:flex;flex-direction:column;gap:10px;}
+.q1{border-color:#ddd6fe;} .q2{border-color:#bfdbfe;} .q3{border-color:#a5f3fc;} .q4{border-color:#bbf7d0;}
+.q-header{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;}
+.q-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.q1 .q-icon{background:#ede9fe;} .q2 .q-icon{background:#dbeafe;} .q3 .q-icon{background:#cffafe;} .q4 .q-icon{background:#dcfce7;}
+.q-title{font-size:14px;font-weight:800;}
+.q1 .q-title{color:#4c1d95;} .q2 .q-title{color:#1e3a8a;} .q3 .q-title{color:#164e63;} .q4 .q-title{color:#14532d;}
+.tech-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f9fafb;}
+.tech-row:last-child{border-bottom:none;}
+.tech-icon-wrap{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tech-icon-wrap i{font-size:20px;}
+.li-s{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;}
+.tech-info{flex:1;}
+.tech-n{font-size:12px;font-weight:700;color:#1e1b4b;}
+.tech-d{font-size:10px;color:#9ca3af;}
+.tech-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;}
+.b-purple{background:#ede9fe;color:#6d28d9;} .b-blue{background:#dbeafe;color:#1e40af;}
+.b-cyan{background:#cffafe;color:#0e7490;} .b-green{background:#dcfce7;color:#15803d;}
+.branding{position:absolute;bottom:14px;left:60px;font-size:11px;color:#fdba74;font-weight:600;}
+.note{position:absolute;bottom:12px;right:60px;font-size:10px;color:#fdba74;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="top-bar"></div>
+  <div class="header">
+    <div>
+      <div class="tag">05 · Engineering</div>
+      <div class="slide-title">Tech Stack <span>Selection</span></div>
+    </div>
+    <div class="pg">05 / 10</div>
+  </div>
+  <div class="body">
+    <div class="quadrant q1">
+      <div class="q-header"><div class="q-icon">⚡</div><div class="q-title">Frontend</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><i class="devicon-react-original colored"></i></div><div class="tech-info"><div class="tech-n">React 19</div><div class="tech-d">Concurrent rendering for smooth UX</div></div><div class="tech-badge b-purple">v19.2</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><i class="devicon-vitejs-plain colored"></i></div><div class="tech-info"><div class="tech-n">Vite 8</div><div class="tech-d">Sub-100ms HMR, lazy-loaded pages</div></div><div class="tech-badge b-purple">v8.0</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><i class="devicon-tailwindcss-original colored"></i></div><div class="tech-info"><div class="tech-n">Tailwind CSS v4</div><div class="tech-d">Custom glassmorphism design system</div></div><div class="tech-badge b-purple">v4.3</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#eef2ff;color:#4338ca;">FM</div></div><div class="tech-info"><div class="tech-n">Framer Motion</div><div class="tech-d">Score rings & page transitions</div></div><div class="tech-badge b-purple">v12</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#cffafe;color:#0e7490;">RC</div></div><div class="tech-info"><div class="tech-n">Recharts</div><div class="tech-d">AreaChart, BarChart, RadialBar</div></div><div class="tech-badge b-purple">v3.8</div></div>
+    </div>
+    <div class="quadrant q2">
+      <div class="q-header"><div class="q-icon">🖥️</div><div class="q-title">Backend</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><i class="devicon-spring-original colored"></i></div><div class="tech-info"><div class="tech-n">Spring Boot 3.2</div><div class="tech-d">Virtual threads, 18 REST controllers</div></div><div class="tech-badge b-blue">Java 21</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><i class="devicon-postgresql-original colored"></i></div><div class="tech-info"><div class="tech-n">PostgreSQL</div><div class="tech-d">Production relational database</div></div><div class="tech-badge b-blue">v16</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#dbeafe;color:#1e40af;">JWT</div></div><div class="tech-info"><div class="tech-n">JWT + BCrypt</div><div class="tech-d">Dual-token stateless auth</div></div><div class="tech-badge b-blue">JJWT</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#fee2e2;color:#b91c1c;">FW</div></div><div class="tech-info"><div class="tech-n">Flyway</div><div class="tech-d">Versioned DB migrations</div></div><div class="tech-badge b-blue">v10</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#ffedd5;color:#c2410c;">B4j</div></div><div class="tech-info"><div class="tech-n">Bucket4j</div><div class="tech-d">Per-IP AI proxy rate limiting</div></div><div class="tech-badge b-blue">v8.10</div></div>
+    </div>
+    <div class="quadrant q3">
+      <div class="q-header"><div class="q-icon">🧠</div><div class="q-title">AI & Intelligence</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#ffedd5;color:#c2410c;">GRQ</div></div><div class="tech-info"><div class="tech-n">Groq · LLaMA 3.3-70b</div><div class="tech-d">200 tok/s — AI coach & narratives</div></div><div class="tech-badge b-cyan">Free</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#dbeafe;color:#1e40af;">GEM</div></div><div class="tech-info"><div class="tech-n">Gemini 2.0 Flash</div><div class="tech-d">Backend-proxied, PII stripped</div></div><div class="tech-badge b-cyan">Google</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#ffedd5;color:#c2410c;">L4V</div></div><div class="tech-info"><div class="tech-n">LLaMA 4 Scout Vision</div><div class="tech-d">Meal & document auto-classification</div></div><div class="tech-badge b-cyan">Meta</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#d1fae5;color:#047857;">OCR</div></div><div class="tech-info"><div class="tech-n">Tesseract.js v7</div><div class="tech-d">In-browser WASM OCR</div></div><div class="tech-badge b-cyan">WASM</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#ede9fe;color:#6d28d9;">9×</div></div><div class="tech-info"><div class="tech-n">9 Scoring Engines</div><div class="tech-d">Pure math — no hallucination</div></div><div class="tech-badge b-cyan">Custom</div></div>
+    </div>
+    <div class="quadrant q4">
+      <div class="q-header"><div class="q-icon">🔗</div><div class="q-title">Integrations</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><i class="devicon-github-original" style="color:#1f2937;"></i></div><div class="tech-info"><div class="tech-n">GitHub API v3</div><div class="tech-d">Real contribution data → Career Score</div></div><div class="tech-badge b-green">Live</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#cffafe;color:#0e7490;">FIT</div></div><div class="tech-info"><div class="tech-n">Fitbit OAuth 2.0</div><div class="tech-d">Sleep & steps → Health Score</div></div><div class="tech-badge b-green">OAuth</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#fef3c7;color:#92400e;">ADZ</div></div><div class="tech-info"><div class="tech-n">Adzuna + Jooble</div><div class="tech-d">Indian + global job listings</div></div><div class="tech-badge b-green">Dual</div></div>
+      <div class="tech-row"><div class="tech-icon-wrap"><div class="li-s" style="background:#d1fae5;color:#047857;">NX</div></div><div class="tech-info"><div class="tech-n">Nutritionix API</div><div class="tech-d">500k+ food items with macros</div></div><div class="tech-badge b-green">500k+</div></div>
+    </div>
+  </div>
+  <div class="branding">◈ BeyondSelf · Digital Twin</div>
+  <div class="note">See detailed reasoning in supplementary slides →</div>
+</div>
+</body></html>

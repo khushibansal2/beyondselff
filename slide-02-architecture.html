@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><title>BeyondSelf — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#eee;font-family:'Inter',sans-serif;}
+.slide{width:1400px;height:900px;margin:0 auto;background:#f0f7ff;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.blob{position:absolute;border-radius:50%;pointer-events:none;}
+.b1{width:450px;height:450px;background:#bfdbfe;top:-140px;right:-100px;opacity:.4;}
+.b2{width:280px;height:280px;background:#dbeafe;bottom:-70px;left:-50px;opacity:.35;}
+.top-bar{height:6px;background:linear-gradient(to right,#1d4ed8,#3b82f6,#60a5fa,#bfdbfe);}
+.header{padding:32px 60px 0;display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;}
+.tag{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#3b82f6;margin-bottom:8px;}
+.slide-title{font-size:40px;font-weight:900;color:#1e3a8a;line-height:1.05;}
+.slide-title span{color:#3b82f6;}
+.pg{font-size:11px;color:#93c5fd;font-weight:700;letter-spacing:1px;}
+.body{flex:1;padding:24px 60px 40px;display:flex;flex-direction:column;gap:10px;}
+/* arch layers */
+.layer{border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:16px;}
+.layer-label{width:200px;flex-shrink:0;}
+.l-cat{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.l-name{font-size:14px;font-weight:800;color:#1e3a8a;}
+.layer-sep{width:1px;height:40px;flex-shrink:0;background:#00000010;}
+.layer-chips{display:flex;flex-wrap:wrap;gap:8px;flex:1;}
+.chip{padding:6px 14px;border-radius:8px;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;}
+.chip-icon{font-size:14px;}
+/* layer colors */
+.ly1{background:#ede9fe;border:1px solid #ddd6fe;} .ly1 .l-cat{color:#7c3aed;} .ly1 .chip{background:#fff;border:1px solid #ddd6fe;color:#4c1d95;}
+.ly2{background:#dbeafe;border:1px solid #bfdbfe;} .ly2 .l-cat{color:#1d4ed8;} .ly2 .chip{background:#fff;border:1px solid #bfdbfe;color:#1e3a8a;}
+.ly3{background:#cffafe;border:1px solid #a5f3fc;} .ly3 .l-cat{color:#0e7490;} .ly3 .chip{background:#fff;border:1px solid #a5f3fc;color:#164e63;}
+.ly4{background:#dcfce7;border:1px solid #bbf7d0;} .ly4 .l-cat{color:#15803d;} .ly4 .chip{background:#fff;border:1px solid #bbf7d0;color:#14532d;}
+.ly5{background:#ffedd5;border:1px solid #fed7aa;} .ly5 .l-cat{color:#c2410c;} .ly5 .chip{background:#fff;border:1px solid #fed7aa;color:#7c2d12;}
+/* arrows */
+.arrow{text-align:center;font-size:18px;color:#93c5fd;margin:-4px 0;padding-left:232px;}
+.branding{position:absolute;bottom:18px;left:60px;font-size:11px;color:#93c5fd;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="top-bar"></div>
+  <div class="header">
+    <div>
+      <div class="tag">02 · System Design</div>
+      <div class="slide-title">Architecture <span>Diagram</span></div>
+    </div>
+    <div class="pg">02 / 10</div>
+  </div>
+  <div class="body">
+    <div class="layer ly1">
+      <div class="layer-label"><div class="l-cat">Layer 1</div><div class="l-name">Browser / Client</div></div>
+      <div class="layer-sep"></div>
+      <div class="layer-chips">
+        <div class="chip"><span class="chip-icon">⚛️</span>React 19</div>
+        <div class="chip"><span class="chip-icon">⚡</span>Vite 8</div>
+        <div class="chip"><span class="chip-icon">🎨</span>Tailwind CSS v4</div>
+        <div class="chip"><span class="chip-icon">🎭</span>Framer Motion</div>
+        <div class="chip"><span class="chip-icon">📊</span>Recharts</div>
+        <div class="chip"><span class="chip-icon">🧠</span>9 Scoring Engines</div>
+        <div class="chip"><span class="chip-icon">💾</span>localStorage / DataContext</div>
+      </div>
+    </div>
+    <div class="arrow">↕</div>
+    <div class="layer ly2">
+      <div class="layer-label"><div class="l-cat">Layer 2</div><div class="l-name">API Server</div></div>
+      <div class="layer-sep"></div>
+      <div class="layer-chips">
+        <div class="chip"><span class="chip-icon">🍃</span>Spring Boot 3.2</div>
+        <div class="chip"><span class="chip-icon">☕</span>Java 21 Virtual Threads</div>
+        <div class="chip"><span class="chip-icon">🔐</span>JWT Auth</div>
+        <div class="chip"><span class="chip-icon">⏱️</span>Bucket4j Rate Limiting</div>
+        <div class="chip"><span class="chip-icon">📁</span>File Parsing (POI, PDFBox)</div>
+        <div class="chip"><span class="chip-icon">🔒</span>AES-256 Encryption</div>
+      </div>
+    </div>
+    <div class="arrow">↕</div>
+    <div class="layer ly3">
+      <div class="layer-label"><div class="l-cat">Layer 3</div><div class="l-name">AI Intelligence</div></div>
+      <div class="layer-sep"></div>
+      <div class="layer-chips">
+        <div class="chip"><span class="chip-icon">🤖</span>Groq LLaMA 3.3-70b (Chat)</div>
+        <div class="chip"><span class="chip-icon">👁️</span>LLaMA 4 Scout Vision</div>
+        <div class="chip"><span class="chip-icon">✨</span>Gemini 2.0 Flash (Proxy)</div>
+        <div class="chip"><span class="chip-icon">📄</span>Tesseract.js OCR</div>
+        <div class="chip"><span class="chip-icon">🎙️</span>Web Speech API</div>
+      </div>
+    </div>
+    <div class="arrow">↕</div>
+    <div class="layer ly4">
+      <div class="layer-label"><div class="l-cat">Layer 4</div><div class="l-name">Persistence</div></div>
+      <div class="layer-sep"></div>
+      <div class="layer-chips">
+        <div class="chip"><span class="chip-icon">🐘</span>PostgreSQL</div>
+        <div class="chip"><span class="chip-icon">🔄</span>Flyway Migrations</div>
+        <div class="chip"><span class="chip-icon">🗃️</span>Spring Data JPA</div>
+        <div class="chip"><span class="chip-icon">🔵</span>localStorage (Offline)</div>
+        <div class="chip"><span class="chip-icon">♻️</span>Tab Sync (storage events)</div>
+      </div>
+    </div>
+    <div class="arrow">↕</div>
+    <div class="layer ly5">
+      <div class="layer-label"><div class="l-cat">Layer 5</div><div class="l-name">External APIs</div></div>
+      <div class="layer-sep"></div>
+      <div class="layer-chips">
+        <div class="chip"><span class="chip-icon">🐙</span>GitHub API v3</div>
+        <div class="chip"><span class="chip-icon">⌚</span>Fitbit OAuth 2.0</div>
+        <div class="chip"><span class="chip-icon">💼</span>Adzuna + Jooble (Jobs)</div>
+        <div class="chip"><span class="chip-icon">🥗</span>Nutritionix API</div>
+      </div>
+    </div>
+  </div>
+  <div class="branding">◈ BeyondSelf · Digital Twin</div>
+</div>
+</body></html>

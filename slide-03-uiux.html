@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><title>BeyondSelf — UI/UX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#eee;font-family:'Inter',sans-serif;}
+.slide{width:1400px;height:900px;margin:0 auto;background:#fff5f7;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.blob{position:absolute;border-radius:50%;pointer-events:none;}
+.b1{width:420px;height:420px;background:#fce7f3;top:-120px;right:-100px;opacity:.5;}
+.b2{width:260px;height:260px;background:#fbcfe8;bottom:-60px;left:-60px;opacity:.35;}
+.top-bar{height:6px;background:linear-gradient(to right,#be185d,#ec4899,#f472b6,#fce7f3);}
+.header{padding:28px 60px 0;display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0;}
+.tag{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#ec4899;margin-bottom:6px;}
+.slide-title{font-size:40px;font-weight:900;color:#831843;line-height:1.05;}
+.slide-title span{color:#be185d;}
+.pg{font-size:11px;color:#f9a8d4;font-weight:700;letter-spacing:1px;}
+.body{flex:1;padding:20px 60px 32px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:16px;}
+/* screen mockup cards */
+.screen{border-radius:16px;border:1.5px solid #fce7f3;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 16px rgba(190,24,93,0.07);}
+.screen-bar{height:32px;display:flex;align-items:center;padding:0 12px;gap:6px;}
+.dot{width:8px;height:8px;border-radius:50%;}
+.screen-title-bar{flex:1;border-radius:4px;height:12px;}
+.screen-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.screen-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
+.screen-name{font-size:16px;font-weight:800;margin-bottom:8px;}
+
+/* Dashboard */
+.s1 .screen-bar{background:#1e1b4b;}
+.s1 .dot:nth-child(1){background:#ef4444;} .s1 .dot:nth-child(2){background:#f59e0b;} .s1 .dot:nth-child(3){background:#22c55e;}
+.s1 .screen-title-bar{background:#3730a3;}
+.s1 .screen-label{color:#a855f7;}
+.s1 .screen-name{color:#1e1b4b;}
+.score-ring-wrap{display:flex;gap:10px;margin-bottom:6px;}
+.score-ring{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+.ring-health{background:#dcfce7;color:#15803d;border:3px solid #22c55e;}
+.ring-finance{background:#fef3c7;color:#92400e;border:3px solid #f59e0b;}
+.ring-career{background:#dbeafe;color:#1e40af;border:3px solid #3b82f6;}
+.mini-bar{height:8px;border-radius:4px;margin-bottom:4px;}
+.mini-label{font-size:9px;color:#6b7280;margin-bottom:2px;}
+
+/* Health */
+.s2 .screen-bar{background:#064e3b;}
+.s2 .screen-label{color:#10b981;}
+.s2 .screen-name{color:#064e3b;}
+.health-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.h-card{background:#f0fdf4;border-radius:8px;padding:8px;border:1px solid #bbf7d0;}
+.h-val{font-size:16px;font-weight:800;color:#15803d;}
+.h-lbl{font-size:9px;color:#6b7280;}
+
+/* Finance */
+.s3 .screen-bar{background:#78350f;}
+.s3 .screen-label{color:#f59e0b;}
+.s3 .screen-name{color:#78350f;}
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #fef3c7;}
+.fin-cat{font-size:10px;color:#6b7280;}
+.fin-amt{font-size:12px;font-weight:700;}
+
+/* Career */
+.s4 .screen-bar{background:#1e3a8a;}
+.s4 .screen-label{color:#3b82f6;}
+.s4 .screen-name{color:#1e3a8a;}
+.skill-tag{display:inline-flex;align-items:center;gap:4px;background:#dbeafe;color:#1e40af;border-radius:6px;padding:3px 8px;font-size:9px;font-weight:700;margin:2px;}
+.job-card{background:#eff6ff;border-radius:8px;padding:7px 9px;border:1px solid #bfdbfe;margin-top:4px;}
+.job-title{font-size:11px;font-weight:700;color:#1e3a8a;}
+.job-co{font-size:9px;color:#6b7280;}
+
+.branding{position:absolute;bottom:18px;left:60px;font-size:11px;color:#f9a8d4;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="top-bar"></div>
+  <div class="header">
+    <div>
+      <div class="tag">03 · User Experience</div>
+      <div class="slide-title">UI / UX <span>Mock Ups</span></div>
+    </div>
+    <div class="pg">03 / 10</div>
+  </div>
+  <div class="body">
+
+    <!-- Dashboard -->
+    <div class="screen s1">
+      <div class="screen-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="screen-title-bar"></div></div>
+      <div class="screen-body">
+        <div class="screen-label">Screen 01</div>
+        <div class="screen-name">Dashboard — Life Score</div>
+        <div class="score-ring-wrap">
+          <div class="score-ring ring-health">84</div>
+          <div class="score-ring ring-finance">71</div>
+          <div class="score-ring ring-career">78</div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;padding-left:6px;">
+            <div class="mini-label">Life Balance Score</div>
+            <div style="font-size:28px;font-weight:900;color:#7c3aed;line-height:1;">78<span style="font-size:14px;color:#9ca3af;">/100</span></div>
+          </div>
+        </div>
+        <div class="mini-label">Health</div><div class="mini-bar" style="width:84%;background:#22c55e;"></div>
+        <div class="mini-label">Finance</div><div class="mini-bar" style="width:71%;background:#f59e0b;"></div>
+        <div class="mini-label">Career</div><div class="mini-bar" style="width:78%;background:#3b82f6;"></div>
+      </div>
+    </div>
+
+    <!-- Health -->
+    <div class="screen s2">
+      <div class="screen-bar"><div class="dot" style="background:#ef4444;"></div><div class="dot" style="background:#f59e0b;"></div><div class="dot" style="background:#22c55e;"></div><div class="screen-title-bar" style="background:#065f46;"></div></div>
+      <div class="screen-body">
+        <div class="screen-label">Screen 02</div>
+        <div class="screen-name">Health Tracker</div>
+        <div class="health-grid">
+          <div class="h-card"><div class="h-val">7.5h</div><div class="h-lbl">Sleep</div></div>
+          <div class="h-card"><div class="h-val">3/10</div><div class="h-lbl">Stress Level</div></div>
+          <div class="h-card"><div class="h-val">8,432</div><div class="h-lbl">Steps</div></div>
+          <div class="h-card"><div class="h-val">1,840</div><div class="h-lbl">Calories</div></div>
+        </div>
+        <div style="margin-top:8px;padding:8px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">
+          <div style="font-size:9px;font-weight:700;color:#15803d;margin-bottom:2px;">AI INSIGHT</div>
+          <div style="font-size:10px;color:#374151;">Your sleep improved 12% — stress dropped. Keep it up! 🌙</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Finance -->
+    <div class="screen s3">
+      <div class="screen-bar"><div class="dot" style="background:#ef4444;"></div><div class="dot" style="background:#f59e0b;"></div><div class="dot" style="background:#22c55e;"></div><div class="screen-title-bar" style="background:#92400e;"></div></div>
+      <div class="screen-body">
+        <div class="screen-label">Screen 03</div>
+        <div class="screen-name">Finance Overview</div>
+        <div class="fin-row"><div class="fin-cat">Monthly Income</div><div class="fin-amt" style="color:#15803d;">₹85,000</div></div>
+        <div class="fin-row"><div class="fin-cat">Expenses</div><div class="fin-amt" style="color:#dc2626;">₹42,300</div></div>
+        <div class="fin-row"><div class="fin-cat">Savings</div><div class="fin-amt" style="color:#1d4ed8;">₹28,000</div></div>
+        <div style="margin-top:8px;padding:7px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a;font-size:10px;color:#92400e;">⚠️ Cascade detected: High stress may cause emotional spending this week</div>
+      </div>
+    </div>
+
+    <!-- Career -->
+    <div class="screen s4">
+      <div class="screen-bar"><div class="dot" style="background:#ef4444;"></div><div class="dot" style="background:#f59e0b;"></div><div class="dot" style="background:#22c55e;"></div><div class="screen-title-bar" style="background:#1e3a8a;"></div></div>
+      <div class="screen-body">
+        <div class="screen-label">Screen 04</div>
+        <div class="screen-name">Career Intelligence</div>
+        <div style="margin-bottom:6px;">
+          <span class="skill-tag">React</span><span class="skill-tag">Java</span><span class="skill-tag">Python</span><span class="skill-tag">PostgreSQL</span><span class="skill-tag">Docker</span>
+        </div>
+        <div class="job-card"><div class="job-title">Full Stack Engineer</div><div class="job-co">Google · Bangalore · ₹28–35 LPA</div></div>
+        <div class="job-card" style="margin-top:4px;"><div class="job-title">SDE II — Backend</div><div class="job-co">Flipkart · Remote · ₹24–30 LPA</div></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="branding">◈ BeyondSelf · Digital Twin</div>
+</div>
+</body></html>

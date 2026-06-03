@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><title>BeyondSelf — Outcome</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#eee;font-family:'Inter',sans-serif;}
+.slide{width:1400px;height:900px;margin:0 auto;background:#f0fdf4;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.blob{position:absolute;border-radius:50%;pointer-events:none;}
+.b1{width:450px;height:450px;background:#bbf7d0;top:-140px;right:-100px;opacity:.4;}
+.b2{width:300px;height:300px;background:#a7f3d0;bottom:-80px;left:-60px;opacity:.3;}
+.top-bar{height:6px;background:linear-gradient(to right,#15803d,#22c55e,#4ade80,#bbf7d0);}
+.header{padding:28px 60px 0;display:flex;justify-content:space-between;align-items:flex-end;flex-shrink:0;}
+.tag{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22c55e;margin-bottom:6px;}
+.slide-title{font-size:40px;font-weight:900;color:#14532d;line-height:1.05;}
+.slide-title span{color:#15803d;}
+.pg{font-size:11px;color:#86efac;font-weight:700;letter-spacing:1px;}
+.body{flex:1;padding:20px 60px 32px;display:flex;gap:20px;}
+.left{display:flex;flex-direction:column;gap:14px;flex:1;}
+.right{width:380px;display:flex;flex-direction:column;gap:14px;}
+/* metric cards */
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.metric{background:#fff;border-radius:14px;padding:18px 20px;border:1.5px solid #bbf7d0;box-shadow:0 2px 8px rgba(21,128,61,0.06);}
+.metric-num{font-size:36px;font-weight:900;line-height:1;}
+.metric-unit{font-size:14px;font-weight:600;vertical-align:super;}
+.metric-label{font-size:11px;color:#6b7280;margin-top:4px;font-weight:500;}
+.m1 .metric-num{color:#15803d;} .m2 .metric-num{color:#1d4ed8;} .m3 .metric-num{color:#7c3aed;} .m4 .metric-num{color:#c2410c;}
+/* highlight cards */
+.highlight{background:#fff;border-radius:14px;padding:16px 18px;border:1.5px solid #bbf7d0;display:flex;gap:12px;align-items:flex-start;}
+.hi-icon{font-size:24px;flex-shrink:0;}
+.hi-title{font-size:13px;font-weight:800;color:#14532d;margin-bottom:3px;}
+.hi-desc{font-size:11px;color:#6b7280;line-height:1.5;}
+/* score demo */
+.score-demo{background:linear-gradient(135deg,#14532d,#15803d);border-radius:16px;padding:24px;text-align:center;color:white;flex-shrink:0;}
+.score-big{font-size:72px;font-weight:900;line-height:1;}
+.score-sub{font-size:13px;opacity:.8;margin-top:4px;}
+.score-bars{margin-top:16px;display:flex;flex-direction:column;gap:8px;}
+.sbar-row{display:flex;align-items:center;gap:10px;}
+.sbar-lbl{font-size:10px;opacity:.8;width:60px;text-align:right;}
+.sbar-track{flex:1;height:8px;background:rgba(255,255,255,.2);border-radius:4px;}
+.sbar-fill{height:100%;border-radius:4px;}
+.branding{position:absolute;bottom:14px;left:60px;font-size:11px;color:#86efac;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="top-bar"></div>
+  <div class="header">
+    <div>
+      <div class="tag">06 · Results</div>
+      <div class="slide-title">Outcome <span>/ Demo</span></div>
+    </div>
+    <div class="pg">06 / 10</div>
+  </div>
+  <div class="body">
+    <div class="left">
+      <div class="metrics">
+        <div class="metric m1"><div class="metric-num">21<span class="metric-unit"></span></div><div class="metric-label">Fully functional app pages</div></div>
+        <div class="metric m2"><div class="metric-num">9</div><div class="metric-label">Deterministic scoring engines</div></div>
+        <div class="metric m3"><div class="metric-num">27</div><div class="metric-label">Frontend services implemented</div></div>
+        <div class="metric m4"><div class="metric-num">18</div><div class="metric-label">Backend API controllers</div></div>
+      </div>
+      <div class="highlight">
+        <div class="hi-icon">🤖</div>
+        <div><div class="hi-title">AI Coach with Full Context</div><div class="hi-desc">40-message history, real domain data injected as context, voice input support. Responds in under 2 seconds via Groq's 200 tok/s inference.</div></div>
+      </div>
+      <div class="highlight">
+        <div class="hi-icon">⚡</div>
+        <div><div class="hi-title">Cross-Domain Cascade Detection</div><div class="hi-desc">Poor sleep → emotional spending alert triggered within 5ms. Health, finance and career scores affect each other in real time — surfacing insights no single-domain app can see.</div></div>
+      </div>
+      <div class="highlight">
+        <div class="hi-icon">🛡️</div>
+        <div><div class="hi-title">100% Offline Demo Mode</div><div class="hi-desc">Works with zero backend. Demo users (arjun@demo.com, priya@demo.com) load full synthetic data — judges can test every feature without any setup.</div></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="score-demo">
+        <div style="font-size:11px;opacity:.7;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Demo User: Arjun</div>
+        <div class="score-big">78</div>
+        <div class="score-sub">Life Balance Score / 100</div>
+        <div class="score-bars">
+          <div class="sbar-row"><div class="sbar-lbl">Health</div><div class="sbar-track"><div class="sbar-fill" style="width:84%;background:#4ade80;"></div></div><div style="font-size:10px;opacity:.8;">84</div></div>
+          <div class="sbar-row"><div class="sbar-lbl">Finance</div><div class="sbar-track"><div class="sbar-fill" style="width:71%;background:#fbbf24;"></div></div><div style="font-size:10px;opacity:.8;">71</div></div>
+          <div class="sbar-row"><div class="sbar-lbl">Career</div><div class="sbar-track"><div class="sbar-fill" style="width:78%;background:#60a5fa;"></div></div><div style="font-size:10px;opacity:.8;">78</div></div>
+          <div class="sbar-row"><div class="sbar-lbl">Burnout</div><div class="sbar-track"><div class="sbar-fill" style="width:28%;background:#f87171;"></div></div><div style="font-size:10px;opacity:.8;">Low</div></div>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:14px;padding:16px 18px;border:1.5px solid #bbf7d0;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#15803d;margin-bottom:10px;">Key Integrations Working</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#374151;">✅ GitHub API — real contribution data</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#374151;">✅ Fitbit OAuth — sleep & steps sync</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#374151;">✅ Adzuna + Jooble — live job listings</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#374151;">✅ Nutritionix — 500k+ food database</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#374151;">✅ AI Vision — meal & doc auto-logging</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="branding">◈ BeyondSelf · Digital Twin</div>
+</div>
+</body></html>

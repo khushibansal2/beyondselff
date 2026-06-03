@@ -1989,17 +1989,51 @@ function NutritionixPanel() {
   );
 }
 
-// ── FITBIT PANEL (real OAuth) ─────────────────────────────────────────────────
+// ── FITBIT PANEL (real OAuth + demo fallback) ────────────────────────────────
 
 // Strip trailing /api so fetch calls that add /api/fitbit/... don't double up
 const BACKEND = (import.meta.env.VITE_API_BASE || 'http://localhost:8080/api').replace(/\/api$/, '');
 
+// Returns true only when the backend is reachable (non-localhost URL configured OR localhost responds)
+async function probeBackend() {
+  const isLocalhost = BACKEND.includes('localhost') || BACKEND.includes('127.0.0.1');
+  // On a deployed frontend-only site, VITE_API_BASE is usually not set → BACKEND = localhost → skip
+  if (isLocalhost && !import.meta.env.VITE_API_BASE) return false;
+  try {
+    const res = await fetch(`${BACKEND}/api/health`, { signal: AbortSignal.timeout(3000) });
+    return res.ok || res.status < 500;
+  } catch {
+    return false;
+  }
+}
+
+// Realistic mock Fitbit / Google Fit data for demo mode
+function getMockFitData() {
+  const steps = 7200 + Math.floor(Math.random() * 2000);
+  const sleep = +(6.5 + Math.random() * 1.5).toFixed(1);
+  const hr = 62 + Math.floor(Math.random() * 12);
+  const cal = 1600 + Math.floor(Math.random() * 500);
+  return {
+    connected: true,
+    displayName: 'Demo Athlete',
+    syncedAt: 'just now (demo)',
+    health: {
+      steps,
+      sleepHours: sleep,
+      restingHeartRate: hr,
+      calories: cal,
+      distanceMetres: Math.round(steps * 0.74),
+    },
+  };
+}
+
 function FitbitPanel() {
   const { userId, updateDomain } = useData();
-  const [status, setStatus]           = useState('checking'); // checking | disconnected | connected | syncing | error
+  const [status, setStatus]           = useState('checking'); // checking | disconnected | connected | syncing | error | demo
   const [syncData, setSyncData]       = useState(null);
   const [errorMsg, setErrorMsg]       = useState('');
   const [backendConfigured, setBackendConfigured] = useState(true);
+  const [isDemo, setIsDemo]           = useState(false);
 
   const uid = userId || 'default';
 
@@ -2057,19 +2091,49 @@ function FitbitPanel() {
       return;
     }
 
-    // Normal mount: check whether this user already has a token stored server-side
-    fetch(`${BACKEND}/api/fitbit/status?userId=${encodeURIComponent(uid)}`, {
-      headers: getHeaders(),
-      signal: AbortSignal.timeout(5000),
-    })
-      .then(r => r.ok ? r.json() : { connected: false })
-      .then(d => { if (d.connected) doSync(); else setStatus('disconnected'); })
-      .catch(() => setStatus('disconnected'));
+    // Probe backend availability — silently switch to demo mode if unreachable
+    probeBackend().then(available => {
+      if (!available) {
+        // No backend running — show demo data immediately
+        const mock = getMockFitData();
+        setSyncData(mock);
+        setIsDemo(true);
+        setStatus('connected');
+        const h = mock.health;
+        updateDomain('health', {
+          sleepAvg: h.sleepHours, steps: h.steps,
+          heartRate: h.restingHeartRate, lastFitbitSync: new Date().toISOString(),
+        });
+        return;
+      }
+      // Backend reachable — check real token
+      fetch(`${BACKEND}/api/fitbit/status?userId=${encodeURIComponent(uid)}`, {
+        headers: getHeaders(),
+        signal: AbortSignal.timeout(5000),
+      })
+        .then(r => r.ok ? r.json() : { connected: false })
+        .then(d => { if (d.connected) doSync(); else setStatus('disconnected'); })
+        .catch(() => setStatus('disconnected'));
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleConnect = async () => {
     setStatus('checking');
+    const available = await probeBackend();
+    if (!available) {
+      // No backend — load demo data instead of showing an error
+      const mock = getMockFitData();
+      setSyncData(mock);
+      setIsDemo(true);
+      setStatus('connected');
+      const h = mock.health;
+      updateDomain('health', {
+        sleepAvg: h.sleepHours, steps: h.steps,
+        heartRate: h.restingHeartRate, lastFitbitSync: new Date().toISOString(),
+      });
+      return;
+    }
     try {
       const res = await fetch(`${BACKEND}/api/fitbit/connect?userId=${encodeURIComponent(uid)}`, {
         headers: getHeaders(),
@@ -2077,15 +2141,18 @@ function FitbitPanel() {
       });
       const data = await res.json();
       if (data.configured && data.url) {
-        window.location.href = data.url; // Redirect to Google OAuth consent screen
+        window.location.href = data.url;
       } else {
         setBackendConfigured(false);
         setStatus('error');
         setErrorMsg(data.reason || 'FITBIT_CLIENT_ID / FITBIT_CLIENT_SECRET not set in backend application.properties.');
       }
     } catch {
-      setStatus('error');
-      setErrorMsg('Cannot reach the backend server. Please try again in a moment.');
+      // Unexpected error even though backend appeared reachable — fall back to demo
+      const mock = getMockFitData();
+      setSyncData(mock);
+      setIsDemo(true);
+      setStatus('connected');
     }
   };
 
@@ -2150,7 +2217,9 @@ function FitbitPanel() {
             <div className="max-w-xs">
               <p className="text-[15px] font-bold text-white mb-1">Connect Google Fit</p>
               <p className="text-[12px] text-[#8b949e] leading-relaxed">
-                {status === 'error' ? errorMsg : 'Authorize BeyondSelf to fetch your steps, sleep, heart rate and calories via secure OAuth 2.0.'}
+                {status === 'error' && backendConfigured
+                  ? errorMsg
+                  : 'Authorize BeyondSelf to fetch your steps, sleep, heart rate and calories via secure OAuth 2.0.'}
               </p>
               {!backendConfigured && (
                 <p className="text-[11px] text-[#8b949e] mt-3">
@@ -2158,13 +2227,11 @@ function FitbitPanel() {
                 </p>
               )}
             </div>
-            {(status !== 'error' || backendConfigured) && (
-              <button onClick={handleConnect}
-                className="px-6 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all hover:opacity-90"
-                style={{ background:'linear-gradient(135deg, #00b0b9, #0ea5e9)' }}>
-                Connect Now →
-              </button>
-            )}
+            <button onClick={handleConnect}
+              className="px-6 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all hover:opacity-90"
+              style={{ background:'linear-gradient(135deg, #00b0b9, #0ea5e9)' }}>
+              Connect Now →
+            </button>
           </div>
         )}
 
@@ -2182,8 +2249,15 @@ function FitbitPanel() {
         {isConnected && syncData && (
           <div className="glass-card overflow-hidden">
             <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
-              <span className="text-[15px] font-bold text-[#f0f0f3]">Today's Summary</span>
-              <span className="text-[11px] text-[#8b949e]">via Google Fit · {syncData.displayName}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[15px] font-bold text-[#f0f0f3]">Today's Summary</span>
+                {isDemo && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 uppercase tracking-wider">Demo</span>
+                )}
+              </div>
+              <span className="text-[11px] text-[#8b949e]">
+                {isDemo ? 'Simulated data · no backend' : `via Google Fit · ${syncData.displayName}`}
+              </span>
             </div>
             <div className="pt-4 space-y-1">
               {[
@@ -2223,7 +2297,7 @@ function FitbitPanel() {
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-[#10b981]' : isLoading ? 'bg-[#f59e0b] animate-pulse' : 'bg-[#8b949e]'}`} />
                 <span className={`text-[10px] font-semibold ${isConnected ? 'text-[#10b981]' : isLoading ? 'text-[#f59e0b]' : 'text-[#8b949e]'}`}>
-                  {isConnected ? 'Connected' : isLoading ? 'Connecting…' : 'Not connected'}
+                  {isConnected ? (isDemo ? 'Demo mode' : 'Connected') : isLoading ? 'Connecting…' : 'Not connected'}
                 </span>
               </div>
             </div>
@@ -2231,12 +2305,14 @@ function FitbitPanel() {
 
           {isConnected ? (
             <div className="space-y-2">
-              <button onClick={doSync} disabled={isLoading}
+              <button
+                onClick={isDemo ? () => { const m = getMockFitData(); setSyncData(m); } : doSync}
+                disabled={isLoading}
                 className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
                 style={{ background:'linear-gradient(135deg, #00b0b9, #0ea5e9)' }}>
                 {status === 'syncing'
                   ? <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Syncing…</>
-                  : '⟳ Sync Now'}
+                  : isDemo ? '⟳ Refresh Demo Data' : '⟳ Sync Now'}
               </button>
               <button onClick={handleDisconnect}
                 className="w-full py-2 rounded-xl text-[12px] text-[#8b949e] border border-white/[0.08] hover:border-rose-500/30 hover:text-rose-400 transition-all">
