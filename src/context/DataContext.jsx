@@ -26,7 +26,15 @@ const EMPTY_STATE = {
   // Domain data (from user input, uploads, or demo seed)
   health: {},
   finance: {},
-  career: {},
+  career: {
+    studyHoursDaily: 3,
+    codingHoursDaily: 2,
+    dsaPractice: 2,
+    projectsCompleted: 3,
+    skills: ['JavaScript', 'React'],
+    gpa: 7.2,
+    coursesActive: 1,
+  },
   goals: [],
   timeline: [],
   anomalies: [],

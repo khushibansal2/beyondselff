@@ -94,6 +94,30 @@ function buildStatsLocal(sessions) {
   return { totalMinutes, totalXP, totalSessions, streak, bestTopic };
 }
 
+function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+}
+
+const DEFAULT_SESSIONS = [
+  { id: 'seed-1',  userId: 'local', sessionDate: daysAgo(0),  createdAt: daysAgo(0)  + 'T09:00:00Z', durationMinutes: 90,  topic: 'DSA',               category: 'Problem Solving', focusQuality: 4, mentalFatigue: 2, environment: 'HOME',    xpEarned: 22 },
+  { id: 'seed-2',  userId: 'local', sessionDate: daysAgo(1),  createdAt: daysAgo(1)  + 'T10:30:00Z', durationMinutes: 60,  topic: 'Arrays & Hashing',  category: 'DSA',             focusQuality: 4, mentalFatigue: 2, environment: 'HOME',    xpEarned: 15 },
+  { id: 'seed-3',  userId: 'local', sessionDate: daysAgo(2),  createdAt: daysAgo(2)  + 'T14:00:00Z', durationMinutes: 120, topic: 'System Design',     category: 'Architecture',    focusQuality: 4, mentalFatigue: 2, environment: 'LIBRARY', xpEarned: 30 },
+  { id: 'seed-4',  userId: 'local', sessionDate: daysAgo(3),  createdAt: daysAgo(3)  + 'T11:00:00Z', durationMinutes: 90,  topic: 'DSA',               category: 'Problem Solving', focusQuality: 3, mentalFatigue: 3, environment: 'HOME',    xpEarned: 18 },
+  { id: 'seed-5',  userId: 'local', sessionDate: daysAgo(5),  createdAt: daysAgo(5)  + 'T16:00:00Z', durationMinutes: 60,  topic: 'React Hooks',       category: 'Frontend',        focusQuality: 3, mentalFatigue: 2, environment: 'HOME',    xpEarned: 13 },
+  { id: 'seed-6',  userId: 'local', sessionDate: daysAgo(8),  createdAt: daysAgo(8)  + 'T09:30:00Z', durationMinutes: 90,  topic: 'Dynamic Programming', category: 'DSA',           focusQuality: 4, mentalFatigue: 2, environment: 'CAFE',    xpEarned: 22 },
+  { id: 'seed-7',  userId: 'local', sessionDate: daysAgo(10), createdAt: daysAgo(10) + 'T10:00:00Z', durationMinutes: 120, topic: 'DSA',               category: 'Problem Solving', focusQuality: 5, mentalFatigue: 1, environment: 'HOME',    xpEarned: 36 },
+  { id: 'seed-8',  userId: 'local', sessionDate: daysAgo(14), createdAt: daysAgo(14) + 'T15:00:00Z', durationMinutes: 60,  topic: 'Trees & Graphs',    category: 'DSA',             focusQuality: 4, mentalFatigue: 2, environment: 'LIBRARY', xpEarned: 15 },
+];
+
+function seedDefaultSessions() {
+  const existing = loadLocal();
+  if (existing.length === 0) {
+    saveLocal(DEFAULT_SESSIONS);
+  }
+}
+
 // ── Public API ───────────────────────────────────────────────────────────────
 
 export async function logSession(payload) {
@@ -131,6 +155,7 @@ export async function getSessions() {
     if (!res.ok) throw new Error(res.status);
     return await res.json();
   } catch {
+    seedDefaultSessions();
     return loadLocal();
   }
 }
