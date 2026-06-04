@@ -410,7 +410,7 @@ function ScanVisionPanel({ onApplyCalories }) {
 
 function NutritionPanel({ healthData, updateDomain, cyclePhaseKey, isFemale }) {
   const profile = healthData?.nutritionProfile || { dietaryPreference: 'Veg', cuisine: 'North Indian', targetCalories: 2000 };
-  const cyclePhase = isFemale && cyclePhaseKey ? cyclePhaseKey : null;
+  const cyclePhase = cyclePhaseKey || null;
   const phaseMeta = cyclePhase ? PHASES[cyclePhase] : null;
   const phaseDiet = cyclePhase ? PHASE_DIET[cyclePhase] : null;
   const plan = healthData?.dailyMealPlan || {
@@ -1698,7 +1698,7 @@ export default function Health() {
     { id: 'nutrition',       label: 'Nutrition' },
     { id: 'recommendations', label: 'AI Recommendations' },
     { id: 'tracker',         label: 'Food Tracker' },
-    ...(isFemale ? [{ id: 'cycle', label: '♀ Cycle' }] : []),
+    { id: 'cycle', label: '♀ Cycle' },
   ];
 
   const handleLog = async (e) => {
@@ -1932,7 +1932,7 @@ export default function Health() {
       <p style={{ fontSize: 13, color: '#8e929b', marginTop: 2, marginBottom: 24 }}>Track, understand, and optimize your physical and mental wellbeing.</p>
 
       {/* ── Period Reminder Banner ── */}
-      {isFemale && nearPeriod && cycleData.lastPeriodDate && (
+      {nearPeriod && cycleData.lastPeriodDate && (
         <motion.div
           initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', marginBottom: 16, borderRadius: 12, background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.25)' }}
@@ -2777,7 +2777,7 @@ export default function Health() {
         />
       )}
 
-      {tab === 'cycle' && isFemale && (
+      {tab === 'cycle' && (
         <CycleTrackerPanel
           cycleData={cycleData}
           cycleDay={cycleDay}
