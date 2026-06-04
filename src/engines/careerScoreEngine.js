@@ -17,13 +17,13 @@ import { safeNum } from '../utils/safeMath.js';
 export function computeCareerScore(careerData, careerRecords = []) {
   const c = careerData || {};
 
-  const studyHoursDaily = safeNum(c.studyHoursDaily, 3);
-  const codingHoursDaily = safeNum(c.codingHoursDaily, 2);
-  const dsaPractice = safeNum(c.dsaPractice, 1);
-  const projectsCompleted = safeNum(c.projectsCompleted, 1);
+  const studyHoursDaily = safeNum(c.studyHoursDaily, 0);
+  const codingHoursDaily = safeNum(c.codingHoursDaily, 0);
+  const dsaPractice = safeNum(c.dsaPractice, 0);
+  const projectsCompleted = safeNum(c.projectsCompleted, 0);
   const skills = Array.isArray(c.skills) ? c.skills : [];
-  const gpa = safeNum(c.gpa, 7);
-  const coursesActive = safeNum(c.coursesActive, 1);
+  const gpa = safeNum(c.gpa, 0);
+  const coursesActive = safeNum(c.coursesActive, 0);
 
   // Factor scores (0-100 each)
   const studyScore = Math.min(100, Math.max(0, (studyHoursDaily / 6) * 100));
@@ -69,10 +69,13 @@ export function computeCareerScore(careerData, careerRecords = []) {
  * Based on industry benchmarks for top-tier placements.
  */
 function computePlacementReadiness(c) {
-  const dsaReady = c.dsaPractice >= 3 ? 25 : Math.round(c.dsaPractice * 8);
-  const projectsReady = c.projectsCompleted >= 4 ? 25 : Math.round(c.projectsCompleted * 6);
+  const dsa = safeNum(c.dsaPractice, 0);
+  const projects = safeNum(c.projectsCompleted, 0);
+  const coding = safeNum(c.codingHoursDaily, 0);
+  const dsaReady = dsa >= 3 ? 25 : Math.round(dsa * 8);
+  const projectsReady = projects >= 4 ? 25 : Math.round(projects * 6);
   const skillsReady = (c.skills?.length ?? 0) >= 5 ? 25 : Math.round((c.skills?.length ?? 0) * 5);
-  const codingReady = c.codingHoursDaily >= 4 ? 25 : Math.round(c.codingHoursDaily * 6);
+  const codingReady = coding >= 4 ? 25 : Math.round(coding * 6);
 
   const readiness = Math.min(100, dsaReady + projectsReady + skillsReady + codingReady);
 

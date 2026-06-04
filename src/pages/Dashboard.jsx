@@ -1183,7 +1183,7 @@ export default function Dashboard() {
       return empties.slice(0, 3);
     }
 
-    return tasks.slice(0, 4);
+    return tasks.slice(0, 5);
   }, [h, f, c, savingsRate, hasHealthData, hasFinanceData, hasCareerData]);
 
   const avgGoalProgress = useMemo(() => {
@@ -1286,9 +1286,9 @@ export default function Dashboard() {
 
   // Today's plan — auto-generated tasks + user-added custom tasks
   const todayPlan = [
-    ...actionPlan.slice(0, 4).map((t, i) => ({
+    ...actionPlan.slice(0, 5).map((t, i) => ({
       ...t,
-      time: ['6:00 AM', '8:00 AM', '1:00 PM', '5:00 PM'][i] || '—',
+      time: ['6:00 AM', '8:00 AM', '1:00 PM', '5:00 PM', '8:00 PM'][i] || '—',
       done: !!checkedTasks[t.id],
     })),
     ...customTasks.map(t => ({ ...t, done: !!checkedTasks[t.id] })),

@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
-import { GitBranch, AlertTriangle, CheckCircle, ArrowRight, Info, Zap } from 'lucide-react';
+import { GitBranch, AlertTriangle, CheckCircle, ArrowRight, Info, Zap, TrendingUp } from 'lucide-react';
+import { FutureYouPanel } from './FutureYou';
+import { StressTestPanel } from './StressTest';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 const W = 920, H = 520;
@@ -221,6 +223,7 @@ export default function CascadeMap() {
 
   const nodeScores = useMemo(() => computeNodeScores(health, finance, career), [health, finance, career]);
 
+  const [view, setView] = useState('map');
   const [hoveredNode, setHoveredNode] = useState(null);
   const [selectedEdge, setSelectedEdge] = useState(null);
 
@@ -303,7 +306,31 @@ export default function CascadeMap() {
         </div>
       </div>
 
-      <div style={{ display:'flex', flexDirection:'column', gap:12, maxWidth:'100%' }}>
+      {/* ── Tab Bar ── */}
+      <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:18, borderBottom:'1px solid rgba(255,255,255,0.07)', paddingBottom:0 }}>
+        {[
+          { id:'map',         label:'Cascade Map',  icon: <GitBranch size={13}/>,    color:'#818cf8' },
+          { id:'future-you',  label:'Future You',   icon: <TrendingUp size={13}/>,   color:'#a78bfa' },
+          { id:'stress-test', label:'Stress Test',  icon: <AlertTriangle size={13}/>, color:'#f87171' },
+        ].map(t => {
+          const active = view === t.id;
+          return (
+            <button key={t.id} onClick={() => setView(t.id)}
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 16px', fontSize:13, fontWeight:active?700:500,
+                cursor:'pointer', border:'none', background:'none', color: active ? '#f1f5f9' : '#64748b',
+                borderBottom: active ? `2px solid ${t.color}` : '2px solid transparent',
+                marginBottom:-1, transition:'color 0.2s', whiteSpace:'nowrap' }}>
+              <span style={{ color: active ? t.color : '#475569', display:'flex' }}>{t.icon}</span>
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {view === 'future-you' && <FutureYouPanel />}
+      {view === 'stress-test' && <StressTestPanel />}
+
+      {view === 'map' && <div style={{ display:'flex', flexDirection:'column', gap:12, maxWidth:'100%' }}>
 
         {/* ── Graph container with legend inside ── */}
         <div style={{ borderRadius:14, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)', background:'rgba(255,255,255,0.02)' }}>
@@ -324,6 +351,7 @@ export default function CascadeMap() {
           </div>
 
         {/* ── SVG Graph ── */}
+
         <div>
           <svg
             viewBox={`0 0 ${W} ${H}`}
@@ -625,7 +653,7 @@ export default function CascadeMap() {
           </div>
         </div>
 
-      </div>
+      </div>}
     </div>
   );
 }

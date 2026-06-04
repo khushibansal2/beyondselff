@@ -408,8 +408,11 @@ function ScanVisionPanel({ onApplyCalories }) {
   );
 }
 
-function NutritionPanel({ healthData, updateDomain }) {
+function NutritionPanel({ healthData, updateDomain, cyclePhaseKey, isFemale }) {
   const profile = healthData?.nutritionProfile || { dietaryPreference: 'Veg', cuisine: 'North Indian', targetCalories: 2000 };
+  const cyclePhase = isFemale && cyclePhaseKey ? cyclePhaseKey : null;
+  const phaseMeta = cyclePhase ? PHASES[cyclePhase] : null;
+  const phaseDiet = cyclePhase ? PHASE_DIET[cyclePhase] : null;
   const plan = healthData?.dailyMealPlan || {
     totalCalories: 1900,
     macros: { protein: 57, carbs: 210, fat: 55 },
@@ -461,11 +464,11 @@ function NutritionPanel({ healthData, updateDomain }) {
     setLoading(true);
     const updatedProfile = { ...form, targetCalories: Number(form.targetCalories) };
     try {
-      const newPlan = await generateMealPlan(updatedProfile);
-      updateDomain('health', { 
-        ...healthData, 
-        nutritionProfile: updatedProfile, 
-        dailyMealPlan: newPlan 
+      const newPlan = await generateMealPlan(updatedProfile, cyclePhase);
+      updateDomain('health', {
+        ...healthData,
+        nutritionProfile: updatedProfile,
+        dailyMealPlan: newPlan,
       });
       showToast('Nutrition profile & meal plan generated!', 'success');
     } catch (err) {
@@ -478,7 +481,7 @@ function NutritionPanel({ healthData, updateDomain }) {
   const handleRegenerateSingleMeal = async (mealType, currentMealName) => {
     setLoadingMeal(mealType);
     try {
-      const newMeal = await regenerateSingleMeal(profile, mealType, currentMealName);
+      const newMeal = await regenerateSingleMeal(profile, mealType, currentMealName, cyclePhase);
       const updatedMeals = plan.meals.map(m => m.type === mealType ? { ...newMeal, completed: m.completed, time: m.time } : m);
       const newTotalCalories = updatedMeals.reduce((acc, m) => acc + m.calories, 0);
       const newMacros = {
@@ -550,7 +553,40 @@ function NutritionPanel({ healthData, updateDomain }) {
       
       {/* Left Column: Preferences and Meals */}
       <div className="flex flex-col gap-6 h-full">
-        
+
+        {/* Cycle Phase Banner — shown for females with active cycle tracking */}
+        {cyclePhase && phaseMeta && phaseDiet && (
+          <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+            style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px', borderRadius: 14,
+              background: phaseMeta.bg, border: `1px solid ${phaseMeta.border}` }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: phaseMeta.bg, border: `1px solid ${phaseMeta.border}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+              {phaseMeta.emoji}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: phaseMeta.color, margin: '0 0 2px' }}>
+                {phaseMeta.name} Phase — Cycle-Adjusted Meal Plan
+              </p>
+              <p style={{ fontSize: 11, color: '#cbd5e1', margin: '0 0 6px', lineHeight: 1.5 }}>
+                Your plan will prioritize <strong style={{ color: '#f1f5f9' }}>{phaseDiet.focus}</strong>.{' '}
+                {phaseDiet.calorie_note}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {phaseDiet.foods.slice(0, 3).map((f, i) => (
+                  <span key={i} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999,
+                    background: 'rgba(255,255,255,0.06)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    {f.split('(')[0].trim()}
+                  </span>
+                ))}
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999,
+                  background: phaseMeta.bg, color: phaseMeta.color, border: `1px solid ${phaseMeta.border}` }}>
+                  +{phaseDiet.foods.length - 3} more
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Card 1: Preferences */}
         <div
           className="rounded-2xl border border-white/5 bg-[#0b0c10] flex flex-col gap-4 shadow-lg w-full"
@@ -1632,6 +1668,28 @@ export default function Health() {
   const daysUntil = getDaysUntilNextPeriod(cycleData.lastPeriodDate, cycleData.cycleLength);
   const nearPeriod = isNearPeriod(cycleData.lastPeriodDate, cycleData.cycleLength, cycleData.remindDaysBefore ?? 3);
 
+  // Browser notification for upcoming period
+  useEffect(() => {
+    if (!isFemale || !nearPeriod || !cycleData.lastPeriodDate) return;
+    const notifKey = `period_notif_${new Date().toDateString()}`;
+    if (localStorage.getItem(notifKey)) return;
+    if (!('Notification' in window)) return;
+    const fire = () => {
+      const label = daysUntil === 1 ? 'Period expected tomorrow' : `Period in ${daysUntil} days`;
+      new Notification('BeyondSelf — Period Reminder', {
+        body: `${label}. Stock up on iron-rich foods, magnesium, and stay hydrated.`,
+        icon: '/icon-192.png',
+        tag: 'period-reminder',
+      });
+      localStorage.setItem(notifKey, '1');
+    };
+    if (Notification.permission === 'granted') {
+      fire();
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then(p => { if (p === 'granted') fire(); });
+    }
+  }, [isFemale, nearPeriod, daysUntil, cycleData.lastPeriodDate]);
+
   const tabs = [
     { id: 'overview',        label: 'Overview' },
     { id: 'log',             label: 'Log Data' },
@@ -2546,7 +2604,7 @@ export default function Health() {
       )}
 
       {tab === 'nutrition' && (
-        <NutritionPanel healthData={health} updateDomain={updateDomain} />
+        <NutritionPanel healthData={health} updateDomain={updateDomain} cyclePhaseKey={phaseKey} isFemale={isFemale} />
       )}
 
       {tab === 'wellness' && (() => {
@@ -3004,6 +3062,10 @@ function CycleTrackerPanel({ cycleData, cycleDay, phaseKey, phase, daysUntil, on
   const [cycleLength, setCycleLength] = useState(cycleData.cycleLength || 28);
   const [remindDays, setRemindDays] = useState(cycleData.remindDaysBefore ?? 3);
   const [saved, setSaved] = useState(false);
+  const [notifStatus, setNotifStatus] = useState(() => {
+    if (!('Notification' in window)) return 'unsupported';
+    return Notification.permission;
+  });
 
   const diet = phaseKey ? PHASE_DIET[phaseKey] : null;
   const card = { background: 'rgba(15,20,35,0.98)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16 };
@@ -3083,6 +3145,31 @@ function CycleTrackerPanel({ cycleData, cycleDay, phaseKey, phase, daysUntil, on
               style={{ width: '100%', padding: '9px', borderRadius: 9, border: 'none', background: saved ? 'rgba(16,185,129,0.2)' : 'linear-gradient(135deg,#f43f5e,#e11d48)', color: saved ? '#34d399' : '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
               {saved ? '✅ Saved' : 'Save Settings →'}
             </button>
+            <button
+              onClick={() => {
+                const today = new Date().toISOString().split('T')[0];
+                setLastPeriod(today);
+                onSave({ lastPeriodDate: today, cycleLength: Number(cycleLength), remindDaysBefore: Number(remindDays) });
+                showToast('Period logged for today!', 'success');
+              }}
+              style={{ width: '100%', padding: '9px', borderRadius: 9, border: '1px solid rgba(244,63,94,0.3)', background: 'rgba(244,63,94,0.08)', color: '#fda4af', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+              🔴 Log Period Started Today
+            </button>
+            {notifStatus !== 'unsupported' && notifStatus !== 'granted' && (
+              <button
+                onClick={() => {
+                  Notification.requestPermission().then(p => {
+                    setNotifStatus(p);
+                    if (p === 'granted') showToast('Period reminders enabled!', 'success');
+                  });
+                }}
+                style={{ width: '100%', padding: '9px', borderRadius: 9, border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)', color: '#a78bfa', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                🔔 Enable Period Reminders
+              </button>
+            )}
+            {notifStatus === 'granted' && (
+              <p style={{ fontSize: 10, color: '#34d399', textAlign: 'center', margin: 0 }}>🔔 Browser reminders are ON</p>
+            )}
           </div>
         </div>
       </div>

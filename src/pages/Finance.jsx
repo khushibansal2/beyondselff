@@ -256,21 +256,23 @@ function TxCard({ tx, onDelete }) {
   const meta = CATEGORY_META[tx.category] || CATEGORY_META.Others;
   return (
     <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
-      className={`flex items-center gap-3 p-3 rounded-xl border ${meta.border} ${meta.bg} group relative`}>
-      <span className="text-xl">{meta.icon}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-200 truncate">{tx.merchant}</p>
-        <p className="text-[10px] text-slate-500">{tx.category}{tx.bank ? ` · ${tx.bank}` : ''}{tx.paymentMode ? ` · ${tx.paymentMode}` : tx.source ? ` · ${tx.source}` : ''}</p>
+      className={`flex items-center gap-3 p-3 rounded-xl border ${meta.border} ${meta.bg} group`}>
+      <span className="text-xl shrink-0">{meta.icon}</span>
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-medium text-slate-200 truncate">{tx.merchant}</p>
+          {tx.source === 'live' && <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 shrink-0">LIVE</span>}
+        </div>
+        <p className="text-[10px] text-slate-500 truncate">{tx.category}{tx.bank ? ` · ${tx.bank}` : ''}{tx.paymentMode ? ` · ${tx.paymentMode}` : tx.source ? ` · ${tx.source}` : ''}</p>
       </div>
-      <div className="text-right shrink-0">
+      <div className="text-right shrink-0 min-w-[90px]">
         <p className={`text-sm font-bold ${tx.type === 'Credit' ? 'text-emerald-400' : meta.text}`}>
           {tx.type === 'Credit' ? '+' : '−'}₹{tx.amount.toLocaleString()}
         </p>
         <p className="text-[10px] text-slate-500">{new Date(tx.parsedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
       </div>
-      {tx.source === 'live' && <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 absolute top-1 right-1">LIVE</span>}
       {onDelete && (
-        <button onClick={() => onDelete(tx.id)} className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-rose-400 text-xs transition-all ml-1 shrink-0">×</button>
+        <button onClick={() => onDelete(tx.id)} className="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-rose-400 text-xs transition-all shrink-0">×</button>
       )}
     </motion.div>
   );
@@ -295,12 +297,12 @@ function LiveNotification({ tx, onDismiss }) {
           <button onClick={onDismiss} className="text-slate-500 hover:text-slate-300 text-xs">✕</button>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-2xl">{meta.icon}</span>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-slate-100">{tx.merchant}</p>
-            <p className="text-[10px] text-slate-400">{tx.category} · {tx.bank}</p>
+          <span className="text-2xl shrink-0">{meta.icon}</span>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <p className="font-semibold text-slate-100 truncate">{tx.merchant}</p>
+            <p className="text-[10px] text-slate-400 truncate">{tx.category} · {tx.bank}</p>
           </div>
-          <p className={`text-lg font-bold ${meta.text}`}>₹{tx.amount.toLocaleString()}</p>
+          <p className={`text-lg font-bold shrink-0 min-w-[70px] text-right ${meta.text}`}>₹{tx.amount.toLocaleString()}</p>
         </div>
         <div className="mt-2 h-0.5 rounded-full bg-white/5 overflow-hidden">
           <motion.div initial={{ width: '100%' }} animate={{ width: '0%' }} transition={{ duration: 4, ease: 'linear' }}
@@ -3519,20 +3521,20 @@ export default function Finance() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="py-3.5 border-b border-white/5 flex items-center justify-between group last:border-b-0"
+                          className="py-3.5 border-b border-white/5 flex items-center gap-3 group last:border-b-0"
                         >
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
                             <div className="w-9 h-9 rounded-lg bg-[#15171e] border border-white/5 flex items-center justify-center text-base shrink-0 shadow-sm">
                               {icon}
                             </div>
-                            <div>
-                              <p style={{ fontFamily: 'var(--font-display)' }} className="text-[13px] font-semibold text-slate-200">{rec.category === 'Food' ? 'Food & Dining' : rec.category === 'Transport' ? 'Transport / Travel' : rec.category}</p>
+                            <div className="min-w-0 overflow-hidden">
+                              <p style={{ fontFamily: 'var(--font-display)' }} className="text-[13px] font-semibold text-slate-200 truncate">{rec.category === 'Food' ? 'Food & Dining' : rec.category === 'Transport' ? 'Transport / Travel' : rec.category}</p>
                               <p style={{ fontFamily: 'var(--font-primary)' }} className="text-[11px] text-slate-500 mt-0.5 font-medium">
                                 {new Date(rec.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </p>
                             </div>
                           </div>
-                          <div className="text-right flex items-center gap-3">
+                          <div className="text-right flex items-center gap-3 shrink-0">
                             <div className="flex flex-col items-end">
                               <p style={{ fontFamily: 'var(--font-primary)' }} className={`text-[13px] font-bold ${isIncome ? 'text-emerald-500' : 'text-slate-200'}`}>
                                 {isIncome ? '+' : '-'} ₹ {rec.amount.toLocaleString('en-IN')}

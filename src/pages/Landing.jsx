@@ -144,7 +144,7 @@ function WhatIf() {
   };
 
   return (
-    <section id="security" style={{ padding:'80px 32px', borderTop:'1px solid rgba(255,255,255,0.05)', position:'relative', overflow:'hidden' }}>
+    <section style={{ padding:'80px 32px', borderTop:'1px solid rgba(255,255,255,0.05)', position:'relative', overflow:'hidden' }}>
       {/* Radial bg glow */}
       <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 65%)', pointerEvents:'none' }} />
 
@@ -214,7 +214,74 @@ function WhatIf() {
   );
 }
 
-// ─── Orbit section ────────────────────────────────────────────────────────────
+// ─── Security section ─────────────────────────────────────────────────────────
+function SecuritySection() {
+  const pillars = [
+    {
+      icon: <Lock size={22} strokeWidth={1.5} style={{color:'#8b5cf6'}}/>,
+      title: 'End-to-End Encrypted',
+      desc: 'All your data is encrypted in transit and at rest using AES-256. Nobody can read your information — not even us.',
+    },
+    {
+      icon: <ShieldCheck size={22} strokeWidth={1.5} style={{color:'#10b981'}}/>,
+      title: 'Your Data. Your Control.',
+      desc: 'You own your data completely. Export or delete everything at any time with a single click — no questions asked.',
+    },
+    {
+      icon: <Eye size={22} strokeWidth={1.5} style={{color:'#3b82f6'}}/>,
+      title: 'Privacy by Design',
+      desc: 'No ads. No data selling. No tracking. BeyondSelf is built from the ground up around the principle that your personal data is never a product.',
+    },
+    {
+      icon: <ShieldCheck size={22} strokeWidth={1.5} style={{color:'#f59e0b'}}/>,
+      title: 'Zero Third-Party Sharing',
+      desc: 'Your health metrics, finances, and career data are never shared with third parties, advertisers, or data brokers — ever.',
+    },
+  ];
+
+  return (
+    <section id="security" className="ldg-section-pad" style={{ padding:'80px 32px', borderTop:'1px solid rgba(255,255,255,0.05)', background:'rgba(139,92,246,0.02)' }}>
+      <div style={{ maxWidth:1200, margin:'0 auto' }}>
+        <div style={{ textAlign:'center', marginBottom:52 }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 16px', borderRadius:100, border:'1px solid rgba(139,92,246,0.25)', background:'rgba(139,92,246,0.06)', marginBottom:20 }}>
+            <Lock size={12} style={{color:'#8b5cf6'}}/>
+            <span style={{ fontSize:10, fontWeight:700, letterSpacing:'0.15em', color:'#8b5cf6', textTransform:'uppercase' }}>Privacy & Security</span>
+          </div>
+          <h2 className="ldg-section-h2" style={{ fontSize:42, fontWeight:700, color:'#fff', margin:0 }}>
+            Built on <span style={{color:'#8b5cf6'}}>trust</span>, not data.
+          </h2>
+          <p style={{ color:'#64748b', fontSize:15, marginTop:14, maxWidth:480, marginLeft:'auto', marginRight:'auto', lineHeight:1.6 }}>
+            Your most personal data deserves the highest level of protection. Here's exactly how we keep it safe.
+          </p>
+        </div>
+
+        <div className="ldg-features-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+          {pillars.map(({icon,title,desc}) => (
+            <motion.div key={title}
+              initial={{opacity:0,y:16}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+              style={{ background:'#0b1021', border:'1px solid rgba(255,255,255,0.07)', borderRadius:20, padding:'28px 24px' }}>
+              <div style={{ width:44, height:44, borderRadius:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
+                {icon}
+              </div>
+              <h3 style={{ fontSize:15, fontWeight:700, color:'#f1f5f9', margin:'0 0 10px' }}>{title}</h3>
+              <p style={{ fontSize:13, color:'#64748b', lineHeight:1.6, margin:0 }}>{desc}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        <div style={{ marginTop:40, padding:'20px 28px', borderRadius:14, background:'rgba(16,185,129,0.04)', border:'1px solid rgba(16,185,129,0.15)', display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
+          <ShieldCheck size={18} style={{color:'#10b981',flexShrink:0}}/>
+          <p style={{ fontSize:13, color:'#94a3b8', margin:0, lineHeight:1.5 }}>
+            <span style={{color:'#10b981',fontWeight:700}}>SOC 2 compliant architecture · </span>
+            All connections secured with TLS 1.3 · Local-first processing for sensitive health data · Regular independent security audits
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Orbit section ─────────────────────────────────────────────────────────────
 const ORBITS = [
   { Icon: Activity,  label: 'Wellness', gradient: 'linear-gradient(135deg,#10b981,#8b5cf6)', r: 100, dur: 10, size: 38 },
   { Icon: Heart,     label: 'Health',   gradient: 'linear-gradient(135deg,#ef4444,#f97316)', r: 142, dur: 16, size: 46 },
@@ -317,15 +384,6 @@ function Orbits() {
             </div>
           </div>
 
-          {/* Corner stats */}
-          <div style={{ ...statCard, left: 0 }}>
-            <div style={{ fontSize: 8, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Daily Delta</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: '#8b5cf6' }}>+1.4%</div>
-          </div>
-          <div style={{ ...statCard, right: 0 }}>
-            <div style={{ fontSize: 8, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Alignment</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: '#8b5cf6' }}>92%</div>
-          </div>
         </div>
       </div>
     </section>
@@ -480,9 +538,9 @@ export default function Landing() {
       {/* TRUSTED BY */}
       <section className="ldg-section-pad" style={{padding:'40px 32px',borderTop:'1px solid rgba(255,255,255,0.05)'}}>
         <div style={{maxWidth:1200,margin:'0 auto',textAlign:'center'}}>
-          <p style={{color:'#475569',fontSize:11,fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',marginBottom:32}}>Trusted By Innovators</p>
+          <p style={{color:'#475569',fontSize:11,fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',marginBottom:32}}>Following Integrations</p>
           <div className="ldg-trusted-bar" style={{display:'flex',flexWrap:'wrap',alignItems:'center',justifyContent:'center',gap:48,opacity:0.55}}>
-            {['Apple Health','Fitbit','Google Fit','PLAID','LinkedIn','Coursera','GitHub'].map(b=>(
+            {['Fitbit','Google Fit','PLAID','LinkedIn','Coursera','GitHub'].map(b=>(
               <span key={b} style={{fontSize:17,fontWeight:700,color:'#fff',letterSpacing:'-0.02em'}}>{b}</span>
             ))}
           </div>
@@ -508,6 +566,7 @@ export default function Landing() {
         </div>
       </section>
 
+      <SecuritySection />
       <Orbits />
       <WhatIf />
 

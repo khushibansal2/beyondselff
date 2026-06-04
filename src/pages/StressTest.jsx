@@ -182,7 +182,7 @@ function ScoreRing({ original, drop, color, domain, size = 96, animate: doAnimat
 }
 
 /* ─── Main Component ─────────────────────────────────────────────── */
-export default function StressTest() {
+export function StressTestPanel() {
   const { lifeScore = 72, healthScore = 70, financeScore = 65, careerScore = 68 } = useData();
 
   const [phase, setPhase] = useState('select'); // select | configure | simulating | result
@@ -244,7 +244,7 @@ export default function StressTest() {
   };
 
   return (
-    <div style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ fontFamily: 'Inter, sans-serif', paddingBottom: 40 }}>
       
       {/* ── Page Header ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -639,6 +639,14 @@ export default function StressTest() {
 
       </AnimatePresence>
 
+    </div>
+  );
+}
+
+export default function StressTest() {
+  return (
+    <div style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)' }}>
+      <StressTestPanel />
     </div>
   );
 }

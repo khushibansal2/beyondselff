@@ -431,51 +431,56 @@ export default function NeuralCore() {
           {/* Stability Milestones cards */}
           {timeline.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              {[
-                {
-                  label: '5-Year Stability',
-                  desc: 'Near-term trajectory',
-                  current: timeline[4]?.stability,
-                  wi: whatIfTimeline[4]?.stability,
-                  color: '#c084fc',
-                  icon: (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="20" x2="18" y2="10" />
-                      <line x1="12" y1="20" x2="12" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                  )
-                },
-                {
-                  label: '10-Year Stability',
-                  desc: 'Mid-term projection',
-                  current: timeline[9]?.stability,
-                  wi: whatIfTimeline[9]?.stability,
-                  color: '#c084fc',
-                  icon: (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                  )
-                },
-                {
-                  label: `${years}-Year Stability`,
-                  desc: 'Long-term outlook',
-                  current: timeline[19]?.stability,
-                  wi: whatIfTimeline[19]?.stability,
-                  color: '#10b981',
-                  icon: (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <circle cx="12" cy="12" r="6" />
-                      <circle cx="12" cy="12" r="2" />
-                    </svg>
-                  )
-                }
-              ].map(({ label, desc, current, wi, color, icon }) => {
+              {(() => {
+                const y1 = Math.max(1, Math.round(years / 3));
+                const y2 = Math.max(2, Math.round(years * 2 / 3));
+                const y3 = years;
+                return [
+                  {
+                    label: `${y1}-Year Stability`,
+                    desc: 'Near-term trajectory',
+                    current: timeline[y1 - 1]?.stability,
+                    wi: whatIfTimeline[y1 - 1]?.stability,
+                    color: '#c084fc',
+                    icon: (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                      </svg>
+                    )
+                  },
+                  {
+                    label: `${y2}-Year Stability`,
+                    desc: 'Mid-term projection',
+                    current: timeline[y2 - 1]?.stability,
+                    wi: whatIfTimeline[y2 - 1]?.stability,
+                    color: '#c084fc',
+                    icon: (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                    )
+                  },
+                  {
+                    label: `${y3}-Year Stability`,
+                    desc: 'Long-term outlook',
+                    current: timeline[y3 - 1]?.stability,
+                    wi: whatIfTimeline[y3 - 1]?.stability,
+                    color: '#10b981',
+                    icon: (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                      </svg>
+                    )
+                  }
+                ];
+              })().map(({ label, desc, current, wi, color, icon }) => {
                 const delta = wi != null ? wi - current : null;
                 return (
                   <motion.div

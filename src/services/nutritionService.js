@@ -57,9 +57,40 @@ function extractJson(raw) {
   return JSON.parse(text);
 }
 
-export async function generateMealPlan(profile) {
+const CYCLE_PHASE_GUIDANCE = {
+  menstrual: {
+    name: 'Menstrual (Day 1–5)',
+    focus: 'Iron & Anti-inflammatory',
+    prioritize: 'iron-rich foods (spinach, lentils, dark leafy greens), anti-inflammatory spices (turmeric, ginger), dark chocolate, pumpkin seeds, magnesium-rich foods',
+    avoid: 'caffeine, alcohol, high-sodium/salty snacks, processed/fried foods',
+    calorie_note: 'Maintain normal caloric intake. Energy is lower — opt for easy-to-digest, comforting meals.',
+  },
+  follicular: {
+    name: 'Follicular (Day 6–13)',
+    focus: 'Light & Energizing',
+    prioritize: 'fermented foods (dahi/yogurt, idli, dosa), flaxseeds, cruciferous vegetables (broccoli, cabbage), avocados, eggs, lean protein',
+    avoid: 'heavy fried foods, excess sugar',
+    calorie_note: 'Slightly lower caloric intake is fine. Metabolism is efficient and energy is building.',
+  },
+  ovulation: {
+    name: 'Ovulation (Day 14–16)',
+    focus: 'Raw & Fiber-rich',
+    prioritize: 'raw fruits and vegetables, cruciferous vegetables, quinoa/brown rice, fish (salmon, sardines), flaxseeds, chia seeds',
+    avoid: 'excess red meat, refined sugar, processed snacks',
+    calorie_note: 'Normal caloric intake. Peak energy window — support with fiber-rich anti-inflammatory foods.',
+  },
+  luteal: {
+    name: 'Luteal (Day 17–28)',
+    focus: 'Complex Carbs & Magnesium',
+    prioritize: 'sweet potato, oats, dark chocolate, spinach, bananas, chickpeas, lentils, whole grain foods — these stabilize blood sugar and boost serotonin',
+    avoid: 'caffeine (worsens anxiety and sleep), alcohol, high-sodium foods (causes bloating), refined sugar (triggers mood swings)',
+    calorie_note: 'Add +100–200 kcal to the target — cravings are real and biologically driven during this phase. Honour the hunger.',
+  },
+};
+
+export async function generateMealPlan(profile, cyclePhase = null) {
   const apiKey = getApiKey();
-  
+
   if (!apiKey) {
     console.warn('[NutritionService] No API key found, returning demo meal plan');
     return getDemoMealPlan(profile);
@@ -80,15 +111,19 @@ export async function generateMealPlan(profile) {
   const theme = themes[Math.floor(Math.random() * themes.length)];
   const seed = Math.random().toString(36).substring(7);
 
+  const phaseInfo = cyclePhase ? CYCLE_PHASE_GUIDANCE[cyclePhase] : null;
+  const effectiveCalories = phaseInfo?.calorie_note?.includes('+100') ? profile.targetCalories + 150 : profile.targetCalories;
+
   const prompt = `
 You are an expert AI Nutritionist. The user wants a daily meal plan with 4 meals: Breakfast, Lunch, Snack, Dinner.
-The meals should total approximately ${profile.targetCalories} calories (±50 cal).
+The meals should total approximately ${effectiveCalories} calories (±50 cal).
 
 USER NUTRITION PROFILE:
 - Dietary Preference: ${profile.dietaryPreference}
 - Regional Cuisine: ${profile.cuisine}
 - Food Allergies/Intolerances: ${profile.allergies || 'None'}
-- Target Calories: ${profile.targetCalories} kcal
+- Target Calories: ${effectiveCalories} kcal
+${phaseInfo ? `- Menstrual Cycle Phase: ${phaseInfo.name} — ${phaseInfo.focus}` : ''}
 
 INSTRUCTIONS:
 1. You MUST only suggest meals from ${profile.cuisine} cuisine. Do not include any meals from other regional cuisines.
@@ -96,7 +131,14 @@ ${cuisineSpecificList ? `2. Strictly use the following ${profile.cuisine} exampl
 3. Ensure the meal plan respects the dietary preference (e.g. no chicken/meat for Veg, no dairy for Vegan).
 4. Ensure no allergic foods are included.
 5. Distribute calories roughly: Breakfast 25%, Lunch 35%, Snack 10%, Dinner 30%.
-6. Use the provided Indian Food Database for accurate calorie/macro context:
+${phaseInfo ? `6. MENSTRUAL CYCLE PHASE GUIDANCE (IMPORTANT — follow this strictly):
+   - Current phase: ${phaseInfo.name}
+   - Focus: ${phaseInfo.focus}
+   - PRIORITIZE these nutrients/foods in the plan: ${phaseInfo.prioritize}
+   - AVOID or minimize: ${phaseInfo.avoid}
+   - Calorie note: ${phaseInfo.calorie_note}
+   - Weave phase-appropriate ingredients naturally into authentic ${profile.cuisine} meals. Do not suggest foreign items.
+7. Use the provided Indian Food Database for accurate calorie/macro context:` : '6. Use the provided Indian Food Database for accurate calorie/macro context:'}
 
 ${INDIAN_FOOD_DATABASE}
 
@@ -253,13 +295,15 @@ function getDemoMealPlan(profile) {
   return new Promise(resolve => setTimeout(() => resolve(plan), 1500)); // Simulate network delay
 }
 
-export async function regenerateSingleMeal(profile, mealType, currentMealName) {
+export async function regenerateSingleMeal(profile, mealType, currentMealName, cyclePhase = null) {
   const apiKey = getApiKey();
-  
+
   if (!apiKey) {
     console.warn('[NutritionService] No API key found, returning demo single meal');
     return getDemoSingleMeal(profile, mealType, currentMealName);
   }
+
+  const phaseInfo = cyclePhase ? CYCLE_PHASE_GUIDANCE[cyclePhase] : null;
 
   const prompt = `
 You are an expert AI Nutritionist. The user does not want to eat "${currentMealName}" for ${mealType} today.
@@ -271,6 +315,7 @@ Suggest ONE alternative ${mealType} meal only.
 - Target calories for this meal: ${mealType === 'Breakfast' ? '25%' : mealType === 'Lunch' ? '35%' : mealType === 'Snack' ? '10%' : '30%'} of ${profile.targetCalories} kcal
 - The suggested meal MUST be different from "${currentMealName}"
 - Be creative, suggest something fresh and authentic.
+${phaseInfo ? `- MENSTRUAL CYCLE PHASE: ${phaseInfo.name}. PRIORITIZE: ${phaseInfo.prioritize}. AVOID: ${phaseInfo.avoid}.` : ''}
 
 Return ONLY a raw JSON object, no markdown, no backticks:
 {

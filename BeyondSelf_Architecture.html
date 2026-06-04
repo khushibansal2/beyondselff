@@ -1,1212 +1,769 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BeyondSelf — Architecture Document</title>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #ffffff;
-    --text: #0f172a;
-    --text-muted: #475569;
-    --accent: #6366f1;
-    --accent-soft: #eef2ff;
-    --border: #e2e8f0;
-    --card: #f8fafc;
-    --green: #10b981;
-    --blue: #3b82f6;
-    --purple: #8b5cf6;
-    --orange: #f59e0b;
-    --red: #ef4444;
-    --teal: #14b8a6;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-    font-size: 14px;
-  }
-
-  /* ── Cover Page ── */
-  .cover {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 60px 40px;
-    page-break-after: always;
-    color: white;
-  }
-  .cover-badge {
-    background: rgba(99,102,241,0.25);
-    border: 1px solid rgba(99,102,241,0.5);
-    border-radius: 999px;
-    padding: 6px 20px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #a5b4fc;
-    margin-bottom: 32px;
-  }
-  .cover h1 {
-    font-size: 64px;
-    font-weight: 800;
-    letter-spacing: -2px;
-    background: linear-gradient(135deg, #fff 30%, #a5b4fc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 16px;
-    line-height: 1.1;
-  }
-  .cover .subtitle {
-    font-size: 20px;
-    color: #94a3b8;
-    font-weight: 400;
-    max-width: 560px;
-    margin-bottom: 48px;
-  }
-  .cover-meta {
-    display: flex;
-    gap: 32px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 8px;
-  }
-  .cover-meta-item {
-    text-align: center;
-  }
-  .cover-meta-item .label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #64748b;
-    margin-bottom: 4px;
-  }
-  .cover-meta-item .value {
-    font-size: 14px;
-    font-weight: 600;
-    color: #e2e8f0;
-  }
-  .cover-divider {
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
-    border-radius: 999px;
-    margin: 32px auto;
-  }
-
-  /* ── Page Layout ── */
-  .page {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 60px 48px;
-  }
-
-  @media print {
-    .cover { page-break-after: always; }
-    .section { page-break-inside: avoid; }
-    .page-break { page-break-before: always; }
-  }
-
-  /* ── Section Headers ── */
-  .section-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
-  h2 {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.5px;
-    margin-bottom: 6px;
-  }
-  h3 {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-    margin-top: 28px;
-    margin-bottom: 12px;
-  }
-  .section-desc {
-    color: var(--text-muted);
-    font-size: 15px;
-    margin-bottom: 28px;
-    max-width: 680px;
-  }
-  .hr {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 48px 0;
-  }
-
-  /* ── Overview Cards ── */
-  .overview-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-  .overview-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-  }
-  .overview-card .icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    margin-bottom: 12px;
-  }
-  .overview-card .card-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-  .overview-card .card-desc {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.5;
-  }
-
-  /* ── Tech Stack Table ── */
-  .tech-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 16px;
-    font-size: 13px;
-  }
-  .tech-table th {
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 10px 16px;
-    text-align: left;
-    border-bottom: 2px solid #c7d2fe;
-  }
-  .tech-table td {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-  .tech-table tr:last-child td { border-bottom: none; }
-  .tech-table tr:hover td { background: #f8fafc; }
-  .tech-table td:first-child {
-    font-weight: 600;
-    color: var(--text);
-    white-space: nowrap;
-    width: 220px;
-  }
-  .tech-table td:last-child { color: var(--text-muted); }
-  .tech-table .section-row td {
-    background: #f1f5f9;
-    font-weight: 700;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #64748b;
-    padding: 8px 16px;
-  }
-
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .badge-blue { background: #dbeafe; color: #1d4ed8; }
-  .badge-green { background: #d1fae5; color: #065f46; }
-  .badge-purple { background: #ede9fe; color: #5b21b6; }
-  .badge-orange { background: #fef3c7; color: #92400e; }
-  .badge-red { background: #fee2e2; color: #991b1b; }
-
-  /* ── Architecture Diagram ── */
-  .diagram-container {
-    background: #0f172a;
-    border-radius: 16px;
-    padding: 32px;
-    margin: 24px 0;
-    overflow: auto;
-  }
-  .diagram-container pre {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    color: #94a3b8;
-    line-height: 1.6;
-    white-space: pre;
-  }
-  .diagram-container pre .highlight { color: #a5b4fc; }
-  .diagram-container pre .green { color: #6ee7b7; }
-  .diagram-container pre .yellow { color: #fde68a; }
-  .diagram-container pre .blue { color: #93c5fd; }
-  .diagram-container pre .red { color: #fca5a5; }
-
-  /* ── Layers ── */
-  .layer {
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .layer-header {
-    padding: 12px 20px;
-    font-weight: 700;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .layer-body {
-    padding: 16px 20px 20px;
-  }
-  .layer-frontend .layer-header { background: #eff6ff; color: #1e40af; border-bottom: 1.5px solid #bfdbfe; }
-  .layer-backend .layer-header  { background: #f0fdf4; color: #166534; border-bottom: 1.5px solid #bbf7d0; }
-  .layer-ai .layer-header        { background: #fdf4ff; color: #6b21a8; border-bottom: 1.5px solid #e9d5ff; }
-  .layer-data .layer-header      { background: #fffbeb; color: #92400e; border-bottom: 1.5px solid #fde68a; }
-
-  /* ── Module Grid ── */
-  .module-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .module-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-  .module-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-top: 6px;
-    flex-shrink: 0;
-  }
-  .module-card .name { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-  .module-card .desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-
-  /* ── Flow Diagram ── */
-  .flow {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0;
-    margin: 20px 0;
-  }
-  .flow-step {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    text-align: center;
-    min-width: 110px;
-  }
-  .flow-arrow {
-    font-size: 18px;
-    color: #94a3b8;
-    padding: 0 6px;
-  }
-
-  /* ── Callout boxes ── */
-  .callout {
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin: 16px 0;
-    font-size: 13px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-  .callout-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
-  .callout-blue  { background: #eff6ff; border-left: 4px solid #3b82f6; }
-  .callout-green { background: #f0fdf4; border-left: 4px solid #10b981; }
-  .callout-purple{ background: #fdf4ff; border-left: 4px solid #8b5cf6; }
-  .callout-orange{ background: #fffbeb; border-left: 4px solid #f59e0b; }
-  .callout strong { display: block; margin-bottom: 4px; color: var(--text); }
-  .callout p { color: var(--text-muted); margin: 0; }
-
-  /* ── Pages Table ── */
-  .pages-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 16px;
-  }
-  .page-item {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
-  }
-  .page-item .pg-name { font-weight: 700; margin-bottom: 3px; color: var(--text); }
-  .page-item .pg-desc { color: var(--text-muted); font-size: 11px; line-height: 1.4; }
-
-  /* ── API Table ── */
-  .api-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
-    margin-top: 12px;
-  }
-  .api-table th {
-    background: #f8fafc;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #64748b;
-    padding: 8px 14px;
-    text-align: left;
-    border-bottom: 2px solid var(--border);
-  }
-  .api-table td {
-    padding: 9px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-  .api-table tr:last-child td { border-bottom: none; }
-  .method {
-    display: inline-block;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .method-get  { background: #d1fae5; color: #065f46; }
-  .method-post { background: #dbeafe; color: #1e40af; }
-  .endpoint {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent);
-    font-weight: 500;
-  }
-
-  /* ── Engine Cards ── */
-  .engine-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    margin-top: 16px;
-  }
-  .engine-card {
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
-  }
-  .engine-card .e-name {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .engine-card .e-file {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--accent);
-    background: var(--accent-soft);
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-  .engine-card .e-desc {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.5;
-    margin-top: 6px;
-  }
-  .engine-card .e-formula {
-    margin-top: 10px;
-    background: #0f172a;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #a5b4fc;
-  }
-
-  /* ── Unique Features ── */
-  .feature-list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    margin-top: 16px;
-  }
-  .feature-card {
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
-    position: relative;
-    overflow: hidden;
-  }
-  .feature-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-  .fc-1::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
-  .fc-2::before { background: linear-gradient(90deg, #10b981, #3b82f6); }
-  .fc-3::before { background: linear-gradient(90deg, #f59e0b, #ef4444); }
-  .fc-4::before { background: linear-gradient(90deg, #14b8a6, #6366f1); }
-  .fc-5::before { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
-  .fc-6::before { background: linear-gradient(90deg, #f59e0b, #10b981); }
-  .feature-card .f-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; margin-top: 4px; }
-  .feature-card .f-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
-
-  /* ── Footer ── */
-  .doc-footer {
-    background: #0f172a;
-    color: #475569;
-    text-align: center;
-    padding: 32px;
-    font-size: 12px;
-    margin-top: 60px;
-  }
-  .doc-footer strong { color: #94a3b8; }
-
-  /* ── Print Styles ── */
-  @media print {
-    body { font-size: 12px; }
-    .cover { min-height: auto; padding: 80px 40px; }
-    .cover h1 { font-size: 48px; }
-    .page { padding: 40px 36px; }
-    .diagram-container { background: #1e293b; }
-    .doc-footer { margin-top: 40px; }
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#cdd4e8;font-family:'Inter',sans-serif;overflow:hidden;width:100%;height:100%;}
+#deck{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#cdd4e8;}
+#scaler{width:1400px;height:900px;position:relative;transform-origin:center center;}
+.slide{width:1400px;height:900px;background:#eef1fb;position:absolute;inset:0;display:none;}
+.slide.active{display:block;}
+.nav{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:7px 18px;background:rgba(15,23,42,0.92);border:1px solid rgba(139,92,246,0.25);border-radius:10px;backdrop-filter:blur(10px);z-index:9999;}
+.nav button{background:#1e293b;color:#fff;border:1.5px solid rgba(139,92,246,0.4);padding:6px 22px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;}
+.nav button:hover{background:#7c3aed;border-color:#7c3aed;}
+#ctr{color:#94a3b8;font-size:12px;font-weight:700;min-width:48px;text-align:center;}
 </style>
 </head>
 <body>
+<div id="deck"><div id="scaler">
 
-<!-- ═══════════════════════════════════════════════════ COVER ══ -->
-<div class="cover">
-  <div class="cover-badge">Technical Architecture Document</div>
-  <h1>BeyondSelf</h1>
-  <div class="subtitle">Personal Digital Twin — Life Management Platform<br/>Full-Stack Architecture &amp; Engineering Overview</div>
-  <div class="cover-divider"></div>
-  <div class="cover-meta">
-    <div class="cover-meta-item">
-      <div class="label">Type</div>
-      <div class="value">Hackathon Project</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="label">Frontend</div>
-      <div class="value">React 18 + Vite</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="label">Backend</div>
-      <div class="value">Spring Boot 3.2</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="label">AI</div>
-      <div class="value">Groq — Llama 3.3 / 4</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="label">Date</div>
-      <div class="value">May 2026</div>
-    </div>
-  </div>
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — INTELLIGENCE LAYER
+══════════════════════════════════════════ -->
+<div class="slide active">
+<svg viewBox="0 0 1400 900" width="1400" height="900" font-family="Inter, sans-serif">
+  <defs>
+    <marker id="s1ap" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#7c3aed"/></marker>
+    <marker id="s1ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#0891b2"/></marker>
+    <marker id="s1ao" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#ea580c"/></marker>
+    <linearGradient id="s1life" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="s1bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eef1fb"/><stop offset="100%" stop-color="#e6ebf7"/>
+    </linearGradient>
+    <filter id="s1sh"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#00000014"/></filter>
+    <pattern id="s1grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(100,116,139,0.055)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1400" height="900" fill="url(#s1bg)"/>
+  <rect width="1400" height="900" fill="url(#s1grid)"/>
+
+  <!-- TITLE -->
+  <rect x="8" y="6" width="1384" height="36" rx="8" fill="#fff" filter="url(#s1sh)" stroke="#e2e8f0" stroke-width="1"/>
+  <circle cx="26" cy="24" r="8" fill="#7c3aed"/>
+  <text x="26" y="28.5" text-anchor="middle" fill="#fff" font-size="9" font-weight="900">B</text>
+  <text x="40" y="29" fill="#0f172a" font-size="15" font-weight="900">BeyondSelf</text>
+  <text x="142" y="29" fill="#7c3aed" font-size="15" font-weight="900"> — System Architecture</text>
+  <text x="358" y="27" fill="#94a3b8" font-size="7.5"> · Offline-first · Deterministic AI · Privacy by design · React 19 + Vite 8 + Spring Boot 3.2</text>
+  <rect x="870" y="11" width="82" height="18" rx="9" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="877" y="23" font-size="9">📶</text><text x="888" y="23" fill="#1d4ed8" font-size="7.5" font-weight="700">Offline First</text>
+  <rect x="960" y="11" width="98" height="18" rx="9" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="967" y="23" font-size="9">🧠</text><text x="978" y="23" fill="#6d28d9" font-size="7.5" font-weight="700">Deterministic AI</text>
+  <rect x="1066" y="11" width="100" height="18" rx="9" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="1073" y="23" font-size="9">🔐</text><text x="1084" y="23" fill="#15803d" font-size="7.5" font-weight="700">Privacy by Design</text>
+  <rect x="1174" y="11" width="82" height="18" rx="9" fill="#fff7ed" stroke="#fdba74" stroke-width="1"/>
+  <text x="1181" y="23" font-size="9">🛡️</text><text x="1192" y="23" fill="#c2410c" font-size="7.5" font-weight="700">Demo Proof</text>
+  <rect x="1264" y="11" width="120" height="18" rx="9" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1271" y="23" font-size="9">⚙️</text><text x="1282" y="23" fill="#b91c1c" font-size="7.5" font-weight="700">9 Deterministic Engines</text>
+
+  <!-- slide indicator -->
+  <rect x="8" y="6" width="74" height="36" rx="8" fill="#7c3aed"/>
+  <text x="45" y="29" text-anchor="middle" fill="#fff" font-size="8" font-weight="800">SLIDE 1 / 2</text>
+
+  <!-- ═══ EXTERNAL APIs  y=48 h=78 ═══ -->
+  <rect x="8" y="48" width="1384" height="78" rx="9" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" filter="url(#s1sh)"/>
+  <rect x="14" y="53" width="148" height="16" rx="4" fill="#dbeafe"/>
+  <text x="18" y="64" fill="#1d4ed8" font-size="7.5" font-weight="800" letter-spacing="1">🌐  EXTERNAL APIs — AI &amp; Third-Party Services</text>
+
+  <!-- 6 API cards -->
+  <rect x="14"  y="70" width="212" height="48" rx="7" fill="#fff" stroke="#bfdbfe" stroke-width="1" filter="url(#s1sh)"/>
+  <circle cx="34" cy="94" r="12" fill="#4285F4"/><text x="34" y="98.5" text-anchor="middle" fill="#fff" font-size="10" font-weight="800">G</text>
+  <text x="52" y="89" fill="#1d4ed8" font-size="9" font-weight="700">Google Gemini 2.0 Flash</text>
+  <text x="52" y="101" fill="#64748b" font-size="7.5">AI Coach · Analysis · Insights</text>
+  <text x="52" y="112" fill="#94a3b8" font-size="6.5">via @google/generative-ai + backend proxy</text>
+
+  <rect x="234" y="70" width="208" height="48" rx="7" fill="#fff" stroke="#bfdbfe" stroke-width="1" filter="url(#s1sh)"/>
+  <rect x="250" y="82" width="24" height="24" rx="5" fill="#f97316"/>
+  <text x="262" y="98.5" text-anchor="middle" fill="#fff" font-size="14" font-weight="900">⚡</text>
+  <text x="282" y="89" fill="#c2410c" font-size="9" font-weight="700">Groq LLaMA 3.3-70b</text>
+  <text x="282" y="101" fill="#64748b" font-size="7.5">Fast NLP · Voice Parser · Fallback</text>
+  <text x="282" y="112" fill="#94a3b8" font-size="6.5">VITE_GROQ_API_KEY · direct client call</text>
+
+  <rect x="450" y="70" width="196" height="48" rx="7" fill="#fff" stroke="#bfdbfe" stroke-width="1" filter="url(#s1sh)"/>
+  <circle cx="468" cy="94" r="12" fill="#24292e"/><text x="468" y="98" text-anchor="middle" fill="#fff" font-size="12">⚙</text>
+  <text x="486" y="89" fill="#0f172a" font-size="9" font-weight="700">GitHub v3 REST API</text>
+  <text x="486" y="101" fill="#64748b" font-size="7.5">Repos · Commits · Languages</text>
+  <text x="486" y="112" fill="#94a3b8" font-size="6.5">githubService.js · career data</text>
+
+  <rect x="654" y="70" width="192" height="48" rx="7" fill="#fff" stroke="#bfdbfe" stroke-width="1" filter="url(#s1sh)"/>
+  <circle cx="672" cy="94" r="12" fill="#00b0b9"/><text x="672" y="98" text-anchor="middle" fill="#fff" font-size="13">♥</text>
+  <text x="690" y="89" fill="#0e7490" font-size="9" font-weight="700">Fitbit OAuth</text>
+  <text x="690" y="101" fill="#64748b" font-size="7.5">Steps · Sleep · Heart Rate sync</text>
+  <text x="690" y="112" fill="#94a3b8" font-size="6.5">integrationService.js · OAuth flow</text>
+
+  <rect x="854" y="70" width="192" height="48" rx="7" fill="#fff" stroke="#bfdbfe" stroke-width="1" filter="url(#s1sh)"/>
+  <circle cx="872" cy="94" r="12" fill="#7c3aed"/><text x="872" y="98" text-anchor="middle" fill="#fff" font-size="10">💼</text>
+  <text x="890" y="89" fill="#6d28d9" font-size="9" font-weight="700">Adzuna Jobs API</text>
+  <text x="890" y="101" fill="#64748b" font-size="7.5">Job Market · Salary Benchmarks</text>
+  <text x="890" y="112" fill="#94a3b8" font-size="6.5">careerIntelligenceService.js</text>
+
+  <rect x="1054" y="70" width="330" height="48" rx="7" fill="#fff" stroke="#bfdbfe" stroke-width="1" filter="url(#s1sh)"/>
+  <circle cx="1072" cy="94" r="12" fill="#22c55e"/><text x="1072" y="98" text-anchor="middle" fill="#fff" font-size="10">🥗</text>
+  <text x="1090" y="89" fill="#15803d" font-size="9" font-weight="700">Nutritionix API</text>
+  <text x="1090" y="101" fill="#64748b" font-size="7.5">Food CV · Macros · Calories · Diet tracking</text>
+  <text x="1090" y="112" fill="#94a3b8" font-size="6.5">visionService.js + nutritionixService.js · photo → macros in &lt;2s</text>
+
+  <!-- arrow -->
+  <line x1="692" y1="126" x2="692" y2="138" stroke="#7c3aed" stroke-width="2" marker-end="url(#s1ap)"/>
+  <rect x="644" y="126" width="96" height="13" rx="3" fill="#f5f3ff"/>
+  <text x="692" y="136" text-anchor="middle" fill="#7c3aed" font-size="7.5" font-weight="600">AI Responses + Data</text>
+
+  <!-- ═══ FRONTEND  y=141 h=102 ═══ -->
+  <rect x="8" y="141" width="1384" height="102" rx="9" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5" filter="url(#s1sh)"/>
+  <rect x="14" y="146" width="148" height="16" rx="4" fill="#ede9fe"/>
+  <text x="18" y="157" fill="#6d28d9" font-size="7.5" font-weight="800" letter-spacing="1">⚛️  FRONTEND  —  React Application</text>
+  <text x="172" y="157" fill="#94a3b8" font-size="7">React 19 · Vite 8 · Tailwind CSS v4 · Framer Motion 12 · Recharts 3 · React Router v7 · Lazy loading · AnimatePresence</text>
+
+  <!-- Row 1: main pages -->
+  <rect x="14"  y="163" width="85"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="22"  y="177" font-size="9">📊</text><text x="33"  y="177" fill="#1e293b" font-size="8" font-weight="700">Dashboard</text>
+  <rect x="105" y="163" width="68"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="113" y="177" font-size="9">❤️</text><text x="124" y="177" fill="#1e293b" font-size="8" font-weight="700">Health</text>
+  <rect x="179" y="163" width="72"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="187" y="177" font-size="9">💰</text><text x="198" y="177" fill="#1e293b" font-size="8" font-weight="700">Finance</text>
+  <rect x="257" y="163" width="68"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="265" y="177" font-size="9">🎯</text><text x="276" y="177" fill="#1e293b" font-size="8" font-weight="700">Career</text>
+  <rect x="331" y="163" width="65"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="339" y="177" font-size="9">🤖</text><text x="350" y="177" fill="#1e293b" font-size="8" font-weight="700">Coach</text>
+  <rect x="402" y="163" width="80"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="410" y="177" font-size="9">🌌</text><text x="421" y="177" fill="#1e293b" font-size="8" font-weight="700">FutureYou</text>
+  <rect x="488" y="163" width="64"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="496" y="177" font-size="9">🏆</text><text x="507" y="177" fill="#1e293b" font-size="8" font-weight="700">Goals</text>
+  <rect x="558" y="163" width="84"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="566" y="177" font-size="9">🧬</text><text x="577" y="177" fill="#1e293b" font-size="8" font-weight="700">NeuralCore</text>
+  <rect x="648" y="163" width="78"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="656" y="177" font-size="9">🔮</text><text x="667" y="177" fill="#1e293b" font-size="8" font-weight="700">Simulator</text>
+  <rect x="732" y="163" width="72"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="740" y="177" font-size="9">📈</text><text x="751" y="177" fill="#1e293b" font-size="8" font-weight="700">Insights</text>
+  <rect x="810" y="163" width="78"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="818" y="177" font-size="9">⚡</text><text x="829" y="177" fill="#1e293b" font-size="8" font-weight="700">StressTest</text>
+  <rect x="894" y="163" width="84"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="902" y="177" font-size="9">🗺️</text><text x="913" y="177" fill="#1e293b" font-size="8" font-weight="700">CascadeMap</text>
+  <rect x="984" y="163" width="74"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="992" y="177" font-size="9">📁</text><text x="1003" y="177" fill="#1e293b" font-size="8" font-weight="700">Upload</text>
+  <rect x="1064" y="163" width="88"  height="22" rx="5" fill="#fff" stroke="#c4b5fd" stroke-width="1"/><text x="1072" y="177" font-size="9">👤</text><text x="1083" y="177" fill="#1e293b" font-size="8" font-weight="700">DigitalTwin</text>
+  <rect x="1158" y="163" width="88"  height="22" rx="5" fill="#fff" stroke="#ddd6fe" stroke-width="1"/><text x="1166" y="177" font-size="9">🎮</text><text x="1177" y="177" fill="#1e293b" font-size="8" font-weight="600">Gamification</text>
+  <rect x="1252" y="163" width="132" height="22" rx="5" fill="#fff" stroke="#ddd6fe" stroke-width="1"/><text x="1260" y="177" font-size="9">🌿</text><text x="1271" y="177" fill="#1e293b" font-size="8" font-weight="600">Sustainability · LifeMarket</text>
+
+  <!-- Row 2: special components -->
+  <rect x="14"  y="191" width="98"  height="22" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/><text x="22"  y="205" font-size="9">🎙️</text><text x="33"  y="205" fill="#15803d" font-size="8" font-weight="700">VoiceLogger ✦</text>
+  <rect x="118" y="191" width="98"  height="22" rx="5" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/><text x="126" y="205" font-size="9">👻</text><text x="137" y="205" fill="#6d28d9" font-size="8" font-weight="700">GhostTimeline</text>
+  <rect x="222" y="191" width="82"  height="22" rx="5" fill="#fff" stroke="#ddd6fe" stroke-width="1"/><text x="230" y="205" font-size="9">🧑</text><text x="241" y="205" fill="#1e293b" font-size="8" font-weight="600">LifeAvatar</text>
+  <rect x="310" y="191" width="80"  height="22" rx="5" fill="#fff" stroke="#ddd6fe" stroke-width="1"/><text x="318" y="205" font-size="9">⚙️</text><text x="329" y="205" fill="#1e293b" font-size="8" font-weight="600">Settings</text>
+  <rect x="396" y="191" width="88"  height="22" rx="5" fill="#fff" stroke="#ddd6fe" stroke-width="1"/><text x="404" y="205" font-size="9">🔗</text><text x="415" y="205" fill="#1e293b" font-size="8" font-weight="600">Integrations</text>
+  <text x="492" y="205" fill="#94a3b8" font-size="7.5">AnimatePresence blur/fade/slide transitions · Sidebar + TopNavbar layout · Suspense lazy loading · Protected routes</text>
+
+  <!-- arrow -->
+  <line x1="692" y1="243" x2="692" y2="255" stroke="#0891b2" stroke-width="2" marker-end="url(#s1ab)"/>
+  <rect x="640" y="243" width="104" height="13" rx="3" fill="#f0fdff"/>
+  <text x="692" y="253" text-anchor="middle" fill="#0891b2" font-size="7.5" font-weight="600">State Read / Write</text>
+
+  <!-- ═══ CONTEXT/STATE  y=258 h=46 ═══ -->
+  <rect x="8" y="258" width="1384" height="46" rx="9" fill="#f0fdff" stroke="#a5f3fc" stroke-width="1.5" filter="url(#s1sh)"/>
+  <rect x="14" y="263" width="148" height="16" rx="4" fill="#cffafe"/>
+  <text x="18" y="274" fill="#0e7490" font-size="7.5" font-weight="800" letter-spacing="1">🔄  CONTEXT / STATE MANAGEMENT</text>
+  <text x="172" y="274" fill="#94a3b8" font-size="7">React Context + useReducer · localStorage per-userId · 300ms debounce · multi-tab sync · schema migration v2 · monotonic _revision</text>
+
+  <rect x="14"  y="278" width="248" height="18" rx="5" fill="#fff" stroke="#a5f3fc" stroke-width="1"/>
+  <text x="22"  y="290" font-size="9">🔐</text><text x="34"  y="290" fill="#0e7490" font-size="8" font-weight="700">AuthContext</text>
+  <text x="100" y="290" fill="#64748b" font-size="7.5"> — JWT · Demo personas · registerAuthCallback · isRealToken</text>
+
+  <rect x="268" y="278" width="544" height="18" rx="5" fill="#fff" stroke="#a5f3fc" stroke-width="1.5"/>
+  <text x="276" y="290" font-size="9">🗃️</text><text x="288" y="290" fill="#0e7490" font-size="8" font-weight="700">DataContext</text>
+  <text x="348" y="290" fill="#64748b" font-size="7.5"> — Single Source of Truth · health/finance/career records · goals · gamification · AI cache · sustainability · lifeMarket</text>
+
+  <rect x="818" y="278" width="126" height="18" rx="5" fill="#fff" stroke="#a5f3fc" stroke-width="1"/>
+  <text x="826" y="290" font-size="9">🎨</text><text x="838" y="290" fill="#0e7490" font-size="8" font-weight="700">ThemeContext</text>
+  <text x="908" y="290" fill="#64748b" font-size="7.5"> — dark/light</text>
+
+  <rect x="950" y="278" width="436" height="18" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="958" y="290" fill="#15803d" font-size="7.5" font-weight="700">dataSource: none | demo | imported | mixed  ·  computeLifeBalance() + detectAnomalies() memoized</text>
+
+  <!-- arrow -->
+  <line x1="692" y1="304" x2="692" y2="316" stroke="#ea580c" stroke-width="2" marker-end="url(#s1ao)"/>
+  <rect x="640" y="304" width="104" height="13" rx="3" fill="#fff8f0"/>
+  <text x="692" y="314" text-anchor="middle" fill="#ea580c" font-size="7.5" font-weight="600">Domain Data</text>
+
+  <!-- ═══ CORE ENGINE  y=319 h=573 ═══ -->
+  <rect x="8" y="319" width="1384" height="573" rx="9" fill="#fff8f0" stroke="#fdba74" stroke-width="2" filter="url(#s1sh)"/>
+  <rect x="14" y="324" width="168" height="16" rx="4" fill="#ffedd5"/>
+  <text x="18" y="335" fill="#c2410c" font-size="7.5" font-weight="800" letter-spacing="1">⚙️  BEYONDSELF CORE ENGINE</text>
+  <text x="188" y="335" fill="#94a3b8" font-size="7">Deterministic · Explainable · Reliable · Zero AI hallucination · src/engines/  (9 engines)</text>
+
+  <!-- 9 engine boxes — 2 rows: 5 top, 4 bottom for better spacing -->
+  <!-- Row A: Health, Finance, Career, Anomaly, Goal Progress -->
+  <rect x="14"  y="342" width="256" height="82" rx="8" fill="#fff" stroke="#fb923c" stroke-width="1.5" filter="url(#s1sh)"/>
+  <text x="90" y="366" text-anchor="middle" font-size="26">❤️</text>
+  <text x="90" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Health Score Engine</text>
+  <text x="90" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">sleep · stress · BMI · workouts · water</text>
+  <text x="90" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">healthScoreEngine.js</text>
+  <line x1="170" y1="342" x2="170" y2="424" stroke="#fed7aa" stroke-width="1"/>
+  <text x="220" y="366" text-anchor="middle" font-size="26">💰</text>
+  <text x="220" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Finance Score Engine</text>
+  <text x="220" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">income · savings · expenses · debt</text>
+  <text x="220" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">financeScoreEngine.js</text>
+
+  <rect x="278" y="342" width="256" height="82" rx="8" fill="#fff" stroke="#fb923c" stroke-width="1.5" filter="url(#s1sh)"/>
+  <text x="352" y="366" text-anchor="middle" font-size="26">🎯</text>
+  <text x="352" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Career Score Engine</text>
+  <text x="352" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">skills · projects · DSA · study hours</text>
+  <text x="352" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">careerScoreEngine.js</text>
+  <line x1="416" y1="342" x2="416" y2="424" stroke="#fed7aa" stroke-width="1"/>
+  <text x="470" y="366" text-anchor="middle" font-size="26">🔍</text>
+  <text x="470" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Anomaly Engine</text>
+  <text x="470" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">burnout · spending spikes · stagnation</text>
+  <text x="470" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">anomalyEngine.js</text>
+
+  <rect x="542" y="342" width="256" height="82" rx="8" fill="#fff" stroke="#fb923c" stroke-width="1.5" filter="url(#s1sh)"/>
+  <text x="616" y="366" text-anchor="middle" font-size="26">🏆</text>
+  <text x="616" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Goal Progress Engine</text>
+  <text x="616" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">SMART tracking · auto-calc from data</text>
+  <text x="616" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">goalProgressEngine.js</text>
+  <line x1="680" y1="342" x2="680" y2="424" stroke="#fed7aa" stroke-width="1"/>
+  <text x="738" y="366" text-anchor="middle" font-size="26">🔮</text>
+  <text x="738" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Simulator Engine</text>
+  <text x="738" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">3–12 month what-if projections</text>
+  <text x="738" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">simulatorEngine.js</text>
+
+  <rect x="806" y="342" width="580" height="82" rx="8" fill="#fff" stroke="#fb923c" stroke-width="1.5" filter="url(#s1sh)"/>
+  <text x="888" y="366" text-anchor="middle" font-size="26">🧬</text>
+  <text x="888" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Neural Engine</text>
+  <text x="888" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">radar chart · confidence decay</text>
+  <text x="888" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">NeuralEngine.js</text>
+  <line x1="966" y1="342" x2="966" y2="424" stroke="#fed7aa" stroke-width="1"/>
+  <text x="1048" y="366" text-anchor="middle" font-size="26">📈</text>
+  <text x="1048" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Trajectory Engine</text>
+  <text x="1048" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">trend analysis · future projections</text>
+  <text x="1048" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">trajectoryEngine.js</text>
+  <line x1="1130" y1="342" x2="1130" y2="424" stroke="#fed7aa" stroke-width="1"/>
+  <text x="1246" y="366" text-anchor="middle" font-size="26">⚖️</text>
+  <text x="1246" y="384" text-anchor="middle" fill="#9a3412" font-size="9" font-weight="700">Life Balance Engine</text>
+  <text x="1246" y="396" text-anchor="middle" fill="#64748b" font-size="7.5">composite scorer · cascade coord.</text>
+  <text x="1246" y="408" text-anchor="middle" fill="#94a3b8" font-size="6.5">lifeBalanceEngine.js</text>
+
+  <!-- down arrows from engine boxes -->
+  <line x1="90"   y1="424" x2="90"   y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="220"  y1="424" x2="220"  y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="352"  y1="424" x2="352"  y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="470"  y1="424" x2="470"  y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="616"  y1="424" x2="616"  y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="738"  y1="424" x2="738"  y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="888"  y1="424" x2="888"  y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="1048" y1="424" x2="1048" y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+  <line x1="1246" y1="424" x2="1246" y2="438" stroke="#fb923c" stroke-width="1.2" marker-end="url(#s1ao)"/>
+
+  <!-- CASCADE BOX -->
+  <rect x="14" y="438" width="1368" height="56" rx="8" fill="#fff8f0" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="700" y="454" text-anchor="middle" fill="#c2410c" font-size="8.5" font-weight="800" letter-spacing="1">🔀  CROSS-DOMAIN CASCADE LOGIC  —  Weights + Rules + Interdependencies  (lifeBalanceEngine.js)</text>
+  <text x="80"  y="476" fill="#92400e" font-size="8.5" font-weight="600">😴 Sleep &lt;7h</text>
+  <text x="158" y="476" fill="#fb923c" font-size="12">→</text>
+  <text x="170" y="476" fill="#92400e" font-size="8.5" font-weight="600">💸 Spend +15%</text>
+  <line x1="278" y1="462" x2="278" y2="490" stroke="#fdba74" stroke-width="1"/>
+  <text x="292" y="476" fill="#92400e" font-size="8.5" font-weight="600">📉 Runway &lt;3mo</text>
+  <text x="390" y="476" fill="#fb923c" font-size="12">→</text>
+  <text x="402" y="476" fill="#92400e" font-size="8.5" font-weight="600">🎯 Career −20</text>
+  <line x1="504" y1="462" x2="504" y2="490" stroke="#fdba74" stroke-width="1"/>
+  <text x="518" y="476" fill="#92400e" font-size="8.5" font-weight="600">💼 Low Runway</text>
+  <text x="598" y="476" fill="#fb923c" font-size="12">→</text>
+  <text x="610" y="476" fill="#92400e" font-size="8.5" font-weight="600">📚 Upskill Priority ↑</text>
+  <line x1="726" y1="462" x2="726" y2="490" stroke="#fdba74" stroke-width="1"/>
+  <text x="740" y="476" fill="#92400e" font-size="8.5" font-weight="600">😰 High Stress</text>
+  <text x="816" y="476" fill="#fb923c" font-size="12">→</text>
+  <text x="828" y="476" fill="#92400e" font-size="8.5" font-weight="600">🧠 Focus −15</text>
+  <line x1="924" y1="462" x2="924" y2="490" stroke="#fdba74" stroke-width="1"/>
+  <text x="938" y="476" fill="#64748b" font-size="8">cascadeModifiers flow into lifeBalanceEngine.js → composite weighted score 0–100</text>
+
+  <!-- arrow to life score -->
+  <line x1="700" y1="494" x2="700" y2="508" stroke="#6d28d9" stroke-width="2.5" marker-end="url(#s1ap)"/>
+
+  <!-- LIFE SCORE BAR -->
+  <rect x="14" y="508" width="1368" height="374" rx="9" fill="url(#s1life)"/>
+  <rect x="14" y="508" width="1368" height="374" rx="9" fill="rgba(255,255,255,0.03)"/>
+
+  <!-- big score -->
+  <circle cx="102" cy="640" r="86" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="102" cy="640" r="70" fill="rgba(255,255,255,0.08)"/>
+  <text x="102" y="618" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11" font-weight="700" letter-spacing="3">LIFE</text>
+  <text x="102" y="660" text-anchor="middle" fill="#fff" font-size="54" font-weight="900">78</text>
+  <text x="102" y="682" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">/ 100</text>
+  <text x="102" y="700" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="7.5">composite score</text>
+
+  <!-- title + description -->
+  <text x="216" y="530" fill="#fff" font-size="18" font-weight="900">LIFE SCORE  (0 – 100)</text>
+  <text x="216" y="548" fill="rgba(255,255,255,0.7)" font-size="9">Composite score across all domains — computed deterministically, memoized via useMemo, updated on every data change</text>
+
+  <!-- domain bars -->
+  <text x="216" y="572" fill="rgba(255,255,255,0.6)" font-size="8.5" font-weight="600">Health</text>
+  <rect x="260" y="564" width="200" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <rect x="260" y="564" width="156" height="10" rx="5" fill="#86efac"/>
+  <text x="470" y="573" fill="#86efac" font-size="8.5" font-weight="800">78</text>
+
+  <text x="216" y="594" fill="rgba(255,255,255,0.6)" font-size="8.5" font-weight="600">Finance</text>
+  <rect x="260" y="586" width="200" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <rect x="260" y="586" width="132" height="10" rx="5" fill="#fde68a"/>
+  <text x="470" y="595" fill="#fde68a" font-size="8.5" font-weight="800">66</text>
+
+  <text x="216" y="616" fill="rgba(255,255,255,0.6)" font-size="8.5" font-weight="600">Career</text>
+  <rect x="260" y="608" width="200" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <rect x="260" y="608" width="146" height="10" rx="5" fill="#a5f3fc"/>
+  <text x="470" y="617" fill="#a5f3fc" font-size="8.5" font-weight="800">73</text>
+
+  <text x="216" y="638" fill="rgba(255,255,255,0.6)" font-size="8.5" font-weight="600">Balance</text>
+  <rect x="260" y="630" width="200" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <rect x="260" y="630" width="160" height="10" rx="5" fill="#c4b5fd"/>
+  <text x="470" y="639" fill="#c4b5fd" font-size="8.5" font-weight="800">80</text>
+
+  <text x="216" y="660" fill="rgba(255,255,255,0.6)" font-size="8.5" font-weight="600">Momentum</text>
+  <rect x="278" y="652" width="182" height="10" rx="5" fill="rgba(255,255,255,0.15)"/>
+  <rect x="278" y="652" width="140" height="10" rx="5" fill="#fda4af"/>
+  <text x="470" y="661" fill="#fda4af" font-size="8.5" font-weight="800">77</text>
+
+  <!-- trajectory mini chart -->
+  <text x="216" y="686" fill="rgba(255,255,255,0.45)" font-size="7.5" font-weight="700" letter-spacing="1">TRAJECTORY</text>
+  <rect x="216" y="692" width="276" height="38" rx="6" fill="rgba(255,255,255,0.08)"/>
+  <text x="232" y="709" fill="rgba(255,255,255,0.7)" font-size="8" font-weight="600">Now</text>
+  <rect x="254" y="703" width="40" height="8" rx="4" fill="#22d3ee" opacity=".9"/>
+  <text x="300" y="709" fill="rgba(255,255,255,0.5)" font-size="7.5">78</text>
+  <text x="232" y="724" fill="rgba(255,255,255,0.7)" font-size="8" font-weight="600">6mo</text>
+  <rect x="254" y="718" width="52" height="8" rx="4" fill="#a78bfa" opacity=".8"/>
+  <text x="312" y="724" fill="rgba(255,255,255,0.5)" font-size="7.5">85 ↑</text>
+  <text x="370" y="709" fill="rgba(255,255,255,0.7)" font-size="8" font-weight="600">12mo</text>
+  <rect x="400" y="703" width="62" height="8" rx="4" fill="#a78bfa" opacity=".5"/>
+  <text x="468" y="709" fill="rgba(255,255,255,0.4)" font-size="7.5" font-style="italic">92? ↑↑</text>
+  <text x="370" y="724" fill="rgba(255,255,255,0.4)" font-size="7" font-style="italic">confidence decay: 48%</text>
+
+  <text x="216" y="750" fill="rgba(255,255,255,0.35)" font-size="7.5">anomalies: burnout risk · spend spike · career stagnation · health decline detected via anomalyEngine.js</text>
+
+  <!-- 6 output boxes -->
+  <text x="520" y="530" fill="rgba(255,255,255,0.4)" font-size="7.5" font-weight="700" letter-spacing="2">OUTPUTS THIS ENGINE POWERS</text>
+  <rect x="520" y="538" width="130" height="90" rx="8" fill="rgba(255,255,255,0.1)"/>
+  <text x="585" y="568" text-anchor="middle" font-size="24">📊</text>
+  <text x="585" y="588" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Life Score</text>
+  <text x="585" y="601" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7.5">Single metric</text>
+  <text x="585" y="612" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="6.5">0–100 composite</text>
+
+  <rect x="658" y="538" width="130" height="90" rx="8" fill="rgba(255,255,255,0.1)"/>
+  <text x="723" y="568" text-anchor="middle" font-size="24">📅</text>
+  <text x="723" y="588" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Timeline</text>
+  <text x="723" y="601" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7.5">100 life events</text>
+  <text x="723" y="612" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="6.5">stored in DataContext</text>
+
+  <rect x="796" y="538" width="130" height="90" rx="8" fill="rgba(255,255,255,0.1)"/>
+  <text x="861" y="568" text-anchor="middle" font-size="24">✨</text>
+  <text x="861" y="588" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">AI Insights</text>
+  <text x="861" y="601" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7.5">Anomaly-driven</text>
+  <text x="861" y="612" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="6.5">Personalized alerts</text>
+
+  <rect x="934" y="538" width="130" height="90" rx="8" fill="rgba(255,255,255,0.1)"/>
+  <text x="999" y="568" text-anchor="middle" font-size="24">🔮</text>
+  <text x="999" y="588" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Simulator</text>
+  <text x="999" y="601" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7.5">What-if analysis</text>
+  <text x="999" y="612" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="6.5">3–12mo projection</text>
+
+  <rect x="1072" y="538" width="130" height="90" rx="8" fill="rgba(255,255,255,0.1)"/>
+  <text x="1137" y="568" text-anchor="middle" font-size="24">🌌</text>
+  <text x="1137" y="588" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Future You</text>
+  <text x="1137" y="601" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7.5">Talk w/ future self</text>
+  <text x="1137" y="612" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="6.5">847 simulations</text>
+
+  <rect x="1210" y="538" width="162" height="90" rx="8" fill="rgba(255,255,255,0.1)"/>
+  <text x="1291" y="568" text-anchor="middle" font-size="24">⚡</text>
+  <text x="1291" y="588" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Stress Test</text>
+  <text x="1291" y="601" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="7.5">Crisis simulation</text>
+  <text x="1291" y="612" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="6.5">cross-domain impact</text>
+
+  <!-- Bottom of life score -->
+  <text x="520" y="650" fill="rgba(255,255,255,0.4)" font-size="7.5" font-weight="700" letter-spacing="2">ALSO POWERS</text>
+  <rect x="520" y="658" width="856" height="28" rx="6" fill="rgba(255,255,255,0.08)"/>
+  <text x="536" y="676" fill="rgba(255,255,255,0.7)" font-size="8.5" font-weight="600">🏆 Goals</text>
+  <line x1="606" y1="662" x2="606" y2="686" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="622" y="676" fill="rgba(255,255,255,0.7)" font-size="8.5" font-weight="600">🎮 Gamification  (+10 XP/log · +50 XP/goal · streaks · 15 badges)</text>
+  <line x1="876" y1="662" x2="876" y2="686" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="892" y="676" fill="rgba(255,255,255,0.7)" font-size="8.5" font-weight="600">🗺️ CascadeMap</text>
+  <line x1="990" y1="662" x2="990" y2="686" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="1006" y="676" fill="rgba(255,255,255,0.7)" font-size="8.5" font-weight="600">🧑 DigitalTwin</text>
+  <line x1="1090" y1="662" x2="1090" y2="686" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="1106" y="676" fill="rgba(255,255,255,0.7)" font-size="8.5" font-weight="600">🤖 AI Coach (40-msg history)</text>
+  <line x1="1280" y1="662" x2="1280" y2="686" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="1296" y="676" fill="rgba(255,255,255,0.7)" font-size="8.5" font-weight="600">🧬 NeuralCore</text>
+
+  <!-- continues -->
+  <rect x="14" y="840" width="1368" height="38" rx="7" fill="rgba(255,255,255,0.1)"/>
+  <text x="700" y="856" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8.5" font-weight="600">Life Score feeds into Services → Backend → Storage  (see Slide 2 →)</text>
+  <text x="700" y="870" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="7.5">computed by lifeBalanceEngine.js · memoized via useMemo · triggers re-render across all pages · anomalies surface on Dashboard + Insights</text>
+</svg>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ PAGE 1 ══ -->
-<div class="page">
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — INFRASTRUCTURE LAYER
+══════════════════════════════════════════ -->
+<div class="slide">
+<svg viewBox="0 0 1400 900" width="1400" height="900" font-family="Inter, sans-serif">
+  <defs>
+    <marker id="s2ag" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#059669"/></marker>
+    <marker id="s2ai" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4338ca"/></marker>
+    <marker id="s2ag2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#15803d"/></marker>
+    <marker id="s2aw" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#64748b"/></marker>
+    <filter id="s2sh"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#00000014"/></filter>
+    <pattern id="s2grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(100,116,139,0.055)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1400" height="900" fill="#eef1fb"/>
+  <rect width="1400" height="900" fill="url(#s2grid)"/>
 
-  <!-- Section 1: Overview -->
-  <div class="section-label">Section 01</div>
-  <h2>Project Overview</h2>
-  <p class="section-desc">BeyondSelf is a full-stack "Digital Twin" life management web application. It tracks health, finance, and career data to produce unified life scores and AI-driven coaching — all without exposing user PII to external AI services.</p>
+  <!-- TITLE -->
+  <rect x="8" y="6" width="1384" height="36" rx="8" fill="#fff" filter="url(#s2sh)" stroke="#e2e8f0" stroke-width="1"/>
+  <circle cx="26" cy="24" r="8" fill="#4338ca"/>
+  <text x="26" y="28.5" text-anchor="middle" fill="#fff" font-size="9" font-weight="900">B</text>
+  <text x="40" y="29" fill="#0f172a" font-size="15" font-weight="900">BeyondSelf</text>
+  <text x="142" y="29" fill="#4338ca" font-size="15" font-weight="900"> — System Architecture</text>
+  <text x="358" y="27" fill="#94a3b8" font-size="7.5"> · Services · Backend · Data · Security  (Infrastructure Layer)</text>
+  <rect x="1264" y="11" width="120" height="18" rx="9" fill="#e0e7ff" stroke="#a5b4fc" stroke-width="1"/>
+  <text x="1271" y="23" font-size="9">☁️</text><text x="1282" y="23" fill="#4338ca" font-size="7.5" font-weight="700">Infrastructure Layer</text>
 
-  <div class="overview-grid">
-    <div class="overview-card">
-      <div class="icon" style="background:#eef2ff">🧠</div>
-      <div class="card-title">Deterministic Scoring</div>
-      <div class="card-desc">All life scores are pure math — same input always gives the same output. No ML hallucination in core scoring.</div>
-    </div>
-    <div class="overview-card">
-      <div class="icon" style="background:#f0fdf4">🤖</div>
-      <div class="card-title">AI for Narration Only</div>
-      <div class="card-desc">Groq LLM explains scores computed by engines. It never invents numbers or raw metrics.</div>
-    </div>
-    <div class="overview-card">
-      <div class="icon" style="background:#fdf4ff">📴</div>
-      <div class="card-title">Offline-First</div>
-      <div class="card-desc">Full scoring works client-side via demo personas. Spring Boot backend is optional — adds persistence &amp; file parsing.</div>
-    </div>
-    <div class="overview-card">
-      <div class="icon" style="background:#fff7ed">🔗</div>
-      <div class="card-title">Cross-Domain Intelligence</div>
-      <div class="card-desc">Detects how one life domain affects another: sleep debt → emotional spending → financial score decline.</div>
-    </div>
-    <div class="overview-card">
-      <div class="icon" style="background:#ecfdf5">🛡️</div>
-      <div class="card-title">PII Protection</div>
-      <div class="card-desc">Name, email, and ID are stripped before any data is sent to Groq — both at frontend and backend layers.</div>
-    </div>
-    <div class="overview-card">
-      <div class="icon" style="background:#eff6ff">📂</div>
-      <div class="card-title">Multi-Format Ingestion</div>
-      <div class="card-desc">Import PDF bank statements, CSV health logs, Excel career data — normalized automatically via backend parsers.</div>
-    </div>
-  </div>
+  <!-- slide indicator -->
+  <rect x="8" y="6" width="74" height="36" rx="8" fill="#4338ca"/>
+  <text x="45" y="29" text-anchor="middle" fill="#fff" font-size="8" font-weight="800">SLIDE 2 / 2</text>
 
-  <div class="hr"></div>
+  <!-- FROM SLIDE 1 indicator -->
+  <rect x="8" y="48" width="1083" height="28" rx="7" fill="linear-gradient(135deg,#6d28d9,#2563eb)" stroke="#c4b5fd" stroke-width="1.5"/>
+  <rect x="8" y="48" width="1083" height="28" rx="7" fill="#f5f3ff"/>
+  <text x="550" y="66" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">← Life Score (0–100) from Slide 1 feeds down into Services Layer → Backend → Storage</text>
 
-  <!-- Section 2: Tech Stack -->
-  <div class="section-label">Section 02</div>
-  <h2>Technology Stack</h2>
-  <p class="section-desc">Complete breakdown of every technology used across the frontend, backend, AI, and infrastructure layers.</p>
+  <!-- ═══ SERVICES  y=82 h=88 ═══ -->
+  <rect x="8" y="82" width="1083" height="88" rx="9" fill="#f0fdf8" stroke="#6ee7b7" stroke-width="1.5" filter="url(#s2sh)"/>
+  <rect x="14" y="87" width="148" height="16" rx="4" fill="#d1fae5"/>
+  <text x="18" y="98" fill="#047857" font-size="7.5" font-weight="800" letter-spacing="1">🔧  SERVICES LAYER</text>
+  <text x="172" y="98" fill="#94a3b8" font-size="7">src/services/ — 25 services · AI wrappers · file parsers · external API clients · PII protection</text>
 
-  <table class="tech-table">
-    <thead>
-      <tr><th style="width:220px">Layer / Component</th><th>Technology</th><th>Purpose</th></tr>
-    </thead>
-    <tbody>
-      <tr class="section-row"><td colspan="3">Frontend</td></tr>
-      <tr><td>Framework</td><td><span class="badge badge-blue">React 18</span> + <span class="badge badge-blue">Vite 8</span></td><td>Component-based UI, fast HMR dev server</td></tr>
-      <tr><td>Styling</td><td><span class="badge badge-purple">Tailwind CSS v4</span></td><td>Glassmorphism dark UI, utility-first CSS</td></tr>
-      <tr><td>Animations</td><td><span class="badge badge-purple">Framer Motion</span></td><td>Page transitions, score ring animations</td></tr>
-      <tr><td>Charts</td><td><span class="badge badge-blue">Recharts</span></td><td>Health/finance/career trend visualizations</td></tr>
-      <tr><td>Icons</td><td><span class="badge badge-blue">Lucide React</span></td><td>Consistent icon library</td></tr>
-      <tr><td>Routing</td><td><span class="badge badge-blue">React Router v6</span></td><td>SPA navigation with protected routes</td></tr>
-      <tr><td>State Management</td><td><span class="badge badge-green">React Context + useReducer</span></td><td>Single source of truth — DataContext (13 action types)</td></tr>
-      <tr><td>Neural Network</td><td><span class="badge badge-orange">TensorFlow.js</span></td><td>In-browser 3→16→8→2 neural net (NeuralCore page)</td></tr>
-      <tr><td>Persistence</td><td><span class="badge badge-green">localStorage</span></td><td>Session persistence, cross-tab sync via storage events</td></tr>
+  <rect x="14"  y="104" width="150" height="58" rx="7" fill="#fff" stroke="#6ee7b7" stroke-width="1.5" filter="url(#s2sh)"/>
+  <text x="89"  y="122" text-anchor="middle" font-size="18">🤖</text>
+  <text x="89"  y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">aiService + PII Shield</text>
+  <text x="89"  y="149" text-anchor="middle" fill="#64748b" font-size="7">stripPII() before every AI call</text>
+  <text x="89"  y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">name·phone·email·account stripped</text>
 
-      <tr class="section-row"><td colspan="3">Backend</td></tr>
-      <tr><td>Framework</td><td><span class="badge badge-green">Spring Boot 3.2.5</span></td><td>REST API, dependency injection, Tomcat embedded server</td></tr>
-      <tr><td>Language</td><td><span class="badge badge-orange">Java 21</span></td><td>Virtual threads, modern language features</td></tr>
-      <tr><td>ORM</td><td><span class="badge badge-green">Hibernate 6.4 / Spring Data JPA</span></td><td>Entity management, repository pattern</td></tr>
-      <tr><td>Database (dev)</td><td><span class="badge badge-blue">H2 In-Memory</span></td><td>Zero-config dev database, auto schema creation</td></tr>
-      <tr><td>Database (prod)</td><td><span class="badge badge-blue">PostgreSQL 16</span></td><td>Persistent relational storage for users &amp; records</td></tr>
-      <tr><td>Authentication</td><td><span class="badge badge-purple">JWT (jjwt 0.12.5)</span> + <span class="badge badge-red">BCrypt</span></td><td>Stateless token auth, password hashing</td></tr>
-      <tr><td>File Parsing</td><td><span class="badge badge-orange">Apache PDFBox 3.0</span></td><td>PDF bank statement extraction</td></tr>
-      <tr><td>File Parsing</td><td><span class="badge badge-orange">Apache POI 5.2</span></td><td>Excel (.xlsx) health/career data parsing</td></tr>
-      <tr><td>File Parsing</td><td><span class="badge badge-orange">OpenCSV 5.9</span></td><td>CSV expense / health log ingestion</td></tr>
-      <tr><td>Build Tool</td><td><span class="badge badge-green">Maven 3.9.6</span></td><td>Dependency management, build lifecycle</td></tr>
+  <rect x="170" y="104" width="144" height="58" rx="7" fill="#fff" stroke="#6ee7b7" stroke-width="1" filter="url(#s2sh)"/>
+  <text x="242" y="122" text-anchor="middle" font-size="18">🎙️</text>
+  <text x="242" y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">voiceLog + txParser</text>
+  <text x="242" y="149" text-anchor="middle" fill="#64748b" font-size="7">Groq NLP → domain detect</text>
+  <text x="242" y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">zero manual tagging needed</text>
 
-      <tr class="section-row"><td colspan="3">AI &amp; External Services</td></tr>
-      <tr><td>AI Provider</td><td><span class="badge badge-purple">Groq API</span></td><td>Ultra-fast LLM inference via OpenAI-compatible API</td></tr>
-      <tr><td>AI Model (text)</td><td><span class="badge badge-purple">llama-3.3-70b-versatile</span></td><td>Coach chat, simulator narrative, resume intelligence, gamification</td></tr>
-      <tr><td>AI Model (vision)</td><td><span class="badge badge-purple">meta-llama/llama-4-scout-17b</span></td><td>Nutrition OCR analysis, health document parsing, learning plans</td></tr>
-      <tr><td>GitHub Integration</td><td><span class="badge badge-blue">GitHub REST API v3</span></td><td>Career score enrichment from commit history</td></tr>
-    </tbody>
-  </table>
+  <rect x="320" y="104" width="120" height="58" rx="7" fill="#fff" stroke="#6ee7b7" stroke-width="1" filter="url(#s2sh)"/>
+  <text x="380" y="122" text-anchor="middle" font-size="18">👁️</text>
+  <text x="380" y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">ocrService</text>
+  <text x="380" y="149" text-anchor="middle" fill="#64748b" font-size="7">Tesseract.js scans</text>
+  <text x="380" y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">receipts → records</text>
 
-  <div class="hr"></div>
+  <rect x="446" y="104" width="118" height="58" rx="7" fill="#fff" stroke="#6ee7b7" stroke-width="1" filter="url(#s2sh)"/>
+  <text x="505" y="122" text-anchor="middle" font-size="18">🥗</text>
+  <text x="505" y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">visionService</text>
+  <text x="505" y="149" text-anchor="middle" fill="#64748b" font-size="7">photo → Nutritionix</text>
+  <text x="505" y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">macros in &lt;2s</text>
 
-  <!-- Section 3: System Architecture -->
-  <div class="section-label">Section 03</div>
-  <h2>System Architecture</h2>
-  <p class="section-desc">Three-layer architecture: React client with in-browser scoring engines, Spring Boot REST backend, and Groq AI via dual-path integration.</p>
+  <rect x="570" y="104" width="152" height="58" rx="7" fill="#fff" stroke="#6ee7b7" stroke-width="1" filter="url(#s2sh)"/>
+  <text x="646" y="122" text-anchor="middle" font-size="18">📄</text>
+  <text x="646" y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">resume·medical·cert</text>
+  <text x="646" y="149" text-anchor="middle" fill="#64748b" font-size="7">PDF parsers → domain</text>
+  <text x="646" y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">resumeService · medicalReport</text>
 
-  <!-- Architecture Diagram -->
-  <div class="diagram-container">
-    <pre>
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          BROWSER  (React 18 + Vite)                     │
-│                                                                         │
-│  ┌────────────────┐    ┌──────────────────────────────────────────────┐ │
-│  │  AuthContext   │    │              DataContext                      │ │
-│  │                │    │  useReducer — 13 action types                │ │
-│  │  JWT auth      │    │  Single source of truth for ALL domain data  │ │
-│  │  Demo fallback │    │  Persists → localStorage (versioned)         │ │
-│  │  Session store │    │  Syncs across browser tabs via storage events│ │
-│  └────────────────┘    └──────────────────────┬───────────────────────┘ │
-│                                               │                         │
-│                    ┌──────────────────────────▼──────────────────────┐  │
-│                    │         SCORING ENGINES  (pure JS math)         │  │
-│                    │                                                  │  │
-│                    │  lifeBalanceEngine.js  ← orchestrator           │  │
-│                    │    ├── healthScoreEngine.js                     │  │
-│                    │    ├── financeScoreEngine.js                    │  │
-│                    │    ├── careerScoreEngine.js                     │  │
-│                    │    └── burnoutEngine (within health engine)     │  │
-│                    │  simulatorEngine.js    (3–12 month projection)  │  │
-│                    │  NeuralEngine.js       (TensorFlow.js — 3→2)    │  │
-│                    └──────────────────────────────────────────────────┘  │
-│                                               │                         │
-│  ┌────────────────────────────────────────────▼──────────────────────┐  │
-│  │                       16 PAGE COMPONENTS                          │  │
-│  │  Dashboard · Health · Finance · Career · Goals · Simulator        │  │
-│  │  Insights · Coach · Gamification · NeuralCore · LifeMarket        │  │
-│  │  Upload · Integrations · Sustainability · Settings · Landing      │  │
-│  └─────────────────────────────┬─────────────────────────────────────┘  │
-│                                │                                        │
-│  ┌─────────────────────────────▼─────────────────────────────────────┐  │
-│  │                      11 SERVICE MODULES                           │  │
-│  │  aiService · visionService · simulatorService · resumeService     │  │
-│  │  githubService · learningService · nutritionService               │  │
-│  │  ocrService · voiceService · syncService · integrationService     │  │
-│  └──────────────┬──────────────────────────────┬─────────────────────┘  │
-└─────────────────┼──────────────────────────────┼──────────────────────────┘
-                  │  REST / JSON                 │  Direct HTTPS
-                  │  (auth + records + sync      │  (Groq API — no PII sent)
-                  │   + AI coach proxy)          │
-     ┌────────────▼──────────────┐    ┌──────────▼──────────────────────┐
-     │   SPRING BOOT  :8080      │    │         GROQ  API               │
-     │                           │    │  api.groq.com/openai/v1         │
-     │  AuthController           │    │                                 │
-     │  RecordController         │    │  llama-3.3-70b-versatile        │
-     │  UploadController  ───────┼────┼► (coach, simulator, resume,     │
-     │  AIProxyController        │    │   gamification, banking)        │
-     │  SyncController           │    │                                 │
-     │                           │    │  llama-4-scout-17b              │
-     │  AuthService (JWT/BCrypt) │    │  (vision, nutrition, learning)  │
-     │  UploadService            │    └─────────────────────────────────┘
-     │  GeminiService*           │
-     │  (* now calls Groq)       │
-     │                           │
-     │  PDFParser / CSVParser    │
-     │  ExcelParser              │
-     │                           │
-     │  HealthNormalizer         │
-     │  FinanceNormalizer        │
-     │  CareerNormalizer         │
-     │                           │
-     │  JPA Repositories ×5     │
-     └────────────┬──────────────┘
-                  │
-     ┌────────────▼──────────────┐
-     │  H2 (dev) / PostgreSQL    │
-     │  Users · HealthRecords    │
-     │  FinanceRecords           │
-     │  CareerRecords            │
-     │  ImportHistory            │
-     └───────────────────────────┘
-    </pre>
-  </div>
+  <rect x="728" y="104" width="116" height="58" rx="7" fill="#fff" stroke="#6ee7b7" stroke-width="1" filter="url(#s2sh)"/>
+  <text x="786" y="122" text-anchor="middle" font-size="18">⚙️</text>
+  <text x="786" y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">githubService</text>
+  <text x="786" y="149" text-anchor="middle" fill="#64748b" font-size="7">repos · commits</text>
+  <text x="786" y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">career data ingestion</text>
 
-  <div class="hr"></div>
+  <rect x="850" y="104" width="136" height="58" rx="7" fill="#fff" stroke="#6ee7b7" stroke-width="1" filter="url(#s2sh)"/>
+  <text x="918" y="122" text-anchor="middle" font-size="18">💼</text>
+  <text x="918" y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">careerIntelligence</text>
+  <text x="918" y="149" text-anchor="middle" fill="#64748b" font-size="7">Adzuna · job market</text>
+  <text x="918" y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">skill demand analysis</text>
 
-  <!-- Section 4: Data Flow -->
-  <div class="section-label">Section 04</div>
-  <h2>Data Flow</h2>
-  <p class="section-desc">From raw file upload to AI narrative — every transformation step in the pipeline.</p>
+  <rect x="992" y="104" width="90" height="58" rx="7" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#s2sh)"/>
+  <text x="1037" y="122" text-anchor="middle" font-size="18">🔗</text>
+  <text x="1037" y="137" text-anchor="middle" fill="#047857" font-size="8.5" font-weight="700">backendApi</text>
+  <text x="1037" y="149" text-anchor="middle" fill="#64748b" font-size="7">Spring Boot client</text>
+  <text x="1037" y="159" text-anchor="middle" fill="#94a3b8" font-size="6.5">fetchAllRecords()</text>
 
-  <div style="margin:24px 0">
-    <div style="display:flex;flex-direction:column;gap:0">
+  <!-- arrow -->
+  <line x1="545" y1="170" x2="545" y2="182" stroke="#4338ca" stroke-width="2" marker-end="url(#s2ai)"/>
+  <rect x="490" y="170" width="110" height="13" rx="3" fill="#eef2ff"/>
+  <text x="545" y="180" text-anchor="middle" fill="#4338ca" font-size="7.5" font-weight="600">REST API Calls</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#6366f1;margin-top:12px;flex-shrink:0"></div>
-          <div style="width:2px;flex:1;background:#e2e8f0;margin-top:2px"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">1 — User Input / File Upload</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px">User logs data manually (health vitals, expenses, career skills) OR uploads a PDF bank statement, CSV health log, or Excel file via the Upload page.</div>
-        </div>
-      </div>
+  <!-- ═══ BACKEND  y=185 h=148 ═══ -->
+  <rect x="8" y="185" width="1083" height="148" rx="9" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1.5" filter="url(#s2sh)"/>
+  <rect x="14" y="190" width="148" height="16" rx="4" fill="#e0e7ff"/>
+  <text x="18" y="201" fill="#4338ca" font-size="7.5" font-weight="800" letter-spacing="1">☁️  BACKEND SERVICES  —  Spring Boot 3.2</text>
+  <text x="172" y="201" fill="#94a3b8" font-size="7">REST API · JWT auth · PostgreSQL ORM · Rate limiting · CORS · Bean Validation · Hibernate JPA</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#10b981;margin-top:12px;flex-shrink:0"></div>
-          <div style="width:2px;flex:1;background:#e2e8f0;margin-top:2px"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">2 — Backend File Parsers</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px"><b>PDFBox</b> extracts text from PDFs → <b>OpenCSV</b> parses CSV rows → <b>Apache POI</b> reads Excel sheets. Raw data lands in <code style="font-family:monospace;background:#f1f5f9;padding:1px 4px;border-radius:3px">UploadService</code>.</div>
-        </div>
-      </div>
+  <!-- 5 backend boxes -->
+  <rect x="14"  y="208" width="196" height="116" rx="8" fill="#fff" stroke="#a5b4fc" stroke-width="1.5" filter="url(#s2sh)"/>
+  <text x="112" y="230" text-anchor="middle" font-size="22">🔐</text>
+  <text x="112" y="248" text-anchor="middle" fill="#3730a3" font-size="9" font-weight="700">Auth &amp; Security</text>
+  <text x="112" y="262" text-anchor="middle" fill="#64748b" font-size="7.5">JWT Access + Refresh</text>
+  <text x="112" y="274" text-anchor="middle" fill="#64748b" font-size="7.5">BCrypt · Roles · Permissions</text>
+  <text x="112" y="286" text-anchor="middle" fill="#94a3b8" font-size="7">Spring Security · @PreAuthorize</text>
+  <text x="112" y="298" text-anchor="middle" fill="#94a3b8" font-size="7">isRealToken check for sync</text>
+  <text x="112" y="318" text-anchor="middle" fill="#94a3b8" font-size="6.5">UserEntity · AuthController · JWTUtil</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#3b82f6;margin-top:12px;flex-shrink:0"></div>
-          <div style="width:2px;flex:1;background:#e2e8f0;margin-top:2px"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">3 — Normalizers</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px"><b>HealthNormalizer</b>, <b>FinanceNormalizer</b>, <b>CareerNormalizer</b> map heterogeneous raw data into a unified domain schema (typed fields, date normalization, unit conversion).</div>
-        </div>
-      </div>
+  <rect x="216" y="208" width="212" height="116" rx="8" fill="#fff" stroke="#a5b4fc" stroke-width="1.5" filter="url(#s2sh)"/>
+  <text x="322" y="230" text-anchor="middle" font-size="22">🔀</text>
+  <text x="322" y="248" text-anchor="middle" fill="#3730a3" font-size="9" font-weight="700">API Gateway</text>
+  <text x="322" y="262" text-anchor="middle" fill="#64748b" font-size="7.5">Routing · CORS · Rate Limiting</text>
+  <text x="322" y="274" text-anchor="middle" fill="#64748b" font-size="7.5">IP + User based · Allowed Origins</text>
+  <text x="322" y="286" text-anchor="middle" fill="#94a3b8" font-size="7">AI route: 50 req/min limit</text>
+  <text x="322" y="298" text-anchor="middle" fill="#94a3b8" font-size="7">Upload: 10/min · 429 → Groq fb</text>
+  <text x="322" y="318" text-anchor="middle" fill="#94a3b8" font-size="6.5">CorsConfigurationSource · Preflight</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#f59e0b;margin-top:12px;flex-shrink:0"></div>
-          <div style="width:2px;flex:1;background:#e2e8f0;margin-top:2px"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">4 — JPA → Database</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px">Normalized records persisted via Spring Data JPA repositories to H2 (dev) or PostgreSQL (prod). Each record is user-scoped via JWT-verified user ID.</div>
-        </div>
-      </div>
+  <rect x="434" y="208" width="224" height="116" rx="8" fill="#fff" stroke="#a5b4fc" stroke-width="1.5" filter="url(#s2sh)"/>
+  <text x="546" y="230" text-anchor="middle" font-size="22">⚙️</text>
+  <text x="546" y="248" text-anchor="middle" fill="#3730a3" font-size="9" font-weight="700">Core Services</text>
+  <text x="546" y="262" text-anchor="middle" fill="#64748b" font-size="7.5">Business Logic · Orchestration</text>
+  <text x="546" y="274" text-anchor="middle" fill="#64748b" font-size="7.5">Records · Goals · Gamification</text>
+  <text x="546" y="286" text-anchor="middle" fill="#94a3b8" font-size="7">HealthRecord · FinanceRecord</text>
+  <text x="546" y="298" text-anchor="middle" fill="#94a3b8" font-size="7">CareerRecord · GoalEntity · BadgeEntity</text>
+  <text x="546" y="318" text-anchor="middle" fill="#94a3b8" font-size="6.5">EcoAction · GamificationStats</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#8b5cf6;margin-top:12px;flex-shrink:0"></div>
-          <div style="width:2px;flex:1;background:#e2e8f0;margin-top:2px"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">5 — Frontend Sync</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px"><b>syncService.js</b> calls <code style="font-family:monospace;background:#f1f5f9;padding:1px 4px;border-radius:3px">GET /api/sync</code> to bulk-fetch all records → dispatches <b>ADD_RECORDS</b> action to <b>DataContext</b>. Imported data always overrides demo seed data.</div>
-        </div>
-      </div>
+  <rect x="664" y="208" width="210" height="116" rx="8" fill="#fff" stroke="#a5b4fc" stroke-width="1.5" filter="url(#s2sh)"/>
+  <text x="769" y="230" text-anchor="middle" font-size="22">📁</text>
+  <text x="769" y="248" text-anchor="middle" fill="#3730a3" font-size="9" font-weight="700">File Upload Service</text>
+  <text x="769" y="262" text-anchor="middle" fill="#64748b" font-size="7.5">CSV · PDF · Images · Excel</text>
+  <text x="769" y="274" text-anchor="middle" fill="#64748b" font-size="7.5">Upload · Type detect · Parse</text>
+  <text x="769" y="286" text-anchor="middle" fill="#94a3b8" font-size="7">pdfjs-dist · Tesseract.js</text>
+  <text x="769" y="298" text-anchor="middle" fill="#94a3b8" font-size="7">Papa Parse · OCR fallback</text>
+  <text x="769" y="318" text-anchor="middle" fill="#94a3b8" font-size="6.5">Domain mapper → DataContext</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#ef4444;margin-top:12px;flex-shrink:0"></div>
-          <div style="width:2px;flex:1;background:#e2e8f0;margin-top:2px"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">6 — Scoring Engines (client-side)</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px">DataContext state change triggers <b>lifeBalanceEngine</b> to recompute all domain scores, cross-domain cascades, burnout risk, and anomalies. No network call required for scoring.</div>
-        </div>
-      </div>
+  <rect x="880" y="208" width="202" height="116" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5" filter="url(#s2sh)"/>
+  <text x="981" y="230" text-anchor="middle" font-size="22">🤖</text>
+  <text x="981" y="248" text-anchor="middle" fill="#6d28d9" font-size="9" font-weight="700">Gemini AI Proxy</text>
+  <text x="981" y="262" text-anchor="middle" fill="#64748b" font-size="7.5">Strips PII before call</text>
+  <text x="981" y="274" text-anchor="middle" fill="#64748b" font-size="7.5">Builds context + sends prompt</text>
+  <text x="981" y="286" text-anchor="middle" fill="#94a3b8" font-size="7">POST /api/ai/chat</text>
+  <text x="981" y="298" text-anchor="middle" fill="#94a3b8" font-size="7">429 → Groq → Template chain</text>
+  <text x="981" y="318" text-anchor="middle" fill="#94a3b8" font-size="6.5">@google/generative-ai SDK</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#14b8a6;margin-top:12px;flex-shrink:0"></div>
-          <div style="width:2px;flex:1;background:#e2e8f0;margin-top:2px"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">7 — AI Narration</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px"><b>aiService.js</b> strips PII and sends <i>computed scores only</i> to <code style="font-family:monospace;background:#f1f5f9;padding:1px 4px;border-radius:3px">POST /api/ai/chat</code> (backend Groq proxy). Groq returns a narrative. Falls back to deterministic template if API unavailable.</div>
-        </div>
-      </div>
+  <!-- arrow -->
+  <line x1="545" y1="333" x2="545" y2="345" stroke="#15803d" stroke-width="2" marker-end="url(#s2ag2)"/>
+  <rect x="492" y="333" width="106" height="13" rx="3" fill="#f0fdf4"/>
+  <text x="545" y="343" text-anchor="middle" fill="#15803d" font-size="7.5" font-weight="600">Read / Write</text>
 
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="width:32px;display:flex;flex-direction:column;align-items:center">
-          <div style="width:12px;height:12px;border-radius:50%;background:#6366f1;margin-top:12px;flex-shrink:0"></div>
-        </div>
-        <div style="padding:8px 16px 20px;flex:1">
-          <div style="font-weight:700;font-size:14px;color:#0f172a">8 — Rendered to User</div>
-          <div style="font-size:12px;color:#475569;margin-top:4px">Dashboard, charts, coach responses, simulator projections, and gamification state all reflect the same computed truth from DataContext.</div>
-        </div>
-      </div>
+  <!-- ═══ DATA LAYER  y=348 h=190 ═══ -->
+  <rect x="8" y="348" width="1083" height="190" rx="9" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#s2sh)"/>
+  <rect x="14" y="353" width="96" height="16" rx="4" fill="#dcfce7"/>
+  <text x="18" y="364" fill="#15803d" font-size="7.5" font-weight="800" letter-spacing="1">🗄️  DATA LAYER</text>
+  <text x="120" y="364" fill="#94a3b8" font-size="7">Persistent &amp; Offline Storage · localStorage per userId · 300ms debounce · multi-tab sync · schema migration v2 · _revision conflict resolution</text>
 
-    </div>
-  </div>
+  <!-- PostgreSQL -->
+  <rect x="14" y="372" width="510" height="158" rx="9" fill="#fff" stroke="#86efac" stroke-width="1.5" filter="url(#s2sh)"/>
+  <ellipse cx="48" cy="392" rx="18" ry="6" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+  <rect x="30" y="392" width="36" height="28" fill="#dcfce7"/>
+  <ellipse cx="48" cy="420" rx="18" ry="6" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+  <line x1="30" y1="392" x2="30" y2="420" stroke="#86efac" stroke-width="1"/>
+  <line x1="66" y1="392" x2="66" y2="420" stroke="#86efac" stroke-width="1"/>
+  <text x="48" y="409" text-anchor="middle" fill="#15803d" font-size="7" font-weight="800">PG</text>
+  <text x="84" y="390" fill="#15803d" font-size="11" font-weight="700">PostgreSQL Database</text>
+  <text x="84" y="404" fill="#64748b" font-size="8">Users · Auth · Domain Records · Goals</text>
+  <text x="84" y="416" fill="#64748b" font-size="8">Gamification · Sustainability · Import History</text>
+  <text x="18" y="440" fill="#94a3b8" font-size="7.5">Tables: HealthRecord · FinanceRecord · CareerRecord</text>
+  <text x="18" y="453" fill="#94a3b8" font-size="7.5">GoalEntity · BadgeEntity · EcoAction · GamificationStats</text>
+  <text x="18" y="466" fill="#94a3b8" font-size="7.5">UserEntity · SessionEntity · ImportHistoryLog</text>
+  <text x="18" y="479" fill="#94a3b8" font-size="7">fetchAllRecords() on login · Spring Boot JPA/Hibernate · isRealToken guard</text>
+  <text x="18" y="491" fill="#94a3b8" font-size="7">gamificationApi · sustainabilityApi · goalApi · backendApi.js</text>
+  <rect x="18" y="498" width="498" height="20" rx="5" fill="#f0fdf4"/>
+  <text x="267" y="511" text-anchor="middle" fill="#15803d" font-size="7.5" font-weight="700">⚠️ Real users only — isRealToken check prevents demo mode from touching backend</text>
 
+  <!-- sync arrows -->
+  <line x1="540" y1="430" x2="564" y2="430" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#s2ag2)"/>
+  <line x1="564" y1="438" x2="540" y2="438" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#s2ag2)"/>
+  <rect x="530" y="426" width="40" height="18" rx="4" fill="#f0fdf4"/>
+  <text x="550" y="438" text-anchor="middle" fill="#15803d" font-size="7.5" font-weight="700">Sync</text>
+
+  <!-- localStorage -->
+  <rect x="610" y="372" width="473" height="158" rx="9" fill="#fff" stroke="#86efac" stroke-width="1.5" filter="url(#s2sh)"/>
+  <ellipse cx="640" cy="390" rx="16" ry="5" fill="#d1fae5" stroke="#86efac" stroke-width="1"/>
+  <ellipse cx="640" cy="400" rx="16" ry="5" fill="#d1fae5" stroke="#86efac" stroke-width="1"/>
+  <ellipse cx="640" cy="410" rx="16" ry="5" fill="#d1fae5" stroke="#86efac" stroke-width="1"/>
+  <text x="664" y="390" fill="#15803d" font-size="11" font-weight="700">localStorage  (Browser)</text>
+  <text x="664" y="404" fill="#64748b" font-size="8">Offline Cache · Demo Personas · Sync Queue</text>
+  <text x="664" y="416" fill="#64748b" font-size="8">Domain Data scoped per userId</text>
+  <text x="618" y="438" fill="#94a3b8" font-size="7.5">storageAdapter.js · 300ms debounce persist · _revision conflict</text>
+  <text x="618" y="451" fill="#94a3b8" font-size="7.5">HYDRATE action · migrateSchema() v1→v2 · RESET on logout</text>
+  <text x="618" y="464" fill="#94a3b8" font-size="7.5">dataSource: none | demo | imported | mixed</text>
+  <text x="618" y="477" fill="#94a3b8" font-size="7">Multi-tab sync via window.storage events · loadPersistedState() on init</text>
+  <text x="618" y="490" fill="#94a3b8" font-size="7">Demo mode: never touches backend · Template fallback always works offline</text>
+  <rect x="618" y="498" width="457" height="20" rx="5" fill="#f0fdf4"/>
+  <text x="846" y="511" text-anchor="middle" fill="#15803d" font-size="7.5" font-weight="700">Works 100% offline · Demo Proof · No internet required for core features</text>
+
+  <!-- ═══ FEATURE SUMMARY  y=548 h=100 ═══ -->
+  <rect x="8" y="548" width="1083" height="100" rx="9" fill="#f8faff" stroke="#c7d2fe" stroke-width="1.5" filter="url(#s2sh)"/>
+  <rect x="14" y="553" width="148" height="16" rx="4" fill="#e0e7ff"/>
+  <text x="18" y="564" fill="#4338ca" font-size="7.5" font-weight="800" letter-spacing="1">⭐  KEY FEATURES  (Implemented)</text>
+  <!-- 6 feature chips -->
+  <rect x="14"  y="573" width="168" height="68" rx="7" fill="#fff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="98"  y="593" text-anchor="middle" font-size="18">🌌</text>
+  <text x="98"  y="610" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">Talk with Future Self</text>
+  <text x="98"  y="623" text-anchor="middle" fill="#64748b" font-size="7">AI on your trajectory data</text>
+  <text x="98"  y="635" text-anchor="middle" fill="#94a3b8" font-size="6.5">847 simulations · FutureYou.jsx</text>
+
+  <rect x="189" y="573" width="168" height="68" rx="7" fill="#fff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="273" y="593" text-anchor="middle" font-size="18">🎙️</text>
+  <text x="273" y="610" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">Universal AI Mic</text>
+  <text x="273" y="623" text-anchor="middle" fill="#64748b" font-size="7">Speak → Groq NLP → auto-log</text>
+  <text x="273" y="635" text-anchor="middle" fill="#94a3b8" font-size="6.5">zero tagging · transactionParser</text>
+
+  <rect x="364" y="573" width="168" height="68" rx="7" fill="#fff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="448" y="593" text-anchor="middle" font-size="18">🛡️</text>
+  <text x="448" y="610" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">PII Shield</text>
+  <text x="448" y="623" text-anchor="middle" fill="#64748b" font-size="7">stripPII() before every AI call</text>
+  <text x="448" y="635" text-anchor="middle" fill="#94a3b8" font-size="6.5">name·phone·account stripped</text>
+
+  <rect x="539" y="573" width="168" height="68" rx="7" fill="#fff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="623" y="593" text-anchor="middle" font-size="18">🗺️</text>
+  <text x="623" y="610" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">Cascade Map Engine</text>
+  <text x="623" y="623" text-anchor="middle" fill="#64748b" font-size="7">cross-domain real-time chain</text>
+  <text x="623" y="635" text-anchor="middle" fill="#94a3b8" font-size="6.5">sleep→finance→career</text>
+
+  <rect x="714" y="573" width="168" height="68" rx="7" fill="#fff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="798" y="593" text-anchor="middle" font-size="18">📄</text>
+  <text x="798" y="610" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">Smart Doc Parser</text>
+  <text x="798" y="623" text-anchor="middle" fill="#64748b" font-size="7">PDF/CSV/Excel/OCR → domain</text>
+  <text x="798" y="635" text-anchor="middle" fill="#94a3b8" font-size="6.5">salary·lab·cert auto-classified</text>
+
+  <rect x="889" y="573" width="194" height="68" rx="7" fill="#fff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="986" y="593" text-anchor="middle" font-size="18">🥗</text>
+  <text x="986" y="610" text-anchor="middle" fill="#6d28d9" font-size="8.5" font-weight="700">Food Calorie Scanner</text>
+  <text x="986" y="623" text-anchor="middle" fill="#64748b" font-size="7">camera → Nutritionix → macros</text>
+  <text x="986" y="635" text-anchor="middle" fill="#94a3b8" font-size="6.5">visionService · &lt;2s latency</text>
+
+  <!-- ═══ SECURITY SIDEBAR  x=1098 y=48 h=806 ═══ -->
+  <rect x="1098" y="48" width="294" height="806" rx="9" fill="#fff5f5" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="6,3" filter="url(#s2sh)"/>
+  <rect x="1104" y="53" width="120" height="16" rx="4" fill="#fee2e2"/>
+  <text x="1108" y="64" fill="#b91c1c" font-size="7.5" font-weight="800" letter-spacing="1">🔒  SECURITY &amp; PRIVACY</text>
+
+  <rect x="1104" y="74" width="282" height="54" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1118" y="91" text-anchor="middle" font-size="12">🔑</text>
+  <text x="1132" y="89" fill="#b91c1c" font-size="9" font-weight="700">JWT Authentication</text>
+  <text x="1132" y="101" fill="#64748b" font-size="7.5">HS256 · Access + Refresh tokens</text>
+  <text x="1110" y="113" fill="#94a3b8" font-size="7">Spring Security · AuthContext sync</text>
+  <text x="1110" y="123" fill="#94a3b8" font-size="7">DEMO_SESSION fallback · isRealToken</text>
+
+  <rect x="1104" y="134" width="282" height="42" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1118" y="151" text-anchor="middle" font-size="12">🔒</text>
+  <text x="1132" y="149" fill="#b91c1c" font-size="9" font-weight="700">BCrypt Password Hashing</text>
+  <text x="1132" y="161" fill="#64748b" font-size="7.5">Salted · strength=12</text>
+  <text x="1110" y="171" fill="#94a3b8" font-size="7">Plain text passwords never stored</text>
+
+  <rect x="1104" y="182" width="282" height="54" rx="7" fill="#fff5f5" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="1118" y="199" text-anchor="middle" font-size="12">🛡️</text>
+  <text x="1132" y="197" fill="#b91c1c" font-size="9" font-weight="700">PII Shield  ← CRITICAL</text>
+  <text x="1132" y="209" fill="#64748b" font-size="7.5">stripPII() before EVERY AI call</text>
+  <text x="1110" y="221" fill="#94a3b8" font-size="7">Removes: name · phone · email</text>
+  <text x="1110" y="231" fill="#94a3b8" font-size="7">Only anonymized metrics to AI</text>
+
+  <rect x="1104" y="242" width="282" height="42" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1118" y="259" text-anchor="middle" font-size="12">🌐</text>
+  <text x="1132" y="257" fill="#b91c1c" font-size="9" font-weight="700">CORS Configuration</text>
+  <text x="1132" y="269" fill="#64748b" font-size="7.5">Allowed Origins · Preflight</text>
+  <text x="1110" y="279" fill="#94a3b8" font-size="7">CorsConfigurationSource · Headers</text>
+
+  <rect x="1104" y="290" width="282" height="42" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1118" y="307" text-anchor="middle" font-size="12">✅</text>
+  <text x="1132" y="305" fill="#b91c1c" font-size="9" font-weight="700">Input Validation</text>
+  <text x="1132" y="317" fill="#64748b" font-size="7.5">DTO · Bean Validation · @Valid</text>
+  <text x="1110" y="327" fill="#94a3b8" font-size="7">Jakarta Validation · 400 on fail</text>
+
+  <rect x="1104" y="338" width="282" height="42" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1118" y="355" text-anchor="middle" font-size="12">⏱️</text>
+  <text x="1132" y="353" fill="#b91c1c" font-size="9" font-weight="700">Rate Limiting</text>
+  <text x="1132" y="365" fill="#64748b" font-size="7.5">IP + User · AI: 50/min</text>
+  <text x="1110" y="375" fill="#94a3b8" font-size="7">429 triggers Groq → Template chain</text>
+
+  <rect x="1104" y="386" width="282" height="76" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1118" y="403" text-anchor="middle" font-size="12">🔄</text>
+  <text x="1132" y="401" fill="#b91c1c" font-size="9" font-weight="700">AI Fallback Chain</text>
+  <text x="1132" y="413" fill="#64748b" font-size="7.5">Always responds, never fails</text>
+  <rect x="1110" y="418" width="270" height="37" rx="5" fill="#fef2f2"/>
+  <text x="1114" y="431" fill="#b91c1c" font-size="8.5" font-weight="800">1.</text><text x="1125" y="431" fill="#64748b" font-size="7.5">Gemini 2.0 Flash (backend proxy)</text>
+  <text x="1114" y="444" fill="#b91c1c" font-size="8.5" font-weight="800">2.</text><text x="1125" y="444" fill="#64748b" font-size="7.5">429 → Groq llama-3.3-70b (direct)</text>
+  <text x="1114" y="457" fill="#b91c1c" font-size="8.5" font-weight="800">3.</text><text x="1125" y="457" fill="#64748b" font-size="7.5">Offline → Template deterministic</text>
+
+  <rect x="1104" y="468" width="282" height="42" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1118" y="485" text-anchor="middle" font-size="12">🔏</text>
+  <text x="1132" y="483" fill="#b91c1c" font-size="9" font-weight="700">Data Privacy</text>
+  <text x="1132" y="495" fill="#64748b" font-size="7.5">Data never leaves user's control</text>
+  <text x="1110" y="505" fill="#94a3b8" font-size="7">Per-userId scope · RESET on logout</text>
+
+  <!-- Tech Stack -->
+  <rect x="1104" y="516" width="282" height="104" rx="7" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+  <text x="1245" y="530" text-anchor="middle" fill="#b91c1c" font-size="7.5" font-weight="800" letter-spacing="1">TECH STACK</text>
+  <line x1="1110" y1="534" x2="1380" y2="534" stroke="#fca5a5" stroke-width="0.8"/>
+  <text x="1113" y="547" fill="#374151" font-size="7.5" font-weight="700">Frontend:</text><text x="1162" y="547" fill="#64748b" font-size="7.5">React 19 · Vite 8 · Tailwind v4</text>
+  <text x="1113" y="559" fill="#374151" font-size="7.5" font-weight="700">Motion:</text><text x="1162" y="559" fill="#64748b" font-size="7.5">Framer Motion 12 · Recharts 3</text>
+  <text x="1113" y="571" fill="#374151" font-size="7.5" font-weight="700">AI/LLMs:</text><text x="1162" y="571" fill="#64748b" font-size="7.5">Gemini 2.0 · Groq llama-3.3-70b</text>
+  <text x="1113" y="583" fill="#374151" font-size="7.5" font-weight="700">Parsing:</text><text x="1162" y="583" fill="#64748b" font-size="7.5">pdfjs-dist · Tesseract.js · Papa Parse</text>
+  <text x="1113" y="595" fill="#374151" font-size="7.5" font-weight="700">Backend:</text><text x="1162" y="595" fill="#64748b" font-size="7.5">Spring Boot 3.2 · PostgreSQL · JWT</text>
+  <text x="1113" y="607" fill="#374151" font-size="7.5" font-weight="700">External:</text><text x="1162" y="607" fill="#64748b" font-size="7.5">GitHub · Fitbit · Adzuna · Nutritionix</text>
+
+  <!-- Engines list -->
+  <rect x="1104" y="626" width="282" height="122" rx="7" fill="#fff8f0" stroke="#fdba74" stroke-width="1.5"/>
+  <text x="1245" y="640" text-anchor="middle" fill="#c2410c" font-size="7.5" font-weight="800" letter-spacing="1">9 ENGINES (src/engines/)</text>
+  <line x1="1110" y1="644" x2="1380" y2="644" stroke="#fdba74" stroke-width="0.8"/>
+  <text x="1113" y="657" fill="#92400e" font-size="7.5">⚙ healthScoreEngine.js</text>
+  <text x="1113" y="669" fill="#92400e" font-size="7.5">⚙ financeScoreEngine.js</text>
+  <text x="1113" y="681" fill="#92400e" font-size="7.5">⚙ careerScoreEngine.js</text>
+  <text x="1113" y="693" fill="#92400e" font-size="7.5">⚙ goalProgressEngine.js</text>
+  <text x="1113" y="705" fill="#92400e" font-size="7.5">⚙ simulatorEngine.js</text>
+  <text x="1238" y="657" fill="#92400e" font-size="7.5">⚙ NeuralEngine.js</text>
+  <text x="1238" y="669" fill="#92400e" font-size="7.5">⚙ anomalyEngine.js</text>
+  <text x="1238" y="681" fill="#92400e" font-size="7.5">⚙ trajectoryEngine.js</text>
+  <text x="1238" y="693" fill="#92400e" font-size="7.5">⚙ lifeBalanceEngine.js</text>
+  <text x="1113" y="718" fill="#94a3b8" font-size="6.5">All deterministic · no AI used for scoring</text>
+  <text x="1113" y="728" fill="#94a3b8" font-size="6.5">memoized via useMemo in DataContext</text>
+  <text x="1113" y="740" fill="#94a3b8" font-size="6.5">zero hallucination · explainable output</text>
+
+  <!-- sidebar dashed connectors -->
+  <line x1="1098" y1="160" x2="1091" y2="160" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <line x1="1098" y1="280" x2="1091" y2="280" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <line x1="1098" y1="400" x2="1091" y2="400" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="4,2"/>
+  <line x1="1098" y1="500" x2="1091" y2="500" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="4,2"/>
+
+  <!-- FOOTER -->
+  <rect x="8" y="656" width="1384" height="36" rx="8" fill="#1e293b"/>
+  <text x="20" y="679" fill="#94a3b8" font-size="7.5" font-weight="600">Architecture:</text>
+  <text x="94" y="679" fill="#e2e8f0" font-size="7.5">React Context + useReducer (no Redux) · 9 deterministic engines · Gemini→Groq→Template fallback chain · localStorage per-user · Multi-tab sync · Spring Boot 3.2 + PostgreSQL</text>
+  <text x="850" y="679" fill="#4b5563" font-size="7.5"> | </text>
+  <text x="862" y="679" fill="#94a3b8" font-size="7.5" font-weight="600">Pages: </text><text x="896" y="679" fill="#e2e8f0" font-size="7.5">18</text>
+  <text x="918" y="679" fill="#4b5563" font-size="7.5"> | </text>
+  <text x="930" y="679" fill="#94a3b8" font-size="7.5" font-weight="600">Services: </text><text x="974" y="679" fill="#e2e8f0" font-size="7.5">25</text>
+  <text x="1000" y="679" fill="#4b5563" font-size="7.5"> | </text>
+  <text x="1012" y="679" fill="#94a3b8" font-size="7.5" font-weight="600">Engines: </text><text x="1056" y="679" fill="#e2e8f0" font-size="7.5">9</text>
+  <text x="1074" y="679" fill="#4b5563" font-size="7.5"> | </text>
+  <text x="1086" y="679" fill="#94a3b8" font-size="7.5" font-weight="600">Storage: </text><text x="1128" y="679" fill="#e2e8f0" font-size="7.5">PostgreSQL + localStorage</text>
+  <text x="1280" y="679" fill="#4b5563" font-size="7.5"> | </text>
+  <text x="1292" y="679" fill="#94a3b8" font-size="7.5" font-weight="600">AI: </text><text x="1308" y="679" fill="#e2e8f0" font-size="7.5">Gemini 2.0 + Groq 3.3-70b</text>
+</svg>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ PAGE 2 ══ -->
-<div class="page page-break">
+</div></div>
 
-  <!-- Section 5: Scoring Engines -->
-  <div class="section-label">Section 05</div>
-  <h2>Scoring Engine Architecture</h2>
-  <p class="section-desc">All six engines are deterministic pure-function JavaScript modules. No randomness, no ML — same input always produces the same score. This is critical for user trust and auditability.</p>
-
-  <div class="engine-grid">
-    <div class="engine-card">
-      <div class="e-name">Life Balance Engine <span class="e-file">lifeBalanceEngine.js</span></div>
-      <div class="e-desc">Orchestrator — combines all three domain scores with a weighted formula. Applies burnout and sleep penalties. Detects cross-domain cascade effects.</div>
-      <div class="e-formula">balance = health×0.35 + finance×0.30 + career×0.35<br/>− burnoutPenalty (15 if risk&gt;60, 8 if risk&gt;30)<br/>− sleepPenalty (10 if avg&lt;6hrs)</div>
-    </div>
-    <div class="engine-card">
-      <div class="e-name">Health Score Engine <span class="e-file">healthScoreEngine.js</span></div>
-      <div class="e-desc">Scores sleep quality, stress levels, BMI, exercise frequency, and hydration. Also computes burnout risk score (0–100) from work hours + sleep debt.</div>
-      <div class="e-formula">factors: sleep, stress, BMI,<br/>exercise, hydration<br/>burnoutRisk: workHours + sleepDebt</div>
-    </div>
-    <div class="engine-card">
-      <div class="e-name">Finance Score Engine <span class="e-file">financeScoreEngine.js</span></div>
-      <div class="e-desc">Calculates savings rate, debt-to-income ratio, emergency fund runway, and spending trend direction. Flags financial stress states.</div>
-      <div class="e-formula">factors: savingsRate, debtRatio,<br/>emergencyRunway, spendingTrend<br/>stressFlag: runway &lt; 3 months</div>
-    </div>
-    <div class="engine-card">
-      <div class="e-name">Career Score Engine <span class="e-file">careerScoreEngine.js</span></div>
-      <div class="e-desc">Evaluates skill depth, career trajectory momentum, GitHub activity integration, and learning investment percentage of time.</div>
-      <div class="e-formula">factors: skillDepth, trajectory,<br/>githubActivity, learningInvestment<br/>readiness: upskilling focus score</div>
-    </div>
-    <div class="engine-card">
-      <div class="e-name">Simulator Engine <span class="e-file">simulatorEngine.js</span></div>
-      <div class="e-desc">Projects habit changes forward 3–12 months. Includes burnout crash prediction curve. Compound improvements and decay curves are modeled per habit type.</div>
-      <div class="e-formula">projection: monthlyCurve[0..12]<br/>burnoutCrash: tipping point detection<br/>compoundEffect: per habit category</div>
-    </div>
-    <div class="engine-card">
-      <div class="e-name">Neural Engine <span class="e-file">NeuralEngine.js</span></div>
-      <div class="e-desc">TensorFlow.js sequential model running entirely in-browser. Takes 3 domain scores as input, outputs 2-class softmax prediction. Visualized live on the NeuralCore page.</div>
-      <div class="e-formula">layers: Dense(16,relu) →<br/>Dense(8,sigmoid) → Dense(2,softmax)<br/>optimizer: Adam | loss: categoricalCE</div>
-    </div>
-  </div>
-
-  <div class="callout callout-blue" style="margin-top:24px">
-    <span class="callout-icon">⚡</span>
-    <div>
-      <strong>Cross-Domain Cascade Effects (unique to this project)</strong>
-      <p>The Life Balance Engine detects three specific cascades automatically: (1) Sleep debt → emotional spending spikes, (2) Financial stress → career readiness decline, (3) Financial runway &lt; 3 months → forced upskilling focus. These are surfaced as urgent alerts on the Dashboard.</p>
-    </div>
-  </div>
-
-  <div class="hr"></div>
-
-  <!-- Section 6: Backend API -->
-  <div class="section-label">Section 06</div>
-  <h2>Backend REST API</h2>
-  <p class="section-desc">Spring Boot 3.2.5 on port 8080. All endpoints except auth require a valid JWT Bearer token in the Authorization header.</p>
-
-  <h3>Authentication</h3>
-  <table class="api-table">
-    <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/auth/signup</span></td><td>Register user. Password hashed with BCrypt. Returns JWT.</td></tr>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/auth/login</span></td><td>Validate credentials. Returns signed JWT (24h expiry).</td></tr>
-    </tbody>
-  </table>
-
-  <h3>Domain Records</h3>
-  <table class="api-table">
-    <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method method-get">GET</span></td><td><span class="endpoint">/api/records/health</span></td><td>Fetch all health records for authenticated user.</td></tr>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/records/health</span></td><td>Create a new health record entry.</td></tr>
-      <tr><td><span class="method method-get">GET</span></td><td><span class="endpoint">/api/records/finance</span></td><td>Fetch all finance records.</td></tr>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/records/finance</span></td><td>Create a new finance record.</td></tr>
-      <tr><td><span class="method method-get">GET</span></td><td><span class="endpoint">/api/records/career</span></td><td>Fetch all career records.</td></tr>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/records/career</span></td><td>Create a new career record.</td></tr>
-    </tbody>
-  </table>
-
-  <h3>File Upload &amp; Sync</h3>
-  <table class="api-table">
-    <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/upload</span></td><td>Accepts PDF/CSV/Excel (max 50 MB). Parses, normalizes, and persists records. Returns import summary.</td></tr>
-      <tr><td><span class="method method-get">GET</span></td><td><span class="endpoint">/api/sync</span></td><td>Bulk fetch all domain records in a single call. Used by syncService.js on login.</td></tr>
-    </tbody>
-  </table>
-
-  <h3>AI Proxy (Groq)</h3>
-  <table class="api-table">
-    <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
-    <tbody>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/ai/chat</span></td><td>Routes chat messages + computed context to Groq. PII stripped server-side before forwarding.</td></tr>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/ai/narrative</span></td><td>Generates an emotionally intelligent dashboard summary from pre-computed scores.</td></tr>
-      <tr><td><span class="method method-post">POST</span></td><td><span class="endpoint">/api/ai/explain</span></td><td>Produces a causal explanation for a specific insight or anomaly.</td></tr>
-      <tr><td><span class="method method-get">GET</span></td><td><span class="endpoint">/api/ai/status</span></td><td>Checks if Groq API key is configured and responsive.</td></tr>
-    </tbody>
-  </table>
-
-  <div class="hr"></div>
-
-  <!-- Section 7: Pages -->
-  <div class="section-label">Section 07</div>
-  <h2>Frontend Pages (16 Routes)</h2>
-  <p class="section-desc">All routes except <code style="font-family:monospace;background:#f1f5f9;padding:1px 5px;border-radius:3px">/</code>, <code style="font-family:monospace;background:#f1f5f9;padding:1px 5px;border-radius:3px">/login</code>, <code style="font-family:monospace;background:#f1f5f9;padding:1px 5px;border-radius:3px">/signup</code> are wrapped in <b>ProtectedRoute</b> which checks AuthContext and redirects unauthenticated users.</p>
-
-  <div class="pages-grid">
-    <div class="page-item">
-      <div class="pg-name">🏠 Dashboard</div>
-      <div class="pg-desc">Unified life score ring, cross-domain alerts, AI narrative, quick-action cards</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">❤️ Health</div>
-      <div class="pg-desc">Sleep, stress, vitals tracking. Groq nutrition analysis, AI health insights</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">💰 Finance</div>
-      <div class="pg-desc">Budget tracking, savings rate, debt ratio, spending trend visualization</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">💼 Career</div>
-      <div class="pg-desc">Skills matrix, growth trajectory, GitHub integration, Groq learning plans</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🎯 Goals</div>
-      <div class="pg-desc">Goal setting, milestone tracking, timeline visualization</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🔮 Simulator</div>
-      <div class="pg-desc">3–12 month habit projection, burnout crash prediction, what-if scenarios</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">💡 Insights</div>
-      <div class="pg-desc">Anomaly detection, trend analysis, automated recommendations engine</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🤖 Coach</div>
-      <div class="pg-desc">Conversational AI life coach via backend Groq proxy. Context-aware chat history</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🎮 Gamification</div>
-      <div class="pg-desc">XP system, level progression, badges, AI-generated daily quests</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🧠 NeuralCore</div>
-      <div class="pg-desc">Live TensorFlow.js neural network visualization using domain scores as inputs</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🏪 LifeMarket</div>
-      <div class="pg-desc">Gamified life decision negotiation with Groq AI fairness scoring</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">📤 Upload</div>
-      <div class="pg-desc">PDF/CSV/Excel import, Groq vision-powered document parsing</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🔌 Integrations</div>
-      <div class="pg-desc">GitHub, Google Fit, India banking (UPI/NEFT) data connectors</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🌿 Sustainability</div>
-      <div class="pg-desc">Environmental impact scoring linked to lifestyle choices</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">⚙️ Settings</div>
-      <div class="pg-desc">Profile, theme, API key configuration, data export</div>
-    </div>
-    <div class="page-item">
-      <div class="pg-name">🚀 Landing</div>
-      <div class="pg-desc">Public marketing page. Demo login available without backend</div>
-    </div>
-  </div>
-
+<div class="nav">
+  <button onclick="go(-1)">← Slide 1</button>
+  <span id="ctr">1 / 2</span>
+  <button onclick="go(1)">Slide 2 →</button>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ PAGE 3 ══ -->
-<div class="page page-break">
-
-  <!-- Section 8: AI Architecture -->
-  <div class="section-label">Section 08</div>
-  <h2>AI Architecture — Dual-Path Groq Integration</h2>
-  <p class="section-desc">AI is used exclusively for narration and coaching, never for raw score computation. Two distinct paths handle different use cases with different security requirements.</p>
-
-  <div class="layer layer-frontend" style="margin-bottom:16px">
-    <div class="layer-header">🌐 Path A — Frontend → Groq Direct (no PII path)</div>
-    <div class="layer-body">
-      <p style="font-size:13px;color:#475569;margin-bottom:12px">Used by: Vision analysis, nutrition parsing, learning plans, resume intelligence, gamification quests, banking categorization. The API key is stored in <code style="font-family:monospace;background:#f1f5f9;padding:1px 4px;border-radius:3px">VITE_GROQ_API_KEY</code> env var or user localStorage. No user PII is ever included in these payloads.</p>
-      <div class="flow">
-        <div class="flow-step">Page Component</div><div class="flow-arrow">→</div>
-        <div class="flow-step">Service Module</div><div class="flow-arrow">→</div>
-        <div class="flow-step">Strip PII</div><div class="flow-arrow">→</div>
-        <div class="flow-step">api.groq.com</div><div class="flow-arrow">→</div>
-        <div class="flow-step">AI Response</div>
-      </div>
-      <div style="margin-top:12px;font-size:12px;color:#475569">
-        <b>Services:</b> visionService.js · nutritionService.js · learningService.js · resumeService.js · githubService.js · simulatorService.js · integrationService.js
-      </div>
-    </div>
-  </div>
-
-  <div class="layer layer-backend">
-    <div class="layer-header">🔒 Path B — Frontend → Backend Proxy → Groq (secure path)</div>
-    <div class="layer-body">
-      <p style="font-size:13px;color:#475569;margin-bottom:12px">Used by: AI Coach chat, dashboard narrative, insight explanations. The Groq API key lives only on the server. The frontend sends computed scores, never raw user data. The backend performs an additional PII strip before forwarding.</p>
-      <div class="flow">
-        <div class="flow-step">Coach / Dashboard</div><div class="flow-arrow">→</div>
-        <div class="flow-step">aiService.js</div><div class="flow-arrow">→</div>
-        <div class="flow-step">POST /api/ai</div><div class="flow-arrow">→</div>
-        <div class="flow-step">GeminiService.java</div><div class="flow-arrow">→</div>
-        <div class="flow-step">api.groq.com</div>
-      </div>
-      <div style="margin-top:12px;font-size:12px;color:#475569">
-        <b>Model:</b> llama-3.3-70b-versatile &nbsp;|&nbsp; <b>Max tokens:</b> 1024 &nbsp;|&nbsp; <b>Temperature:</b> 0.7 &nbsp;|&nbsp; <b>Timeout:</b> 20s
-      </div>
-    </div>
-  </div>
-
-  <div class="callout callout-purple" style="margin-top:20px">
-    <span class="callout-icon">🛡️</span>
-    <div>
-      <strong>Fallback Strategy</strong>
-      <p>On 429 (rate limit) or network failure, aiService.js activates the deterministic template fallback (RoboAdvisor). It generates coaching text grounded in the computed engine outputs — so the coach stays intelligent and specific even when Groq is unavailable. No generic fallback text.</p>
-    </div>
-  </div>
-
-  <div class="hr"></div>
-
-  <!-- Section 9: State Management -->
-  <div class="section-label">Section 09</div>
-  <h2>State Management</h2>
-  <p class="section-desc">All application state flows through two React Contexts. No Redux, no Zustand — the architecture is deliberately lean.</p>
-
-  <div class="module-grid">
-    <div class="module-card">
-      <div class="module-dot" style="background:#6366f1"></div>
-      <div>
-        <div class="name">AuthContext</div>
-        <div class="desc">JWT token management, demo user fallback, localStorage session persistence. Provides <code style="font-family:monospace;font-size:11px">user</code> and <code style="font-family:monospace;font-size:11px">loading</code> state to ProtectedRoute.</div>
-      </div>
-    </div>
-    <div class="module-card">
-      <div class="module-dot" style="background:#10b981"></div>
-      <div>
-        <div class="name">DataContext (useReducer)</div>
-        <div class="desc">13 action types: SET_USER_DATA, UPDATE_DOMAIN, ADD_RECORDS, SET_RECORDS, UPDATE_GOALS, ADD_GOAL, DELETE_GOAL, ADD_TIMELINE_EVENT, UPDATE_GAMIFICATION, UPDATE_AI_CACHE, UPDATE_SIMULATOR_STATE, RESET, HYDRATE.</div>
-      </div>
-    </div>
-    <div class="module-card">
-      <div class="module-dot" style="background:#f59e0b"></div>
-      <div>
-        <div class="name">storageAdapter.js</div>
-        <div class="desc">Handles localStorage versioning and schema auto-migration. All pages use this instead of raw localStorage to prevent stale data bugs across app updates.</div>
-      </div>
-    </div>
-    <div class="module-card">
-      <div class="module-dot" style="background:#3b82f6"></div>
-      <div>
-        <div class="name">Cross-Tab Sync</div>
-        <div class="desc">DataContext listens to <code style="font-family:monospace;font-size:11px">window storage</code> events to synchronize state across multiple open browser tabs in real time.</div>
-      </div>
-    </div>
-    <div class="module-card">
-      <div class="module-dot" style="background:#ef4444"></div>
-      <div>
-        <div class="name">Data Priority</div>
-        <div class="desc">Real imported data always overrides demo seed data. <code style="font-family:monospace;font-size:11px">dataSource</code> field tracks state: 'none' | 'demo' | 'imported' | 'mixed'.</div>
-      </div>
-    </div>
-    <div class="module-card">
-      <div class="module-dot" style="background:#8b5cf6"></div>
-      <div>
-        <div class="name">AI Cache</div>
-        <div class="desc">Computed dashboard narratives are cached in DataContext with a content hash. Groq is only called when the underlying data actually changes — minimizes API usage.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="hr"></div>
-
-  <!-- Section 10: Unique Features -->
-  <div class="section-label">Section 10</div>
-  <h2>Unique Features</h2>
-  <p class="section-desc">What differentiates BeyondSelf from a standard life-tracking app.</p>
-
-  <div class="feature-list">
-    <div class="feature-card fc-1">
-      <div style="font-size:24px">🔗</div>
-      <div class="f-title">Cross-Domain Cascade Engine</div>
-      <div class="f-desc">Automatically detects and surfaces how one life domain hurts another: sleep debt triggers emotional spending spikes, financial runway below 3 months forces upskilling focus, financial stress causes career readiness decline.</div>
-    </div>
-    <div class="feature-card fc-2">
-      <div style="font-size:24px">👻</div>
-      <div class="f-title">Ghost Timeline</div>
-      <div class="f-desc">Shows what your life metrics looked like at past milestones. Creates a visual "ghost" overlay of your historical self to compare against your current trajectory.</div>
-    </div>
-    <div class="feature-card fc-3">
-      <div style="font-size:24px">☠️</div>
-      <div class="f-title">Doom Mode</div>
-      <div class="f-desc">A dark-pattern simulator that projects the worst-case consequences of continuing bad habits. Shows burnout crash curves, financial ruin timelines, and career stagnation paths.</div>
-    </div>
-    <div class="feature-card fc-4">
-      <div style="font-size:24px">🏪</div>
-      <div class="f-title">Life Market</div>
-      <div class="f-desc">A gamified decision negotiation system where users trade life decisions (sleep hours vs. work hours) and Groq AI evaluates the fairness and long-term value of each trade.</div>
-    </div>
-    <div class="feature-card fc-5">
-      <div style="font-size:24px">🧠</div>
-      <div class="f-title">In-Browser Neural Network</div>
-      <div class="f-desc">TensorFlow.js neural network running entirely in the browser — no server. Takes the 3 domain scores as input, trains in real time, and visualizes activations on the NeuralCore page.</div>
-    </div>
-    <div class="feature-card fc-6">
-      <div style="font-size:24px">🤝</div>
-      <div class="f-title">India-Specific Banking</div>
-      <div class="f-desc">Native integration with Indian banking formats — UPI transaction parsing, NEFT/IMPS statement categorization, and CIBIL score correlation. Built specifically for the Indian market.</div>
-    </div>
-  </div>
-
-  <div class="hr"></div>
-
-  <!-- Section 11: Security -->
-  <div class="section-label">Section 11</div>
-  <h2>Security Design</h2>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px">
-    <div class="callout callout-blue" style="margin:0">
-      <span class="callout-icon">🔑</span>
-      <div>
-        <strong>JWT Authentication</strong>
-        <p>Stateless JWT tokens (24h expiry, signed with secret key). All protected endpoints verify the token via AuthUtil before processing.</p>
-      </div>
-    </div>
-    <div class="callout callout-green" style="margin:0">
-      <span class="callout-icon">🔐</span>
-      <div>
-        <strong>BCrypt Password Hashing</strong>
-        <p>Passwords are never stored in plaintext. Spring Security Crypto BCrypt with default cost factor applied at signup.</p>
-      </div>
-    </div>
-    <div class="callout callout-purple" style="margin:0">
-      <span class="callout-icon">🛡️</span>
-      <div>
-        <strong>PII Stripping (2-layer)</strong>
-        <p>aiService.js strips PII before sending to backend. GeminiService.java strips again server-side before forwarding to Groq. Belt-and-suspenders approach.</p>
-      </div>
-    </div>
-    <div class="callout callout-orange" style="margin:0">
-      <span class="callout-icon">🌐</span>
-      <div>
-        <strong>CORS Configuration</strong>
-        <p>Backend explicitly allows only React dev server origins (ports 5173–5176). CorsConfig.java prevents unauthorized cross-origin requests.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="hr"></div>
-
-  <!-- Section 12: Running the Project -->
-  <div class="section-label">Section 12</div>
-  <h2>Running the Project</h2>
-
-  <div class="layer layer-frontend" style="margin-bottom:16px">
-    <div class="layer-header">Frontend — http://localhost:5173</div>
-    <div class="layer-body">
-      <pre style="background:#0f172a;border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#94a3b8;line-height:1.7">cd c:\Users\Saanvi Jaiswal\Downloads\beyondselff
-npm install
-npm run dev</pre>
-    </div>
-  </div>
-
-  <div class="layer layer-backend" style="margin-bottom:16px">
-    <div class="layer-header">Backend — http://localhost:8080</div>
-    <div class="layer-body">
-      <pre style="background:#0f172a;border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#94a3b8;line-height:1.7"># Requires: Java 21 + Maven 3.9+
-cd backend
-mvn spring-boot:run</pre>
-    </div>
-  </div>
-
-  <div class="layer layer-ai">
-    <div class="layer-header">Demo Login (no backend needed)</div>
-    <div class="layer-body">
-      <pre style="background:#0f172a;border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#94a3b8;line-height:1.7">Email:    arjun@demo.com   /   priya@demo.com
-Password: demo123</pre>
-    </div>
-  </div>
-
-</div>
-
-<!-- Footer -->
-<div class="doc-footer">
-  <strong>BeyondSelf — Personal Digital Twin Platform</strong><br/>
-  Technical Architecture Document &nbsp;·&nbsp; Hackathon Submission &nbsp;·&nbsp; May 2026<br/><br/>
-  <span style="font-size:11px">Stack: React 18 · Vite 8 · Spring Boot 3.2 · Java 21 · TensorFlow.js · Groq API · H2/PostgreSQL · JWT · Tailwind CSS v4</span>
-</div>
-
+<script>
+const sl = document.querySelectorAll('.slide');
+let c = 0;
+function go(d) {
+  sl[c].classList.remove('active');
+  c = ((c + d) % 2 + 2) % 2;
+  sl[c].classList.add('active');
+  document.getElementById('ctr').textContent = (c + 1) + ' / 2';
+}
+document.addEventListener('keydown', e => {
+  if (['ArrowRight', ' '].includes(e.key)) { e.preventDefault(); go(1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+});
+function resize() {
+  const s = document.getElementById('scaler');
+  const sc = Math.min(window.innerWidth / 1400, window.innerHeight / 900) * 0.98;
+  s.style.transform = 'scale(' + sc + ')';
+}
+resize();
+window.addEventListener('resize', resize);
+</script>
 </body>
 </html>

@@ -40,7 +40,7 @@ function CustomTooltip({ active, payload, label, domainColor }) {
   );
 }
 
-export default function FutureYou() {
+export function FutureYouPanel() {
   const { computed, health, finance, career } = useData();
   const [activeDomain, setActiveDomain] = useState('overall');
 
@@ -81,8 +81,8 @@ export default function FutureYou() {
   const optCareer12 = careerProj[12]?.optimized ?? cScore;
 
   return (
-    <div style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)', fontFamily: 'var(--font-primary)' }}>
-      
+    <div style={{ fontFamily: 'var(--font-primary)', paddingBottom: 40 }}>
+
       {/* ── Page Header ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -380,6 +380,14 @@ export default function FutureYou() {
 
       </div>
 
+    </div>
+  );
+}
+
+export default function FutureYou() {
+  return (
+    <div style={{ padding: '28px 32px 80px', minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #0c1120 100%)' }}>
+      <FutureYouPanel />
     </div>
   );
 }
