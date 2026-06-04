@@ -249,10 +249,10 @@ function aggregateCareer(records, currentState = {}) {
   return {
     ...currentState,
     skills: Array.from(skillsSet),
-    dsaPractice: dsaCount ? Math.round((dsaSum / dsaCount) * 10) / 10 : (currentState.dsaPractice || 0),
-    studyHoursDaily: studyCount ? Math.round((studyHoursSum / studyCount) * 10) / 10 : (currentState.studyHoursDaily || 0),
-    codingHoursDaily: codingCount ? Math.round((codingHoursSum / codingCount) * 10) / 10 : (currentState.codingHoursDaily || 0),
-    projectsCompleted: latestProjects !== null ? latestProjects : (currentState.projectsCompleted || 0),
+    dsaPractice: dsaCount ? Math.round((dsaSum / dsaCount) * 10) / 10 : (currentState.dsaPractice ?? 2),
+    studyHoursDaily: studyCount ? Math.round((studyHoursSum / studyCount) * 10) / 10 : (currentState.studyHoursDaily ?? 3),
+    codingHoursDaily: codingCount ? Math.round((codingHoursSum / codingCount) * 10) / 10 : (currentState.codingHoursDaily ?? 2),
+    projectsCompleted: latestProjects !== null ? latestProjects : (currentState.projectsCompleted ?? 3),
   };
 }
 

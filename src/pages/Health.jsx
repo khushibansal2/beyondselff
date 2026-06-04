@@ -1693,12 +1693,12 @@ export default function Health() {
   const tabs = [
     { id: 'overview',        label: 'Overview' },
     { id: 'log',             label: 'Log Data' },
-    { id: 'scan',            label: 'Scan AI' },
+    { id: 'cycle',           label: '♀ Cycle' },
     { id: 'wellness',        label: 'Wellness' },
     { id: 'nutrition',       label: 'Nutrition' },
+    { id: 'scan',            label: 'Scan AI' },
     { id: 'recommendations', label: 'AI Recommendations' },
     { id: 'tracker',         label: 'Food Tracker' },
-    { id: 'cycle', label: '♀ Cycle' },
   ];
 
   const handleLog = async (e) => {

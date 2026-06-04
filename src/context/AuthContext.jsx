@@ -133,6 +133,7 @@ export function AuthProvider({ children }) {
       });
       let data = {};
       try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
+      if (res.status === 409) return { success: false, error: 'An account with this email already exists. Please sign in instead.' };
       if (!res.ok) return { success: false, error: data.error || data.message || 'Signup failed' };
       const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: age ?? data.age ?? null, gender: gender ?? data.gender ?? null };
       setUser(userObj); setToken(data.token); setIsDemo(false);

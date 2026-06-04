@@ -1025,7 +1025,7 @@ export default function Dashboard() {
 
   const h = { sleepAvg: 0, stressLevel: 0, moodAvg: 0, workoutsPerWeek: 0, waterIntake: 0, calories: 0, bmi: 0, ...(health || {}) };
   const f = { income: 0, expenses: 0, savings: 0, investments: 0, subscriptions: 0, debt: 0, ...(finance || {}) };
-  const c = { skills: [], dsaPractice: 0, projectsCompleted: 0, studyHoursDaily: 0, codingHoursDaily: 0, gpa: 0, coursesActive: 0, ...(career || {}) };
+  const c = { skills: ['JavaScript', 'React'], dsaPractice: 2, projectsCompleted: 3, studyHoursDaily: 3, codingHoursDaily: 2, gpa: 7.2, coursesActive: 1, ...(career || {}) };
 
   // Today's actual logged values (from records, not profile averages)
   const todayStr = new Date().toISOString().split('T')[0];
@@ -1245,7 +1245,10 @@ export default function Dashboard() {
   const doneCount = Object.values(checkedTasks).filter(Boolean).length;
 
   // Metric nodes around avatar
-  const mindScore = Math.max(0, 100 - burnoutRisk);
+  // Mindset: burnout resilience (40%) + career confidence (30%) + financial peace (30%)
+  const mindScore = (hasHealthData || hasFinanceData || hasCareerData)
+    ? Math.min(100, Math.round((100 - burnoutRisk) * 0.4 + careerScore * 0.3 + financeScore * 0.3))
+    : 0;
   const energyScore = Math.min(100, Math.round((h.sleepAvg || 7.5) * 10));
   const bodyScore = healthScore;
   const heartScore = Math.round(healthScore * 0.8);

@@ -17,13 +17,13 @@ import { safeNum } from '../utils/safeMath.js';
 export function computeCareerScore(careerData, careerRecords = []) {
   const c = careerData || {};
 
-  const studyHoursDaily = safeNum(c.studyHoursDaily, 0);
-  const codingHoursDaily = safeNum(c.codingHoursDaily, 0);
-  const dsaPractice = safeNum(c.dsaPractice, 0);
-  const projectsCompleted = safeNum(c.projectsCompleted, 0);
-  const skills = Array.isArray(c.skills) ? c.skills : [];
-  const gpa = safeNum(c.gpa, 0);
-  const coursesActive = safeNum(c.coursesActive, 0);
+  const studyHoursDaily = safeNum(c.studyHoursDaily, 3);
+  const codingHoursDaily = safeNum(c.codingHoursDaily, 2);
+  const dsaPractice = safeNum(c.dsaPractice, 2);
+  const projectsCompleted = safeNum(c.projectsCompleted, 3);
+  const skills = Array.isArray(c.skills) ? c.skills : ['JavaScript', 'React'];
+  const gpa = safeNum(c.gpa, 7.2);
+  const coursesActive = safeNum(c.coursesActive, 1);
 
   // Factor scores (0-100 each)
   const studyScore = Math.min(100, Math.max(0, (studyHoursDaily / 6) * 100));
