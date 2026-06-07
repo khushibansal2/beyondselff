@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
-import { AnomalyBell } from '../ui/Components';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import {
   LayoutDashboard, Heart, Wallet, Target, Trophy, Sparkles,
@@ -64,7 +63,7 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { anomalies = [], gamification, computed } = useData();
+  const { gamification, computed } = useData();
   const { theme } = useTheme();
   const isLight = theme === 'light';
   const sidebarBg = isLight ? '#ffffff' : '#07090e';
@@ -195,9 +194,6 @@ export default function Sidebar() {
           );
         })}
 
-        <div className="pt-2 mt-2" style={{ borderTop: `1px solid ${borderColor}` }}>
-          <AnomalyBell anomalies={anomalies} collapsed={collapsed && !mobile} />
-        </div>
       </nav>
 
       {/* Footer */}
@@ -207,8 +203,8 @@ export default function Sidebar() {
           <div className="flex flex-col gap-3">
             {/* User row */}
             <div className="flex items-center gap-2.5 px-1">
-              <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[11px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
-                {(user?.name || 'U')[0].toUpperCase()}
+              <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden border border-white/10">
+                <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
               </div>
               <span className="text-[12px] font-bold text-white truncate">{user?.name || 'User'}</span>
             </div>
@@ -250,8 +246,8 @@ export default function Sidebar() {
         ) : (
           /* Collapsed: avatar + 3 tiny domain rings */
           <div className="flex flex-col items-center gap-2">
-            <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center font-black text-white text-[11px] bg-gradient-to-br from-indigo-500 to-purple-600">
-              {(user?.name || 'U')[0].toUpperCase()}
+            <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden border border-white/10">
+              <img src={getAvatarUrl(user)} alt={user?.name || 'User'} className="w-full h-full object-cover" />
             </div>
             {[
               { color: '#10b981', score: computed?.healthScore?.score  ?? 0 },

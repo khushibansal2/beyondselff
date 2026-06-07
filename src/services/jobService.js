@@ -158,10 +158,8 @@ function normalizeJooble(job) {
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 
 async function fetchRemotive(query, limit = 15) {
-  const url = `${REMOTIVE_URL}?${new URLSearchParams({ search: query, limit })}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(9000) });
-  if (!res.ok) throw new Error(`Remotive ${res.status}`);
-  const data = await res.json();
+  // Proxy through backend to avoid browser CORS issues and rate limiting
+  const data = await fetchViaProxy('remotive', { query, limit });
   return (data.jobs || []).map(normalizeRemotive);
 }
 

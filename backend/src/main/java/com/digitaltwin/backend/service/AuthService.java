@@ -24,7 +24,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Map<String, Object> signup(String email, String password, String name) {
+    public Map<String, Object> signup(String email, String password, String name, Integer age, String gender) {
         if (email == null || password == null || email.isBlank() || password.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email and password are required");
         }
@@ -35,16 +35,20 @@ public class AuthService {
                 .email(email.toLowerCase())
                 .passwordHash(passwordEncoder.encode(password))
                 .name(name != null ? name : email.split("@")[0])
+                .age(age)
+                .gender(gender)
                 .createdAt(LocalDateTime.now())
                 .build();
         user = userRepo.save(user);
         String token = jwtUtil.generateToken(user.getId(), user.getEmail());
-        return Map.of(
-                "token", token,
-                "userId", user.getId(),
-                "email", user.getEmail(),
-                "name", user.getName()
-        );
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("token", token);
+        resp.put("userId", user.getId());
+        resp.put("email", user.getEmail());
+        resp.put("name", user.getName());
+        resp.put("age", user.getAge());
+        resp.put("gender", user.getGender());
+        return resp;
     }
 
     public Map<String, Object> login(String email, String password) {
@@ -57,22 +61,26 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
         String token = jwtUtil.generateToken(user.getId(), user.getEmail());
-        return Map.of(
-                "token", token,
-                "userId", user.getId(),
-                "email", user.getEmail(),
-                "name", user.getName() != null ? user.getName() : ""
-        );
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("token", token);
+        resp.put("userId", user.getId());
+        resp.put("email", user.getEmail());
+        resp.put("name", user.getName() != null ? user.getName() : "");
+        resp.put("age", user.getAge());
+        resp.put("gender", user.getGender());
+        return resp;
     }
 
     public Map<String, Object> getProfile(String userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return Map.of(
-                "userId", user.getId(),
-                "email", user.getEmail(),
-                "name", user.getName() != null ? user.getName() : "",
-                "createdAt", user.getCreatedAt().toString()
-        );
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("userId", user.getId());
+        resp.put("email", user.getEmail());
+        resp.put("name", user.getName() != null ? user.getName() : "");
+        resp.put("age", user.getAge());
+        resp.put("gender", user.getGender());
+        resp.put("createdAt", user.getCreatedAt().toString());
+        return resp;
     }
 }

@@ -1,8 +1,9 @@
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon } from 'lucide-react';
 import { getAvatarUrl } from '../../utils/avatarUtils';
+import { AnomalyBell } from '../ui/Components';
 
 const routeNames = {
   '/dashboard': 'Dashboard',
@@ -25,7 +26,8 @@ const routeNames = {
 export default function TopNavbar() {
   const location = useLocation();
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { anomalies = [] } = useData();
+  const { theme } = useTheme();
   const pageName = routeNames[location.pathname] || 'Dashboard';
   const isLight = theme === 'light';
 
@@ -46,27 +48,8 @@ export default function TopNavbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
-            style={{
-              background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
-              border: isLight ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(255,255,255,0.12)',
-              color: isLight ? '#334155' : '#94a3b8',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)';
-              e.currentTarget.style.color = isLight ? '#0f172a' : '#fff';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
-              e.currentTarget.style.color = isLight ? '#334155' : '#94a3b8';
-            }}
-          >
-            {isLight ? <Moon size={15} /> : <Sun size={15} />}
-          </button>
+          {/* Alerts bell */}
+          <AnomalyBell anomalies={anomalies} />
 
           {/* User */}
           <div className="hidden lg:flex items-center gap-2.5">

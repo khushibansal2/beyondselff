@@ -103,7 +103,7 @@ export function AuthProvider({ children }) {
       let data = {};
       try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
       if (!res.ok) return { success: false, error: data.error || data.message || 'Invalid credentials' };
-      const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤' };
+      const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: data.age ?? null, gender: data.gender ?? null };
       setUser(userObj); setToken(data.token); setIsDemo(false);
       localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
       return { success: true, isDemo: false };

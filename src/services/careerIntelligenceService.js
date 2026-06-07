@@ -461,21 +461,22 @@ export function getDigitalTwinInsights({ sleepAvg, stressLevel, financeScore, st
  * Leverages live jobs data fetched from Remotive, Adzuna, and Jooble.
  * Fallback to AI-based enrichment if Groq is available, or computes statistically.
  */
-export async function fetchSkillDemandTrends(query) {
+export async function fetchSkillDemandTrends(query, preloadedJobs = null) {
   const normalizedQuery = (query || 'Software Engineer').trim();
-  let liveJobs = [];
-  try {
-    liveJobs = await fetchJobs(normalizedQuery);
-  } catch (err) {
-    console.warn('fetchSkillDemandTrends: failed to fetch live jobs, using fallback dataset', err);
-    // Provide a mocked but realistic fallback jobs array to calculate statistics from
-    liveJobs = [
-      { title: normalizedQuery, description: 'React node.js typescript AWS postgresql docker CI/CD' },
-      { title: normalizedQuery, description: 'React Redux typescript next.js AWS CSS' },
-      { title: normalizedQuery, description: 'node.js Express MongoDB Redis Docker system design' },
-      { title: normalizedQuery, description: 'React typescript Tailwind HTML next.js git' },
-      { title: normalizedQuery, description: 'Python django postgresql AWS Docker Kubernetes' },
-    ];
+  let liveJobs = preloadedJobs;
+  if (!liveJobs) {
+    try {
+      liveJobs = await fetchJobs(normalizedQuery);
+    } catch (err) {
+      console.warn('fetchSkillDemandTrends: failed to fetch live jobs, using fallback dataset', err);
+      liveJobs = [
+        { title: normalizedQuery, description: 'React node.js typescript AWS postgresql docker CI/CD' },
+        { title: normalizedQuery, description: 'React Redux typescript next.js AWS CSS' },
+        { title: normalizedQuery, description: 'node.js Express MongoDB Redis Docker system design' },
+        { title: normalizedQuery, description: 'React typescript Tailwind HTML next.js git' },
+        { title: normalizedQuery, description: 'Python django postgresql AWS Docker Kubernetes' },
+      ];
+    }
   }
 
   // 1. Compute dynamic stats from the live listings

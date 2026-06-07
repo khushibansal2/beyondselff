@@ -755,10 +755,10 @@ function JobsTab({ userSkills, targetRole, onNavigate }) {
   const [trends,        setTrends]        = useState(null);
   const [trendsLoading, setTrendsLoading] = useState(false);
 
-  async function loadTrends(role) {
+  async function loadTrends(role, preloadedJobs = null) {
     setTrendsLoading(true);
     try {
-      const data = await fetchSkillDemandTrends(role);
+      const data = await fetchSkillDemandTrends(role, preloadedJobs);
       setTrends(data);
     } catch (e) {
       console.error('loadTrends failed:', e);
@@ -767,17 +767,15 @@ function JobsTab({ userSkills, targetRole, onNavigate }) {
     }
   }
 
-  useEffect(() => {
-    loadTrends(targetRole || 'Software Engineer');
-  }, [targetRole]);
-
   async function doSearch(q = query, loc = location) {
     if (!q.trim()) return;
     setLoading(true); setError(null); setJobs([]); setSearched(true);
-    loadTrends(q.trim());
     try {
       const results = await fetchJobs(q.trim(), { location: loc.trim() });
-      setJobs(rankJobsByMatch(userSkills || [], results));
+      const ranked = rankJobsByMatch(userSkills || [], results);
+      setJobs(ranked);
+      // Reuse the already-fetched jobs for trend computation — avoids a duplicate API call
+      loadTrends(q.trim(), ranked);
     } catch (e) {
       if (e.message === 'NO_RESULTS') setError('No jobs found. Try a broader search term.');
       else setError('Could not reach job APIs. Check your connection.');
@@ -922,8 +920,20 @@ function JobsTab({ userSkills, targetRole, onNavigate }) {
             <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '48px 24px', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>💼</div>
               <p style={{ fontSize: 15, fontWeight: 700, color: '#94a3b8', marginBottom: 6 }}>Real-time Job Market</p>
-              <p style={{ fontSize: 12, color: '#475569' }}>Powered by Arbeitnow · Remotive · Adzuna</p>
+              <p style={{ fontSize: 12, color: '#475569' }}>Powered by Remotive · Adzuna · Jooble</p>
               <p style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>Enter a role above to find live listings with AI match scores</p>
+            </div>
+          )}
+
+          {/* No results state */}
+          {searched && !loading && !error && jobs.length === 0 && (
+            <div style={{ background: 'rgba(12,14,22,0.95)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '48px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#94a3b8', marginBottom: 6 }}>No jobs found</p>
+              <p style={{ fontSize: 12, color: '#475569' }}>Try a broader search term or a different location</p>
+              <button onClick={() => doSearch()} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 8, background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <RefreshCw size={12} /> Try Again
+              </button>
             </div>
           )}
 

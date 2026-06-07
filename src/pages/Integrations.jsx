@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { GlassCard, PageHeader } from '../components/ui/Components';
 import { authFetch } from '../services/backendApi';
 import { fetchGitHubProfile, analyzeGitHubWithAI, LANG_COLORS } from '../services/githubService';
@@ -2370,8 +2371,11 @@ function getPlaidAuthHeaders() {
   try {
     const raw = localStorage.getItem('dt_auth');
     if (raw) {
-      const { token } = JSON.parse(raw);
-      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+      const { token, isDemo } = JSON.parse(raw);
+      // Demo and legacy tokens are rejected by JwtAuthFilter — never send them
+      if (!isDemo && token && !token.startsWith('DEMO_SESSION_') && !token.startsWith('dt_jwt_')) {
+        return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+      }
     }
   } catch { /* ignore */ }
   return { 'Content-Type': 'application/json' };
@@ -2379,6 +2383,7 @@ function getPlaidAuthHeaders() {
 
 function PlaidPanel() {
   const { updateDomain } = useData();
+  const { isDemo: isDemoUser } = useAuth();
   const [configured, setConfigured] = useState(null);
   const [connected, setConnected]   = useState(false);
   const [institution, setInstitution] = useState('');
@@ -2409,6 +2414,10 @@ function PlaidPanel() {
 
   // Dynamically load Plaid Link JS and open the widget
   const openPlaidLink = async () => {
+    if (isDemoUser) {
+      setError('Plaid Bank Connect requires a real account. Sign up to link your bank.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -2418,6 +2427,11 @@ function PlaidPanel() {
         headers: getPlaidAuthHeaders(),
       });
       const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || data.message || `Server error (${res.status})`);
+        setLoading(false);
+        return;
+      }
       if (!data.configured || !data.linkToken) {
         setError(data.reason || 'Could not create Plaid link token.');
         setLoading(false);

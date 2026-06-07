@@ -511,9 +511,9 @@ export default function Landing() {
               <Link to="/signup" style={{display:'flex',alignItems:'center',gap:8,padding:'13px 24px',background:'#8b5cf6',borderRadius:10,color:'#060b14',fontWeight:600,fontSize:15,textDecoration:'none'}}>
                 Start Your Journey <ArrowRight size={16}/>
               </Link>
-              <button onClick={()=>scrollTo('#how-it-works')} style={{display:'flex',alignItems:'center',gap:8,padding:'13px 24px',border:'1px solid #334155',borderRadius:10,color:'#fff',background:'none',fontWeight:500,fontSize:15,cursor:'pointer'}}>
+              <a href="https://drive.google.com/file/d/1KzyeMVN8wtNxgkdMepZyI5jcVXDfZw4f/view?usp=sharing" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:8,padding:'13px 24px',border:'1px solid #334155',borderRadius:10,color:'#fff',background:'none',fontWeight:500,fontSize:15,textDecoration:'none',cursor:'pointer'}}>
                 See How It Works <PlayCircle size={18} strokeWidth={1.5}/>
-              </button>
+              </a>
             </motion.div>
             <motion.div {...f(0.5)} className="ldg-hero-badges" style={{display:'flex',alignItems:'flex-start',gap:36}}>
               {[[Lock,'End-to-end\nencrypted'],[ShieldCheck,'Your data.\nYour control.'],[Eye,'Privacy by\ndesign']].map(([Icon,label],i)=>(

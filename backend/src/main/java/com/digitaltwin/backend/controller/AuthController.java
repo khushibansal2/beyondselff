@@ -28,11 +28,20 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
+        Integer age = null;
+        Object ageRaw = body.get("age");
+        if (ageRaw instanceof Number n) age = n.intValue();
+        else if (ageRaw instanceof String s && !s.isBlank()) {
+            try { age = Integer.parseInt(s); } catch (NumberFormatException ignored) {}
+        }
+        String gender = body.get("gender") instanceof String s ? s : null;
         return ResponseEntity.ok(authService.signup(
-                body.get("email"),
-                body.get("password"),
-                body.get("name")
+                (String) body.get("email"),
+                (String) body.get("password"),
+                (String) body.get("name"),
+                age,
+                gender
         ));
     }
 

@@ -54,6 +54,43 @@ public class JobProxyController {
     @Value("${jooble.api.key:}")
     private String joobleApiKey;
 
+    // ── Remotive (free, no key needed) ──────────────────────────────────────────
+
+    /**
+     * GET /api/jobs/remotive?query=react+developer&limit=15
+     * Proxies Remotive to avoid browser CORS issues. No API key needed.
+     */
+    @GetMapping("/remotive")
+    public ResponseEntity<String> searchRemotive(
+            @RequestParam(defaultValue = "software engineer") String query,
+            @RequestParam(defaultValue = "15") int limit) {
+
+        try {
+            String encoded = URLEncoder.encode(query, StandardCharsets.UTF_8);
+            String url = String.format(
+                    "https://remotive.com/api/remote-jobs?search=%s&limit=%d",
+                    encoded, limit);
+
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(12))
+                    .header("User-Agent", "BeyondSelf/1.0")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() >= 400) {
+                log.warn("Remotive returned {}", resp.statusCode());
+                return ResponseEntity.ok("{\"jobs\":[]}");
+            }
+            return ResponseEntity.ok(resp.body());
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Remotive proxy error: {}", e.getMessage());
+            return ResponseEntity.ok("{\"jobs\":[]}");
+        }
+    }
+
     // ── Adzuna ──────────────────────────────────────────────────────────────────
 
     /**

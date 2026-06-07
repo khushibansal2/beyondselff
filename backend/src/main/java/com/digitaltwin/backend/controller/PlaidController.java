@@ -160,29 +160,34 @@ public class PlaidController {
         String startDate   = LocalDate.now().minusDays(30).toString();
 
         try {
-            Map<String, Object> body = new LinkedHashMap<>();
-            body.put("client_id",     clientId);
-            body.put("secret",        secret);
-            body.put("access_token",  accessToken);
-            body.put("start_date",    startDate);
-            body.put("end_date",      endDate);
-            body.put("options",       Map.of("count", 100, "offset", 0));
+            // Use transactions/sync (replaces deprecated transactions/get)
+            Map<String, Object> syncBody = new LinkedHashMap<>();
+            syncBody.put("client_id",    clientId);
+            syncBody.put("secret",       secret);
+            syncBody.put("access_token", accessToken);
 
-            JsonNode res          = post("/transactions/get", body);
-            JsonNode txns         = res.path("transactions");
-            JsonNode accounts     = res.path("accounts");
+            JsonNode syncRes = post("/transactions/sync", syncBody);
+            JsonNode added   = syncRes.path("added");
+            JsonNode accounts = syncRes.path("accounts");
 
-            // Build a simplified transaction list
+            // Build a simplified transaction list from the "added" array
             List<Map<String, Object>> transactions = new ArrayList<>();
-            if (txns.isArray()) {
-                for (JsonNode t : txns) {
+            if (added.isArray()) {
+                for (JsonNode t : added) {
+                    // Skip transactions outside the 30-day window
+                    String txDate = t.path("date").asText("");
+                    if (!txDate.isBlank() && txDate.compareTo(startDate) < 0) continue;
+
                     Map<String, Object> tx = new LinkedHashMap<>();
                     tx.put("id",          t.path("transaction_id").asText());
-                    tx.put("date",        t.path("date").asText());
+                    tx.put("date",        txDate);
                     tx.put("name",        t.path("name").asText());
                     tx.put("amount",      t.path("amount").asDouble());
-                    tx.put("category",    t.path("category").isArray() && t.path("category").size() > 0
-                                              ? t.path("category").get(0).asText() : "Other");
+                    // personal_finance_category is the new field; fall back to legacy category array
+                    String cat = t.path("personal_finance_category").path("primary").asText("");
+                    if (cat.isBlank() && t.path("category").isArray() && t.path("category").size() > 0)
+                        cat = t.path("category").get(0).asText("Other");
+                    tx.put("category",    cat.isBlank() ? "Other" : cat);
                     tx.put("merchantName", t.path("merchant_name").asText(""));
                     tx.put("pending",     t.path("pending").asBoolean(false));
                     transactions.add(tx);

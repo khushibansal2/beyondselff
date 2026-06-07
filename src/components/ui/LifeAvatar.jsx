@@ -946,7 +946,7 @@ export function LifeAvatar({
         {/* Camera button — top-right */}
         <button
           onClick={e => { e.stopPropagation(); setShowEditor(false); setShowCamera(v => !v); }}
-          className="absolute top-1 right-1 w-7 h-7 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 z-30"
+          className="absolute top-1 right-1 w-7 h-7 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 z-[60]"
           style={{ background: showCamera ? 'rgba(239,68,68,0.35)' : 'rgba(99,102,241,0.25)', border: `1px solid ${showCamera ? 'rgba(239,68,68,0.5)' : 'rgba(99,102,241,0.4)'}` }}
           title="Camera — snap to auto-set skin, hair & face"
         >
@@ -956,7 +956,7 @@ export function LifeAvatar({
         {/* Personalize button — top-left */}
         <button
           onClick={e => { e.stopPropagation(); setShowCamera(false); setShowEditor(v => !v); }}
-          className="absolute top-1 left-1 w-7 h-7 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 z-30"
+          className="absolute top-1 left-1 w-7 h-7 rounded-full flex items-center justify-center text-sm transition-all hover:scale-110 z-[60]"
           style={{ background: showEditor ? 'rgba(239,68,68,0.35)' : 'rgba(99,102,241,0.25)', border: `1px solid ${showEditor ? 'rgba(239,68,68,0.5)' : 'rgba(99,102,241,0.4)'}` }}
           title="Personalise — choose skin tone, hair colour & style"
         >
