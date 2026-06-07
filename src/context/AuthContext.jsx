@@ -91,11 +91,15 @@ export function AuthProvider({ children }) {
   // ── Real login — calls backend, receives a signed JWT ───────────────────────
   const loginReal = async (email, password) => {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       let data = {};
       try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
       if (!res.ok) return { success: false, error: data.error || data.message || 'Invalid credentials' };
@@ -126,11 +130,15 @@ export function AuthProvider({ children }) {
       return { success: false, error: 'Email already exists' };
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
       const res = await fetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, age, gender }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       let data = {};
       try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
       if (res.status === 409) return { success: false, error: 'An account with this email already exists. Please sign in instead.' };

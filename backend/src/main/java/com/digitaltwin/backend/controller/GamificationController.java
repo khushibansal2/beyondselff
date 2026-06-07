@@ -56,4 +56,11 @@ public class GamificationController {
         Map<String, Object> result = gamificationService.awardManualXp(userId, xp);
         return ResponseEntity.ok(result);
     }
+
+    // Daily check-in — awards 50 XP once per calendar day
+    @PostMapping("/check-in")
+    public ResponseEntity<Map<String, Object>> checkIn(@RequestHeader("Authorization") String auth) {
+        String userId = authUtil.getUserIdFromToken(auth);
+        return ResponseEntity.ok(gamificationService.dailyCheckIn(userId));
+    }
 }

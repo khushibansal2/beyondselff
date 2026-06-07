@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — Solutions 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#060614;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.scale-wrap{width:1400px;height:900px;transform-origin:center center;flex-shrink:0;}
+.slide{width:1400px;height:900px;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,#0c0a2e 0%,#060614 70%);}
+.slide::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(139,92,246,0.07) 1px,transparent 1px);background-size:44px 44px;}
+.top-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#5b21b6,#8b5cf6,#22d3ee,#8b5cf6,#5b21b6);}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(90px);}
+.orb1{width:500px;height:500px;background:rgba(245,158,11,0.07);top:-150px;right:-100px;}
+.orb2{width:400px;height:400px;background:rgba(244,63,94,0.06);bottom:-120px;left:-80px;}
+
+.hdr{position:absolute;top:32px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.ey{font-size:8.5px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:rgba(196,181,253,0.5);display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ey::before{content:'';width:18px;height:1px;background:rgba(196,181,253,0.3);}
+.ht{font-size:33px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.0;}
+.ht span{background:linear-gradient(135deg,#ede9fe 0%,#c4b5fd 40%,#8b5cf6 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-r{text-align:right;}
+.pg{font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(139,92,246,0.5);}
+.pg-sub{font-size:9px;color:rgba(200,190,255,0.35);margin-top:3px;}
+
+.grid{position:absolute;top:116px;left:60px;right:60px;bottom:42px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;}
+
+.card{border-radius:16px;padding:18px 20px 16px;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.025);}
+.card::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;background:radial-gradient(ellipse 100% 45% at 50% 0%,rgba(255,255,255,0.04),transparent 60%);}
+.c1{border-top:2px solid #f59e0b;} .c2{border-top:2px solid #e879f9;}
+.c3{border-top:2px solid #f43f5e;} .c4{border-top:2px solid #8b5cf6;}
+.c5{border-top:2px solid #06b6d4;} .c6{border-top:2px solid #22d3ee;}
+
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.ci{font-size:18px;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ci1{background:rgba(245,158,11,0.1);} .ci2{background:rgba(232,121,249,0.1);}
+.ci3{background:rgba(244,63,94,0.1);} .ci4{background:rgba(139,92,246,0.1);}
+.ci5{background:rgba(6,182,212,0.1);} .ci6{background:rgba(34,211,238,0.1);}
+.ctg{font-size:7.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:2.5px 7px;border-radius:5px;align-self:flex-start;}
+.ctg1{color:#fbbf24;background:rgba(245,158,11,0.1);} .ctg2{color:#f0abfc;background:rgba(232,121,249,0.1);}
+.ctg3{color:#fb7185;background:rgba(244,63,94,0.1);} .ctg4{color:#c084fc;background:rgba(139,92,246,0.1);}
+.ctg5{color:#22d3ee;background:rgba(6,182,212,0.1);} .ctg6{color:#67e8f9;background:rgba(34,211,238,0.1);}
+.ctitle{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px;margin-bottom:3px;line-height:1.1;}
+.cdesc{font-size:10px;color:rgba(200,190,255,0.45);line-height:1.45;margin-bottom:10px;}
+
+/* ── C1: MARKET ANALYSIS ── */
+.mkt-chart{border-radius:10px;background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.1);padding:8px 10px;margin-bottom:7px;}
+.mkt-chart-title{font-size:7.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(251,191,36,0.6);margin-bottom:5px;}
+.mkt-svg{width:100%;height:64px;}
+.mkt-tickers{display:flex;flex-direction:column;gap:4px;}
+.ticker{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:7px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);}
+.tick-sym{font-size:9.5px;font-weight:800;color:#fff;width:42px;flex-shrink:0;}
+.tick-bar{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.tick-fill{height:100%;border-radius:2px;}
+.tf-up{background:linear-gradient(to right,#22c55e,#4ade80);}
+.tf-dn{background:linear-gradient(to right,#ef4444,#f87171);}
+.tick-val{font-size:9px;font-weight:700;width:42px;text-align:right;flex-shrink:0;}
+.tv-up{color:#4ade80;} .tv-dn{color:#f87171;}
+
+/* ── C2: LIFE MARKET ── */
+.lm-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:5px;}
+.lm-ico{font-size:18px;flex-shrink:0;}
+.lm-info{flex:1;}
+.lm-nm{font-size:10.5px;font-weight:700;color:#fff;}
+.lm-sub{font-size:8.5px;color:rgba(200,190,255,0.4);}
+.lm-price{font-size:10px;font-weight:700;color:#f0abfc;flex-shrink:0;}
+.lm-cta{margin-top:auto;display:flex;gap:6px;}
+.lm-btn{flex:1;text-align:center;padding:6px;border-radius:8px;font-size:9px;font-weight:700;}
+.lmb-pri{background:rgba(232,121,249,0.15);color:#f0abfc;border:1px solid rgba(232,121,249,0.25);}
+.lmb-sec{background:rgba(255,255,255,0.04);color:rgba(200,190,255,0.5);border:1px solid rgba(255,255,255,0.07);}
+
+/* ── C3: STRESS TEST ── */
+.stress-event{padding:8px 10px;border-radius:9px;background:rgba(244,63,94,0.07);border:1px solid rgba(244,63,94,0.14);margin-bottom:7px;}
+.se-head{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.se-ico{font-size:14px;}
+.se-nm{font-size:11px;font-weight:700;color:#fff;}
+.se-risk{padding:2px 7px;border-radius:4px;font-size:7.5px;font-weight:700;background:rgba(239,68,68,0.15);color:#fca5a5;margin-left:auto;}
+.se-tagline{font-size:9px;color:rgba(200,190,255,0.45);margin-bottom:5px;}
+.se-impacts{display:flex;gap:5px;}
+.sei{padding:2.5px 8px;border-radius:5px;font-size:8px;font-weight:700;}
+.sei-n{background:rgba(239,68,68,0.12);color:#fca5a5;} .sei-p{background:rgba(34,197,94,0.1);color:#86efac;}
+.chain{display:flex;flex-direction:column;gap:4px;}
+.chain-row{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:7px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);}
+.cr-from{font-size:9px;font-weight:600;color:rgba(200,190,255,0.7);flex:1;}
+.cr-arr{font-size:9px;color:rgba(244,63,94,0.5);}
+.cr-to{font-size:9px;color:rgba(200,190,255,0.5);flex:1;}
+
+/* ── C4: CASCADE MAP ── */
+.cascade-container{flex:1;position:relative;background:rgba(139,92,246,0.03);border:1px solid rgba(139,92,246,0.1);border-radius:10px;padding:10px;overflow:hidden;}
+.cn{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;border:1.5px solid rgba(255,255,255,0.08);}
+.cn-h{background:rgba(16,185,129,0.15);width:38px;height:38px;}
+.cn-f{background:rgba(245,158,11,0.12);width:32px;height:32px;}
+.cn-c{background:rgba(59,130,246,0.12);width:32px;height:32px;}
+.cn-s{background:rgba(139,92,246,0.1);width:28px;height:28px;}
+.cnl{position:absolute;font-size:7px;font-weight:600;color:rgba(200,190,255,0.45);white-space:nowrap;}
+.carr{position:absolute;font-size:8px;color:rgba(244,63,94,0.5);font-weight:700;}
+.cascade-insight{margin-top:8px;padding:6px 9px;border-radius:8px;background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.12);font-size:9px;color:rgba(220,210,255,0.65);line-height:1.4;}
+.cascade-insight strong{color:#fb7185;}
+
+/* ── C5: GAMIFICATION ── */
+.arch-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.12);margin-bottom:7px;}
+.arch-ico{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0c4a6e,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:2px solid rgba(6,182,212,0.35);}
+.arch-nm{font-size:12px;font-weight:700;color:#fff;}
+.arch-role{font-size:8.5px;color:rgba(200,190,255,0.4);}
+.xp-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.xp-l{font-size:8.5px;color:rgba(200,190,255,0.4);flex-shrink:0;}
+.xp-bar{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.xp-fill{height:100%;border-radius:2px;background:linear-gradient(to right,#06b6d4,#22d3ee);}
+.xp-v{font-size:8.5px;font-weight:700;color:#22d3ee;flex-shrink:0;}
+.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:auto;}
+.ach{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);}
+.ach.on{background:rgba(6,182,212,0.12);border-color:rgba(6,182,212,0.25);}
+.ach.off{opacity:0.25;filter:grayscale(1);}
+
+/* ── C6: FEED PARSER ── */
+.feed-item{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:5px;position:relative;overflow:hidden;}
+.fi-bar{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px;}
+.fi-fin{background:#f59e0b;} .fi-hlt{background:#22c55e;} .fi-car{background:#3b82f6;}
+.fi-ico{font-size:15px;flex-shrink:0;margin-top:1px;}
+.fi-src{font-size:7.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(200,190,255,0.35);margin-bottom:2px;}
+.fi-text{font-size:9.5px;color:rgba(220,210,255,0.7);line-height:1.3;}
+.fi-bdg{padding:2px 7px;border-radius:5px;font-size:8px;font-weight:700;flex-shrink:0;align-self:flex-start;margin-top:1px;}
+.fbf{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.2);}
+.fbh{background:rgba(34,197,94,0.12);color:#86efac;border:1px solid rgba(34,197,94,0.2);}
+.fbc{background:rgba(59,130,246,0.12);color:#93c5fd;border:1px solid rgba(59,130,246,0.2);}
+.feed-note{font-size:9px;color:rgba(200,190,255,0.4);margin-top:auto;display:flex;align-items:center;gap:5px;}
+.feed-note::before{content:'';width:5px;height:5px;border-radius:50%;background:#22d3ee;flex-shrink:0;}
+
+.bottom{position:absolute;bottom:14px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.brand{font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(139,92,246,0.4);text-transform:uppercase;}
+.nav{font-size:8.5px;color:rgba(200,190,255,0.3);letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+<div class="scale-wrap" id="scaleWrap">
+<div class="slide">
+  <div class="top-bar"></div>
+  <div class="orb orb1"></div><div class="orb orb2"></div>
+
+  <div class="hdr">
+    <div>
+      <div class="ey">04 · Features</div>
+      <div class="ht"><span>BeyondSelf</span> — What It Does</div>
+    </div>
+    <div class="hdr-r">
+      <div class="pg">SLIDE 3 OF 3</div>
+      <div class="pg-sub">Market Analysis · LIFE Market · Stress Test · Cascade Map · Gamification · Live Feed</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ── C1: MARKET ANALYSIS ── -->
+    <div class="card c1">
+      <div class="ch"><div class="ci ci1">📈</div><div class="ctg ctg1">Markets</div></div>
+      <div class="ctitle">Market Analysis</div>
+      <div class="cdesc">Track markets & investments — contextualised against your personal finance score.</div>
+      <div class="mkt-chart">
+        <div class="mkt-chart-title">Portfolio vs Nifty · 6M</div>
+        <svg class="mkt-svg" viewBox="0 0 340 64" preserveAspectRatio="none">
+          <line x1="0" y1="32" x2="340" y2="32" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="16" x2="340" y2="16" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <line x1="0" y1="48" x2="340" y2="48" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <!-- Nifty line -->
+          <polyline fill="none" stroke="rgba(245,158,11,0.4)" stroke-width="1.5" stroke-dasharray="4 2" points="0,40 60,36 120,42 180,34 240,30 300,26 340,22"/>
+          <!-- Portfolio line -->
+          <polyline fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" points="0,44 60,38 120,34 180,28 240,24 300,18 340,12"/>
+          <polygon points="0,44 60,38 120,34 180,28 240,24 300,18 340,12 340,64 0,64" fill="url(#mktg)" opacity="0.12"/>
+          <defs><linearGradient id="mktg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="transparent"/></linearGradient></defs>
+          <text x="270" y="10" font-size="9" fill="#fbbf24" font-family="Inter" font-weight="700">+18.4%</text>
+        </svg>
+      </div>
+      <div class="mkt-tickers">
+        <div class="ticker"><span class="tick-sym">NIFTY50</span><div class="tick-bar"><div class="tick-fill tf-up" style="width:68%"></div></div><span class="tick-val tv-up">+1.2%</span></div>
+        <div class="ticker"><span class="tick-sym">INFY</span><div class="tick-bar"><div class="tick-fill tf-dn" style="width:45%"></div></div><span class="tick-val tv-dn">−0.8%</span></div>
+        <div class="ticker"><span class="tick-sym">GOLD</span><div class="tick-bar"><div class="tick-fill tf-up" style="width:72%"></div></div><span class="tick-val tv-up">+0.4%</span></div>
+      </div>
+    </div>
+
+    <!-- ── C2: LIFE MARKET ── -->
+    <div class="card c2">
+      <div class="ch"><div class="ci ci2">🏪</div><div class="ctg ctg2">LIFE Market</div></div>
+      <div class="ctitle">LIFE Market</div>
+      <div class="cdesc">Redeem your XP and achievements for real-world services — coaching, courses, tools.</div>
+      <div class="lm-item">
+        <div class="lm-ico">🧘</div>
+        <div class="lm-info"><div class="lm-nm">1:1 Wellness Session</div><div class="lm-sub">60 min · Certified coach</div></div>
+        <div class="lm-price">800 XP</div>
+      </div>
+      <div class="lm-item">
+        <div class="lm-ico">📚</div>
+        <div class="lm-info"><div class="lm-nm">Finance Masterclass</div><div class="lm-sub">Personal finance · 4 hrs</div></div>
+        <div class="lm-price">600 XP</div>
+      </div>
+      <div class="lm-item">
+        <div class="lm-ico">🎯</div>
+        <div class="lm-info"><div class="lm-nm">Resume Review Pro</div><div class="lm-sub">Career boost · 48hr turnaround</div></div>
+        <div class="lm-price">400 XP</div>
+      </div>
+      <div class="lm-cta">
+        <div class="lm-btn lmb-pri">Browse Market</div>
+        <div class="lm-btn lmb-sec">My Balance: 3,400 XP</div>
+      </div>
+    </div>
+
+    <!-- ── C3: STRESS TEST ── -->
+    <div class="card c3">
+      <div class="ch"><div class="ci ci3">⚠️</div><div class="ctg ctg3">Stress Test</div></div>
+      <div class="ctitle">Life Stress Test</div>
+      <div class="cdesc">Simulate worst-case life scenarios — see what breaks first and how to prepare.</div>
+      <div class="stress-event">
+        <div class="se-head"><span class="se-ico">💼</span><span class="se-nm">Job Loss / Layoff</span><span class="se-risk">HIGH RISK</span></div>
+        <div class="se-tagline">Sudden income gone. What breaks first?</div>
+        <div class="se-impacts">
+          <span class="sei sei-n">Finance −34</span>
+          <span class="sei sei-n">Health −12</span>
+          <span class="sei sei-p">Resilience test</span>
+        </div>
+      </div>
+      <div class="chain">
+        <div class="chain-row"><span class="cr-from">💰 Income stops</span><span class="cr-arr">→</span><span class="cr-to">😟 Stress spikes</span></div>
+        <div class="chain-row"><span class="cr-from">😟 Stress rises</span><span class="cr-arr">→</span><span class="cr-to">❤️ Health drops</span></div>
+        <div class="chain-row"><span class="cr-from">❤️ Health weakens</span><span class="cr-arr">→</span><span class="cr-to">🎯 Career suffers</span></div>
+      </div>
+    </div>
+
+    <!-- ── C4: CASCADE MAP ── -->
+    <div class="card c4">
+      <div class="ch"><div class="ci ci4">🕸️</div><div class="ctg ctg4">Cascade Map</div></div>
+      <div class="ctitle">Life Cascade Map</div>
+      <div class="cdesc">Interactive graph — see how changes in one domain ripple across the rest of your life.</div>
+      <div class="cascade-container">
+        <!-- Row 1: Sleep → Energy → Focus -->
+        <div class="cn cn-h" style="left:10px;top:8px;">🌙</div>
+        <div class="cnl" style="left:52px;top:20px;">Sleep</div>
+        <div class="carr" style="left:54px;top:16px;">→</div>
+        <div class="cn cn-s" style="left:82px;top:8px;">⚡</div>
+        <div class="cnl" style="left:116px;top:20px;">Energy</div>
+        <div class="carr" style="left:118px;top:16px;">→</div>
+        <div class="cn cn-c" style="left:148px;top:8px;">🧠</div>
+        <div class="cnl" style="left:184px;top:20px;">Focus</div>
+        <div class="carr" style="left:188px;top:16px;">→</div>
+        <div class="cn cn-c" style="left:218px;top:8px;">🎯</div>
+        <div class="cnl" style="left:258px;top:20px;">Career</div>
+
+        <!-- Row 2: Exercise → Mood → Productivity -->
+        <div class="cn cn-h" style="left:10px;top:72px;">🏃</div>
+        <div class="cnl" style="left:52px;top:84px;">Exercise</div>
+        <div class="carr" style="left:54px;top:80px;">→</div>
+        <div class="cn cn-h" style="left:82px;top:72px;">💪</div>
+        <div class="cnl" style="left:118px;top:84px;">Mood</div>
+        <div class="carr" style="left:120px;top:80px;">→</div>
+        <div class="cn cn-f" style="left:148px;top:72px;">💰</div>
+        <div class="cnl" style="left:184px;top:84px;">Finance</div>
+
+        <!-- vertical arrows -->
+        <div class="carr" style="left:23px;top:48px;transform:rotate(90deg);">→</div>
+        <div class="carr" style="left:95px;top:48px;transform:rotate(90deg);">→</div>
+      </div>
+      <div class="cascade-insight"><strong>AI:</strong> Poor sleep is cascading → low energy → weak focus → Career score down 8 pts. Fix sleep first.</div>
+    </div>
+
+    <!-- ── C5: GAMIFICATION ── -->
+    <div class="card c5">
+      <div class="ch"><div class="ci ci5">🏆</div><div class="ctg ctg5">Gamification</div></div>
+      <div class="ctitle">Life Archetypes</div>
+      <div class="cdesc">Earn XP for every real-life win — unlock archetypes, badges & compete on global leaderboards.</div>
+      <div class="arch-row">
+        <div class="arch-ico">🧬</div>
+        <div><div class="arch-nm">Fractal Sage · Level 12</div><div class="arch-role">Architect · Top 5% Global</div></div>
+      </div>
+      <div class="xp-row">
+        <span class="xp-l">XP</span>
+        <div class="xp-bar"><div class="xp-fill" style="width:68%"></div></div>
+        <span class="xp-v">3,400 / 5,000</span>
+      </div>
+      <div class="ach-grid">
+        <div class="ach on">🔥</div><div class="ach on">💎</div><div class="ach on">🌙</div><div class="ach on">⚡</div>
+        <div class="ach on">🎯</div><div class="ach on">🏃</div><div class="ach off">👑</div><div class="ach off">🌟</div>
+      </div>
+    </div>
+
+    <!-- ── C6: LIVE FEED PARSER ── -->
+    <div class="card c6">
+      <div class="ch"><div class="ci ci6">⚡</div><div class="ctg ctg6">Live Feed</div></div>
+      <div class="ctitle">Live Feed Parser</div>
+      <div class="cdesc">Auto-reads SMS, email, notifications — extracts transactions, appointments, updates in real time.</div>
+      <div class="feed-item fi-fin">
+        <div class="fi-bar fi-fin"></div>
+        <div class="fi-ico">💳</div>
+        <div class="fi-info" style="flex:1;">
+          <div class="fi-src">SMS · HDFC Bank</div>
+          <div class="fi-text">₹2,340 debited for Swiggy order #8821</div>
+        </div>
+        <div class="fi-bdg fbf">Finance</div>
+      </div>
+      <div class="feed-item fi-hlt">
+        <div class="fi-bar fi-hlt"></div>
+        <div class="fi-ico">🏥</div>
+        <div class="fi-info" style="flex:1;">
+          <div class="fi-src">Email · Apollo Clinic</div>
+          <div class="fi-text">Your blood test results are ready to view</div>
+        </div>
+        <div class="fi-bdg fbh">Health</div>
+      </div>
+      <div class="feed-item fi-car">
+        <div class="fi-bar fi-car"></div>
+        <div class="fi-ico">💼</div>
+        <div class="fi-info" style="flex:1;">
+          <div class="fi-src">Email · LinkedIn</div>
+          <div class="fi-text">New job alert: 3 roles matching your profile</div>
+        </div>
+        <div class="fi-bdg fbc">Career</div>
+      </div>
+      <div class="feed-note">Auto-classifying in real time · No manual entry needed</div>
+    </div>
+
+  </div>
+
+  <div class="bottom">
+    <div class="brand">BeyondSelf</div>
+    <div class="nav">← Slide 1: Life Balance · Food Scanner · Smart Mic · Doc Parser · Neural Core · Future Self</div>
+  </div>
+</div>
+</div>
+<script>
+function scale(){var s=Math.min(window.innerWidth/1400,window.innerHeight/900);document.getElementById('scaleWrap').style.transform='scale('+s+')';}
+scale();window.addEventListener('resize',scale);
+</script>
+</body>
+</html>

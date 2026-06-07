@@ -33,6 +33,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/api/fitbit/callback",
             "/api/fitbit/config",
             "/api/fitbit/connect",
+            "/api/plaid/config",       // lets frontend check if Plaid is configured
             "/h2-console"
             // /api/ai/chat, /api/ai/narrative, /api/ai/explain are now AUTHENTICATED
             // /api/groq/chat is AUTHENTICATED (server-side Groq proxy)

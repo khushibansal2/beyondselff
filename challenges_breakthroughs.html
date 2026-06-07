@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — What Hit Us & How We Broke Through</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#09081e;font-family:'Inter',sans-serif;overflow:hidden;width:100%;height:100%;}
+#deck{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#09081e;}
+#scaler{width:1400px;height:900px;position:relative;transform-origin:center center;}
+
+.slide{
+  width:1400px;height:900px;
+  background:#09081e;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  position:relative;
+}
+/* match the BeyondSelf landing page ambient glows — purple dominant */
+.slide::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 45% 65% at 0% 50%,rgba(109,40,217,0.12) 0%,transparent 65%),
+    radial-gradient(ellipse 50% 70% at 100% 50%,rgba(99,102,241,0.13) 0%,transparent 65%),
+    radial-gradient(ellipse 60% 30% at 50% 0%,rgba(139,92,246,0.08) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 25% at 50% 100%,rgba(67,56,202,0.07) 0%,transparent 60%);
+  z-index:0;
+}
+.slide>*{position:relative;z-index:1;}
+
+/* subtle grid texture */
+.slide::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(139,92,246,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(139,92,246,0.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  z-index:0;
+}
+
+/* ── HEADER ── */
+.hd{padding:8px 36px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hd-eyebrow{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(167,139,250,0.9);margin-bottom:3px;}
+.hd-title{font-size:24px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.1;}
+/* "What Hit Us" — amber/orange matching brand warm accent */
+.amber-txt{background:linear-gradient(135deg,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+/* "How We Broke Through" — brand purple→cyan */
+.purple-txt{background:linear-gradient(135deg,#c4b5fd,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hd-right{text-align:right;}
+.hd-brand{font-size:9px;font-weight:700;color:rgba(167,139,250,0.65);letter-spacing:1.5px;margin-bottom:4px;}
+.hd-pill{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(167,139,250,1);background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.45);padding:3px 10px;border-radius:6px;}
+.hd-pill span{width:5px;height:5px;border-radius:50%;background:#a78bfa;box-shadow:0 0 6px rgba(167,139,250,.7);}
+
+/* ── BODY GRID ── */
+.body{flex:1;padding:4px 36px 0;display:grid;grid-template-columns:1fr 72px 1fr;gap:0;min-height:0;}
+
+/* ── COLUMN HEADERS ── */
+.col-hdr{font-size:8.5px;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+/* amber for problems — matches BeyondSelf warm accent */
+.col-hdr-left{color:rgba(251,191,36,0.95);}
+.col-hdr-left::before{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(251,191,36,0.5),transparent);}
+/* purple for solutions — brand primary */
+.col-hdr-right{color:rgba(167,139,250,1);}
+.col-hdr-right::after{content:'';flex:1;height:1px;background:linear-gradient(to left,rgba(139,92,246,0.55),transparent);}
+
+/* ── COLUMNS ── */
+.col-l{display:flex;flex-direction:column;padding-right:4px;}
+.col-r{display:flex;flex-direction:column;padding-left:4px;}
+.rows{flex:1;display:flex;flex-direction:column;gap:4px;}
+
+/* ── PROBLEM CARDS — amber/orange palette (brand warm accent) ── */
+.pcard{
+  flex:1;
+  border-radius:9px;
+  border:1px solid rgba(245,158,11,0.3);
+  background:rgba(245,158,11,0.06);
+  padding:6px 10px;
+  display:flex;align-items:center;gap:8px;
+  position:relative;overflow:hidden;
+}
+.pcard::after{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(to right,transparent,rgba(245,158,11,0.45),transparent);}
+
+/* alternate: slightly deeper orange */
+.pcard.b{border-color:rgba(249,115,22,0.2);background:rgba(249,115,22,0.04);}
+.pcard.b::after{background:linear-gradient(to right,transparent,rgba(249,115,22,0.45),transparent);}
+
+/* special row (Smart Input): soft violet — still on-brand */
+.pcard.v{border-color:rgba(139,92,246,0.22);background:rgba(109,40,217,0.06);}
+.pcard.v::after{background:linear-gradient(to right,transparent,rgba(139,92,246,0.4),transparent);}
+
+.p-num{font-size:28px;font-weight:900;color:rgba(245,158,11,0.15);line-height:1;flex-shrink:0;width:32px;text-align:center;letter-spacing:-2px;}
+.pcard.b .p-num{color:rgba(249,115,22,0.15);}
+.pcard.v .p-num{color:rgba(139,92,246,0.15);}
+
+.p-icon-wrap{
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:8px;
+  background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.32);
+  flex-shrink:0;font-size:14px;
+}
+.pcard.b .p-icon-wrap{background:rgba(249,115,22,0.09);border-color:rgba(249,115,22,0.22);}
+.pcard.v .p-icon-wrap{background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.25);}
+
+.p-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.p-title{font-size:12px;font-weight:900;color:#ffffff;}
+.p-sub{font-size:8.5px;color:rgba(255,255,255,0.75);line-height:1.35;}
+.p-visual{flex-shrink:0;align-self:center;}
+
+/* ── SOLUTION CARDS — purple/cyan/green palette ── */
+.scard{
+  flex:1;
+  border-radius:9px;
+  border:1px solid rgba(139,92,246,0.35);
+  background:rgba(109,40,217,0.1);
+  padding:6px 10px;
+  display:flex;align-items:center;gap:8px;
+  position:relative;overflow:hidden;
+}
+.scard::after{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(to right,transparent,rgba(139,92,246,0.55),transparent);}
+
+.scard.c{border-color:rgba(34,211,238,0.22);background:rgba(8,145,178,0.06);}
+.scard.c::after{background:linear-gradient(to right,transparent,rgba(34,211,238,0.5),transparent);}
+
+.scard.g{border-color:rgba(74,222,128,0.22);background:rgba(22,101,52,0.06);}
+.scard.g::after{background:linear-gradient(to right,transparent,rgba(74,222,128,0.5),transparent);}
+
+.scard.o{border-color:rgba(251,146,60,0.22);background:rgba(194,65,12,0.05);}
+.scard.o::after{background:linear-gradient(to right,transparent,rgba(251,146,60,0.5),transparent);}
+
+.s-icon-wrap{
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:8px;
+  background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.38);
+  flex-shrink:0;font-size:14px;
+}
+.scard.c .s-icon-wrap{background:rgba(34,211,238,0.12);border-color:rgba(34,211,238,0.35);}
+.scard.g .s-icon-wrap{background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.35);}
+.scard.o .s-icon-wrap{background:rgba(251,146,60,0.12);border-color:rgba(251,146,60,0.35);}
+
+.s-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.s-name{font-size:12px;font-weight:900;line-height:1.2;}
+.s-name.p{background:linear-gradient(135deg,#ddd6fe,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.s-name.c{background:linear-gradient(135deg,#67e8f9,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.s-name.g{background:linear-gradient(135deg,#86efac,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.s-name.o{background:linear-gradient(135deg,#fdba74,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.s-sub{font-size:8.5px;color:rgba(255,255,255,0.78);line-height:1.35;}
+.built-tag{
+  font-size:7px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  color:rgba(196,181,253,0.9);background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.35);
+  border-radius:4px;padding:1px 5px;white-space:nowrap;align-self:flex-start;margin-top:1px;
+}
+.s-visual{flex-shrink:0;align-self:center;}
+
+/* ── CENTER ARROWS ── */
+.col-c{display:flex;flex-direction:column;align-items:center;}
+.c-spacer{height:24px;flex-shrink:0;}
+.c-arrows{flex:1;display:flex;flex-direction:column;justify-content:space-around;align-items:center;}
+.arr{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.arr-word{font-size:6.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(139,92,246,0.35);}
+
+/* ── MINI VISUALS ── */
+.conf-bars{display:flex;flex-direction:column;gap:3px;width:88px;}
+.cb-row{display:flex;align-items:center;gap:4px;}
+.cb-label{font-size:7px;color:rgba(255,255,255,0.75);font-weight:700;width:20px;flex-shrink:0;}
+.cb-track{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.cb-fill{height:100%;border-radius:2px;}
+.cb-val{font-size:7px;font-weight:800;width:24px;text-align:right;flex-shrink:0;}
+
+.pii-table{display:flex;flex-direction:column;gap:2px;width:88px;}
+.pii-row{display:flex;align-items:center;gap:4px;font-size:8px;}
+.pii-x{color:#f87171;font-weight:800;flex-shrink:0;width:10px;}
+.pii-ok{color:#86efac;font-weight:800;flex-shrink:0;width:10px;}
+.pii-lbl{color:rgba(255,255,255,0.8);font-size:7.5px;}
+
+.sources{display:flex;flex-direction:column;gap:3px;align-items:center;width:88px;}
+.src-row{display:flex;gap:3px;justify-content:center;}
+.src-chip{font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:4px;border:1px solid rgba(167,139,250,0.4);color:rgba(220,210,255,0.95);background:rgba(139,92,246,0.14);}
+.src-out{font-size:7.5px;font-weight:800;padding:2px 7px;border-radius:4px;border:1px solid rgba(167,139,250,0.6);color:#e0d9ff;background:rgba(139,92,246,0.22);}
+
+.cascade{display:flex;flex-direction:column;gap:1px;width:88px;}
+.casc-item{display:flex;align-items:center;gap:3px;}
+.casc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.casc-lbl{font-size:8px;color:rgba(255,255,255,0.82);font-weight:600;}
+
+/* Smart input ambiguity visual */
+.ambig{display:flex;flex-direction:column;gap:3px;width:88px;}
+.ambig-q{font-size:8px;font-style:italic;color:rgba(255,255,255,0.85);line-height:1.3;border-left:2px solid rgba(139,92,246,0.6);padding-left:5px;}
+.ambig-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;}
+.ambig-tag{font-size:7.5px;font-weight:700;padding:1.5px 5px;border-radius:4px;}
+.ambig-tag.h{background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.22);color:rgba(196,181,253,0.75);}
+.ambig-tag.f{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.22);color:rgba(253,230,138,0.75);}
+.ambig-tag.q{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.22);color:rgba(253,186,116,0.7);}
+
+/* Mic detection visual */
+.mic-detect{display:flex;flex-direction:column;gap:3px;width:88px;}
+.mic-input{font-size:7.5px;font-style:italic;color:rgba(255,255,255,0.85);border-left:2px solid rgba(167,139,250,0.6);padding-left:5px;line-height:1.4;}
+.mic-out-row{display:flex;gap:3px;flex-wrap:wrap;margin-top:1px;}
+.mic-chip{font-size:7.5px;font-weight:800;padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:3px;}
+.mic-chip.h{background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.28);color:#c4b5fd;}
+.mic-chip.f{background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.28);color:#fde68a;}
+.auto-lbl{font-size:7px;color:rgba(196,181,253,0.9);font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+
+/* ── BOTTOM STRIP ── */
+.strip{
+  margin:4px 36px 8px;
+  padding:7px 14px;
+  border-radius:8px;
+  background:rgba(109,40,217,0.09);
+  border:1px solid rgba(139,92,246,0.25);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.strip-quote{font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.8);line-height:1.45;max-width:680px;}
+.strip-quote em{color:rgba(220,210,255,1);font-style:normal;font-weight:700;}
+.stats{display:flex;gap:18px;}
+.stat{text-align:center;}
+.stat-n{font-size:18px;font-weight:900;color:#c4b5fd;line-height:1;}
+.stat-l{font-size:7px;color:rgba(255,255,255,0.65);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:1px;}
+</style>
+</head>
+<body>
+<div id="deck"><div id="scaler">
+<div class="slide">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div>
+      <div class="hd-eyebrow">Novelty & Innovation · Challenges & Breakthroughs</div>
+      <div class="hd-title">
+        <span class="amber-txt">What Hit Us.</span>
+        &nbsp;&nbsp;
+        <span class="purple-txt">How We Broke Through.</span>
+      </div>
+    </div>
+    <div class="hd-right">
+      <div class="hd-brand">◈ BEYONDSELF · PERSONAL DIGITAL TWIN</div>
+      <div class="hd-pill"><span></span>All 5 Breakthroughs Shipped</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- ════ LEFT: PROBLEMS ════ -->
+    <div class="col-l">
+      <div class="col-hdr col-hdr-left">⚡ What Hit Us</div>
+      <div class="rows">
+
+        <!-- P1: Data Fragmentation -->
+        <div class="pcard">
+          <div class="p-num">01</div>
+          <div class="p-icon-wrap">🔀</div>
+          <div class="p-body">
+            <div class="p-title">Data Fragmentation</div>
+            <div class="p-sub">Fitbit · bank slips · lab reports · LinkedIn — all disconnected silos, no single truth.</div>
+          </div>
+          <div class="p-visual">
+            <div style="display:flex;flex-direction:column;gap:3px;width:88px;">
+              <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:center;">
+                <span style="font-size:8.5px;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.22);color:rgba(253,230,138,0.7);font-weight:700;">📱 App</span>
+                <span style="font-size:8.5px;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.22);color:rgba(253,230,138,0.7);font-weight:700;">🏦 Bank</span>
+                <span style="font-size:8.5px;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.22);color:rgba(253,230,138,0.7);font-weight:700;">🧪 Lab</span>
+                <span style="font-size:8.5px;padding:2px 5px;border-radius:4px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.22);color:rgba(253,230,138,0.7);font-weight:700;">📄 PDF</span>
+              </div>
+              <div style="text-align:center;font-size:7.5px;color:rgba(245,158,11,0.9);font-weight:700;letter-spacing:1px;">NO CONNECTION</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2: Cross-Domain Blindness -->
+        <div class="pcard b">
+          <div class="p-num">02</div>
+          <div class="p-icon-wrap">🕸️</div>
+          <div class="p-body">
+            <div class="p-title">Cross-Domain Blindness</div>
+            <div class="p-sub">Higher salary → less sleep → worse health → lower output. No app modeled this chain.</div>
+          </div>
+          <div class="p-visual">
+            <div style="display:flex;flex-direction:column;gap:2px;width:88px;">
+              <div style="display:flex;align-items:center;gap:3px;font-size:8.5px;color:rgba(249,115,22,0.9);"><span>💰</span><span style="color:rgba(255,255,255,0.65);">→ ???</span></div>
+              <div style="display:flex;align-items:center;gap:3px;font-size:8.5px;color:rgba(249,115,22,0.9);"><span>😴</span><span style="color:rgba(255,255,255,0.65);">→ ???</span></div>
+              <div style="display:flex;align-items:center;gap:3px;font-size:8.5px;color:rgba(249,115,22,0.9);"><span>💪</span><span style="color:rgba(255,255,255,0.65);">→ ???</span></div>
+              <div style="font-size:7px;color:rgba(249,115,22,0.75);font-weight:700;letter-spacing:.5px;margin-top:1px;">EFFECTS INVISIBLE</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P3: Smart Input Classification -->
+        <div class="pcard v">
+          <div class="p-num">03</div>
+          <div class="p-icon-wrap">🎙️</div>
+          <div class="p-body">
+            <div class="p-title">Smart Input Classification</div>
+            <div class="p-sub">"Spent ₹450 on medicine" — Health? Finance? Both? No app knew. Users tagged everything manually.</div>
+          </div>
+          <div class="p-visual">
+            <div class="ambig">
+              <div class="ambig-q">₹450 on medicine</div>
+              <div class="ambig-tags">
+                <div class="ambig-tag h">Health?</div>
+                <div class="ambig-tag f">Finance?</div>
+                <div class="ambig-tag q">Both?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P4: Privacy Risk -->
+        <div class="pcard">
+          <div class="p-num">04</div>
+          <div class="p-icon-wrap">🔓</div>
+          <div class="p-body">
+            <div class="p-title">Privacy Exposure</div>
+            <div class="p-sub">Bank statements, medical reports, resumes sent raw and unfiltered straight to AI models.</div>
+          </div>
+          <div class="p-visual">
+            <div style="display:flex;flex-direction:column;gap:2px;width:88px;">
+              <div style="font-size:8px;color:rgba(245,158,11,0.95);display:flex;align-items:center;gap:4px;"><span>⚠️</span><span>Name exposed</span></div>
+              <div style="font-size:8px;color:rgba(245,158,11,0.95);display:flex;align-items:center;gap:4px;"><span>⚠️</span><span>Account no.</span></div>
+              <div style="font-size:8px;color:rgba(245,158,11,0.95);display:flex;align-items:center;gap:4px;"><span>⚠️</span><span>Phone no.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P5: Prediction Uncertainty -->
+        <div class="pcard b">
+          <div class="p-num">05</div>
+          <div class="p-icon-wrap">❓</div>
+          <div class="p-body">
+            <div class="p-title">Prediction Uncertainty</div>
+            <div class="p-sub">12-month forecasts shown with identical confidence to 1-month ones. No system admitted doubt.</div>
+          </div>
+          <div class="p-visual">
+            <div style="display:flex;flex-direction:column;gap:3px;width:88px;">
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:7.5px;color:rgba(255,255,255,0.75);width:24px;">1mo</span>
+                <div style="height:4px;flex:1;background:rgba(249,115,22,0.55);border-radius:2px;"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <span style="font-size:7.5px;color:rgba(255,255,255,0.75);width:24px;">12mo</span>
+                <div style="height:4px;flex:1;background:rgba(249,115,22,0.55);border-radius:2px;"></div>
+              </div>
+              <div style="font-size:7px;color:rgba(249,115,22,0.85);font-weight:700;letter-spacing:.5px;">SAME "CONFIDENCE"</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════ CENTER: ARROWS ════ -->
+    <div class="col-c">
+      <div class="c-spacer"></div>
+      <div class="c-arrows">
+        <!-- arrow gradient: amber → purple (brand warm → brand primary) -->
+        <div class="arr">
+          <svg width="52" height="22" viewBox="0 0 52 22">
+            <defs>
+              <linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity=".5"/>
+                <stop offset="100%" stop-color="#8b5cf6" stop-opacity=".8"/>
+              </linearGradient>
+            </defs>
+            <path d="M3,11 L38,11" stroke="url(#ag)" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="38,7 50,11 38,15" fill="#8b5cf6" opacity=".65"/>
+          </svg>
+          <div class="arr-word">solved by</div>
+        </div>
+        <div class="arr">
+          <svg width="52" height="22" viewBox="0 0 52 22">
+            <path d="M3,11 L38,11" stroke="url(#ag)" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="38,7 50,11 38,15" fill="#8b5cf6" opacity=".65"/>
+          </svg>
+          <div class="arr-word">solved by</div>
+        </div>
+        <div class="arr">
+          <svg width="52" height="22" viewBox="0 0 52 22">
+            <path d="M3,11 L38,11" stroke="url(#ag)" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="38,7 50,11 38,15" fill="#a78bfa" opacity=".65"/>
+          </svg>
+          <div class="arr-word">solved by</div>
+        </div>
+        <div class="arr">
+          <svg width="52" height="22" viewBox="0 0 52 22">
+            <path d="M3,11 L38,11" stroke="url(#ag)" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="38,7 50,11 38,15" fill="#22d3ee" opacity=".65"/>
+          </svg>
+          <div class="arr-word">solved by</div>
+        </div>
+        <div class="arr">
+          <svg width="52" height="22" viewBox="0 0 52 22">
+            <path d="M3,11 L38,11" stroke="url(#ag)" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="38,7 50,11 38,15" fill="#22d3ee" opacity=".65"/>
+          </svg>
+          <div class="arr-word">solved by</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ RIGHT: SOLUTIONS ════ -->
+    <div class="col-r">
+      <div class="col-hdr col-hdr-right">✦ How We Broke Through</div>
+      <div class="rows">
+
+        <!-- S1: Unified Feed Parser -->
+        <div class="scard">
+          <div class="s-icon-wrap">🔗</div>
+          <div class="s-body">
+            <div class="s-name p">Unified Feed Parser</div>
+            <div class="s-sub">Voice · salary PDFs · lab reports · certificates · bank slips — all auto-parsed into one Digital Twin.</div>
+            <div class="built-tag">✓ ocrService · resumeService · medicalReportService · certificateService</div>
+          </div>
+          <div class="s-visual">
+            <div class="sources">
+              <div class="src-row">
+                <span class="src-chip">🎙️ Voice</span>
+                <span class="src-chip">📄 PDF</span>
+              </div>
+              <div class="src-row">
+                <span class="src-chip">📸 Photo</span>
+                <span class="src-chip">🧪 Lab</span>
+              </div>
+              <div style="font-size:9px;color:rgba(167,139,250,0.4);text-align:center;margin:1px 0;">↓</div>
+              <div class="src-out">⭐ 1 Twin</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S2: Cascade Map Engine -->
+        <div class="scard c">
+          <div class="s-icon-wrap">🗺️</div>
+          <div class="s-body">
+            <div class="s-name c">Cascade Map Engine</div>
+            <div class="s-sub">Real cross-domain simulation — models how salary, sleep, health, and output cascade into each other.</div>
+            <div class="built-tag">✓ simulatorEngine.js · CascadeMap.jsx</div>
+          </div>
+          <div class="s-visual">
+            <div class="cascade">
+              <div class="casc-item"><div class="casc-dot" style="background:#fbbf24;"></div><span class="casc-lbl">Salary ↑</span></div>
+              <div style="margin-left:2px;font-size:8px;color:rgba(139,92,246,0.35);">↓</div>
+              <div class="casc-item"><div class="casc-dot" style="background:#f97316;"></div><span class="casc-lbl">Sleep ↓</span></div>
+              <div style="margin-left:2px;font-size:8px;color:rgba(139,92,246,0.35);">↓</div>
+              <div class="casc-item"><div class="casc-dot" style="background:#f97316;"></div><span class="casc-lbl">Health ↓</span></div>
+              <div style="margin-left:2px;font-size:8px;color:rgba(139,92,246,0.35);">↓</div>
+              <div class="casc-item"><div class="casc-dot" style="background:#22d3ee;"></div><span class="casc-lbl">Output ↓</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S3: Universal AI Mic + Parser -->
+        <div class="scard o">
+          <div class="s-icon-wrap">🎙️</div>
+          <div class="s-body">
+            <div class="s-name o">Universal AI Mic + Parser</div>
+            <div class="s-sub">Speak naturally or upload a slip — Groq llama-3.3-70b detects domain, action, and amount. Zero manual tagging.</div>
+            <div class="built-tag">✓ voiceLogService.js · transactionParserService.js · Groq NLP</div>
+          </div>
+          <div class="s-visual">
+            <div class="mic-detect">
+              <div class="mic-input">"₹450 on medicine"</div>
+              <div class="mic-out-row">
+                <div class="mic-chip h">✓ Health</div>
+                <div class="mic-chip f">✓ Finance</div>
+              </div>
+              <div class="auto-lbl">auto-classified</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S4: PII Shield -->
+        <div class="scard g">
+          <div class="s-icon-wrap">🛡️</div>
+          <div class="s-body">
+            <div class="s-name g">PII Shield</div>
+            <div class="s-sub">stripPII() fires before every AI call — name, phone, account no. never reach the model. Metrics do.</div>
+            <div class="built-tag">✓ aiService.js · stripPII() verified in code</div>
+          </div>
+          <div class="s-visual">
+            <div class="pii-table">
+              <div class="pii-row"><span class="pii-x">✗</span><span class="pii-lbl">Name</span></div>
+              <div class="pii-row"><span class="pii-x">✗</span><span class="pii-lbl">Phone no.</span></div>
+              <div class="pii-row"><span class="pii-x">✗</span><span class="pii-lbl">Account no.</span></div>
+              <div class="pii-row"><span class="pii-ok">✓</span><span class="pii-lbl">Health score</span></div>
+              <div class="pii-row"><span class="pii-ok">✓</span><span class="pii-lbl">Expense data</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S5: Neural Core -->
+        <div class="scard c">
+          <div class="s-icon-wrap">🧠</div>
+          <div class="s-body">
+            <div class="s-name c">Neural Core</div>
+            <div class="s-sub">Confidence decay built-in — the system tells you exactly how much to trust each forecast horizon.</div>
+            <div class="built-tag">✓ simulatorEngine.js · NeuralCore.jsx</div>
+          </div>
+          <div class="s-visual">
+            <div class="conf-bars">
+              <div class="cb-row">
+                <span class="cb-label">1mo</span>
+                <div class="cb-track"><div class="cb-fill" style="width:92%;background:linear-gradient(to right,#22d3ee,#86efac);"></div></div>
+                <span class="cb-val" style="color:#86efac;">92%</span>
+              </div>
+              <div class="cb-row">
+                <span class="cb-label">3mo</span>
+                <div class="cb-track"><div class="cb-fill" style="width:85%;background:linear-gradient(to right,#22d3ee,#a78bfa);"></div></div>
+                <span class="cb-val" style="color:#a78bfa;">85%</span>
+              </div>
+              <div class="cb-row">
+                <span class="cb-label">6mo</span>
+                <div class="cb-track"><div class="cb-fill" style="width:73%;background:linear-gradient(to right,#8b5cf6,#a78bfa);"></div></div>
+                <span class="cb-val" style="color:#a78bfa;">73%</span>
+              </div>
+              <div class="cb-row">
+                <span class="cb-label">12mo</span>
+                <div class="cb-track"><div class="cb-fill" style="width:48%;background:linear-gradient(to right,#6366f1,#818cf8);opacity:.6;"></div></div>
+                <span class="cb-val" style="color:rgba(167,139,250,0.45);">48%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- BOTTOM STRIP -->
+  <div class="strip">
+    <div class="strip-quote">
+      💡 Building a Personal Digital Twin isn't about tracking data —
+      it's about <em>connecting every life decision into one intelligent system.</em>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n">5</div><div class="stat-l">Breakthroughs</div></div>
+      <div class="stat"><div class="stat-n">0</div><div class="stat-l">PII to AI</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Domains Linked</div></div>
+      <div class="stat"><div class="stat-n">0</div><div class="stat-l">Manual Tags</div></div>
+    </div>
+  </div>
+
+</div>
+</div></div>
+
+<script>
+function resize(){
+  const s=document.getElementById('scaler');
+  const sc=Math.min(window.innerWidth/1400,window.innerHeight/900)*0.97;
+  s.style.transform='scale('+sc+')';
+}
+resize();
+window.addEventListener('resize',resize);
+</script>
+</body>
+</html>

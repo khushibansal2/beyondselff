@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BeyondSelf – 3-Level DFD</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#04070f;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden}
+.slide{display:none;position:absolute;top:0;left:0;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 16px 50px}
+.slide.active{display:flex}
+.stitle{font-size:18px;font-weight:700;background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2px;text-align:center}
+.ssub{font-size:11px;color:#94a3b8;margin-bottom:6px;text-align:center}
+.legend{display:flex;gap:18px;justify-content:center;margin-bottom:5px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:#cbd5e1}
+.lp{width:24px;height:14px;background:#0c1e3d;border:1.5px solid #3b82f6;border-radius:50%}
+.le{width:22px;height:14px;background:#100f24;border:1.5px solid #7c3aed;border-radius:2px}
+.ld{width:24px;height:14px;border-top:1.5px solid #22c55e;border-bottom:1.5px solid #22c55e}
+.la{width:24px;height:2px;background:#94a3b8;position:relative}
+.la::after{content:'▶';position:absolute;right:-6px;top:-7px;color:#94a3b8;font-size:9px}
+.nav{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:100}
+.nav button{background:#0f172a;color:#60a5fa;border:1px solid #1e3a5f;padding:6px 18px;border-radius:6px;cursor:pointer;font-size:13px}
+.nav button:hover{background:#1d4ed8;color:#fff;border-color:#2563eb}
+#ctr{font-size:12px;color:#94a3b8;min-width:48px;text-align:center}
+
+/* title slide */
+.ts{justify-content:center;text-align:center;background:radial-gradient(ellipse at 50% 30%,#0a1628 0%,#04070f 70%)}
+.ts h1{font-size:50px;font-weight:800;background:linear-gradient(135deg,#60a5fa 0%,#a78bfa 50%,#34d399 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.ts .sub{font-size:18px;color:#cbd5e1;margin-bottom:20px}
+.tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+.tag{background:#0f172a;border:1px solid #1e3a5f;color:#cbd5e1;padding:5px 12px;border-radius:20px;font-size:12px}
+.stats{display:flex;gap:20px;justify-content:center}
+.sbox{background:#08111f;border:1px solid #1e3a5f;border-radius:10px;padding:14px 22px;text-align:center}
+.sbox .n{font-size:32px;font-weight:800;color:#60a5fa}
+.sbox .l{font-size:12px;color:#94a3b8;margin-top:3px}
+</style>
+</head>
+<body>
+<div id="cont">
+
+<!-- S1: Title -->
+<div class="slide active ts">
+  <h1>BeyondSelf</h1>
+  <div class="sub">Digital Twin Life Management — 3-Level Data Flow Diagram</div>
+  <div class="tags">
+    <span class="tag">React 19 + Vite</span><span class="tag">Spring Boot 3.2</span>
+    <span class="tag">Groq LLaMA 3.3</span><span class="tag">Google Gemini 2.0</span>
+    <span class="tag">PostgreSQL</span><span class="tag">Tailwind CSS v4</span>
+  </div>
+  <div class="stats">
+    <div class="sbox"><div class="n">6</div><div class="l">Core Processes</div></div>
+    <div class="sbox"><div class="n">7</div><div class="l">Data Stores</div></div>
+    <div class="sbox"><div class="n">5</div><div class="l">External APIs</div></div>
+    <div class="sbox"><div class="n">3</div><div class="l">DFD Levels</div></div>
+  </div>
+</div>
+
+<!-- S2: Level 0 -->
+<div class="slide">
+  <div class="stitle">Level 0 — Context Diagram</div>
+  <div class="ssub">The entire BeyondSelf platform as a single process with all external actors</div>
+  <div class="legend">
+    <div class="leg"><div class="lp"></div>Process</div>
+    <div class="leg"><div class="le"></div>External Entity</div>
+    <div class="leg"><div class="ld"></div>Data Store</div>
+    <div class="leg"><div class="la"></div>Data Flow</div>
+  </div>
+  <svg viewBox="0 0 1060 450" style="width:100%;max-height:calc(100vh - 130px)">
+    <defs>
+      <marker id="a0" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker>
+      <marker id="ab" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#60a5fa"/></marker>
+      <marker id="ag" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#34d399"/></marker>
+    </defs>
+
+    <!-- Central Process -->
+    <ellipse cx="530" cy="225" rx="175" ry="95" fill="#060e1f" stroke="#3b82f6" stroke-width="2.5"/>
+    <text x="530" y="208" text-anchor="middle" fill="#93c5fd" font-size="16" font-weight="700">BeyondSelf</text>
+    <text x="530" y="228" text-anchor="middle" fill="#93c5fd" font-size="13">Digital Twin System</text>
+    <text x="530" y="248" text-anchor="middle" fill="#8b9dba" font-size="10">Frontend · Backend · Engines · AI</text>
+
+    <!-- External Entity: User -->
+    <rect x="22" y="65" width="115" height="52" rx="4" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="79" y="87" text-anchor="middle" fill="#c4b5fd" font-size="13" font-weight="600">User</text>
+    <text x="79" y="104" text-anchor="middle" fill="#94a3b8" font-size="10">Browser Client</text>
+
+    <!-- External Entity: Ext APIs -->
+    <rect x="12" y="330" width="145" height="68" rx="4" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="84" y="353" text-anchor="middle" fill="#c4b5fd" font-size="12" font-weight="600">External APIs</text>
+    <text x="84" y="369" text-anchor="middle" fill="#94a3b8" font-size="9">Groq · Gemini · GitHub</text>
+    <text x="84" y="383" text-anchor="middle" fill="#94a3b8" font-size="9">Adzuna · Nutritionix · Fitbit</text>
+
+    <!-- External Entity: PostgreSQL -->
+    <rect x="915" y="65" width="130" height="52" rx="4" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="980" y="87" text-anchor="middle" fill="#c4b5fd" font-size="13" font-weight="600">PostgreSQL</text>
+    <text x="980" y="104" text-anchor="middle" fill="#94a3b8" font-size="10">Spring Boot DB</text>
+
+    <!-- External Entity: localStorage -->
+    <rect x="915" y="345" width="130" height="52" rx="4" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="980" y="367" text-anchor="middle" fill="#c4b5fd" font-size="12" font-weight="600">localStorage</text>
+    <text x="980" y="384" text-anchor="middle" fill="#94a3b8" font-size="10">Browser Storage</text>
+
+    <!-- User → System -->
+    <line x1="137" y1="88" x2="355" y2="180" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a0)"/>
+    <rect x="160" y="110" width="158" height="19" rx="3" fill="#04070f" opacity=".9"/>
+    <text x="239" y="123" text-anchor="middle" fill="#94a3b8" font-size="10">Credentials · Domain Data · Files</text>
+
+    <!-- System → User -->
+    <line x1="355" y1="200" x2="137" y2="108" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ab)"/>
+    <rect x="155" y="150" width="140" height="19" rx="3" fill="#04070f" opacity=".9"/>
+    <text x="225" y="163" text-anchor="middle" fill="#60a5fa" font-size="10">Scores · Insights · AI Reports</text>
+
+    <!-- Ext APIs → System -->
+    <line x1="157" y1="358" x2="355" y2="295" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a0)"/>
+    <rect x="165" y="308" width="160" height="19" rx="3" fill="#04070f" opacity=".9"/>
+    <text x="245" y="321" text-anchor="middle" fill="#94a3b8" font-size="10">AI Resp · Job Data · Health · Food</text>
+
+    <!-- System → PostgreSQL -->
+    <line x1="705" y1="183" x2="915" y2="102" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a0)"/>
+    <rect x="748" y="122" width="138" height="19" rx="3" fill="#04070f" opacity=".9"/>
+    <text x="817" y="135" text-anchor="middle" fill="#94a3b8" font-size="10">Records · Goals · Auth Data</text>
+
+    <!-- PostgreSQL → System -->
+    <line x1="915" y1="118" x2="705" y2="200" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#ab)"/>
+    <rect x="748" y="158" width="132" height="19" rx="3" fill="#04070f" opacity=".9"/>
+    <text x="814" y="171" text-anchor="middle" fill="#60a5fa" font-size="10">User Profile · JWT Token</text>
+
+    <!-- System → localStorage -->
+    <line x1="705" y1="272" x2="915" y2="358" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a0)"/>
+    <rect x="748" y="296" width="130" height="19" rx="3" fill="#04070f" opacity=".9"/>
+    <text x="813" y="309" text-anchor="middle" fill="#94a3b8" font-size="10">Offline Cache · Session State</text>
+
+    <!-- localStorage → System -->
+    <line x1="915" y1="373" x2="705" y2="288" stroke="#34d399" stroke-width="1.5" marker-end="url(#ag)"/>
+    <rect x="745" y="330" width="136" height="19" rx="3" fill="#04070f" opacity=".9"/>
+    <text x="813" y="343" text-anchor="middle" fill="#34d399" font-size="10">Demo Personas · Cached Data</text>
+  </svg>
+</div>
+
+<!-- S3: Level 1 -->
+<div class="slide">
+  <div class="stitle">Level 1 — Main System Processes</div>
+  <div class="ssub">Six major subsystems with data stores and primary flows</div>
+  <div class="legend">
+    <div class="leg"><div class="lp"></div>Process</div>
+    <div class="leg"><div class="le"></div>External Entity</div>
+    <div class="leg"><div class="ld"></div>Data Store</div>
+    <div class="leg"><div class="la"></div>Data Flow</div>
+  </div>
+  <svg viewBox="0 0 1060 490" style="width:100%;max-height:calc(100vh - 130px)">
+    <defs>
+      <marker id="a1" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+      <marker id="a1b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#60a5fa"/></marker>
+      <marker id="a1g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#34d399"/></marker>
+      <marker id="a1p" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#a78bfa"/></marker>
+    </defs>
+
+    <!-- External Entities -->
+    <rect x="8" y="95" width="100" height="44" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="58" y="113" text-anchor="middle" fill="#c4b5fd" font-size="11" font-weight="600">User Input</text>
+    <text x="58" y="128" text-anchor="middle" fill="#8b9dba" font-size="9">Browser</text>
+
+    <rect x="8" y="360" width="100" height="44" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="58" y="378" text-anchor="middle" fill="#c4b5fd" font-size="11" font-weight="600">Ext. APIs</text>
+    <text x="58" y="393" text-anchor="middle" fill="#8b9dba" font-size="9">Groq · GitHub · etc</text>
+
+    <rect x="948" y="75" width="104" height="44" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="1000" y="93" text-anchor="middle" fill="#c4b5fd" font-size="11" font-weight="600">Backend DB</text>
+    <text x="1000" y="108" text-anchor="middle" fill="#8b9dba" font-size="9">PostgreSQL</text>
+
+    <rect x="948" y="390" width="104" height="44" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="1000" y="408" text-anchor="middle" fill="#c4b5fd" font-size="11" font-weight="600">User Output</text>
+    <text x="1000" y="423" text-anchor="middle" fill="#8b9dba" font-size="9">Dashboard</text>
+
+    <!-- P1: Auth -->
+    <ellipse cx="200" cy="138" rx="82" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="200" y="131" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P1</text>
+    <text x="200" y="147" text-anchor="middle" fill="#93c5fd" font-size="11">Authentication</text>
+
+    <!-- P2: Ingestion -->
+    <ellipse cx="200" cy="390" rx="82" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="200" y="383" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P2</text>
+    <text x="200" y="399" text-anchor="middle" fill="#93c5fd" font-size="11">Data Ingestion</text>
+
+    <!-- P3: Scoring -->
+    <ellipse cx="510" cy="185" rx="88" ry="46" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="510" y="177" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P3</text>
+    <text x="510" y="193" text-anchor="middle" fill="#93c5fd" font-size="11">Scoring &amp; Analytics</text>
+
+    <!-- P4: AI -->
+    <ellipse cx="510" cy="390" rx="82" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="510" y="383" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P4</text>
+    <text x="510" y="399" text-anchor="middle" fill="#93c5fd" font-size="11">AI Intelligence</text>
+
+    <!-- P5: Goals -->
+    <ellipse cx="760" cy="260" rx="82" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="760" y="253" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P5</text>
+    <text x="760" y="269" text-anchor="middle" fill="#93c5fd" font-size="11">Goals &amp; Gamification</text>
+
+    <!-- P6: Presentation -->
+    <ellipse cx="880" cy="410" rx="82" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="880" y="403" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P6</text>
+    <text x="880" y="419" text-anchor="middle" fill="#93c5fd" font-size="11">Presentation Layer</text>
+
+    <!-- Data Stores -->
+    <!-- D1: User Store -->
+    <line x1="295" y1="88" x2="445" y2="88" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="295" y1="108" x2="445" y2="108" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="370" y="103" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D1: User / Auth Store</text>
+
+    <!-- D2: Domain Records -->
+    <line x1="295" y1="265" x2="490" y2="265" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="295" y1="285" x2="490" y2="285" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="392" y="280" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D2: Domain Records (Health · Finance · Career)</text>
+
+    <!-- D3: Scores -->
+    <line x1="610" y1="155" x2="730" y2="155" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="610" y1="173" x2="730" y2="173" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="670" y="168" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D3: Score Cache</text>
+
+    <!-- D4: AI Cache -->
+    <line x1="610" y1="348" x2="720" y2="348" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="610" y1="366" x2="720" y2="366" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="665" y="361" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D4: AI Cache</text>
+
+    <!-- D5: Goals -->
+    <line x1="810" y1="178" x2="930" y2="178" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="810" y1="196" x2="930" y2="196" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="870" y="191" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D5: Goals / XP / Badges</text>
+
+    <!-- === ARROWS === -->
+    <!-- User → P1 -->
+    <line x1="108" y1="117" x2="118" y2="128" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+    <text x="125" y="118" fill="#94a3b8" font-size="9">Login / Signup</text>
+
+    <!-- P1 → D1 -->
+    <line x1="282" y1="115" x2="295" y2="100" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+
+    <!-- D1 → P3 -->
+    <line x1="400" y1="88" x2="430" y2="150" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a1b)"/>
+    <text x="402" y="120" fill="#3b82f6" font-size="9">User context</text>
+
+    <!-- P1 ↔ Backend DB -->
+    <line x1="282" y1="130" x2="948" y2="93" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#a1)"/>
+    <text x="600" y="102" text-anchor="middle" fill="#8b9dba" font-size="9">Auth sync (JWT)</text>
+
+    <!-- User Input → P2 -->
+    <line x1="108" y1="382" x2="118" y2="385" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+    <text x="112" y="376" fill="#94a3b8" font-size="9">Data Entry / Files</text>
+
+    <!-- Ext APIs → P2 -->
+    <line x1="108" y1="373" x2="118" y2="400" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+
+    <!-- P2 → D2 -->
+    <line x1="200" y1="348" x2="280" y2="285" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+    <text x="208" y="320" fill="#94a3b8" font-size="9">Normalized records</text>
+
+    <!-- D2 → P3 -->
+    <line x1="490" y1="270" x2="495" y2="231" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+    <text x="498" y="255" fill="#94a3b8" font-size="9">Domain data</text>
+
+    <!-- D2 → P4 -->
+    <line x1="395" y1="275" x2="430" y2="362" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+    <text x="385" y="315" fill="#94a3b8" font-size="9">AI context</text>
+
+    <!-- P3 → D3 -->
+    <line x1="598" y1="172" x2="610" y2="165" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+
+    <!-- D3 → P5 -->
+    <line x1="730" y1="165" x2="745" y2="225" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a1b)"/>
+    <text x="748" y="196" fill="#3b82f6" font-size="9">Scores</text>
+
+    <!-- D3 → P6 -->
+    <line x1="720" y1="173" x2="800" y2="390" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a1b)"/>
+
+    <!-- P4 → D4 -->
+    <line x1="592" y1="375" x2="610" y2="360" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+
+    <!-- D4 → P6 -->
+    <line x1="720" y1="360" x2="798" y2="395" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#a1p)"/>
+    <text x="753" y="380" fill="#a78bfa" font-size="9">AI insights</text>
+
+    <!-- P5 → D5 -->
+    <line x1="790" y1="220" x2="840" y2="196" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a1)"/>
+
+    <!-- D5 → P6 -->
+    <line x1="870" y1="196" x2="875" y2="368" stroke="#34d399" stroke-width="1.3" marker-end="url(#a1g)"/>
+    <text x="882" y="285" fill="#34d399" font-size="9">XP / Badges</text>
+
+    <!-- P6 → User Output -->
+    <line x1="962" y1="405" x2="948" y2="407" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a1b)"/>
+    <text x="957" y="396" fill="#3b82f6" font-size="9" text-anchor="middle">Dashboard</text>
+  </svg>
+</div>
+
+<!-- S4: Level 2a — Auth + Ingestion -->
+<div class="slide">
+  <div class="stitle">Level 2 — P1: Authentication &amp; P2: Data Ingestion</div>
+  <div class="ssub">Sub-processes: dual-JWT auth flow · file parsers · API integrations</div>
+  <svg viewBox="0 0 1060 480" style="width:100%;max-height:calc(100vh - 100px)">
+    <defs>
+      <marker id="a2" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+      <marker id="a2b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#60a5fa"/></marker>
+      <marker id="a2g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#34d399"/></marker>
+    </defs>
+
+    <!-- Divider -->
+    <line x1="528" y1="20" x2="528" y2="460" stroke="#1e293b" stroke-width="1" stroke-dasharray="6,4"/>
+    <text x="264" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">P1 — Authentication &amp; Session</text>
+    <text x="792" y="22" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">P2 — Data Ingestion &amp; Parsing</text>
+
+    <!-- ===== P1 SIDE ===== -->
+    <!-- External: User -->
+    <rect x="8" y="100" width="85" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="50" y="115" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">User</text>
+    <text x="50" y="128" text-anchor="middle" fill="#8b9dba" font-size="8">Browser</text>
+
+    <!-- External: Spring Boot -->
+    <rect x="8" y="215" width="90" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="53" y="230" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">Spring Boot</text>
+    <text x="53" y="243" text-anchor="middle" fill="#8b9dba" font-size="8">Auth API</text>
+
+    <!-- P1.1: Validate Credentials -->
+    <ellipse cx="200" cy="115" rx="82" ry="38" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="200" y="108" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P1.1</text>
+    <text x="200" y="122" text-anchor="middle" fill="#93c5fd" font-size="10">Validate Credentials</text>
+
+    <!-- P1.2: JWT Decode -->
+    <ellipse cx="390" cy="115" rx="82" ry="38" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="390" y="108" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P1.2</text>
+    <text x="390" y="122" text-anchor="middle" fill="#93c5fd" font-size="10">Decode JWT Token</text>
+
+    <!-- P1.3: Demo Fallback -->
+    <ellipse cx="200" cy="280" rx="82" ry="38" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="200" y="273" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P1.3</text>
+    <text x="200" y="287" text-anchor="middle" fill="#93c5fd" font-size="10">Demo User Fallback</text>
+
+    <!-- P1.4: AuthContext -->
+    <ellipse cx="390" cy="280" rx="82" ry="38" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="390" y="273" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P1.4</text>
+    <text x="390" y="287" text-anchor="middle" fill="#93c5fd" font-size="10">AuthContext State</text>
+
+    <!-- D1: User Store -->
+    <line x1="125" y1="390" x2="500" y2="390" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="125" y1="408" x2="500" y2="408" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="312" y="403" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D1: User / Session Store (localStorage + AuthContext)</text>
+
+    <!-- P1 Arrows -->
+    <line x1="93" y1="115" x2="118" y2="115" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="97" y="108" fill="#94a3b8" font-size="8">creds</text>
+    <line x1="282" y1="115" x2="308" y2="115" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="284" y="108" fill="#94a3b8" font-size="8">raw token</text>
+    <line x1="98" y1="228" x2="120" y2="240" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="95" y="237" fill="#94a3b8" font-size="8">JWT resp</text>
+    <line x1="200" y1="153" x2="200" y2="242" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="205" y="200" fill="#94a3b8" font-size="8">backend fail</text>
+    <line x1="390" y1="153" x2="390" y2="242" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a2b)"/>
+    <text x="396" y="200" fill="#3b82f6" font-size="8">decoded user</text>
+    <line x1="282" y1="280" x2="308" y2="280" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="282" y="272" fill="#94a3b8" font-size="8">demo user</text>
+    <line x1="390" y1="318" x2="390" y2="390" stroke="#34d399" stroke-width="1.3" marker-end="url(#a2g)"/>
+    <text x="396" y="355" fill="#34d399" font-size="8">persist session</text>
+    <line x1="200" y1="318" x2="200" y2="390" stroke="#34d399" stroke-width="1.3" marker-end="url(#a2g)"/>
+
+    <!-- ===== P2 SIDE ===== -->
+    <!-- External: User files -->
+    <rect x="545" y="60" width="90" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="590" y="75" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">User / Files</text>
+    <text x="590" y="88" text-anchor="middle" fill="#8b9dba" font-size="8">CSV·PDF·Excel</text>
+
+    <!-- External: GitHub API -->
+    <rect x="545" y="195" width="90" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="590" y="210" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">GitHub API</text>
+    <text x="590" y="223" text-anchor="middle" fill="#8b9dba" font-size="8">v3 REST</text>
+
+    <!-- External: Fitbit -->
+    <rect x="545" y="315" width="90" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="590" y="330" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">Fitbit API</text>
+    <text x="590" y="343" text-anchor="middle" fill="#8b9dba" font-size="8">OAuth + sync</text>
+
+    <!-- P2.1: Manual Entry -->
+    <ellipse cx="720" cy="80" rx="80" ry="36" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="720" y="73" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.1</text>
+    <text x="720" y="87" text-anchor="middle" fill="#93c5fd" font-size="10">Manual Form Entry</text>
+
+    <!-- P2.2: File Upload -->
+    <ellipse cx="900" cy="80" rx="82" ry="36" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="900" y="73" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.2</text>
+    <text x="900" y="87" text-anchor="middle" fill="#93c5fd" font-size="10">File Upload &amp; Parse</text>
+
+    <!-- P2.3: GitHub -->
+    <ellipse cx="720" cy="215" rx="80" ry="36" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="720" y="208" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.3</text>
+    <text x="720" y="222" text-anchor="middle" fill="#93c5fd" font-size="10">GitHub Integration</text>
+
+    <!-- P2.4: Fitbit -->
+    <ellipse cx="900" cy="215" rx="82" ry="36" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="900" y="208" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.4</text>
+    <text x="900" y="222" text-anchor="middle" fill="#93c5fd" font-size="10">Fitbit Integration</text>
+
+    <!-- P2.5: Transaction Parser -->
+    <ellipse cx="810" cy="335" rx="82" ry="36" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="810" y="328" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.5</text>
+    <text x="810" y="342" text-anchor="middle" fill="#93c5fd" font-size="10">Transaction Parser</text>
+
+    <!-- D2: Domain Records -->
+    <line x1="600" y1="420" x2="1040" y2="420" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="600" y1="438" x2="1040" y2="438" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="820" y="433" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D2: Domain Records (Health · Finance · Career) — DataContext Store</text>
+
+    <!-- P2 Arrows -->
+    <line x1="635" y1="78" x2="640" y2="78" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <line x1="635" y1="82" x2="818" y2="82" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="700" y="63" fill="#94a3b8" font-size="8">file/form data</text>
+    <line x1="635" y1="213" x2="640" y2="215" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="637" y="207" fill="#94a3b8" font-size="8">repos/stats</text>
+    <line x1="635" y1="333" x2="728" y2="335" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a2)"/>
+    <text x="635" y="325" fill="#94a3b8" font-size="8">activity</text>
+    <line x1="720" y1="116" x2="720" y2="420" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a2b)" stroke-dasharray="3,3"/>
+    <line x1="900" y1="116" x2="900" y2="420" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a2b)" stroke-dasharray="3,3"/>
+    <line x1="720" y1="251" x2="720" y2="420" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a2b)" stroke-dasharray="3,3"/>
+    <line x1="810" y1="371" x2="810" y2="420" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a2b)" stroke-dasharray="3,3"/>
+    <text x="870" y="395" fill="#3b82f6" font-size="8">normalized domain records</text>
+  </svg>
+</div>
+
+<!-- S5: Level 2b — Scoring Engine -->
+<div class="slide">
+  <div class="stitle">Level 2 — P3: Scoring &amp; Analytics Engine</div>
+  <div class="ssub">Domain scoring → cascade effects → composite life score</div>
+  <svg viewBox="0 0 1060 470" style="width:100%;max-height:calc(100vh - 100px)">
+    <defs>
+      <marker id="a3" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+      <marker id="a3b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#60a5fa"/></marker>
+      <marker id="a3r" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#f87171"/></marker>
+      <marker id="a3o" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#fb923c"/></marker>
+    </defs>
+
+    <!-- D2 in (top) -->
+    <line x1="30" y1="38" x2="340" y2="38" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="30" y1="56" x2="340" y2="56" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="185" y="51" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D2: Domain Records (Input)</text>
+
+    <!-- P3.1: Health Score -->
+    <ellipse cx="160" cy="135" rx="90" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="160" y="127" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P3.1</text>
+    <text x="160" y="141" text-anchor="middle" fill="#93c5fd" font-size="10">Health Score Calc</text>
+    <text x="160" y="154" text-anchor="middle" fill="#94a3b8" font-size="8">sleep·stress·steps·BMI</text>
+
+    <!-- P3.2: Finance Score -->
+    <ellipse cx="400" cy="135" rx="90" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="400" y="127" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P3.2</text>
+    <text x="400" y="141" text-anchor="middle" fill="#93c5fd" font-size="10">Finance Score Calc</text>
+    <text x="400" y="154" text-anchor="middle" fill="#94a3b8" font-size="8">income·savings·debt</text>
+
+    <!-- P3.3: Career Score -->
+    <ellipse cx="640" cy="135" rx="90" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="640" y="127" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P3.3</text>
+    <text x="640" y="141" text-anchor="middle" fill="#93c5fd" font-size="10">Career Score Calc</text>
+    <text x="640" y="154" text-anchor="middle" fill="#94a3b8" font-size="8">skills·projects·XP</text>
+
+    <!-- P3.6: Anomaly -->
+    <ellipse cx="880" cy="135" rx="90" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="880" y="127" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P3.6</text>
+    <text x="880" y="141" text-anchor="middle" fill="#93c5fd" font-size="10">Anomaly &amp; Trend</text>
+    <text x="880" y="154" text-anchor="middle" fill="#94a3b8" font-size="8">burnoutEngine · trendEngine</text>
+
+    <!-- P3.5: Cascade Effects (center, large) -->
+    <ellipse cx="400" cy="308" rx="105" ry="52" fill="#060e1f" stroke="#f97316" stroke-width="2.2"/>
+    <text x="400" y="296" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="700">P3.5</text>
+    <text x="400" y="312" text-anchor="middle" fill="#fed7aa" font-size="11">Cross-Domain Cascade</text>
+    <text x="400" y="327" text-anchor="middle" fill="#7c2d12" font-size="9">sleep→spending · stress→career · runway→learning</text>
+
+    <!-- P3.4: Life Balance Orchestrator -->
+    <ellipse cx="700" cy="308" rx="105" ry="52" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="700" y="296" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P3.4</text>
+    <text x="700" y="312" text-anchor="middle" fill="#93c5fd" font-size="11">Life Balance Engine</text>
+    <text x="700" y="327" text-anchor="middle" fill="#8b9dba" font-size="9">weighted composite · final score</text>
+
+    <!-- D3 output -->
+    <line x1="600" y1="420" x2="870" y2="420" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="600" y1="438" x2="870" y2="438" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="735" y="433" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D3: Score Cache → P6 Presentation</text>
+
+    <!-- Arrows from D2 → P3.1 / P3.2 / P3.3 -->
+    <line x1="90" y1="56" x2="115" y2="93" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a3)"/>
+    <line x1="185" y1="56" x2="250" y2="93" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a3)"/>
+    <line x1="280" y1="56" x2="530" y2="93" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a3)"/>
+    <line x1="320" y1="48" x2="790" y2="93" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a3)"/>
+
+    <!-- P3.1 → P3.5 (sleep data) -->
+    <line x1="195" y1="168" x2="300" y2="268" stroke="#f87171" stroke-width="1.4" marker-end="url(#a3r)"/>
+    <text x="218" y="225" fill="#f87171" font-size="8">sleep hours</text>
+
+    <!-- P3.2 → P3.5 (financial data) -->
+    <line x1="400" y1="177" x2="400" y2="256" stroke="#f87171" stroke-width="1.4" marker-end="url(#a3r)"/>
+    <text x="406" y="218" fill="#f87171" font-size="8">runway data</text>
+
+    <!-- P3.3 → P3.5 (career data) -->
+    <line x1="588" y1="165" x2="495" y2="266" stroke="#f87171" stroke-width="1.4" marker-end="url(#a3r)"/>
+    <text x="548" y="213" fill="#f87171" font-size="8">career score</text>
+
+    <!-- P3.1,2,3 → P3.4 (raw scores) -->
+    <line x1="240" y1="148" x2="598" y2="285" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a3)"/>
+    <line x1="490" y1="148" x2="600" y2="274" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a3)"/>
+    <line x1="700" y1="168" x2="710" y2="256" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a3)"/>
+    <text x="635" y="230" fill="#8b9dba" font-size="8">raw domain scores</text>
+
+    <!-- P3.5 → P3.4 (cascade modifiers) -->
+    <line x1="505" y1="308" x2="595" y2="308" stroke="#fb923c" stroke-width="1.6" marker-end="url(#a3o)"/>
+    <text x="548" y="299" text-anchor="middle" fill="#fb923c" font-size="9">cascade modifiers</text>
+
+    <!-- P3.4 → D3 -->
+    <line x1="700" y1="360" x2="700" y2="420" stroke="#60a5fa" stroke-width="1.4" marker-end="url(#a3b)"/>
+    <text x="706" y="393" fill="#3b82f6" font-size="8">life score 0-100</text>
+
+    <!-- P3.6 → P3.4 -->
+    <line x1="830" y1="158" x2="780" y2="262" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a3)"/>
+    <text x="820" y="215" fill="#8b9dba" font-size="8">alerts/anomalies</text>
+  </svg>
+</div>
+
+<!-- S6: Level 2c — AI + Goals + Presentation -->
+<div class="slide">
+  <div class="stitle">Level 2 — P4: AI Intelligence · P5: Goals &amp; Gamification · P6: Presentation</div>
+  <div class="ssub">AI fallback chain · XP engine · dashboard rendering pipeline</div>
+  <svg viewBox="0 0 1060 470" style="width:100%;max-height:calc(100vh - 100px)">
+    <defs>
+      <marker id="a4" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+      <marker id="a4b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#60a5fa"/></marker>
+      <marker id="a4p" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#a78bfa"/></marker>
+      <marker id="a4g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#34d399"/></marker>
+    </defs>
+
+    <!-- Section labels -->
+    <text x="195" y="18" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="700">P4 — AI Intelligence Layer</text>
+    <text x="620" y="18" text-anchor="middle" fill="#8b5cf6" font-size="10" font-weight="700">P5 — Goals &amp; Gamification</text>
+    <text x="910" y="18" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">P6 — Presentation</text>
+    <line x1="400" y1="10" x2="400" y2="460" stroke="#1e293b" stroke-width="1" stroke-dasharray="5,3"/>
+    <line x1="780" y1="10" x2="780" y2="460" stroke="#1e293b" stroke-width="1" stroke-dasharray="5,3"/>
+
+    <!-- === P4 side === -->
+    <!-- External: Gemini/Backend -->
+    <rect x="5" y="100" width="92" height="38" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="51" y="114" text-anchor="middle" fill="#c4b5fd" font-size="9" font-weight="600">Gemini 2.0</text>
+    <text x="51" y="127" text-anchor="middle" fill="#8b9dba" font-size="8">via Backend</text>
+
+    <!-- External: Groq -->
+    <rect x="5" y="215" width="92" height="38" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="51" y="229" text-anchor="middle" fill="#c4b5fd" font-size="9" font-weight="600">Groq API</text>
+    <text x="51" y="242" text-anchor="middle" fill="#8b9dba" font-size="8">llama-3.3-70b</text>
+
+    <!-- P4.1: Gemini Proxy -->
+    <ellipse cx="215" cy="118" rx="85" ry="38" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="215" y="111" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P4.1</text>
+    <text x="215" y="125" text-anchor="middle" fill="#93c5fd" font-size="10">Gemini Backend Proxy</text>
+    <text x="215" y="138" text-anchor="middle" fill="#8b9dba" font-size="8">PII strip + rate limit</text>
+
+    <!-- P4.2: Groq Direct -->
+    <ellipse cx="215" cy="230" rx="85" ry="38" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="215" y="223" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P4.2</text>
+    <text x="215" y="237" text-anchor="middle" fill="#93c5fd" font-size="10">Groq Direct Service</text>
+    <text x="215" y="250" text-anchor="middle" fill="#8b9dba" font-size="8">nutrition · career · voice</text>
+
+    <!-- P4.3: Template Fallback -->
+    <ellipse cx="215" cy="340" rx="85" ry="38" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="215" y="333" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P4.3</text>
+    <text x="215" y="347" text-anchor="middle" fill="#93c5fd" font-size="10">Template Fallback</text>
+    <text x="215" y="360" text-anchor="middle" fill="#8b9dba" font-size="8">deterministic advice</text>
+
+    <!-- D4: AI Cache -->
+    <line x1="110" y1="420" x2="380" y2="420" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="110" y1="438" x2="380" y2="438" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="245" y="433" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D4: AI Response Cache</text>
+
+    <!-- P4 arrows -->
+    <line x1="97" y1="118" x2="130" y2="118" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a4)"/>
+    <line x1="97" y1="230" x2="130" y2="230" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a4)"/>
+    <line x1="215" y1="156" x2="215" y2="192" stroke="#f87171" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a4)"/>
+    <text x="218" y="176" fill="#f87171" font-size="8">429/fail→</text>
+    <line x1="215" y1="268" x2="215" y2="302" stroke="#f87171" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a4)"/>
+    <text x="218" y="288" fill="#f87171" font-size="8">offline→</text>
+    <line x1="215" y1="378" x2="215" y2="420" stroke="#34d399" stroke-width="1.3" marker-end="url(#a4g)"/>
+    <line x1="215" y1="192" x2="215" y2="420" stroke="#60a5fa" stroke-width="1" stroke-dasharray="2,3" marker-end="url(#a4b)"/>
+
+    <!-- === P5 side === -->
+    <!-- P5.1: SMART Goal Manager -->
+    <ellipse cx="510" cy="100" rx="85" ry="36" fill="#060e1f" stroke="#8b5cf6" stroke-width="1.8"/>
+    <text x="510" y="93" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">P5.1</text>
+    <text x="510" y="107" text-anchor="middle" fill="#c4b5fd" font-size="10">SMART Goal CRUD</text>
+
+    <!-- P5.2: Goal Progress -->
+    <ellipse cx="690" cy="100" rx="85" ry="36" fill="#060e1f" stroke="#8b5cf6" stroke-width="1.8"/>
+    <text x="690" y="93" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">P5.2</text>
+    <text x="690" y="107" text-anchor="middle" fill="#c4b5fd" font-size="10">Goal Progress Calc</text>
+
+    <!-- P5.3: XP & Badges -->
+    <ellipse cx="510" cy="240" rx="85" ry="36" fill="#060e1f" stroke="#8b5cf6" stroke-width="1.8"/>
+    <text x="510" y="233" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">P5.3</text>
+    <text x="510" y="247" text-anchor="middle" fill="#c4b5fd" font-size="10">XP &amp; Badge Engine</text>
+    <text x="510" y="260" text-anchor="middle" fill="#8b9dba" font-size="8">10/log · 50/goal done · streaks</text>
+
+    <!-- P5.4: Simulator -->
+    <ellipse cx="690" cy="240" rx="85" ry="36" fill="#060e1f" stroke="#8b5cf6" stroke-width="1.8"/>
+    <text x="690" y="233" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="700">P5.4</text>
+    <text x="690" y="247" text-anchor="middle" fill="#c4b5fd" font-size="10">Simulator Engine</text>
+    <text x="690" y="260" text-anchor="middle" fill="#8b9dba" font-size="8">3–12 month projection</text>
+
+    <!-- D5: Goals Store -->
+    <line x1="430" y1="348" x2="760" y2="348" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="430" y1="366" x2="760" y2="366" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="595" y="361" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D5: Goals / XP / Badges Store</text>
+
+    <!-- P5 arrows -->
+    <line x1="595" y1="100" x2="605" y2="100" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a4)"/>
+    <line x1="510" y1="136" x2="510" y2="204" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a4)"/>
+    <line x1="690" y1="136" x2="690" y2="204" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a4)"/>
+    <line x1="510" y1="276" x2="510" y2="348" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#a4p)"/>
+    <line x1="690" y1="276" x2="690" y2="348" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#a4p)"/>
+    <text x="600" y="160" text-anchor="middle" fill="#8b9dba" font-size="8">domain data scores</text>
+
+    <!-- === P6 side === -->
+    <!-- P6.1: Dashboard -->
+    <ellipse cx="880" cy="80" rx="76" ry="34" fill="#060e1f" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="880" y="73" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">P6.1</text>
+    <text x="880" y="87" text-anchor="middle" fill="#6ee7b7" font-size="10">Dashboard</text>
+
+    <!-- P6.2: Domain Pages -->
+    <ellipse cx="880" cy="180" rx="76" ry="34" fill="#060e1f" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="880" y="173" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">P6.2</text>
+    <text x="880" y="187" text-anchor="middle" fill="#6ee7b7" font-size="10">Domain Pages</text>
+
+    <!-- P6.3: AI Coach -->
+    <ellipse cx="880" cy="280" rx="76" ry="34" fill="#060e1f" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="880" y="273" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">P6.3</text>
+    <text x="880" y="287" text-anchor="middle" fill="#6ee7b7" font-size="10">AI Coach Chat</text>
+
+    <!-- P6.4: Insights -->
+    <ellipse cx="880" cy="380" rx="76" ry="34" fill="#060e1f" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="880" y="373" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">P6.4</text>
+    <text x="880" y="387" text-anchor="middle" fill="#6ee7b7" font-size="10">Insights &amp; Anomalies</text>
+
+    <!-- User Output -->
+    <rect x="968" y="210" width="88" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="1012" y="225" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">User</text>
+    <text x="1012" y="238" text-anchor="middle" fill="#8b9dba" font-size="8">Browser Output</text>
+
+    <!-- D4 → P6.3 -->
+    <line x1="380" y1="428" x2="810" y2="280" stroke="#60a5fa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a4b)"/>
+    <text x="590" y="390" fill="#3b82f6" font-size="8">AI responses</text>
+
+    <!-- D5 → P6.1 / P6.4 -->
+    <line x1="760" y1="356" x2="808" y2="102" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a4p)"/>
+    <line x1="760" y1="366" x2="808" y2="380" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a4p)"/>
+
+    <!-- P6 → User -->
+    <line x1="956" y1="230" x2="968" y2="230" stroke="#34d399" stroke-width="1.4" marker-end="url(#a4g)"/>
+  </svg>
+</div>
+
+<!-- S7: Level 3a — Life Balance Cascade Engine -->
+<div class="slide">
+  <div class="stitle">Level 3 — P3.5: Cross-Domain Cascade Effects (Life Balance Engine)</div>
+  <div class="ssub">Deepest decomposition: how poor sleep → emotional spending → career decline</div>
+  <svg viewBox="0 0 1060 470" style="width:100%;max-height:calc(100vh - 100px)">
+    <defs>
+      <marker id="a5" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+      <marker id="a5r" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#f87171"/></marker>
+      <marker id="a5o" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#fb923c"/></marker>
+      <marker id="a5b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#60a5fa"/></marker>
+      <marker id="a5g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#34d399"/></marker>
+    </defs>
+
+    <!-- Inputs from D2 -->
+    <line x1="30" y1="38" x2="180" y2="38" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="30" y1="56" x2="180" y2="56" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="105" y="51" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D2: Domain Records</text>
+
+    <!-- P3.5.1: Sleep Debt Calc -->
+    <ellipse cx="200" cy="130" rx="90" ry="44" fill="#060e1f" stroke="#f97316" stroke-width="2"/>
+    <text x="200" y="120" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="700">P3.5.1</text>
+    <text x="200" y="134" text-anchor="middle" fill="#fed7aa" font-size="10">Sleep Debt Calc</text>
+    <text x="200" y="148" text-anchor="middle" fill="#7c2d12" font-size="8">avgSleep &lt; 7h → debt flag</text>
+
+    <!-- P3.5.2: Emotional Spending -->
+    <ellipse cx="200" cy="290" rx="90" ry="44" fill="#060e1f" stroke="#f97316" stroke-width="2"/>
+    <text x="200" y="280" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="700">P3.5.2</text>
+    <text x="200" y="294" text-anchor="middle" fill="#fed7aa" font-size="10">Emotional Spending</text>
+    <text x="200" y="308" text-anchor="middle" fill="#7c2d12" font-size="8">sleep debt → 15% spend spike</text>
+
+    <!-- P3.5.3: Financial Runway -->
+    <ellipse cx="460" cy="130" rx="95" ry="44" fill="#060e1f" stroke="#f97316" stroke-width="2"/>
+    <text x="460" y="120" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="700">P3.5.3</text>
+    <text x="460" y="134" text-anchor="middle" fill="#fed7aa" font-size="10">Financial Runway Calc</text>
+    <text x="460" y="148" text-anchor="middle" fill="#7c2d12" font-size="8">savings ÷ monthly-burn = months</text>
+
+    <!-- P3.5.4: Career Stress Impact -->
+    <ellipse cx="460" cy="290" rx="95" ry="44" fill="#060e1f" stroke="#f97316" stroke-width="2"/>
+    <text x="460" y="280" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="700">P3.5.4</text>
+    <text x="460" y="294" text-anchor="middle" fill="#fed7aa" font-size="10">Career Stress Impact</text>
+    <text x="460" y="308" text-anchor="middle" fill="#7c2d12" font-size="8">runway &lt; 3mo → readiness -20</text>
+
+    <!-- P3.5.5: Learning Focus Trigger -->
+    <ellipse cx="730" cy="130" rx="95" ry="44" fill="#060e1f" stroke="#f97316" stroke-width="2"/>
+    <text x="730" y="120" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="700">P3.5.5</text>
+    <text x="730" y="134" text-anchor="middle" fill="#fed7aa" font-size="10">Learning Focus Trigger</text>
+    <text x="730" y="148" text-anchor="middle" fill="#7c2d12" font-size="8">low runway → upskill priority+</text>
+
+    <!-- P3.5.6: Composite Adjuster -->
+    <ellipse cx="900" cy="290" rx="100" ry="48" fill="#060e1f" stroke="#3b82f6" stroke-width="2.5"/>
+    <text x="900" y="277" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P3.5.6</text>
+    <text x="900" y="293" text-anchor="middle" fill="#93c5fd" font-size="11">Composite Score</text>
+    <text x="900" y="308" text-anchor="middle" fill="#93c5fd" font-size="11">Adjuster</text>
+    <text x="900" y="323" text-anchor="middle" fill="#8b9dba" font-size="8">lifeBalanceEngine.js</text>
+
+    <!-- D3 output -->
+    <line x1="720" y1="418" x2="1040" y2="418" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="720" y1="436" x2="1040" y2="436" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="880" y="431" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D3: Final Life Score (0–100) → P6 Dashboard</text>
+
+    <!-- Arrows -->
+    <!-- D2 → P3.5.1 -->
+    <line x1="180" y1="56" x2="185" y2="86" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a5)"/>
+    <text x="186" y="74" fill="#94a3b8" font-size="8">sleep records</text>
+
+    <!-- D2 → P3.5.3 -->
+    <line x1="180" y1="47" x2="370" y2="100" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a5)"/>
+    <text x="280" y="68" fill="#94a3b8" font-size="8">finance records</text>
+
+    <!-- P3.5.1 → P3.5.2 (sleep debt flag) -->
+    <line x1="200" y1="174" x2="200" y2="246" stroke="#f87171" stroke-width="1.5" marker-end="url(#a5r)"/>
+    <text x="208" y="212" fill="#f87171" font-size="8">sleep debt flag</text>
+
+    <!-- P3.5.1 → P3.5.4 -->
+    <line x1="290" y1="148" x2="368" y2="265" stroke="#f87171" stroke-width="1.3" stroke-dasharray="3,2" marker-end="url(#a5r)"/>
+    <text x="308" y="205" fill="#f87171" font-size="8">stress signal</text>
+
+    <!-- P3.5.3 → P3.5.4 (runway status) -->
+    <line x1="460" y1="174" x2="460" y2="246" stroke="#fb923c" stroke-width="1.5" marker-end="url(#a5o)"/>
+    <text x="468" y="212" fill="#fb923c" font-size="8">runway months</text>
+
+    <!-- P3.5.3 → P3.5.5 -->
+    <line x1="555" y1="130" x2="635" y2="130" stroke="#fb923c" stroke-width="1.5" marker-end="url(#a5o)"/>
+    <text x="593" y="122" fill="#fb923c" font-size="8">runway &lt; 3mo</text>
+
+    <!-- P3.5.2 → P3.5.6 (spend adjustment) -->
+    <line x1="290" y1="290" x2="800" y2="290" stroke="#f87171" stroke-width="1.4" marker-end="url(#a5r)"/>
+    <text x="545" y="282" fill="#f87171" font-size="8">-15% finance score mod</text>
+
+    <!-- P3.5.4 → P3.5.6 (career modifier) -->
+    <line x1="555" y1="290" x2="800" y2="290" stroke="#fb923c" stroke-width="1.4" marker-end="url(#a5o)"/>
+    <text x="665" y="308" fill="#fb923c" font-size="8">career readiness −20</text>
+
+    <!-- P3.5.5 → P3.5.6 (learning boost) -->
+    <line x1="780" y1="165" x2="870" y2="243" stroke="#34d399" stroke-width="1.4" marker-end="url(#a5g)"/>
+    <text x="848" y="200" fill="#34d399" font-size="8">+upskill flag</text>
+
+    <!-- P3.5.6 → D3 -->
+    <line x1="900" y1="338" x2="900" y2="418" stroke="#60a5fa" stroke-width="1.6" marker-end="url(#a5b)"/>
+    <text x="908" y="380" fill="#3b82f6" font-size="8">final life score</text>
+  </svg>
+</div>
+
+<!-- S8: Level 3b — File Processing Pipeline -->
+<div class="slide">
+  <div class="stitle">Level 3 — P2.2: File Upload &amp; Processing Pipeline</div>
+  <div class="ssub">Upload → type detect → parse (CSV/PDF/OCR) → normalize → dispatch to DataContext</div>
+  <svg viewBox="0 0 1060 450" style="width:100%;max-height:calc(100vh - 100px)">
+    <defs>
+      <marker id="a6" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+      <marker id="a6b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#60a5fa"/></marker>
+      <marker id="a6g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#34d399"/></marker>
+      <marker id="a6y" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#facc15"/></marker>
+    </defs>
+
+    <!-- User / file input -->
+    <rect x="8" y="175" width="90" height="42" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="53" y="191" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">User Upload</text>
+    <text x="53" y="205" text-anchor="middle" fill="#8b9dba" font-size="8">CSV·PDF·Excel·JSON</text>
+
+    <!-- P2.2.1: File Type Router -->
+    <ellipse cx="200" cy="196" rx="82" ry="40" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="200" y="188" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.2.1</text>
+    <text x="200" y="202" text-anchor="middle" fill="#93c5fd" font-size="10">File Type Router</text>
+    <text x="200" y="215" text-anchor="middle" fill="#8b9dba" font-size="8">ext + MIME detection</text>
+
+    <!-- P2.2.2: CSV Parser -->
+    <ellipse cx="400" cy="100" rx="82" ry="40" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="400" y="92" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.2.2</text>
+    <text x="400" y="106" text-anchor="middle" fill="#93c5fd" font-size="10">CSV Parser</text>
+    <text x="400" y="119" text-anchor="middle" fill="#8b9dba" font-size="8">Papa Parse library</text>
+
+    <!-- P2.2.3: PDF Extractor -->
+    <ellipse cx="400" cy="220" rx="82" ry="40" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="400" y="212" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.2.3</text>
+    <text x="400" y="226" text-anchor="middle" fill="#93c5fd" font-size="10">PDF Text Extract</text>
+    <text x="400" y="239" text-anchor="middle" fill="#8b9dba" font-size="8">pdf.js + page parser</text>
+
+    <!-- P2.2.4: OCR Engine -->
+    <ellipse cx="400" cy="340" rx="82" ry="40" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="400" y="332" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.2.4</text>
+    <text x="400" y="346" text-anchor="middle" fill="#93c5fd" font-size="10">OCR Engine</text>
+    <text x="400" y="359" text-anchor="middle" fill="#8b9dba" font-size="8">Tesseract.js (receipts)</text>
+
+    <!-- P2.2.5: Domain Column Mapper -->
+    <ellipse cx="640" cy="196" rx="92" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="640" y="186" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.2.5</text>
+    <text x="640" y="200" text-anchor="middle" fill="#93c5fd" font-size="10">Domain Column Mapper</text>
+    <text x="640" y="213" text-anchor="middle" fill="#8b9dba" font-size="8">health / finance / career detect</text>
+
+    <!-- P2.2.6: Data Normalizer -->
+    <ellipse cx="840" cy="196" rx="90" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="840" y="186" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P2.2.6</text>
+    <text x="840" y="200" text-anchor="middle" fill="#93c5fd" font-size="10">Data Normalizer</text>
+    <text x="840" y="213" text-anchor="middle" fill="#8b9dba" font-size="8">type cast · null fill · validation</text>
+
+    <!-- P2.2.7: DataContext Dispatch -->
+    <ellipse cx="980" cy="196" rx="68" ry="42" fill="#060e1f" stroke="#34d399" stroke-width="2"/>
+    <text x="980" y="186" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">P2.2.7</text>
+    <text x="980" y="200" text-anchor="middle" fill="#6ee7b7" font-size="10">DataContext</text>
+    <text x="980" y="213" text-anchor="middle" fill="#6ee7b7" font-size="10">Dispatch</text>
+
+    <!-- D2 output -->
+    <line x1="700" y1="388" x2="1050" y2="388" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="700" y1="406" x2="1050" y2="406" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="875" y="401" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D2: Domain Records Store (health · finance · career)</text>
+
+    <!-- Import History store -->
+    <line x1="820" y1="318" x2="1040" y2="318" stroke="#22c55e" stroke-width="1.5"/>
+    <line x1="820" y1="334" x2="1040" y2="334" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="930" y="330" text-anchor="middle" fill="#4ade80" font-size="9">D6: Import History Log</text>
+
+    <!-- Arrows -->
+    <line x1="98" y1="196" x2="118" y2="196" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a6)"/>
+
+    <!-- Router → CSV -->
+    <line x1="265" y1="170" x2="318" y2="118" stroke="#facc15" stroke-width="1.3" marker-end="url(#a6y)"/>
+    <text x="278" y="138" fill="#ca8a04" font-size="8">.csv</text>
+
+    <!-- Router → PDF -->
+    <line x1="282" y1="196" x2="318" y2="220" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a6)"/>
+    <text x="288" y="212" fill="#94a3b8" font-size="8">.pdf/.xlsx</text>
+
+    <!-- Router → OCR -->
+    <line x1="265" y1="218" x2="318" y2="325" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a6)"/>
+    <text x="268" y="278" fill="#94a3b8" font-size="8">scanned img</text>
+
+    <!-- CSV / PDF / OCR → Mapper -->
+    <line x1="482" y1="115" x2="555" y2="168" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a6)"/>
+    <line x1="482" y1="220" x2="548" y2="205" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a6)"/>
+    <line x1="482" y1="328" x2="555" y2="225" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a6)"/>
+    <text x="540" y="150" fill="#94a3b8" font-size="8">raw rows</text>
+
+    <!-- PDF → OCR (scanned PDF fallback) -->
+    <line x1="400" y1="260" x2="400" y2="300" stroke="#f87171" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a6)"/>
+    <text x="408" y="282" fill="#f87171" font-size="8">no text layer</text>
+
+    <!-- Mapper → Normalizer -->
+    <line x1="732" y1="196" x2="750" y2="196" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a6b)"/>
+    <text x="740" y="188" fill="#3b82f6" font-size="8">typed rows</text>
+
+    <!-- Normalizer → Dispatch -->
+    <line x1="930" y1="196" x2="912" y2="196" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a6b)"/>
+
+    <!-- Dispatch → D2 -->
+    <line x1="980" y1="238" x2="980" y2="388" stroke="#34d399" stroke-width="1.4" marker-end="url(#a6g)"/>
+    <text x="988" y="315" fill="#34d399" font-size="8">ADD_RECORDS action</text>
+
+    <!-- Dispatch → Import History -->
+    <line x1="960" y1="235" x2="940" y2="318" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a6)"/>
+    <text x="928" y="278" fill="#94a3b8" font-size="8">log entry</text>
+  </svg>
+</div>
+
+<!-- S9: Level 3c — AI Request Pipeline -->
+<div class="slide">
+  <div class="stitle">Level 3 — P4.1–P4.2: AI Request &amp; Fallback Pipeline</div>
+  <div class="ssub">Gemini backend proxy → 429 fallback → Groq direct → template fallback chain</div>
+  <svg viewBox="0 0 1060 450" style="width:100%;max-height:calc(100vh - 100px)">
+    <defs>
+      <marker id="a7" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+      <marker id="a7b" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#60a5fa"/></marker>
+      <marker id="a7r" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#f87171"/></marker>
+      <marker id="a7g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#34d399"/></marker>
+      <marker id="a7p" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#a78bfa"/></marker>
+    </defs>
+
+    <!-- Trigger: P6 UI sends AI request -->
+    <rect x="8" y="178" width="90" height="42" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="53" y="194" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">AI Request</text>
+    <text x="53" y="208" text-anchor="middle" fill="#8b9dba" font-size="8">from Coach / pages</text>
+
+    <!-- P4.1.1: PII Stripper -->
+    <ellipse cx="210" cy="100" rx="88" ry="40" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="210" y="92" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P4.1.1</text>
+    <text x="210" y="106" text-anchor="middle" fill="#93c5fd" font-size="10">PII Stripper</text>
+    <text x="210" y="119" text-anchor="middle" fill="#8b9dba" font-size="8">remove name/email/phone</text>
+
+    <!-- P4.1.2: Context Builder -->
+    <ellipse cx="210" cy="220" rx="88" ry="40" fill="#060e1f" stroke="#3b82f6" stroke-width="1.8"/>
+    <text x="210" y="212" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700">P4.1.2</text>
+    <text x="210" y="226" text-anchor="middle" fill="#93c5fd" font-size="10">Context Builder</text>
+    <text x="210" y="239" text-anchor="middle" fill="#8b9dba" font-size="8">domain scores + history → prompt</text>
+
+    <!-- P4.1.3: Gemini API Call -->
+    <ellipse cx="440" cy="160" rx="88" ry="42" fill="#060e1f" stroke="#3b82f6" stroke-width="2"/>
+    <text x="440" y="150" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">P4.1.3</text>
+    <text x="440" y="165" text-anchor="middle" fill="#93c5fd" font-size="10">Gemini API Call</text>
+    <text x="440" y="180" text-anchor="middle" fill="#8b9dba" font-size="8">POST /api/ai/chat (backend)</text>
+
+    <!-- External: Gemini 2.0 -->
+    <rect x="558" y="140" width="100" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="608" y="156" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">Gemini 2.0</text>
+    <text x="608" y="169" text-anchor="middle" fill="#8b9dba" font-size="8">Google AI</text>
+
+    <!-- P4.1.4: 429 Handler -->
+    <ellipse cx="440" cy="310" rx="88" ry="40" fill="#060e1f" stroke="#f97316" stroke-width="2"/>
+    <text x="440" y="302" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="700">P4.1.4</text>
+    <text x="440" y="316" text-anchor="middle" fill="#fed7aa" font-size="10">Rate Limit Handler</text>
+    <text x="440" y="329" text-anchor="middle" fill="#7c2d12" font-size="8">catch 429 / network error</text>
+
+    <!-- P4.2.1: Groq Call -->
+    <ellipse cx="680" cy="310" rx="88" ry="42" fill="#060e1f" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="680" y="299" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">P4.2.1</text>
+    <text x="680" y="314" text-anchor="middle" fill="#c4b5fd" font-size="10">Groq Direct Call</text>
+    <text x="680" y="328" text-anchor="middle" fill="#8b9dba" font-size="8">VITE_GROQ_API_KEY</text>
+
+    <!-- External: Groq -->
+    <rect x="790" y="292" width="95" height="40" rx="3" fill="#0c0b1e" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="837" y="308" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">Groq API</text>
+    <text x="837" y="321" text-anchor="middle" fill="#8b9dba" font-size="8">llama-3.3-70b</text>
+
+    <!-- P4.3.1: Template Fallback -->
+    <ellipse cx="920" cy="160" rx="95" ry="44" fill="#060e1f" stroke="#059669" stroke-width="2"/>
+    <text x="920" y="148" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">P4.3.1</text>
+    <text x="920" y="163" text-anchor="middle" fill="#6ee7b7" font-size="10">Template Fallback</text>
+    <text x="920" y="177" text-anchor="middle" fill="#8b9dba" font-size="8">deterministic score-based advice</text>
+
+    <!-- D4: AI Cache output -->
+    <line x1="560" y1="400" x2="1050" y2="400" stroke="#22c55e" stroke-width="1.8"/>
+    <line x1="560" y1="418" x2="1050" y2="418" stroke="#22c55e" stroke-width="1.8"/>
+    <text x="805" y="413" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">D4: AI Response Cache → P6.3 Coach Chat · P6.1 Dashboard</text>
+
+    <!-- Arrows -->
+    <line x1="98" y1="188" x2="122" y2="120" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a7)"/>
+    <line x1="98" y1="200" x2="122" y2="220" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a7)"/>
+    <text x="86" y="162" fill="#94a3b8" font-size="8">raw req</text>
+
+    <!-- PII → Context Builder -->
+    <line x1="210" y1="140" x2="210" y2="180" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a7)"/>
+    <text x="218" y="163" fill="#94a3b8" font-size="8">safe ctx</text>
+
+    <!-- Context Builder → Gemini Call -->
+    <line x1="298" y1="208" x2="352" y2="185" stroke="#60a5fa" stroke-width="1.4" marker-end="url(#a7b)"/>
+    <text x="315" y="198" fill="#3b82f6" font-size="8">prompt</text>
+
+    <!-- Gemini Call → Gemini ext -->
+    <line x1="528" y1="160" x2="558" y2="160" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a7)"/>
+
+    <!-- Gemini ext → Gemini Call (response) -->
+    <line x1="558" y1="168" x2="528" y2="168" stroke="#60a5fa" stroke-width="1.3" marker-end="url(#a7b)"/>
+    <text x="545" y="180" text-anchor="middle" fill="#3b82f6" font-size="8">response</text>
+
+    <!-- Gemini Call → 429 Handler (on error) -->
+    <line x1="440" y1="202" x2="440" y2="270" stroke="#f87171" stroke-width="1.3" stroke-dasharray="3,2" marker-end="url(#a7r)"/>
+    <text x="448" y="237" fill="#f87171" font-size="8">429 / fail</text>
+
+    <!-- 429 Handler → Groq -->
+    <line x1="528" y1="310" x2="592" y2="310" stroke="#a78bfa" stroke-width="1.4" marker-end="url(#a7p)"/>
+    <text x="558" y="301" fill="#a78bfa" font-size="8">retry→Groq</text>
+
+    <!-- Groq → Groq ext -->
+    <line x1="768" y1="310" x2="790" y2="310" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#a7)"/>
+    <line x1="790" y1="316" x2="768" y2="318" stroke="#a78bfa" stroke-width="1.3" marker-end="url(#a7p)"/>
+
+    <!-- Groq → offline fallback -->
+    <line x1="680" y1="268" x2="870" y2="185" stroke="#f87171" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a7r)"/>
+    <text x="798" y="213" fill="#f87171" font-size="8">offline</text>
+
+    <!-- All paths → D4 -->
+    <line x1="528" y1="160" x2="600" y2="400" stroke="#34d399" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a7g)"/>
+    <line x1="680" y1="352" x2="700" y2="400" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a7p)"/>
+    <line x1="920" y1="204" x2="920" y2="400" stroke="#34d399" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#a7g)"/>
+    <text x="830" y="378" fill="#34d399" font-size="8">cached AI response</text>
+  </svg>
+</div>
+
+<!-- S10: Summary -->
+<div class="slide" style="justify-content:center">
+  <div class="stitle" style="font-size:24px;margin-bottom:18px">DFD Summary — BeyondSelf Architecture</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:960px;width:100%">
+    <div style="background:#060e1f;border:1px solid #1e3a5f;border-radius:10px;padding:16px">
+      <div style="color:#60a5fa;font-size:13px;font-weight:700;margin-bottom:10px">Level 0 — Context</div>
+      <div style="font-size:11px;color:#cbd5e1;line-height:1.7">
+        Single BeyondSelf system boundary.<br>
+        <span style="color:#94a3b8">In:</span> User data, External API feeds<br>
+        <span style="color:#94a3b8">Out:</span> Life scores, AI advice, reports<br>
+        <span style="color:#94a3b8">Stores:</span> PostgreSQL, localStorage
+      </div>
+    </div>
+    <div style="background:#060e1f;border:1px solid #1e3a5f;border-radius:10px;padding:16px">
+      <div style="color:#60a5fa;font-size:13px;font-weight:700;margin-bottom:10px">Level 1 — Main Processes</div>
+      <div style="font-size:11px;color:#cbd5e1;line-height:1.7">
+        P1 Auth · P2 Ingestion<br>
+        P3 Scoring · P4 AI Intelligence<br>
+        P5 Goals/Gamification<br>
+        P6 Presentation Layer<br>
+        D1–D5 data stores
+      </div>
+    </div>
+    <div style="background:#060e1f;border:1px solid #1e3a5f;border-radius:10px;padding:16px">
+      <div style="color:#60a5fa;font-size:13px;font-weight:700;margin-bottom:10px">Level 2 — Sub-Processes</div>
+      <div style="font-size:11px;color:#cbd5e1;line-height:1.7">
+        P1: Dual JWT · Demo fallback<br>
+        P2: CSV/PDF/OCR · GitHub · Fitbit<br>
+        P3: 3 domain engines + cascade<br>
+        P4: Gemini → Groq → Template<br>
+        P5: XP engine · Simulator
+      </div>
+    </div>
+    <div style="background:#060e1f;border:1px solid #1e3a5f;border-radius:10px;padding:16px">
+      <div style="color:#fb923c;font-size:13px;font-weight:700;margin-bottom:10px">Level 3a — Cascade Engine</div>
+      <div style="font-size:11px;color:#cbd5e1;line-height:1.7">
+        Sleep debt → emotional spending<br>
+        Financial runway → career readiness<br>
+        Low runway → upskill priority<br>
+        All modifiers → composite life score<br>
+        <span style="color:#fb923c">lifeBalanceEngine.js</span>
+      </div>
+    </div>
+    <div style="background:#060e1f;border:1px solid #1e3a5f;border-radius:10px;padding:16px">
+      <div style="color:#facc15;font-size:13px;font-weight:700;margin-bottom:10px">Level 3b — File Pipeline</div>
+      <div style="font-size:11px;color:#cbd5e1;line-height:1.7">
+        Router → CSV/PDF/Excel/OCR<br>
+        Column mapper → normalizer<br>
+        DataContext dispatch (useReducer)<br>
+        Import history log<br>
+        <span style="color:#facc15">uploadService + ocrService</span>
+      </div>
+    </div>
+    <div style="background:#060e1f;border:1px solid #1e3a5f;border-radius:10px;padding:16px">
+      <div style="color:#a78bfa;font-size:13px;font-weight:700;margin-bottom:10px">Level 3c — AI Chain</div>
+      <div style="font-size:11px;color:#cbd5e1;line-height:1.7">
+        PII strip → context build<br>
+        Gemini 2.0 Flash (backend proxy)<br>
+        429 handler → Groq fallback<br>
+        Offline → deterministic templates<br>
+        <span style="color:#a78bfa">aiService.js · groqService</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #cont -->
+
+<div class="nav">
+  <button onclick="go(-1)">← Prev</button>
+  <span id="ctr">1 / 10</span>
+  <button onclick="go(1)">Next →</button>
+</div>
+
+<script>
+const sl = document.querySelectorAll('.slide');
+let c = 0;
+const ct = document.getElementById('ctr');
+function go(d) {
+  sl[c].classList.remove('active');
+  c = ((c + d) % sl.length + sl.length) % sl.length;
+  sl[c].classList.add('active');
+  ct.textContent = (c+1) + ' / ' + sl.length;
+}
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); go(1); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); go(-1); }
+});
+</script>
+</body>
+</html>

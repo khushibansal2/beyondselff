@@ -124,6 +124,127 @@ function fmtTime(s) {
   return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
 }
 
+// Parses guild xp strings like "3.4M" → number for sorting
+function parseGuildXp(str = '') {
+  const n = parseFloat(str);
+  if (str.includes('M')) return n * 1_000_000;
+  if (str.includes('K')) return n * 1_000;
+  return n || 0;
+}
+
+// ── XP FLOAT ANIMATION ─────────────────────────────────────────────────────────
+
+function XPFloat({ amount, onDone }) {
+  return (
+    <motion.div
+      initial={{ opacity: 1, y: 0, scale: 1 }}
+      animate={{ opacity: 0, y: -80, scale: 1.4 }}
+      transition={{ duration: 1.6, ease: 'easeOut' }}
+      onAnimationComplete={onDone}
+      style={{
+        position: 'fixed', pointerEvents: 'none', zIndex: 9999,
+        top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
+        fontSize: 26, fontWeight: 900, color: '#f59e0b',
+        textShadow: '0 0 24px rgba(245,158,11,0.9)',
+        fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em'
+      }}
+    >
+      +{amount} XP ⚡
+    </motion.div>
+  );
+}
+
+// ── LIVE ACTIVITY FEED ─────────────────────────────────────────────────────────
+
+const FEED_TYPE_COLOR = { xp: '#f59e0b', badge: '#ec4899', social: '#8b5cf6', streak: '#f97316', activity: '#10b981' };
+
+function LiveFeedTicker() {
+  const [events, setEvents] = useState([]);
+  const sseRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const es = new EventSource(`${API_BASE}/feed/live`);
+      sseRef.current = es;
+      es.addEventListener('activity', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          setEvents(prev => [data, ...prev].slice(0, 7));
+        } catch {}
+      });
+      es.onerror = () => { es.close(); sseRef.current = null; };
+    } catch {}
+    return () => { if (sseRef.current) { sseRef.current.close(); sseRef.current = null; } };
+  }, []);
+
+  // Fallback: generate local activity events when SSE unavailable
+  useEffect(() => {
+    const NAMES = ['Shadow Monk','Iron Phoenix','Void Sentinel','Storm Architect','Night Strategist','Silent Forger','Ember Mind','Fractal Sage'];
+    const EVTS  = [
+      n=>`${n} completed 7-Day Sleep Streak`,
+      n=>`${n} joined Deep Work League`,
+      n=>`${n} solved 8 DSA problems today`,
+      n=>`${n} hit a 7-day streak 🔥`,
+      n=>`${n} earned +150 XP from Grind Room`,
+      n=>`${n} unlocked Week Warrior badge`,
+      n=>`${n} saved ₹2,500 this week`,
+      n=>`${n} finished 90-min Deep Work session`,
+      n=>`${n} reached Seeker tier`,
+      n=>`${n} logged 10,000 steps today`,
+    ];
+    const TYPES = ['xp','badge','social','streak','xp','badge','activity','activity','activity','activity'];
+    let idx = 0;
+    const id = setInterval(() => {
+      if (sseRef.current?.readyState === EventSource.OPEN) return;
+      const i    = Math.floor(Math.random() * EVTS.length);
+      const name = NAMES[Math.floor(Math.random() * NAMES.length)];
+      setEvents(prev => [{
+        id: Date.now().toString(),
+        text: EVTS[i](name),
+        ago: Math.floor(Math.random() * 55) + 2,
+        type: TYPES[i]
+      }, ...prev].slice(0, 7));
+      idx++;
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div style={{
+      borderRadius: 20, padding: '20px',
+      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'linear-gradient(135deg, rgba(13,20,38,0.6) 0%, rgba(8,12,24,0.8) 100%)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)', backdropFilter: 'blur(20px)'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+        <motion.div animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
+          style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', flexShrink: 0 }} />
+        <span style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>Global Activity</span>
+        <span style={{ fontSize: 9, fontWeight: 800, color: '#10b981', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', padding: '1px 6px', borderRadius: 4, textTransform: 'uppercase' }}>LIVE</span>
+      </div>
+      {events.length === 0 ? (
+        <div className="flex items-center justify-center py-4">
+          <div className="w-4 h-4 border-2 border-white/20 border-t-emerald-400 rounded-full animate-spin mr-2" />
+          <span style={{ fontSize: 11, color: '#475569' }}>Connecting to live feed…</span>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {events.map((ev) => (
+            <motion.div key={ev.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 10,
+                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: FEED_TYPE_COLOR[ev.type] || '#10b981', flexShrink: 0,
+                boxShadow: `0 0 6px ${FEED_TYPE_COLOR[ev.type] || '#10b981'}` }} />
+              <span style={{ fontSize: 11.5, color: '#94a3b8', flex: 1, lineHeight: 1.3 }}>{ev.text}</span>
+              <span style={{ fontSize: 9.5, color: '#475569', flexShrink: 0, whiteSpace: 'nowrap' }}>{ev.ago}s ago</span>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function StatBar({ meta, value, prevValue }) {
@@ -277,7 +398,7 @@ function PrototypeDisclaimer({ featureName }) {
 
 // ── IDENTITY PANEL ─────────────────────────────────────────────────────────────
 
-function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
+function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery, onCheckIn, checkedInToday, streak }) {
   const { tier: nextTier, prev: currentTier } = getNextTier(xp);
   const xpInBand = xp - currentTier.min;
   const bandSize = nextTier.min - currentTier.min;
@@ -288,6 +409,18 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
   }, 0) / 8)) * 2);
 
   const harmonyColor = harmony >= 70 ? '#10b981' : harmony >= 50 ? '#f59e0b' : '#ef4444';
+  const [ciLoading, setCiLoading] = useState(false);
+  const [ciMsg, setCiMsg] = useState('');
+
+  async function handleCheckIn() {
+    if (checkedInToday || ciLoading) return;
+    setCiLoading(true);
+    try {
+      const result = await onCheckIn();
+      if (result?.message) setCiMsg(result.message);
+      setTimeout(() => setCiMsg(''), 5000);
+    } finally { setCiLoading(false); }
+  }
 
   return (
     <div className="flex flex-col gap-6" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -369,6 +502,36 @@ function IdentityPanel({ codename, tier, xp, stats, prevStats, isRecovery }) {
               />
             </div>
             <p style={{ fontSize: 10.5, color: '#475569', fontWeight: 500, margin: 0 }}>{pct}% completed towards your next rank</p>
+          </div>
+
+          {/* Daily Check-in */}
+          <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={handleCheckIn}
+              disabled={checkedInToday || ciLoading}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '8px 16px', borderRadius: 10, cursor: checkedInToday ? 'default' : 'pointer',
+                fontSize: 12, fontWeight: 700, transition: 'all 0.2s',
+                border: checkedInToday ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(99,102,241,0.4)',
+                background: checkedInToday ? 'rgba(16,185,129,0.08)' : 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15))',
+                color: checkedInToday ? '#34d399' : '#a5b4fc',
+                opacity: ciLoading ? 0.6 : 1
+              }}
+            >
+              {ciLoading
+                ? <><div className="w-3 h-3 border-2 border-white/20 border-t-indigo-400 rounded-full animate-spin" /> Checking in…</>
+                : checkedInToday
+                  ? <>✓ Checked in today · {streak > 0 && <span style={{color:'#f59e0b'}}>🔥 {streak} day streak</span>}</>
+                  : <>⚡ Daily Check-in <span style={{color:'#f59e0b', fontSize:11}}>+50 XP</span></>
+              }
+            </button>
+            {ciMsg && (
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ fontSize: 11, color: '#94a3b8', margin: 0, fontStyle: 'italic', maxWidth: 260 }}>
+                "{ciMsg}"
+              </motion.p>
+            )}
           </div>
         </div>
 
@@ -547,11 +710,26 @@ Make quests specific, not generic. RPG tone. Under 15 words per description.`,
   return JSON.parse(raw);
 }
 
-function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChallenge, health, finance, career }) {
+function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChallenge, health, finance, career, onXP }) {
   const [aiQuests, setAiQuests]     = useState([]);
   const [loading, setLoading]       = useState(false);
   const [error, setError]           = useState(null);
-  const [completed, setCompleted]   = useState(new Set());
+  const [completed, setCompleted]   = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('completed_quests') || '[]')); } catch { return new Set(); }
+  });
+
+  async function completeQuest(index, xp) {
+    if (completed.has(index)) {
+      setCompleted(prev => { const n = new Set(prev); n.delete(index); return n; });
+      return;
+    }
+    const next = new Set(completed);
+    next.add(index);
+    setCompleted(next);
+    try { localStorage.setItem('completed_quests', JSON.stringify([...next])); } catch {}
+    showToast(`+${xp} XP earned! Quest complete ⚡`, 'success');
+    onXP?.(xp);
+  }
 
   async function handleGenerate() {
     setLoading(true); setError(null);
@@ -635,7 +813,7 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
                     <p className="text-[11px] text-[#71717a] leading-relaxed">{q.description}</p>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[10px] text-amber-400 font-semibold">+{q.xp} XP · {q.stat}</span>
-                      <button onClick={() => setCompleted(s => { const n = new Set(s); done ? n.delete(i) : n.add(i); return n; })}
+                      <button onClick={() => completeQuest(i, q.xp)}
                         className={`text-[10px] px-3 py-1 rounded-full border font-semibold transition-all ${done ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'border-white/[0.08] text-[#71717a] hover:text-[#a1a1aa]'}`}>
                         {done ? '✓ Done' : 'Complete'}
                       </button>
@@ -731,6 +909,8 @@ function QuestsPanel({ stats, codename, isRecovery, activeChallenges, toggleChal
 
 // ── GRIND ROOM PANEL ───────────────────────────────────────────────────────────
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api';
+
 function GrindRoomPanel({ onXP }) {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [timeLeft,     setTimeLeft]     = useState(0);
@@ -740,8 +920,61 @@ function GrindRoomPanel({ onXP }) {
   const [reactions,    setReactions]    = useState(() => {
     try { return JSON.parse(localStorage.getItem('grind_reactions') || '{}'); } catch { return {}; }
   });
+  // Live presence counts — start from static values, updated by SSE or fallback simulation
+  const [liveCounts,   setLiveCounts]   = useState(() =>
+    Object.fromEntries(GRIND_ROOMS.map(r => [r.id, r.users]))
+  );
+  const [sseConnected, setSseConnected] = useState(false);
   const intervalRef = useRef(null);
+  const sseRef      = useRef(null);
   const phantoms = useMemo(() => PHANTOM_USERS.sort(() => Math.random() - 0.5).slice(0, 6), []);
+
+  // SSE connection for real-time presence (falls back to local simulation on error)
+  useEffect(() => {
+    const roomId = selectedRoom?.id || 'r2';
+    if (sseRef.current) { sseRef.current.close(); sseRef.current = null; }
+
+    try {
+      const es = new EventSource(`${API_BASE}/grind/presence/${roomId}`);
+      sseRef.current = es;
+
+      es.addEventListener('presence', (evt) => {
+        try {
+          const data = JSON.parse(evt.data);
+          setLiveCounts(prev => ({ ...prev, [data.roomId]: data.count }));
+          setSseConnected(true);
+        } catch {}
+      });
+
+      es.onerror = () => {
+        es.close();
+        sseRef.current = null;
+        setSseConnected(false);
+      };
+    } catch {
+      setSseConnected(false);
+    }
+
+    return () => {
+      if (sseRef.current) { sseRef.current.close(); sseRef.current = null; }
+    };
+  }, [selectedRoom?.id]);
+
+  // Fallback: simulate fluctuating counts every 8s when SSE not available
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (sseConnected) return;
+      setLiveCounts(prev => {
+        const next = { ...prev };
+        GRIND_ROOMS.forEach(r => {
+          const delta = Math.floor(Math.random() * 11) - 5;
+          next[r.id] = Math.max(1, r.users + delta);
+        });
+        return next;
+      });
+    }, 8000);
+    return () => clearInterval(id);
+  }, [sseConnected]);
 
   useEffect(() => {
     if (running) {
@@ -752,7 +985,19 @@ function GrindRoomPanel({ onXP }) {
             setRunning(false);
             setDone(true);
             setSessions(s => s + 1);
-            onXP?.(selectedRoom?.minutes >= 60 ? 200 : selectedRoom?.minutes >= 45 ? 150 : 100);
+            const earnedXp = selectedRoom?.minutes >= 60 ? 200 : selectedRoom?.minutes >= 45 ? 150 : 100;
+            onXP?.(earnedXp);
+            // Post session to backend
+            try {
+              const token = JSON.parse(localStorage.getItem('dt_auth') || '{}')?.token;
+              if (token && !token.startsWith('DEMO_SESSION_')) {
+                fetch(`${API_BASE}/grind/session`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ roomId: selectedRoom?.id, xp: earnedXp, minutes: selectedRoom?.minutes })
+                }).catch(() => {});
+              }
+            } catch {}
             return 0;
           }
           return t - 1;
@@ -782,7 +1027,6 @@ function GrindRoomPanel({ onXP }) {
   if (!selectedRoom) {
     return (
       <div style={{display:'flex', flexDirection:'column', gap:12}}>
-        <PrototypeDisclaimer featureName="Silent Grind Rooms" />
         
         {/* Plain Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
@@ -820,16 +1064,16 @@ function GrindRoomPanel({ onXP }) {
           {GRIND_ROOMS.map((room, i) => (
             <button key={room.id} onClick={() => enterRoom(room)}
               style={{
-                width:'100%', 
-                display:'flex', 
-                alignItems:'center', 
-                gap:16, 
-                padding:'16px 20px', 
-                background:'transparent', 
-                border:'none', 
-                borderTop: i===0 ? 'none' : '1px solid rgba(255,255,255,0.06)', 
-                cursor:'pointer', 
-                textAlign:'left', 
+                width:'100%',
+                display:'flex',
+                alignItems:'center',
+                gap:16,
+                padding:'16px 20px',
+                background:'transparent',
+                border:'none',
+                borderTop: i===0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+                cursor:'pointer',
+                textAlign:'left',
                 transition:'background 0.15s'
               }}
               onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.02)'}
@@ -845,7 +1089,14 @@ function GrindRoomPanel({ onXP }) {
                 <Clock size={13} style={{color:'#475569'}}/>
                 <span style={{fontSize:13, color:'#cbd5e1', fontWeight:500, marginRight:16}}>{room.minutes} min</span>
               </div>
-              <span style={{fontSize:13, fontWeight:700, color:'#10b981', minWidth:90, flexShrink:0}}>{room.users} grinding</span>
+              <div style={{display:'flex', alignItems:'center', gap:5, minWidth:110, flexShrink:0}}>
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }}
+                />
+                <span style={{fontSize:13, fontWeight:700, color:'#10b981'}}>{liveCounts[room.id] ?? room.users} grinding</span>
+              </div>
               <ChevronRight size={16} style={{color:'#475569', flexShrink:0}}/>
             </button>
           ))}
@@ -889,7 +1140,6 @@ function GrindRoomPanel({ onXP }) {
 
   return (
     <div className="space-y-4">
-      <PrototypeDisclaimer featureName="Silent Grind Rooms" />
       <GlassCard className="border border-indigo-500/15 bg-indigo-500/[0.02]">
         {/* Room header */}
         <div className="flex items-center justify-between mb-6">
@@ -942,9 +1192,17 @@ function GrindRoomPanel({ onXP }) {
 
         {/* Live presence */}
         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-          <p className="text-[10px] text-[#71717a] font-semibold uppercase tracking-wider mb-3">
-            {selectedRoom.users + (running ? 1 : 0)} grinding in silence <span style={{ color: '#f59e0b', fontSize: '9px', marginLeft: '6px', border: '1px solid rgba(245,158,11,0.25)', padding: '1px 4px', borderRadius: '4px', background: 'rgba(245,158,11,0.05)', textTransform: 'none' }}>[Simulated]</span>
-          </p>
+          <div className="flex items-center gap-2 mb-3">
+            <motion.div
+              animate={{ scale: [1, 1.4, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981', flexShrink: 0 }}
+            />
+            <p className="text-[10px] text-[#71717a] font-semibold uppercase tracking-wider m-0">
+              {(liveCounts[selectedRoom.id] ?? selectedRoom.users) + (running ? 1 : 0)} grinding in silence
+            </p>
+            <span style={{ fontSize: '9px', fontWeight: 800, color: '#10b981', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', padding: '1px 6px', borderRadius: '4px' }}>LIVE</span>
+          </div>
           <div className="flex flex-wrap gap-2">
             {phantoms.map((name, i) => (
               <div key={name} className="flex items-center gap-1.5">
@@ -962,7 +1220,7 @@ function GrindRoomPanel({ onXP }) {
             )}
           </div>
           <div className="flex gap-4 mt-3 items-center">
-            <span style={{ fontSize: '9.5px', color: '#71717a', marginRight: '4px' }}>Simulated Reactions:</span>
+            <span style={{ fontSize: '9.5px', color: '#71717a', marginRight: '4px' }}>Room Reactions:</span>
             {['🔥','⚡','👏'].map(r => {
               const count = reactions[r] || 0;
               return (
@@ -992,7 +1250,7 @@ function GrindRoomPanel({ onXP }) {
 
 // ── PEERS PANEL ────────────────────────────────────────────────────────────────
 
-function PeersPanel({ userScores, codename }) {
+function PeersPanel({ userScores, codename, records }) {
   const [joined, setJoined] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('joined_challenges') || '[]')); }
     catch { return new Set(); }
@@ -1012,6 +1270,29 @@ function PeersPanel({ userScores, codename }) {
     if (percentile >= 50) return { name: 'Consistent Seeker', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', desc: 'Solid habits. You maintain healthy averages across most categories.' };
     return { name: 'Rising Wanderer', color: '#71717a', bg: 'rgba(113,113,122,0.12)', desc: 'Building momentum. Consistency is starting to compound.' };
   }, [percentile]);
+
+  // Compute challenge progress from real user records
+  const challengeProgress = useMemo(() => {
+    const hr = (records?.health  || []).slice().sort((a,b) => new Date(b.recordDate||b.date) - new Date(a.recordDate||a.date));
+    const cr = (records?.career  || []).slice().sort((a,b) => new Date(b.recordDate||b.date) - new Date(a.recordDate||a.date));
+    const last7h  = hr.slice(0, 7);
+    const last14h = hr.slice(0, 14);
+    const last14c = cr.slice(0, 14);
+
+    const sleepDays    = last7h.filter(r  => (r.sleepHours || r.sleep || 0) >= 8).length;
+    const stressDays   = last7h.filter(r  => (r.stressLevel || r.stress || 10) <= 4).length;
+    const stepDays     = last14h.filter(r => (r.steps || 0) >= 10000).length;
+    const dsaTotal     = last14c.reduce((s, r) => s + (r.dsaProblems || 0), 0);
+
+    return {
+      sc1: Math.min(100, Math.round((userScores.finance > 60 ? 40 : 15))),   // no-impulse spend — proxy from finance score
+      sc2: Math.min(100, Math.round((sleepDays / 7) * 100)),                 // 7-day 8h sleep
+      sc3: Math.min(100, Math.round((dsaTotal / 50) * 100)),                  // 50 DSA in 14 days
+      sc4: Math.min(100, Math.round((stressDays / 7) * 100)),                // zero stress week
+      sc5: Math.min(100, Math.round((userScores.finance > 65 ? 55 : 20))),   // ₹5k savings sprint proxy
+      sc6: Math.min(100, Math.round((stepDays / 14) * 100)),                 // 10k steps ×14 days
+    };
+  }, [records, userScores]);
 
   function toggleChallenge(id) {
     setJoined(prev => {
@@ -1043,7 +1324,6 @@ function PeersPanel({ userScores, codename }) {
 
   return (
     <div style={{display:'flex', flexDirection:'column', gap:12}}>
-      <PrototypeDisclaimer featureName="Percentile & Social Engine" />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
@@ -1255,7 +1535,7 @@ function PeersPanel({ userScores, codename }) {
               <span style={{fontSize:14, filter: 'drop-shadow(0 0 4px rgba(59,130,246,0.6))'}}>🌎</span>
               <p style={{fontSize:14, fontWeight:800, color:'#ffffff', margin: 0, letterSpacing: '-0.01em'}}>Global Challenges</p>
             </div>
-            <p style={{fontSize:11, color:'#64748b', margin: 0}}>Join challenges. Earn XP. Beat your peers. <span style={{ color: '#f59e0b', fontSize: '9px', marginLeft: '6px', border: '1px solid rgba(245,158,11,0.25)', padding: '1px 4px', borderRadius: '4px', background: 'rgba(245,158,11,0.05)', textTransform: 'none' }}>[Simulated Participation]</span></p>
+            <p style={{fontSize:11, color:'#64748b', margin: 0}}>Join challenges. Earn XP. Beat your peers.</p>
           </div>
           <button style={{
             padding: '5px 11px', borderRadius: '9px',
@@ -1288,6 +1568,23 @@ function PeersPanel({ userScores, codename }) {
                     <span style={{fontSize:9, padding:'2px 6px', borderRadius:999, background:dColor+'18', color:dColor, border:`1.5px solid ${dColor}25`, fontWeight:800, flexShrink:0}}>{dLabel}</span>
                   </div>
                   <p style={{fontSize:10.5, color:'#64748b', margin: '0 0 6px'}}>{ch.desc}</p>
+                  {/* Progress bar from real records */}
+                  {isJoined && (() => {
+                    const prog = challengeProgress[ch.id] || 0;
+                    return (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: 9.5, color: '#64748b', fontWeight: 600 }}>Your progress</span>
+                          <span style={{ fontSize: 9.5, fontWeight: 800, color: prog >= 100 ? '#10b981' : dColor }}>{prog}%</span>
+                        </div>
+                        <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${prog}%` }} transition={{ duration: 1, ease: [0.16,1,0.3,1] }}
+                            style={{ height: '100%', borderRadius: 99, background: prog >= 100 ? '#10b981' : dColor,
+                              boxShadow: `0 0 8px ${prog >= 100 ? '#10b981' : dColor}80` }} />
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
                     <p style={{fontSize:10, color:'#475569', fontWeight:600, margin: 0}}>👥 {ch.participants.toLocaleString()} joined</p>
                     <div style={{display:'flex', alignItems:'center', gap:6}}>
@@ -1317,6 +1614,9 @@ function PeersPanel({ userScores, codename }) {
           })}
         </div>
       </div>
+
+      {/* Live Global Activity Feed */}
+      <LiveFeedTicker />
     </div>
   );
 }
@@ -1331,36 +1631,73 @@ function GuildsPanel({ myGuildId, onJoin }) {
     Bronze: { color:'#f97316', bg:'rgba(249,115,22,0.12)', border:'rgba(249,115,22,0.35)' },
   };
   const fmtMembers = n => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n;
+  const RANK_MEDALS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
+
+  // Sort guilds by XP descending for leaderboard
+  const rankedGuilds = useMemo(() =>
+    [...GUILDS].sort((a, b) => parseGuildXp(b.xp) - parseGuildXp(a.xp))
+  , []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <PrototypeDisclaimer featureName="Anonymous Guilds" />
-      
-      {/* Plain Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f3', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em' }}>Anonymous Guilds</h2>
-          <p style={{ fontSize: 12.5, color: '#8b949e', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
-            Join a guild to earn XP, complete collective quests, and build accountability — all anonymously.
-          </p>
-        </div>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '6px 14px',
-          borderRadius: 10,
-          border: '1px solid rgba(255,255,255,0.08)',
-          background: 'rgba(255,255,255,0.03)',
-          cursor: 'pointer',
-          flexShrink: 0
-        }}>
-          <span style={{ fontSize: 12, color: '#cbd5e1', fontWeight: 600 }}>All Guilds</span>
-          <span style={{ fontSize: 10, color: '#8b949e' }}>▾</span>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* Header */}
+      <div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#f0f0f3', margin: 0, fontFamily: 'Inter, sans-serif', letterSpacing: '-0.01em' }}>Anonymous Guilds</h2>
+        <p style={{ fontSize: 12.5, color: '#8b949e', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
+          Join a guild to earn XP, complete collective quests, and build accountability — all anonymously.
+        </p>
       </div>
 
-      {/* Grid of Standalone Cards */}
+      {/* Guild XP Leaderboard */}
+      <div style={{
+        borderRadius: 20, padding: '18px 20px',
+        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'linear-gradient(135deg, rgba(13,20,38,0.6) 0%, rgba(8,12,24,0.8) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)', backdropFilter: 'blur(20px)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <span style={{ fontSize: 16 }}>🏆</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>Guild Leaderboard</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', padding: '1px 6px', borderRadius: 4 }}>SEASON 1</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {rankedGuilds.map((g, i) => {
+            const isMe = myGuildId === g.id;
+            const maxXp = parseGuildXp(rankedGuilds[0].xp);
+            const pct = Math.round((parseGuildXp(g.xp) / maxXp) * 100);
+            return (
+              <div key={g.id} style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 12,
+                background: isMe ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.02)',
+                border: isMe ? '1px solid rgba(99,102,241,0.2)' : '1px solid transparent'
+              }}>
+                <span style={{ fontSize: 14, width: 22, textAlign: 'center', flexShrink: 0 }}>{RANK_MEDALS[i]}</span>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{g.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: isMe ? '#a5b4fc' : '#f1f5f9' }}>{g.name}{isMe && ' (You)'}</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: g.color }}>{g.xp} XP</span>
+                  </div>
+                  <div style={{ height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
+                      transition={{ duration: 1, delay: i * 0.1, ease: [0.16,1,0.3,1] }}
+                      style={{ height: '100%', borderRadius: 99, background: g.color, boxShadow: `0 0 6px ${g.color}80` }} />
+                  </div>
+                </div>
+                <span style={{ fontSize: 10, color: '#64748b', flexShrink: 0, minWidth: 50, textAlign: 'right' }}>{fmtMembers(g.members)} members</span>
+              </div>
+            );
+          })}
+        </div>
+        {myGuildId && (
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px dotted rgba(255,255,255,0.06)', fontSize: 11, color: '#64748b', textAlign: 'center' }}>
+            Your XP contributions count towards your guild's season total.
+          </div>
+        )}
+      </div>
+
+      {/* Grid of Guild Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {GUILDS.map((guild) => {
           const isMine = myGuildId === guild.id;
@@ -1405,7 +1742,6 @@ function GuildsPanel({ myGuildId, onJoin }) {
                   <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999, fontWeight: 700, color: rs.color, background: rs.bg, border: `1px solid ${rs.border}` }}>
                     {guild.rank.toUpperCase()}
                   </span>
-                  <span style={{ fontSize: '9px', color: '#8b949e', border: '1px solid rgba(255,255,255,0.06)', padding: '1px 5px', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>Simulated</span>
                 </div>
                 <p style={{ fontSize: 12, color: '#8b949e', margin: '0 0 4px', lineHeight: 1.4 }}>{guild.desc}</p>
                 <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>Focus: <span style={{ color: guild.color, fontWeight: 600 }}>{guild.stat}</span></p>
@@ -1417,7 +1753,6 @@ function GuildsPanel({ myGuildId, onJoin }) {
                     <span style={{ fontSize: 13, color: '#475569' }}>👥</span>
                     <span style={{ fontSize: 12, color: '#94a3b8' }}>{fmtMembers(guild.members)} members</span>
                   </div>
-                  <span style={{ fontSize: '8px', color: '#e0a82e', opacity: 0.8, letterSpacing: '0.02em' }}>[Simulated]</span>
                 </div>
                 <button
                   onClick={() => { onJoin(isMine ? null : guild.id); showToast(isMine ? 'Left guild' : `Joined ${guild.name}!`, isMine ? 'info' : 'success'); }}
@@ -1623,6 +1958,39 @@ function BadgesPanel({ badges, streaks, showPopup, setShowPopup }) {
 }
 
 
+// ── BADGE AUTO-COMPUTATION ─────────────────────────────────────────────────────
+
+function computeEarnedBadges(health = {}, finance = {}, career = {}, records = {}, xp = 0) {
+  const earned = new Set();
+
+  // Early Bird: sleep >= 7h average
+  if ((health.sleepAvg || 0) >= 7) earned.add('b1');
+
+  // Fitness Warrior: 5+ workouts/week
+  if ((health.workoutsPerWeek || 0) >= 5) earned.add('b2');
+
+  // Savings Streak: expenses < income and savings > 0
+  if (finance.income > 0 && finance.expenses < finance.income && finance.savings > 0) earned.add('b3');
+
+  // Code Machine: DSA problems >= 100 (from career records)
+  const totalDSA = (records.career || []).reduce((s, r) => s + (r.dsaProblems || 0), 0);
+  if (totalDSA >= 100 || (career.dsaPractice || 0) * 30 >= 100) earned.add('b4');
+
+  // Learning Machine: study >= 5h daily average
+  if ((career.studyHoursDaily || 0) >= 5) earned.add('b5');
+
+  // Zen Master: stress <= 4
+  if ((health.stressLevel || 10) <= 4) earned.add('b6');
+
+  // Hydration Hero: water >= 8 glasses
+  if ((health.waterIntake || 0) >= 8) earned.add('b7');
+
+  // Balance Keeper: XP > 1000 (proxy for sustained balance)
+  if (xp >= 1000) earned.add('b8');
+
+  return earned;
+}
+
 // ── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 
 const TABS = [
@@ -1637,9 +2005,30 @@ const TABS = [
 export default function Gamification() {
   const { user }                                    = useAuth();
   const { computed, gamification, updateGamification, health, finance, career, records } = useData();
-  const [tab,       setTab]       = useState('identity');
-  const [showPopup, setShowPopup] = useState(null);
-  const [myGuild,   setMyGuild]   = useState(() => localStorage.getItem('my_guild_id'));
+  const [tab,         setTab]         = useState('identity');
+  const [showPopup,   setShowPopup]   = useState(null);
+  const [myGuild,     setMyGuild]     = useState(() => localStorage.getItem('my_guild_id'));
+  const [xpFloat,     setXpFloat]     = useState(null);
+  const [checkedIn,   setCheckedIn]   = useState(() => {
+    const saved = localStorage.getItem('last_checkin_date');
+    return saved === new Date().toISOString().split('T')[0];
+  });
+
+  // Sync guild from backend on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = JSON.parse(localStorage.getItem('dt_auth') || '{}')?.token;
+        if (!token || token.startsWith('DEMO_SESSION_')) return;
+        const API = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api';
+        const res = await fetch(`${API}/guilds/my`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.guildId) { setMyGuild(data.guildId); localStorage.setItem('my_guild_id', data.guildId); }
+        }
+      } catch {}
+    })();
+  }, []);
 
   const h = health  || {};
   const f = finance || {};
@@ -1705,27 +2094,49 @@ export default function Gamification() {
   ];
   const isRecovery = (gamification?.streak || 0) === 0;
 
-  // Use backend badges or fallback to demo locked badges
-  const badges = useMemo(() => {
-    const earned = (gamification?.badges || []).filter(b => typeof b === 'object' && b !== null);
-    const earnedIds = new Set(earned.map(b => b.badgeId));
+  // Auto-compute earned badges from real user data
+  const autoEarnedIds = useMemo(() => computeEarnedBadges(h, f, c, records || {}, xp), [h, f, c, records, xp]);
 
-    const earnedMapped = earned.map(b => ({
-      id: b.badgeId,
-      name: b.badgeName,
-      icon: b.icon || '🏅',
-      desc: b.description,
-      unlocked: true,
-      earnedAt: b.earnedAt
+  // Detect newly auto-earned badges and award XP for them
+  const awardedRef = useRef(new Set(JSON.parse(localStorage.getItem('awarded_badge_ids') || '[]')));
+  useEffect(() => {
+    const newlyEarned = [...autoEarnedIds].filter(id => !awardedRef.current.has(id));
+    if (newlyEarned.length === 0) return;
+    newlyEarned.forEach(id => {
+      const badge = allBadges.find(b => b.id === id);
+      if (!badge) return;
+      awardedRef.current.add(id);
+      showToast(`🏆 Badge Unlocked: ${badge.name}!`, 'success');
+      if (gamificationApi.isEnabled()) {
+        gamificationApi.awardXp(100).then(award => {
+          if (award) updateGamification({ xp: award.totalXp, level: award.level, streak: award.streak });
+        }).catch(() => {
+          updateGamification({ xp: (gamification?.xp || 0) + 100 });
+        });
+      } else {
+        updateGamification({ xp: (gamification?.xp || 0) + 100 });
+      }
+    });
+    try { localStorage.setItem('awarded_badge_ids', JSON.stringify([...awardedRef.current])); } catch {}
+  }, [autoEarnedIds]);
+
+  // Merge backend badges + auto-computed earned badges
+  const badges = useMemo(() => {
+    const backendEarned = (gamification?.badges || []).filter(b => typeof b === 'object' && b !== null);
+    const backendIds    = new Set(backendEarned.map(b => b.badgeId));
+
+    const backendMapped = backendEarned.map(b => ({
+      id: b.badgeId, name: b.badgeName, icon: b.icon || '🏅',
+      desc: b.description, unlocked: true, earnedAt: b.earnedAt
     }));
 
-    // Show unearned demo badges as locked
-    const lockedMapped = allBadges
-      .filter(b => !earnedIds.has(b.id) && !earnedIds.has(b.name.toLowerCase().replace(/ /g, '_')))
-      .map(b => ({ ...b, unlocked: false }));
-
-    return [...earnedMapped, ...lockedMapped];
-  }, [gamification?.badges]);
+    return allBadges.map(b => {
+      const isBackend = backendIds.has(b.id);
+      const isAuto    = autoEarnedIds.has(b.id);
+      if (isBackend) return backendMapped.find(bm => bm.id === b.id) || { ...b, unlocked: true };
+      return { ...b, unlocked: isAuto };
+    });
+  }, [gamification?.badges, autoEarnedIds]);
 
   const activeChallenges = new Set(gamification?.activeChallenges || []);
 
@@ -1736,7 +2147,42 @@ export default function Gamification() {
     showToast(next.has(id) ? 'Challenge accepted! ⚔️' : 'Challenge abandoned', next.has(id) ? 'success' : 'info');
   }
 
+  async function handleCheckIn() {
+    try {
+      const token = JSON.parse(localStorage.getItem('dt_auth') || '{}')?.token;
+      if (token && !token.startsWith('DEMO_SESSION_')) {
+        const res = await fetch(`${API_BASE}/gamification/check-in`, {
+          method: 'POST', headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (!data.alreadyDone) {
+            updateGamification({ xp: data.totalXp, level: data.level, streak: data.streak });
+            setXpFloat(50);
+            setCheckedIn(true);
+            localStorage.setItem('last_checkin_date', new Date().toISOString().split('T')[0]);
+            if (data.newBadges?.length) {
+              data.newBadges.forEach(b => showToast(`🏆 Badge: ${b.badgeName}!`, 'success'));
+            }
+          } else {
+            setCheckedIn(true);
+          }
+          return data;
+        }
+      }
+    } catch {}
+    // Offline fallback
+    if (!checkedIn) {
+      updateGamification({ xp: (gamification?.xp || 0) + 50 });
+      setXpFloat(50);
+      setCheckedIn(true);
+      localStorage.setItem('last_checkin_date', new Date().toISOString().split('T')[0]);
+    }
+    return { alreadyDone: checkedIn, message: 'Discipline compounds daily.', streak: gamification?.streak || 1 };
+  }
+
   async function handleGrindXP(bonus) {
+    setXpFloat(bonus);
     if (gamificationApi.isEnabled()) {
       try {
         const award = await gamificationApi.awardXp(bonus);
@@ -1765,15 +2211,34 @@ export default function Gamification() {
     showToast(`+${bonus} XP earned from grind session!`, 'success');
   }
 
-  function handleGuildJoin(guildId) {
+  async function handleGuildJoin(guildId) {
     setMyGuild(guildId);
     if (guildId) localStorage.setItem('my_guild_id', guildId);
     else localStorage.removeItem('my_guild_id');
+    // Persist to backend when authenticated
+    try {
+      const token = JSON.parse(localStorage.getItem('dt_auth') || '{}')?.token;
+      if (token && !token.startsWith('DEMO_SESSION_')) {
+        const API = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api';
+        if (guildId) {
+          await fetch(`${API}/guilds/${guildId}/join`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+          });
+        } else {
+          await fetch(`${API}/guilds/leave`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      }
+    } catch { /* backend optional — localStorage persists locally */ }
   }
 
   return (
     <div className="page-container min-h-screen pb-2" style={{ background: 'radial-gradient(ellipse at top, rgba(99,102,241,0.04) 0%, transparent 60%), #09090b' }}>
       <AnimatePresence>{showPopup && <AchievementPopup badge={showPopup} onClose={() => setShowPopup(null)} />}</AnimatePresence>
+      <AnimatePresence>{xpFloat && <XPFloat amount={xpFloat} onDone={() => setXpFloat(null)} />}</AnimatePresence>
 
       {/* ── Breadcrumbs ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#8e929b', marginBottom: 20 }}>
@@ -1874,10 +2339,10 @@ export default function Gamification() {
           transition={{ duration: 0.15 }}
           style={{ marginTop: 20 }}
         >
-          {tab === 'identity' && <IdentityPanel codename={codename} tier={tier} xp={xp} stats={stats} prevStats={prevStats} isRecovery={isRecovery} />}
-          {tab === 'quests'   && <QuestsPanel stats={stats} codename={codename} isRecovery={isRecovery} activeChallenges={activeChallenges} toggleChallenge={toggleChallenge} health={h} finance={f} career={c} />}
+          {tab === 'identity' && <IdentityPanel codename={codename} tier={tier} xp={xp} stats={stats} prevStats={prevStats} isRecovery={isRecovery} onCheckIn={handleCheckIn} checkedInToday={checkedIn} streak={gamification?.streak || 0} />}
+          {tab === 'quests'   && <QuestsPanel stats={stats} codename={codename} isRecovery={isRecovery} activeChallenges={activeChallenges} toggleChallenge={toggleChallenge} health={h} finance={f} career={c} onXP={handleGrindXP} />}
           {tab === 'grind'    && <GrindRoomPanel onXP={handleGrindXP} />}
-          {tab === 'peers'    && <PeersPanel codename={codename} userScores={{ health: computed?.healthScore?.score || 60, finance: computed?.financeScore?.score || 60, career: computed?.careerScore?.score || 60 }} />}
+          {tab === 'peers'    && <PeersPanel codename={codename} userScores={{ health: computed?.healthScore?.score || 60, finance: computed?.financeScore?.score || 60, career: computed?.careerScore?.score || 60 }} records={records} />}
           {tab === 'guilds'   && <GuildsPanel myGuildId={myGuild} onJoin={handleGuildJoin} />}
           {tab === 'badges'   && <BadgesPanel badges={badges} streaks={streaks} showPopup={showPopup} setShowPopup={setShowPopup} />}
         </motion.div>

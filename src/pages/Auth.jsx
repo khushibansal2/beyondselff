@@ -112,6 +112,7 @@ export function Signup() {
   const [gender, setGender] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowWarning, setSlowWarning] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
 
@@ -120,15 +121,20 @@ export function Signup() {
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     if (age && (parseInt(age) < 10 || parseInt(age) > 120)) { setError('Please enter a valid age'); return; }
     setLoading(true);
+    setSlowWarning(false);
     setError('');
+    const slowTimer = setTimeout(() => setSlowWarning(true), 6000);
     try {
       const result = await signup(name, email, password, age ? parseInt(age) : null, gender || null);
+      clearTimeout(slowTimer);
       if (result.success) navigate('/dashboard');
       else setError(result.error || 'Signup failed');
     } catch {
+      clearTimeout(slowTimer);
       setError('Unexpected error. Please try again.');
     } finally {
       setLoading(false);
+      setSlowWarning(false);
     }
   };
 
@@ -182,6 +188,11 @@ export function Signup() {
                 </select>
               </div>
             </div>
+            {slowWarning && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400">
+                ⏳ Server is waking up — this can take up to 30 seconds on first use. Please wait…
+              </div>
+            )}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2">
               {loading ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity }} className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" /> : 'Create Account →'}
             </button>

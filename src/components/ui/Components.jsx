@@ -262,7 +262,7 @@ export function ToastContainer() {
   }, []);
 
   return (
-    <div className="fixed bottom-20 lg:bottom-6 right-6 z-[100] space-y-2">
+    <div className="fixed bottom-20 lg:bottom-6 right-3 sm:right-6 z-[100] space-y-2 max-w-[calc(100vw-24px)] sm:max-w-xs">
       <AnimatePresence>
         {items.map(t => (
           <motion.div key={t.id} initial={{ opacity: 0, x: 50, scale: 0.8 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 50 }} className={`toast toast-${t.type}`}>

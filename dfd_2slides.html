@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BeyondSelf – DFD</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#0d1117;overflow:hidden;font-family:'Segoe UI',sans-serif}
+.slide{display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;padding:14px 18px 52px}
+.slide.active{display:flex}
+h2{color:#ffffff;font-size:21px;font-weight:800;margin-bottom:2px;text-align:center}
+.sub{color:#64748b;font-size:12px;margin-bottom:10px;text-align:center}
+.legend{display:flex;gap:22px;justify-content:center;margin-bottom:8px}
+.leg{display:flex;align-items:center;gap:7px;font-size:11px;color:#cbd5e1;font-weight:500}
+.lp{width:28px;height:15px;background:#0b1a35;border:2px solid #2563eb;border-radius:50%}
+.le{width:26px;height:15px;background:#160d2e;border:2px solid #7c3aed;border-radius:3px}
+.lds{width:28px;height:14px;border-top:2px solid #16a34a;border-bottom:2px solid #16a34a}
+.lf{width:28px;height:2px;background:#94a3b8;position:relative;top:-1px}
+.lf::after{content:'▶';position:absolute;right:-8px;top:-8px;color:#94a3b8;font-size:10px}
+.nav{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px}
+.nav button{background:#1e293b;color:#fff;border:1.5px solid #334155;padding:7px 22px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.nav button:hover{background:#2563eb;border-color:#2563eb}
+#ctr{color:#475569;font-size:12px}
+</style>
+</head>
+<body>
+
+<!-- ======================== SLIDE 1: Level-1 DFD ======================== -->
+<div class="slide active">
+  <h2>BeyondSelf — Data Flow Diagram &nbsp;|&nbsp; Level 1</h2>
+  <div class="sub">All six processes · five data stores · external entities · primary data flows</div>
+  <div class="legend">
+    <div class="leg"><div class="lp"></div>Process</div>
+    <div class="leg"><div class="le"></div>External Entity</div>
+    <div class="leg"><div class="lds"></div>Data Store</div>
+    <div class="leg"><div class="lf"></div>Data Flow</div>
+  </div>
+
+  <svg viewBox="0 0 1100 490" style="width:100%;max-height:calc(100vh - 124px)">
+    <defs>
+      <marker id="aw" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#94a3b8"/>
+      </marker>
+      <marker id="aww" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#ffffff"/>
+      </marker>
+      <marker id="awg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#4ade80"/>
+      </marker>
+    </defs>
+
+    <!-- ── EXTERNAL ENTITIES LEFT ── -->
+    <rect x="10" y="50" width="125" height="48" rx="6" fill="#160d2e" stroke="#7c3aed" stroke-width="2"/>
+    <text x="72" y="71" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">User</text>
+    <text x="72" y="88" text-anchor="middle" fill="#a78bfa" font-size="10">Browser Client</text>
+
+    <rect x="10" y="165" width="125" height="48" rx="6" fill="#160d2e" stroke="#7c3aed" stroke-width="2"/>
+    <text x="72" y="185" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">File Uploads</text>
+    <text x="72" y="202" text-anchor="middle" fill="#a78bfa" font-size="10">CSV · PDF · Excel</text>
+
+    <rect x="10" y="280" width="125" height="62" rx="6" fill="#160d2e" stroke="#7c3aed" stroke-width="2"/>
+    <text x="72" y="301" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">External APIs</text>
+    <text x="72" y="317" text-anchor="middle" fill="#a78bfa" font-size="10">GitHub · Fitbit</text>
+    <text x="72" y="331" text-anchor="middle" fill="#a78bfa" font-size="10">Adzuna · Nutritionix</text>
+
+    <rect x="10" y="410" width="125" height="48" rx="6" fill="#160d2e" stroke="#7c3aed" stroke-width="2"/>
+    <text x="72" y="431" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Groq · Gemini</text>
+    <text x="72" y="448" text-anchor="middle" fill="#a78bfa" font-size="10">AI Model APIs</text>
+
+    <!-- ── EXTERNAL ENTITIES RIGHT ── -->
+    <rect x="963" y="50" width="125" height="48" rx="6" fill="#160d2e" stroke="#7c3aed" stroke-width="2"/>
+    <text x="1025" y="71" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">PostgreSQL</text>
+    <text x="1025" y="88" text-anchor="middle" fill="#a78bfa" font-size="10">Spring Boot DB</text>
+
+    <rect x="963" y="410" width="125" height="48" rx="6" fill="#160d2e" stroke="#7c3aed" stroke-width="2"/>
+    <text x="1025" y="431" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">localStorage</text>
+    <text x="1025" y="448" text-anchor="middle" fill="#a78bfa" font-size="10">Offline · Demo Data</text>
+
+    <!-- ── PROCESSES ── -->
+    <!-- P1: Auth -->
+    <ellipse cx="278" cy="100" rx="100" ry="46" fill="#0b1a35" stroke="#2563eb" stroke-width="2.5"/>
+    <text x="278" y="90" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">P1</text>
+    <text x="278" y="105" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Authentication</text>
+    <text x="278" y="120" text-anchor="middle" fill="#94a3b8" font-size="10">JWT · Demo · AuthContext</text>
+
+    <!-- P2: Ingestion -->
+    <ellipse cx="278" cy="370" rx="100" ry="46" fill="#0b1a35" stroke="#2563eb" stroke-width="2.5"/>
+    <text x="278" y="360" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">P2</text>
+    <text x="278" y="375" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Data Ingestion</text>
+    <text x="278" y="390" text-anchor="middle" fill="#94a3b8" font-size="10">Parse · Normalize · Dispatch</text>
+
+    <!-- P3: Scoring -->
+    <ellipse cx="548" cy="175" rx="108" ry="50" fill="#0b1a35" stroke="#2563eb" stroke-width="2.5"/>
+    <text x="548" y="163" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">P3</text>
+    <text x="548" y="179" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Scoring &amp; Analytics</text>
+    <text x="548" y="195" text-anchor="middle" fill="#94a3b8" font-size="10">Health · Finance · Career + Cascade</text>
+
+    <!-- P4: AI -->
+    <ellipse cx="548" cy="390" rx="108" ry="50" fill="#0b1a35" stroke="#2563eb" stroke-width="2.5"/>
+    <text x="548" y="378" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">P4</text>
+    <text x="548" y="394" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">AI Intelligence</text>
+    <text x="548" y="410" text-anchor="middle" fill="#94a3b8" font-size="10">Gemini → Groq → Templates</text>
+
+    <!-- P5: Goals -->
+    <ellipse cx="808" cy="185" rx="100" ry="46" fill="#0b1a35" stroke="#2563eb" stroke-width="2.5"/>
+    <text x="808" y="174" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">P5</text>
+    <text x="808" y="189" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Goals &amp; Gamification</text>
+    <text x="808" y="205" text-anchor="middle" fill="#94a3b8" font-size="10">XP · Badges · Simulator</text>
+
+    <!-- P6: Presentation -->
+    <ellipse cx="808" cy="400" rx="100" ry="46" fill="#0b1a35" stroke="#2563eb" stroke-width="2.5"/>
+    <text x="808" y="389" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">P6</text>
+    <text x="808" y="404" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">Presentation Layer</text>
+    <text x="808" y="420" text-anchor="middle" fill="#94a3b8" font-size="10">Dashboard · Coach · Insights</text>
+
+    <!-- ── DATA STORES ── -->
+    <!-- D1: User Store -->
+    <line x1="185" y1="212" x2="375" y2="212" stroke="#16a34a" stroke-width="2"/>
+    <line x1="185" y1="230" x2="375" y2="230" stroke="#16a34a" stroke-width="2"/>
+    <text x="280" y="225" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">D1 · User / Auth Store</text>
+
+    <!-- D2: Domain Records (wide, center) -->
+    <line x1="175" y1="280" x2="650" y2="280" stroke="#16a34a" stroke-width="2.2"/>
+    <line x1="175" y1="300" x2="650" y2="300" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="412" y="294" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">D2 · Domain Records &nbsp;( Health · Finance · Career )</text>
+
+    <!-- D3: Score Cache -->
+    <line x1="450" y1="80" x2="645" y2="80" stroke="#16a34a" stroke-width="2"/>
+    <line x1="450" y1="98" x2="645" y2="98" stroke="#16a34a" stroke-width="2"/>
+    <text x="547" y="93" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">D3 · Score Cache</text>
+
+    <!-- D4: AI Cache -->
+    <line x1="450" y1="456" x2="645" y2="456" stroke="#16a34a" stroke-width="2"/>
+    <line x1="450" y1="474" x2="645" y2="474" stroke="#16a34a" stroke-width="2"/>
+    <text x="547" y="469" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">D4 · AI Response Cache</text>
+
+    <!-- D5: Goals/XP -->
+    <line x1="710" y1="305" x2="905" y2="305" stroke="#16a34a" stroke-width="2"/>
+    <line x1="710" y1="323" x2="905" y2="323" stroke="#16a34a" stroke-width="2"/>
+    <text x="807" y="318" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">D5 · Goals / XP / Badges</text>
+
+    <!-- ── ARROWS ── (with white label backgrounds) -->
+
+    <!-- User → P1 -->
+    <line x1="135" y1="74" x2="178" y2="88" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="130" y="62" width="90" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="175" y="74" text-anchor="middle" fill="#ffffff" font-size="10">credentials</text>
+
+    <!-- P1 → D1 -->
+    <line x1="278" y1="146" x2="278" y2="212" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="284" y="172" width="76" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="322" y="184" text-anchor="middle" fill="#ffffff" font-size="10">user profile</text>
+
+    <!-- D1 → P3 (user context) -->
+    <line x1="360" y1="221" x2="455" y2="185" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="368" y="196" width="76" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="406" y="208" text-anchor="middle" fill="#ffffff" font-size="10">user context</text>
+
+    <!-- File Uploads → P2 -->
+    <line x1="135" y1="189" x2="178" y2="355" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="118" y="264" width="55" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="145" y="276" text-anchor="middle" fill="#ffffff" font-size="10">files</text>
+
+    <!-- External APIs → P2 -->
+    <line x1="135" y1="311" x2="178" y2="368" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="118" y="342" width="68" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="152" y="354" text-anchor="middle" fill="#ffffff" font-size="10">API data</text>
+
+    <!-- Groq/Gemini → P4 -->
+    <line x1="135" y1="434" x2="440" y2="410" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="212" y="433" width="88" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="256" y="445" text-anchor="middle" fill="#ffffff" font-size="10">AI responses</text>
+
+    <!-- P2 → D2 -->
+    <line x1="278" y1="324" x2="278" y2="300" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="284" y="308" width="62" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="315" y="320" text-anchor="middle" fill="#ffffff" font-size="10">records</text>
+
+    <!-- D2 → P3 -->
+    <line x1="500" y1="283" x2="500" y2="225" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="506" y="250" width="84" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="548" y="262" text-anchor="middle" fill="#ffffff" font-size="10">domain data</text>
+
+    <!-- D2 → P4 -->
+    <line x1="555" y1="300" x2="555" y2="340" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="561" y="316" width="74" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="598" y="328" text-anchor="middle" fill="#ffffff" font-size="10">AI context</text>
+
+    <!-- P3 → D3 -->
+    <line x1="520" y1="125" x2="518" y2="98" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="526" y="108" width="54" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="553" y="120" text-anchor="middle" fill="#ffffff" font-size="10">scores</text>
+
+    <!-- D3 → P5 -->
+    <line x1="645" y1="89" x2="710" y2="162" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="651" y="112" width="72" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="687" y="124" text-anchor="middle" fill="#ffffff" font-size="10">life scores</text>
+
+    <!-- D3 → P6 (dashed) -->
+    <line x1="645" y1="93" x2="710" y2="380" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#aw)"/>
+
+    <!-- P4 → D4 -->
+    <line x1="548" y1="440" x2="548" y2="456" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="554" y="444" width="76" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="592" y="456" text-anchor="middle" fill="#ffffff" font-size="10">cache resp.</text>
+
+    <!-- D4 → P6 -->
+    <line x1="645" y1="463" x2="710" y2="424" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="649" y="449" width="70" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="684" y="461" text-anchor="middle" fill="#ffffff" font-size="10">AI insights</text>
+
+    <!-- P5 → D5 -->
+    <line x1="808" y1="231" x2="808" y2="305" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#aw)"/>
+    <rect x="814" y="262" width="60" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="844" y="274" text-anchor="middle" fill="#ffffff" font-size="10">XP / goals</text>
+
+    <!-- D5 → P6 -->
+    <line x1="808" y1="323" x2="808" y2="354" stroke="#4ade80" stroke-width="1.8" marker-end="url(#awg)"/>
+    <rect x="814" y="333" width="62" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="845" y="345" text-anchor="middle" fill="#ffffff" font-size="10">badges/XP</text>
+
+    <!-- P1 → PostgreSQL (dashed) -->
+    <line x1="378" y1="88" x2="963" y2="72" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#aw)"/>
+    <rect x="590" y="62" width="120" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="650" y="74" text-anchor="middle" fill="#ffffff" font-size="10">auth sync · JWT</text>
+
+    <!-- P6 → User (return) -->
+    <path d="M 730,375 Q 500,480 135,90" fill="none" stroke="#ffffff" stroke-width="1.8" marker-end="url(#aww)" stroke-dasharray="6,3"/>
+    <rect x="320" y="460" width="120" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="380" y="472" text-anchor="middle" fill="#ffffff" font-size="10">rendered dashboard</text>
+
+    <!-- localStorage → P2 (demo data, dashed green) -->
+    <line x1="963" y1="428" x2="378" y2="380" stroke="#4ade80" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#awg)"/>
+    <rect x="582" y="415" width="136" height="17" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="650" y="427" text-anchor="middle" fill="#ffffff" font-size="10">demo personas · cache</text>
+  </svg>
+</div>
+
+<!-- ======================== SLIDE 2: Level-2 DFD ======================== -->
+<div class="slide">
+  <h2>BeyondSelf — Data Flow Diagram &nbsp;|&nbsp; Level 2</h2>
+  <div class="sub">Expanded: Scoring Engine (P3) · AI Intelligence (P4) · Goals &amp; Output (P5 · P6)</div>
+  <div class="legend">
+    <div class="leg"><div class="lp"></div>Process</div>
+    <div class="leg"><div class="le"></div>External Entity</div>
+    <div class="leg"><div class="lds"></div>Data Store</div>
+    <div class="leg"><div class="lf"></div>Data Flow</div>
+  </div>
+
+  <svg viewBox="0 0 1100 490" style="width:100%;max-height:calc(100vh - 124px)">
+    <defs>
+      <marker id="b" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#94a3b8"/>
+      </marker>
+      <marker id="bo" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#fb923c"/>
+      </marker>
+      <marker id="bp" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#c084fc"/>
+      </marker>
+      <marker id="bg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#4ade80"/>
+      </marker>
+      <marker id="bw" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0,9 3.5,0 7" fill="#ffffff"/>
+      </marker>
+    </defs>
+
+    <!-- ── D2: Domain Records as INPUT at top ── -->
+    <line x1="10" y1="42" x2="690" y2="42" stroke="#16a34a" stroke-width="2.2"/>
+    <line x1="10" y1="60" x2="690" y2="60" stroke="#16a34a" stroke-width="2.2"/>
+    <text x="350" y="55" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">D2 · Domain Records &nbsp;—&nbsp; input to all processes below</text>
+
+    <!-- ── SCORING ENGINE (left block) ── -->
+    <rect x="14" y="82" width="430" height="360" rx="12" fill="#120800" stroke="#ea580c" stroke-width="2.2"/>
+    <text x="229" y="108" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="800">P3 · Scoring Engine</text>
+    <line x1="28" y1="118" x2="430" y2="118" stroke="#7c2d12" stroke-width="1.2"/>
+
+    <!-- P3.1 Health -->
+    <ellipse cx="145" cy="180" rx="105" ry="44" fill="#0f0500" stroke="#ea580c" stroke-width="2"/>
+    <text x="145" y="171" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">P3.1 · Health Score</text>
+    <text x="145" y="187" text-anchor="middle" fill="#fdba74" font-size="10">sleep · stress · BMI · steps</text>
+    <text x="145" y="201" text-anchor="middle" fill="#fdba74" font-size="10">→ 0 to 100</text>
+
+    <!-- P3.2 Finance -->
+    <ellipse cx="335" cy="180" rx="105" ry="44" fill="#0f0500" stroke="#ea580c" stroke-width="2"/>
+    <text x="335" y="171" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">P3.2 · Finance Score</text>
+    <text x="335" y="187" text-anchor="middle" fill="#fdba74" font-size="10">income · savings · debt</text>
+    <text x="335" y="201" text-anchor="middle" fill="#fdba74" font-size="10">→ 0 to 100</text>
+
+    <!-- P3.3 Career -->
+    <ellipse cx="145" cy="310" rx="105" ry="44" fill="#0f0500" stroke="#ea580c" stroke-width="2"/>
+    <text x="145" y="301" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">P3.3 · Career Score</text>
+    <text x="145" y="317" text-anchor="middle" fill="#fdba74" font-size="10">skills · projects · XP</text>
+    <text x="145" y="331" text-anchor="middle" fill="#fdba74" font-size="10">→ 0 to 100</text>
+
+    <!-- P3.5 Cascade -->
+    <rect x="240" y="272" width="192" height="130" rx="10" fill="#1a0500" stroke="#ea580c" stroke-width="2.5"/>
+    <text x="336" y="297" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="800">P3.5 · Cascade Effects</text>
+    <line x1="252" y1="305" x2="420" y2="305" stroke="#7c2d12" stroke-width="1"/>
+    <text x="336" y="323" text-anchor="middle" fill="#fdba74" font-size="10.5">sleep debt → emotional spending</text>
+    <text x="336" y="340" text-anchor="middle" fill="#fdba74" font-size="10.5">fin. stress → career readiness ↓</text>
+    <text x="336" y="357" text-anchor="middle" fill="#fdba74" font-size="10.5">low runway → upskill priority ↑</text>
+    <text x="336" y="374" text-anchor="middle" fill="#fb923c" font-size="9">lifeBalanceEngine.js</text>
+
+    <!-- Cascade arrows -->
+    <line x1="220" y1="214" x2="265" y2="282" stroke="#fb923c" stroke-width="1.6" marker-end="url(#bo)"/>
+    <line x1="335" y1="224" x2="335" y2="272" stroke="#fb923c" stroke-width="1.6" marker-end="url(#bo)"/>
+    <line x1="220" y1="325" x2="250" y2="332" stroke="#fb923c" stroke-width="1.6" marker-end="url(#bo)"/>
+
+    <!-- D3 output from P3 -->
+    <line x1="10" y1="458" x2="444" y2="458" stroke="#16a34a" stroke-width="2"/>
+    <line x1="10" y1="474" x2="444" y2="474" stroke="#16a34a" stroke-width="2"/>
+    <text x="227" y="470" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">D3 · Score Cache → P5 Goals · P6 Dashboard</text>
+
+    <!-- Scoring → D3 arrow -->
+    <line x1="229" y1="442" x2="229" y2="458" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#b)"/>
+    <rect x="236" y="446" width="74" height="16" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="273" y="458" text-anchor="middle" fill="#ffffff" font-size="10">final score</text>
+
+    <!-- ── EXTERNAL: Groq/Gemini ── -->
+    <rect x="462" y="88" width="128" height="48" rx="6" fill="#160d2e" stroke="#7c3aed" stroke-width="2"/>
+    <text x="526" y="109" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">Groq · Gemini</text>
+    <text x="526" y="126" text-anchor="middle" fill="#a78bfa" font-size="10">AI Model APIs</text>
+
+    <!-- ── AI INTELLIGENCE (right block) ── -->
+    <rect x="462" y="158" width="280" height="284" rx="12" fill="#0e0520" stroke="#7c3aed" stroke-width="2.2"/>
+    <text x="602" y="184" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="800">P4 · AI Intelligence</text>
+    <line x1="476" y1="194" x2="728" y2="194" stroke="#4c1d95" stroke-width="1.2"/>
+
+    <!-- P4.1 Gemini Proxy -->
+    <rect x="477" y="204" width="250" height="58" rx="8" fill="#0a0516" stroke="#7c3aed" stroke-width="1.8"/>
+    <text x="602" y="224" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">P4.1 · Gemini Backend Proxy</text>
+    <text x="602" y="241" text-anchor="middle" fill="#c4b5fd" font-size="10">PII strip → build prompt → POST /api/ai/chat</text>
+    <text x="602" y="255" text-anchor="middle" fill="#c4b5fd" font-size="10">catches 429 / rate limits</text>
+
+    <!-- P4.2 Groq -->
+    <rect x="477" y="276" width="250" height="58" rx="8" fill="#0a0516" stroke="#7c3aed" stroke-width="1.8"/>
+    <text x="602" y="296" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">P4.2 · Groq Direct Service</text>
+    <text x="602" y="313" text-anchor="middle" fill="#c4b5fd" font-size="10">VITE_GROQ_API_KEY · llama-3.3-70b</text>
+    <text x="602" y="327" text-anchor="middle" fill="#c4b5fd" font-size="10">nutrition · career intel · voice logs</text>
+
+    <!-- P4.3 Template Fallback -->
+    <rect x="477" y="348" width="250" height="58" rx="8" fill="#0a0516" stroke="#7c3aed" stroke-width="1.8"/>
+    <text x="602" y="368" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">P4.3 · Template Fallback</text>
+    <text x="602" y="385" text-anchor="middle" fill="#c4b5fd" font-size="10">deterministic score-based advice</text>
+    <text x="602" y="399" text-anchor="middle" fill="#c4b5fd" font-size="10">works fully offline</text>
+
+    <!-- Fallback arrows -->
+    <line x1="602" y1="262" x2="602" y2="276" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="4,2" marker-end="url(#bp)"/>
+    <rect x="608" y="264" width="44" height="14" rx="2" fill="#0d1117" opacity=".9"/>
+    <text x="630" y="274" text-anchor="middle" fill="#ffffff" font-size="9">429 →</text>
+    <line x1="602" y1="334" x2="602" y2="348" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="4,2" marker-end="url(#bp)"/>
+    <rect x="608" y="336" width="56" height="14" rx="2" fill="#0d1117" opacity=".9"/>
+    <text x="636" y="346" text-anchor="middle" fill="#ffffff" font-size="9">offline →</text>
+
+    <!-- D4 AI Cache -->
+    <line x1="462" y1="458" x2="742" y2="458" stroke="#16a34a" stroke-width="2"/>
+    <line x1="462" y1="474" x2="742" y2="474" stroke="#16a34a" stroke-width="2"/>
+    <text x="602" y="470" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">D4 · AI Cache → P6 Dashboard · Coach</text>
+
+    <!-- AI → D4 -->
+    <line x1="602" y1="442" x2="602" y2="458" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#b)"/>
+
+    <!-- ── P5 + P6 (far right column) ── -->
+    <rect x="762" y="82" width="324" height="180" rx="12" fill="#0b1a35" stroke="#2563eb" stroke-width="2.2"/>
+    <text x="924" y="108" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="800">P5 · Goals &amp; Gamification</text>
+    <line x1="776" y1="118" x2="1072" y2="118" stroke="#1e3a5f" stroke-width="1.2"/>
+    <text x="924" y="140" text-anchor="middle" fill="#ffffff" font-size="12">SMART Goal CRUD</text>
+    <text x="924" y="159" text-anchor="middle" fill="#94a3b8" font-size="11">Goal progress auto-calculated from D2</text>
+    <text x="924" y="178" text-anchor="middle" fill="#ffffff" font-size="12">XP Engine · 15 Badge Types</text>
+    <text x="924" y="197" text-anchor="middle" fill="#94a3b8" font-size="11">+10 XP/log · +50 XP/goal done · streaks</text>
+    <text x="924" y="216" text-anchor="middle" fill="#ffffff" font-size="12">Simulator Engine</text>
+    <text x="924" y="235" text-anchor="middle" fill="#94a3b8" font-size="11">3–12 month what-if projections</text>
+
+    <rect x="762" y="282" width="324" height="160" rx="12" fill="#0b1a35" stroke="#2563eb" stroke-width="2.2"/>
+    <text x="924" y="308" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="800">P6 · Presentation Layer</text>
+    <line x1="776" y1="318" x2="1072" y2="318" stroke="#1e3a5f" stroke-width="1.2"/>
+    <text x="924" y="340" text-anchor="middle" fill="#ffffff" font-size="12">Life Dashboard · Domain Pages</text>
+    <text x="924" y="358" text-anchor="middle" fill="#94a3b8" font-size="11">Unified score · Timeline · NeuralCore</text>
+    <text x="924" y="378" text-anchor="middle" fill="#ffffff" font-size="12">AI Coach Chat · Insights Page</text>
+    <text x="924" y="396" text-anchor="middle" fill="#94a3b8" font-size="11">40-message history · voice input</text>
+    <text x="924" y="416" text-anchor="middle" fill="#ffffff" font-size="12">Gamification · Simulator · Goals UI</text>
+
+    <!-- D2 → P3.1 / P3.2 / P3.3 arrows from top -->
+    <line x1="130" y1="60" x2="125" y2="136" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#b)"/>
+    <line x1="335" y1="60" x2="335" y2="136" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#b)"/>
+    <line x1="90" y1="60" x2="90" y2="266" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="4,2" marker-end="url(#b)"/>
+
+    <!-- D2 → P4 -->
+    <line x1="590" y1="60" x2="590" y2="158" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#b)"/>
+    <rect x="596" y="95" width="72" height="16" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="632" y="107" text-anchor="middle" fill="#ffffff" font-size="10">AI context</text>
+
+    <!-- D2 → P5 -->
+    <line x1="670" y1="51" x2="850" y2="82" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#b)"/>
+    <rect x="718" y="52" width="72" height="16" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="754" y="64" text-anchor="middle" fill="#ffffff" font-size="10">goal progress</text>
+
+    <!-- Groq/Gemini → P4.1 -->
+    <line x1="526" y1="136" x2="526" y2="158" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#b)"/>
+    <rect x="532" y="140" width="76" height="16" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="570" y="152" text-anchor="middle" fill="#ffffff" font-size="10">AI responses</text>
+
+    <!-- D3 → P5 / P6 -->
+    <line x1="400" y1="466" x2="762" y2="380" stroke="#4ade80" stroke-width="1.6" stroke-dasharray="4,2" marker-end="url(#bg)"/>
+    <rect x="530" y="436" width="70" height="16" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="565" y="448" text-anchor="middle" fill="#ffffff" font-size="10">scores</text>
+
+    <!-- D4 → P6 -->
+    <line x1="700" y1="466" x2="762" y2="400" stroke="#c084fc" stroke-width="1.6" stroke-dasharray="4,2" marker-end="url(#bp)"/>
+    <rect x="718" y="456" width="64" height="16" rx="3" fill="#0d1117" opacity=".9"/>
+    <text x="750" y="468" text-anchor="middle" fill="#ffffff" font-size="10">AI insights</text>
+  </svg>
+</div>
+
+<div class="nav">
+  <button onclick="go(-1)">← Level 1</button>
+  <span id="ctr">1 / 2</span>
+  <button onclick="go(1)">Level 2 →</button>
+</div>
+
+<script>
+const sl=document.querySelectorAll('.slide');let c=0;
+function go(d){
+  sl[c].classList.remove('active');
+  c=((c+d)%2+2)%2;
+  sl[c].classList.add('active');
+  document.getElementById('ctr').textContent=(c+1)+' / 2';
+}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight',' '].includes(e.key)){e.preventDefault();go(1)}
+  if(e.key==='ArrowLeft'){e.preventDefault();go(-1)}
+});
+</script>
+</body>
+</html>

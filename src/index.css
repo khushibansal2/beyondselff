@@ -314,10 +314,6 @@ select.input-premium option {
 
 /* ===== TOAST NOTIFICATION ===== */
 .toast {
-  position: fixed;
-  bottom: 80px;
-  right: 24px;
-  z-index: 100;
   padding: 14px 20px;
   border-radius: 14px;
   font-size: 0.85rem;
@@ -327,6 +323,7 @@ select.input-premium option {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,0.1);
   box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  white-space: nowrap;
 }
 
 .toast-success  { background: rgba(16, 185, 129, 0.2);  border-color: rgba(16, 185, 129, 0.3); }
@@ -554,10 +551,8 @@ input[type="range"]::-moz-range-thumb {
 /* ===== MOBILE TOAST POSITION ===== */
 @media (max-width: 640px) {
   .toast {
-    bottom: 90px;
-    right: 12px;
-    left: 12px;
     font-size: 0.8rem;
+    white-space: normal;
   }
 }
 

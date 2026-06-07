@@ -50,6 +50,7 @@ function TabBar({ tabs, active, onChange }) {
     linkedin: '#0077b5',
     nutritionix: '#10b981',
     fitbit: '#00b0b9',
+    plaid: '#00b573',
     banking: '#10b981'
   };
 
@@ -2361,6 +2362,309 @@ function FitbitPanel() {
   );
 }
 
+// ── PLAID PANEL ──────────────────────────────────────────────────────────────
+
+const PLAID_BACKEND = (import.meta.env.VITE_API_BASE || 'http://localhost:8080/api').replace(/\/api$/, '');
+
+function getPlaidAuthHeaders() {
+  try {
+    const raw = localStorage.getItem('dt_auth');
+    if (raw) {
+      const { token } = JSON.parse(raw);
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    }
+  } catch { /* ignore */ }
+  return { 'Content-Type': 'application/json' };
+}
+
+function PlaidPanel() {
+  const { updateDomain } = useData();
+  const [configured, setConfigured] = useState(null);
+  const [connected, setConnected]   = useState(false);
+  const [institution, setInstitution] = useState('');
+  const [transactions, setTransactions] = useState([]);
+  const [accounts, setAccounts]         = useState([]);
+  const [loading, setLoading]           = useState(false);
+  const [syncing, setSyncing]           = useState(false);
+  const [error, setError]               = useState('');
+  const [successMsg, setSuccessMsg]     = useState('');
+
+  useEffect(() => {
+    // Check if Plaid is configured + if user is already connected
+    fetch(`${PLAID_BACKEND}/api/plaid/config`)
+      .then(r => r.json())
+      .then(d => setConfigured(d.configured))
+      .catch(() => setConfigured(false));
+
+    fetch(`${PLAID_BACKEND}/api/plaid/status`, { headers: getPlaidAuthHeaders() })
+      .then(r => r.json())
+      .then(d => {
+        if (d.connected) {
+          setConnected(true);
+          setInstitution(d.institution || 'Bank');
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Dynamically load Plaid Link JS and open the widget
+  const openPlaidLink = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      // 1. Get a link token from our backend
+      const res = await fetch(`${PLAID_BACKEND}/api/plaid/create-link-token`, {
+        method: 'POST',
+        headers: getPlaidAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!data.configured || !data.linkToken) {
+        setError(data.reason || 'Could not create Plaid link token.');
+        setLoading(false);
+        return;
+      }
+      const linkToken = data.linkToken;
+
+      // 2. Load Plaid Link JS if not already loaded
+      if (!window.Plaid) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
+          script.onload = resolve;
+          script.onerror = () => reject(new Error('Failed to load Plaid Link script'));
+          document.head.appendChild(script);
+        });
+      }
+
+      // 3. Open Plaid Link
+      const handler = window.Plaid.create({
+        token: linkToken,
+        onSuccess: async (publicToken, metadata) => {
+          const inst = metadata?.institution?.name || 'Bank';
+          setInstitution(inst);
+          try {
+            const exRes = await fetch(`${PLAID_BACKEND}/api/plaid/exchange-token`, {
+              method: 'POST',
+              headers: getPlaidAuthHeaders(),
+              body: JSON.stringify({ publicToken, institutionName: inst }),
+            });
+            const exData = await exRes.json();
+            if (exData.connected) {
+              setConnected(true);
+              setSuccessMsg(`✅ ${inst} connected! Syncing transactions…`);
+              await syncTransactions();
+            } else {
+              setError(exData.reason || 'Token exchange failed.');
+            }
+          } catch (e) {
+            setError(e.message);
+          }
+        },
+        onExit: (err) => {
+          if (err) setError(err.display_message || err.error_message || 'Plaid Link closed.');
+          setLoading(false);
+        },
+      });
+
+      handler.open();
+      setLoading(false);
+    } catch (e) {
+      setError(e.message);
+      setLoading(false);
+    }
+  };
+
+  const syncTransactions = async () => {
+    setSyncing(true);
+    setError('');
+    try {
+      const res = await fetch(`${PLAID_BACKEND}/api/plaid/transactions`, {
+        headers: getPlaidAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!data.connected) { setError(data.reason || 'Not connected.'); return; }
+      if (data.syncError)   { setError(data.syncError); return; }
+
+      setTransactions(data.transactions || []);
+      setAccounts(data.accounts || []);
+
+      // Push spending totals into DataContext
+      const debits = (data.transactions || []).filter(t => t.amount > 0);
+      const totalSpend = debits.reduce((s, t) => s + t.amount, 0);
+      const income = (data.transactions || []).filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+      if (totalSpend > 0 || income > 0) {
+        updateDomain('finance', {
+          expenses:    Math.round(totalSpend),
+          income:      Math.round(income),
+          dataSource:  'plaid',
+        });
+      }
+      setSuccessMsg(`Synced ${data.transactionCount} transactions from ${data.startDate} to ${data.endDate}`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const disconnect = async () => {
+    try {
+      await fetch(`${PLAID_BACKEND}/api/plaid/disconnect`, {
+        method: 'POST',
+        headers: getPlaidAuthHeaders(),
+      });
+      setConnected(false);
+      setTransactions([]);
+      setAccounts([]);
+      setInstitution('');
+      setSuccessMsg('');
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  // Category → colour mapping
+  const catColor = (cat = '') => {
+    const c = cat.toLowerCase();
+    if (c.includes('food') || c.includes('restaurant')) return '#f59e0b';
+    if (c.includes('travel') || c.includes('transport'))  return '#6366f1';
+    if (c.includes('shop') || c.includes('retail'))       return '#ec4899';
+    if (c.includes('health') || c.includes('medical'))    return '#10b981';
+    if (c.includes('entertainment'))                       return '#8b5cf6';
+    if (c.includes('transfer') || c.includes('payment'))  return '#3b82f6';
+    return '#71717a';
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+      {/* Header card */}
+      <GlassCard>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg,#00b573,#0085ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+              🏦
+            </div>
+            <div>
+              <p style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>Plaid Bank Connect</p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>
+                {connected ? `Connected · ${institution}` : 'Link your bank account to sync real transactions'}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {configured === false && (
+              <span style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}>
+                Set PLAID_CLIENT_ID + PLAID_SECRET
+              </span>
+            )}
+            {connected ? (
+              <>
+                <button
+                  onClick={syncTransactions}
+                  disabled={syncing}
+                  style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.1)', color: '#34d399', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  {syncing ? '⏳ Syncing…' : '🔄 Sync Transactions'}
+                </button>
+                <button
+                  onClick={disconnect}
+                  style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(239,68,68,0.2)', background: 'transparent', color: '#f87171', fontSize: 12, cursor: 'pointer' }}>
+                  Disconnect
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={openPlaidLink}
+                disabled={loading || configured === false}
+                style={{ padding: '10px 22px', borderRadius: 12, border: 'none', background: configured === false ? '#1e293b' : 'linear-gradient(135deg,#00b573,#0085ff)', color: configured === false ? '#475569' : '#fff', fontSize: 13, fontWeight: 700, cursor: configured === false ? 'default' : 'pointer', boxShadow: configured === false ? 'none' : '0 4px 16px rgba(0,181,115,0.3)' }}>
+                {loading ? '⏳ Opening…' : '🔗 Connect Bank'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {error      && <p style={{ marginTop: 12, fontSize: 12, color: '#f87171', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 12px', borderRadius: 8 }}>{error}</p>}
+        {successMsg && <p style={{ marginTop: 12, fontSize: 12, color: '#34d399', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', padding: '8px 12px', borderRadius: 8 }}>{successMsg}</p>}
+
+        {/* Sandbox tip */}
+        {configured !== false && !connected && (
+          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 10, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)' }}>
+            <p style={{ fontSize: 11, color: '#818cf8', margin: 0, fontWeight: 600 }}>Sandbox test credentials</p>
+            <p style={{ fontSize: 11, color: '#64748b', margin: '4px 0 0' }}>
+              Username: <code style={{ color: '#a5b4fc' }}>user_good</code> &nbsp;·&nbsp; Password: <code style={{ color: '#a5b4fc' }}>pass_good</code>
+            </p>
+          </div>
+        )}
+      </GlassCard>
+
+      {/* Accounts */}
+      {accounts.length > 0 && (
+        <GlassCard>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Linked Accounts</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            {accounts.map(a => (
+              <div key={a.id} style={{ padding: '10px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>{a.name}</p>
+                <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0', textTransform: 'capitalize' }}>{a.type} · {a.subtype}</p>
+                <p style={{ fontSize: 15, fontWeight: 800, color: '#10b981', margin: '6px 0 0' }}>${a.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Transactions */}
+      {transactions.length > 0 && (
+        <GlassCard>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Recent Transactions ({transactions.length})
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 380, overflowY: 'auto' }}>
+            {transactions.map((t, i) => (
+              <div key={t.id || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: catColor(t.category), flexShrink: 0 }} />
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>{t.merchantName || t.name}</p>
+                    <p style={{ fontSize: 10, color: '#475569', margin: 0 }}>{t.date} · {t.category}</p>
+                  </div>
+                </div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: t.amount > 0 ? '#f87171' : '#34d399', margin: 0 }}>
+                  {t.amount > 0 ? '-' : '+'}${Math.abs(t.amount).toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* How it works */}
+      {!connected && (
+        <GlassCard>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 12 }}>How it works</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              ['🔗', 'Click Connect Bank', 'Opens Plaid Link — a secure, bank-grade OAuth flow'],
+              ['🏛️', 'Select your bank', 'Choose from 12,000+ supported institutions'],
+              ['✅', 'Authorize access', 'Read-only access — we never see your credentials'],
+              ['📊', 'Transactions sync', 'Last 30 days of transactions imported to your Digital Twin'],
+            ].map(([icon, title, desc]) => (
+              <div key={title} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>{title}</p>
+                  <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+    </div>
+  );
+}
+
 // ── INDIA BANKING PANEL ──────────────────────────────────────────────────────
 
 
@@ -3940,6 +4244,7 @@ const TABS = [
   { id: 'linkedin',    label: 'LinkedIn',     icon: Linkedin,   color: 'text-[#0077b5]'    },
   { id: 'nutritionix', label: 'Nutrition',    icon: Utensils,   color: 'text-emerald-400'  },
   { id: 'fitbit',      label: 'Fitbit',       icon: Activity,   color: 'text-[#00b0b9]'    },
+  { id: 'plaid',       label: 'Plaid',        icon: Landmark,   color: 'text-[#00b573]'    },
   { id: 'banking',     label: 'Banking',      icon: Landmark,   color: 'text-emerald-400'  },
   { id: 'coursera',    label: 'Coursera',     icon: BookOpen,   color: 'text-[#0056d2]'    },
 ];
@@ -4069,6 +4374,7 @@ export default function Integrations() {
           {tab === 'linkedin'    && <LinkedInPanel />}
           {tab === 'nutritionix' && <NutritionixPanel />}
           {tab === 'fitbit'      && <FitbitPanel />}
+          {tab === 'plaid'       && <PlaidPanel />}
           {tab === 'banking'     && <IndiaBankingPanel />}
           {tab === 'coursera'    && <CourseraPanel />}
         </motion.div>

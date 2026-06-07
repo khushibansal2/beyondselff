@@ -27,7 +27,7 @@ const EMPTY_STATE = {
   health: {},
   finance: {},
   career: {
-    studyHoursDaily: 3,
+    studyHoursDaily: 4,
     codingHoursDaily: 2,
     dsaPractice: 2,
     projectsCompleted: 3,

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — Solutions 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#060614;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.scale-wrap{width:1400px;height:900px;transform-origin:center center;flex-shrink:0;}
+.slide{width:1400px;height:900px;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,#0c0a2e 0%,#060614 70%);}
+.slide::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(139,92,246,0.07) 1px,transparent 1px);background-size:44px 44px;}
+.top-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#5b21b6,#8b5cf6,#22d3ee,#8b5cf6,#5b21b6);}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(90px);}
+.orb1{width:500px;height:500px;background:rgba(139,92,246,0.1);top:-150px;left:-100px;}
+.orb2{width:400px;height:400px;background:rgba(34,211,238,0.07);bottom:-120px;right:-80px;}
+
+/* HEADER */
+.hdr{position:absolute;top:32px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.ey{font-size:8.5px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:rgba(196,181,253,0.5);display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ey::before{content:'';width:18px;height:1px;background:rgba(196,181,253,0.3);}
+.ht{font-size:33px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.0;}
+.ht span{background:linear-gradient(135deg,#ede9fe 0%,#c4b5fd 40%,#8b5cf6 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-r{text-align:right;}
+.pg{font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(139,92,246,0.5);}
+.pg-sub{font-size:9px;color:rgba(200,190,255,0.35);margin-top:3px;}
+
+/* GRID */
+.grid{position:absolute;top:116px;left:60px;right:60px;bottom:42px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;}
+
+/* BASE CARD */
+.card{border-radius:16px;padding:18px 20px 16px;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.025);}
+.card::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;background:radial-gradient(ellipse 100% 45% at 50% 0%,rgba(255,255,255,0.04),transparent 60%);}
+.c1{border-top:2px solid #a855f7;} .c2{border-top:2px solid #22d3ee;} .c3{border-top:2px solid #ec4899;}
+.c4{border-top:2px solid #f59e0b;} .c5{border-top:2px solid #10b981;} .c6{border-top:2px solid #f43f5e;}
+
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.ci{font-size:18px;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ci1{background:rgba(168,85,247,0.1);} .ci2{background:rgba(34,211,238,0.1);} .ci3{background:rgba(236,72,153,0.1);}
+.ci4{background:rgba(245,158,11,0.1);} .ci5{background:rgba(16,185,129,0.1);} .ci6{background:rgba(244,63,94,0.1);}
+.ctg{font-size:7.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:2.5px 7px;border-radius:5px;align-self:flex-start;}
+.ctg1{color:#c084fc;background:rgba(168,85,247,0.1);} .ctg2{color:#22d3ee;background:rgba(34,211,238,0.1);}
+.ctg3{color:#f472b6;background:rgba(236,72,153,0.1);} .ctg4{color:#fbbf24;background:rgba(245,158,11,0.1);}
+.ctg5{color:#34d399;background:rgba(16,185,129,0.1);} .ctg6{color:#fb7185;background:rgba(244,63,94,0.1);}
+.ctitle{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px;margin-bottom:3px;line-height:1.1;}
+.cdesc{font-size:10px;color:rgba(200,190,255,0.45);line-height:1.45;margin-bottom:10px;}
+
+/* ── C1: LIFE BALANCE SCORE ── */
+.score-wrap{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.donut{position:relative;width:74px;height:74px;flex-shrink:0;}
+.donut svg{transform:rotate(-90deg);}
+.dval{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dnum{font-size:20px;font-weight:900;color:#fff;line-height:1;}
+.dlbl{font-size:6.5px;font-weight:600;letter-spacing:1px;color:rgba(200,190,255,0.4);text-transform:uppercase;}
+.leg-col{display:flex;flex-direction:column;gap:5px;}
+.leg{display:flex;align-items:center;gap:6px;}
+.ldot{width:6px;height:6px;border-radius:2px;flex-shrink:0;}
+.lnm{font-size:10px;color:rgba(200,190,255,0.6);flex:1;}
+.lsc{font-size:11px;font-weight:800;color:#fff;}
+.mbars{display:flex;flex-direction:column;gap:5px;}
+.mb{display:flex;align-items:center;gap:7px;}
+.mbl{font-size:8.5px;color:rgba(200,190,255,0.4);width:42px;flex-shrink:0;}
+.mbt{flex:1;height:4.5px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.mbf{height:100%;border-radius:2px;}
+.mbv{font-size:9px;font-weight:700;color:#fff;width:18px;text-align:right;flex-shrink:0;}
+.mbf-h{background:linear-gradient(to right,#22c55e,#4ade80);}
+.mbf-f{background:linear-gradient(to right,#f59e0b,#fbbf24);}
+.mbf-c{background:linear-gradient(to right,#3b82f6,#60a5fa);}
+
+/* ── C2: FOOD CALORIE SCANNER ── */
+.cam-frame{border:1.5px dashed rgba(34,211,238,0.3);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;background:rgba(34,211,238,0.04);}
+.cam-sq{width:44px;height:44px;border-radius:8px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;position:relative;}
+.scan-line{position:absolute;left:0;right:0;top:50%;height:1.5px;background:rgba(34,211,238,0.7);box-shadow:0 0 6px #22d3ee;}
+.det-badge{font-size:7px;font-weight:700;letter-spacing:2px;color:#22d3ee;text-transform:uppercase;display:flex;align-items:center;gap:3px;margin-bottom:3px;}
+.ddot{width:5px;height:5px;border-radius:50%;background:#22d3ee;}
+.fnm{font-size:12px;font-weight:700;color:#fff;}
+.chiprow{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px;}
+.cchip{padding:3px 7px;border-radius:5px;font-size:8.5px;font-weight:700;}
+.cr{background:rgba(239,68,68,0.15);color:#fca5a5;} .cg{background:rgba(34,197,94,0.12);color:#86efac;}
+.cy{background:rgba(251,191,36,0.12);color:#fde68a;} .cp{background:rgba(139,92,246,0.15);color:#c4b5fd;}
+.prow{display:flex;align-items:center;gap:7px;}
+.plbl{font-size:8.5px;color:rgba(200,190,255,0.4);flex-shrink:0;}
+.pbar{flex:1;height:4.5px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.pfill{height:100%;background:linear-gradient(to right,#22d3ee,#06b6d4);border-radius:2px;}
+.pval{font-size:8.5px;font-weight:700;color:#22d3ee;flex-shrink:0;}
+
+/* ── C3: SMART MIC ── */
+.mic-vis{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 6px;gap:6px;}
+.mic-circle{width:52px;height:52px;border-radius:50%;background:rgba(236,72,153,0.12);border:2px solid rgba(236,72,153,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;box-shadow:0 0 0 8px rgba(236,72,153,0.06),0 0 0 16px rgba(236,72,153,0.03);}
+.wave-row{display:flex;align-items:center;gap:3px;height:22px;}
+.wv{border-radius:2px;background:rgba(236,72,153,0.55);}
+.detected-domain{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(236,72,153,0.07);border:1px solid rgba(236,72,153,0.15);}
+.dd-lbl{font-size:8.5px;color:rgba(200,190,255,0.45);}
+.dd-val{font-size:10px;font-weight:700;color:#f472b6;}
+.transcript{padding:7px 10px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);font-size:9.5px;color:rgba(220,210,255,0.7);line-height:1.4;font-style:italic;margin-top:auto;}
+
+/* ── C4: SMART PARSER ── */
+.doc-row{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:5px;position:relative;overflow:hidden;}
+.doc-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px;}
+.dfin::before{background:#f59e0b;} .dhlt::before{background:#22c55e;} .dcar::before{background:#3b82f6;}
+.dico{font-size:16px;flex-shrink:0;}
+.dnm{font-size:10px;font-weight:700;color:#fff;margin-bottom:2px;}
+.dex{font-size:8.5px;color:rgba(200,190,255,0.4);}
+.dbdg{padding:2px 7px;border-radius:5px;font-size:8px;font-weight:700;flex-shrink:0;}
+.dbf{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.2);}
+.dbh{background:rgba(34,197,94,0.12);color:#86efac;border:1px solid rgba(34,197,94,0.2);}
+.dbc{background:rgba(59,130,246,0.12);color:#93c5fd;border:1px solid rgba(59,130,246,0.2);}
+.ai-tag{margin-top:auto;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.1);}
+.ai-tag span{font-size:9px;color:rgba(200,190,255,0.55);}
+.ai-tag strong{color:#fbbf24;}
+
+/* ── C5: NEURAL CORE ── */
+.nc-chart{flex:1;position:relative;border-radius:10px;background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.1);padding:8px 10px;overflow:hidden;}
+.nc-title-sm{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(52,211,153,0.6);margin-bottom:6px;}
+.nc-svg-wrap{width:100%;height:80px;}
+.nc-labels{display:flex;justify-content:space-between;margin-top:4px;}
+.ncl{font-size:7.5px;color:rgba(200,190,255,0.35);}
+.nc-legend{display:flex;gap:10px;margin-top:6px;}
+.ncleg{display:flex;align-items:center;gap:4px;font-size:8px;color:rgba(200,190,255,0.5);}
+.ncleg-dot{width:5px;height:5px;border-radius:50%;}
+
+/* ── C6: TALK WITH FUTURE SELF ── */
+.future-header{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.future-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#e11d48);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:2px solid rgba(244,63,94,0.35);position:relative;}
+.future-badge{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#f43f5e;font-size:7px;display:flex;align-items:center;justify-content:center;border:1.5px solid #060614;}
+.future-nm{font-size:12px;font-weight:700;color:#fff;}
+.future-sub{font-size:8.5px;color:rgba(200,190,255,0.4);}
+.msg{padding:8px 10px;border-radius:9px;font-size:9.5px;line-height:1.45;margin-bottom:5px;}
+.msg-future{background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.14);color:rgba(220,210,255,0.75);border-radius:9px 9px 9px 2px;}
+.msg-you{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(200,190,255,0.55);border-radius:9px 9px 2px 9px;margin-left:16px;}
+
+/* BOTTOM */
+.bottom{position:absolute;bottom:14px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.brand{font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(139,92,246,0.4);text-transform:uppercase;}
+.nav{font-size:8.5px;color:rgba(200,190,255,0.3);letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+<div class="scale-wrap" id="scaleWrap">
+<div class="slide">
+  <div class="top-bar"></div>
+  <div class="orb orb1"></div><div class="orb orb2"></div>
+
+  <div class="hdr">
+    <div>
+      <div class="ey">04 · Features</div>
+      <div class="ht"><span>BeyondSelf</span> — What It Does</div>
+    </div>
+    <div class="hdr-r">
+      <div class="pg">SLIDE 1 OF 3</div>
+      <div class="pg-sub">Life Balance · Food Scanner · Smart Mic · Doc Parser · Neural Core · Future Self</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ── C1: OVERALL LIFE BALANCE ── -->
+    <div class="card c1">
+      <div class="ch"><div class="ci ci1">⚖️</div><div class="ctg ctg1">Life OS</div></div>
+      <div class="ctitle">Overall Life Balance</div>
+      <div class="cdesc">One unified score across Health, Finance & Career — your personal life dashboard.</div>
+      <div class="score-wrap">
+        <div class="donut">
+          <svg width="74" height="74" viewBox="0 0 74 74">
+            <circle cx="37" cy="37" r="28" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+            <circle cx="37" cy="37" r="28" fill="none" stroke="#22c55e" stroke-width="8" stroke-dasharray="37 175.9" stroke-dashoffset="0" stroke-linecap="round"/>
+            <circle cx="37" cy="37" r="28" fill="none" stroke="#f59e0b" stroke-width="8" stroke-dasharray="32 175.9" stroke-dashoffset="-41" stroke-linecap="round"/>
+            <circle cx="37" cy="37" r="28" fill="none" stroke="#3b82f6" stroke-width="8" stroke-dasharray="34 175.9" stroke-dashoffset="-77" stroke-linecap="round"/>
+          </svg>
+          <div class="dval"><div class="dnum">74</div><div class="dlbl">Overall</div></div>
+        </div>
+        <div class="leg-col">
+          <div class="leg"><div class="ldot" style="background:#22c55e"></div><span class="lnm">Health</span><span class="lsc">78</span></div>
+          <div class="leg"><div class="ldot" style="background:#f59e0b"></div><span class="lnm">Finance</span><span class="lsc">68</span></div>
+          <div class="leg"><div class="ldot" style="background:#3b82f6"></div><span class="lnm">Career</span><span class="lsc">71</span></div>
+        </div>
+      </div>
+      <div class="mbars">
+        <div class="mb"><span class="mbl">Health</span><div class="mbt"><div class="mbf mbf-h" style="width:78%"></div></div><span class="mbv">78</span></div>
+        <div class="mb"><span class="mbl">Finance</span><div class="mbt"><div class="mbf mbf-f" style="width:68%"></div></div><span class="mbv">68</span></div>
+        <div class="mb"><span class="mbl">Career</span><div class="mbt"><div class="mbf mbf-c" style="width:71%"></div></div><span class="mbv">71</span></div>
+      </div>
+    </div>
+
+    <!-- ── C2: FOOD CALORIE SCANNER ── -->
+    <div class="card c2">
+      <div class="ch"><div class="ci ci2">📷</div><div class="ctg ctg2">Health AI</div></div>
+      <div class="ctitle">Food Calorie Scanner</div>
+      <div class="cdesc">Snap any meal — AI identifies it instantly and auto-logs macros to your health score.</div>
+      <div class="cam-frame">
+        <div class="cam-sq">🍛<div class="scan-line"></div></div>
+        <div>
+          <div class="det-badge"><span class="ddot"></span>Detected</div>
+          <div class="fnm">Butter Chicken + Rice</div>
+        </div>
+      </div>
+      <div class="chiprow">
+        <span class="cchip cr">🔥 680 kcal</span>
+        <span class="cchip cg">💪 34g protein</span>
+        <span class="cchip cy">🥑 22g fat</span>
+        <span class="cchip cp">⚡ 68g carbs</span>
+      </div>
+      <div class="prow">
+        <span class="plbl">Daily budget</span>
+        <div class="pbar"><div class="pfill" style="width:63%"></div></div>
+        <span class="pval">63% used</span>
+      </div>
+    </div>
+
+    <!-- ── C3: SMART MIC ── -->
+    <div class="card c3">
+      <div class="ch"><div class="ci ci3">🎙️</div><div class="ctg ctg3">Smart Mic</div></div>
+      <div class="ctitle">Single Smart Mic</div>
+      <div class="cdesc">One mic for everything — AI auto-detects which life domain you're talking about.</div>
+      <div class="mic-vis">
+        <div class="mic-circle">🎙️</div>
+        <div class="wave-row">
+          <div class="wv" style="width:3px;height:5px;"></div><div class="wv" style="width:3px;height:12px;"></div>
+          <div class="wv" style="width:3px;height:8px;"></div><div class="wv" style="width:3px;height:16px;"></div>
+          <div class="wv" style="width:3px;height:10px;"></div><div class="wv" style="width:3px;height:18px;"></div>
+          <div class="wv" style="width:3px;height:7px;"></div><div class="wv" style="width:3px;height:14px;"></div>
+          <div class="wv" style="width:3px;height:9px;"></div><div class="wv" style="width:3px;height:6px;"></div>
+        </div>
+        <div class="detected-domain">
+          <span class="dd-lbl">Domain detected →</span>
+          <span class="dd-val">💰 Finance</span>
+        </div>
+      </div>
+      <div class="transcript">"I spent ₹3,200 on groceries and paid my electricity bill today…"</div>
+    </div>
+
+    <!-- ── C4: LIVE / AUTO DOC PARSER ── -->
+    <div class="card c4">
+      <div class="ch"><div class="ci ci4">📄</div><div class="ctg ctg4">Auto Parser</div></div>
+      <div class="ctitle">Live Doc Parser</div>
+      <div class="cdesc">Upload any doc — salary slip, utility bill, blood report — AI detects type & extracts data.</div>
+      <div class="doc-row dfin">
+        <div class="dico">🧾</div>
+        <div><div class="dnm">SalarySlip_May2025.pdf</div><div class="dex">CTC ₹8.4L · HRA · PF · Tax slab</div></div>
+        <div class="dbdg dbf">Finance</div>
+      </div>
+      <div class="doc-row dhlt">
+        <div class="dico">🩺</div>
+        <div><div class="dnm">BloodReport_Mar25.pdf</div><div class="dex">HbA1c: 5.2 · Vit D: Low · B12: OK</div></div>
+        <div class="dbdg dbh">Health</div>
+      </div>
+      <div class="doc-row dfin">
+        <div class="dico">⚡</div>
+        <div><div class="dnm">Electricity_Bill_Apr.pdf</div><div class="dex">₹1,840 · Units: 312 kWh</div></div>
+        <div class="dbdg dbf">Finance</div>
+      </div>
+      <div class="ai-tag"><span>🤖 Auto-classified · No manual tagging needed</span></div>
+    </div>
+
+    <!-- ── C5: NEURAL CORE ── -->
+    <div class="card c5">
+      <div class="ch"><div class="ci ci5">🧠</div><div class="ctg ctg5">Neural Core</div></div>
+      <div class="ctitle">Neural Core</div>
+      <div class="cdesc">AI computes your future life trajectory — predicts scores months ahead using your data.</div>
+      <div class="nc-chart">
+        <div class="nc-title-sm">Score Trajectory — Next 6 Months</div>
+        <div class="nc-svg-wrap">
+          <svg width="100%" height="80" viewBox="0 0 360 80" preserveAspectRatio="none">
+            <!-- grid -->
+            <line x1="0" y1="20" x2="360" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="0" y1="40" x2="360" y2="40" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="0" y1="60" x2="360" y2="60" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <!-- divider now/future -->
+            <line x1="130" y1="0" x2="130" y2="80" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="132" y="11" font-size="8" fill="rgba(200,190,255,0.35)" font-family="Inter">NOW</text>
+            <!-- actual line -->
+            <polyline fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" points="0,58 40,52 80,48 130,42"/>
+            <!-- projected line dashed -->
+            <polyline fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="5 3" stroke-linecap="round" points="130,42 180,34 230,28 280,22 360,16"/>
+            <!-- fill under projected -->
+            <polygon points="130,42 180,34 230,28 280,22 360,16 360,80 130,80" fill="url(#ncgrad)" opacity="0.15"/>
+            <defs><linearGradient id="ncgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="transparent"/></linearGradient></defs>
+            <!-- dots -->
+            <circle cx="130" cy="42" r="4" fill="#10b981"/>
+            <circle cx="360" cy="16" r="4" fill="#10b981" opacity="0.6"/>
+            <text x="300" y="12" font-size="9" fill="#34d399" font-family="Inter" font-weight="700">Score 89</text>
+          </svg>
+        </div>
+        <div class="nc-labels"><span class="ncl">Jan</span><span class="ncl">Feb</span><span class="ncl">Mar</span><span class="ncl">Now</span><span class="ncl">May</span><span class="ncl">Jun</span><span class="ncl">Jul</span></div>
+        <div class="nc-legend">
+          <div class="ncleg"><div class="ncleg-dot" style="background:#10b981"></div>Actual</div>
+          <div class="ncleg"><div class="ncleg-dot" style="background:#10b981;opacity:0.5"></div>AI Projection</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── C6: TALK WITH FUTURE SELF ── -->
+    <div class="card c6">
+      <div class="ch"><div class="ci ci6">🔮</div><div class="ctg ctg6">Future Self</div></div>
+      <div class="ctitle">Talk with Future Self</div>
+      <div class="cdesc">Chat with an AI simulation of your future self — advice from who you'll become.</div>
+      <div class="future-header">
+        <div class="future-avatar">🧑<div class="future-badge">+5</div></div>
+        <div><div class="future-nm">You · 5 Years Later</div><div class="future-sub">Life Score 91 · Financial freedom</div></div>
+      </div>
+      <div class="msg msg-future">"Start investing now. I wish I had started at 25 — compound interest changes everything."</div>
+      <div class="msg msg-you">"Should I take the startup offer or stay at my current job?"</div>
+      <div class="msg msg-future" style="margin-bottom:0;">"Take it. The skills you build will matter more than the salary cut. Trust the process."</div>
+    </div>
+
+  </div>
+
+  <div class="bottom">
+    <div class="brand">BeyondSelf</div>
+    <div class="nav">Slide 1 / 3 · Continue → Avatar · Life Plant · Ghost Timeline · Grind Room · Guilds · Job Market</div>
+  </div>
+</div>
+</div>
+<script>
+function scale(){var s=Math.min(window.innerWidth/1400,window.innerHeight/900);document.getElementById('scaleWrap').style.transform='scale('+s+')';}
+scale();window.addEventListener('resize',scale);
+</script>
+</body>
+</html>

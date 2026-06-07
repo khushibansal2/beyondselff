@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — Solutions 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#060614;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.scale-wrap{width:1400px;height:900px;transform-origin:center center;flex-shrink:0;}
+.slide{width:1400px;height:900px;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,#0c0a2e 0%,#060614 70%);}
+.slide::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(139,92,246,0.07) 1px,transparent 1px);background-size:44px 44px;}
+.top-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#5b21b6,#8b5cf6,#22d3ee,#8b5cf6,#5b21b6);}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(90px);}
+.orb1{width:500px;height:500px;background:rgba(236,72,153,0.08);bottom:-150px;left:-100px;}
+.orb2{width:400px;height:400px;background:rgba(16,185,129,0.07);top:-120px;right:-80px;}
+
+.hdr{position:absolute;top:32px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.ey{font-size:8.5px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:rgba(196,181,253,0.5);display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ey::before{content:'';width:18px;height:1px;background:rgba(196,181,253,0.3);}
+.ht{font-size:33px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.0;}
+.ht span{background:linear-gradient(135deg,#ede9fe 0%,#c4b5fd 40%,#8b5cf6 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-r{text-align:right;}
+.pg{font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(139,92,246,0.5);}
+.pg-sub{font-size:9px;color:rgba(200,190,255,0.35);margin-top:3px;}
+
+.grid{position:absolute;top:116px;left:60px;right:60px;bottom:42px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;}
+
+.card{border-radius:16px;padding:18px 20px 16px;position:relative;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.025);}
+.card::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;background:radial-gradient(ellipse 100% 45% at 50% 0%,rgba(255,255,255,0.04),transparent 60%);}
+.c1{border-top:2px solid #f472b6;} .c2{border-top:2px solid #a3e635;}
+.c3{border-top:2px solid #818cf8;} .c4{border-top:2px solid #fb923c;}
+.c5{border-top:2px solid #34d399;} .c6{border-top:2px solid #60a5fa;}
+
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.ci{font-size:18px;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ci1{background:rgba(244,114,182,0.1);} .ci2{background:rgba(163,230,53,0.1);}
+.ci3{background:rgba(129,140,248,0.1);} .ci4{background:rgba(251,146,60,0.1);}
+.ci5{background:rgba(52,211,153,0.1);} .ci6{background:rgba(96,165,250,0.1);}
+.ctg{font-size:7.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:2.5px 7px;border-radius:5px;align-self:flex-start;}
+.ctg1{color:#f9a8d4;background:rgba(244,114,182,0.1);} .ctg2{color:#bef264;background:rgba(163,230,53,0.1);}
+.ctg3{color:#a5b4fc;background:rgba(129,140,248,0.1);} .ctg4{color:#fdba74;background:rgba(251,146,60,0.1);}
+.ctg5{color:#6ee7b7;background:rgba(52,211,153,0.1);} .ctg6{color:#93c5fd;background:rgba(96,165,250,0.1);}
+.ctitle{font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.3px;margin-bottom:3px;line-height:1.1;}
+.cdesc{font-size:10px;color:rgba(200,190,255,0.45);line-height:1.45;margin-bottom:10px;}
+
+/* ── C1: INCLUSIVE AVATAR ── */
+.avatar-showcase{display:flex;gap:8px;margin-bottom:8px;}
+.av-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.av-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(255,255,255,0.1);}
+.av-lbl{font-size:7.5px;color:rgba(200,190,255,0.45);text-align:center;}
+.state-row{display:flex;gap:6px;margin-bottom:8px;}
+.state-chip{flex:1;text-align:center;padding:5px 4px;border-radius:8px;font-size:8.5px;font-weight:700;border:1px solid rgba(255,255,255,0.07);}
+.sc-active{background:rgba(34,197,94,0.1);color:#86efac;border-color:rgba(34,197,94,0.2);}
+.sc-tired{background:rgba(245,158,11,0.1);color:#fde68a;border-color:rgba(245,158,11,0.2);}
+.sc-stress{background:rgba(239,68,68,0.1);color:#fca5a5;border-color:rgba(239,68,68,0.2);}
+.sc-focus{background:rgba(139,92,246,0.1);color:#c4b5fd;border-color:rgba(139,92,246,0.2);}
+.av-note{font-size:9px;color:rgba(200,190,255,0.45);line-height:1.4;padding:6px 9px;border-radius:8px;background:rgba(244,114,182,0.05);border:1px solid rgba(244,114,182,0.1);}
+
+/* ── C2: LIFE BLOOM PLANT ── */
+.plant-stages{display:flex;align-items:flex-end;justify-content:space-around;padding:6px 0 8px;gap:4px;}
+.plant-stage{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.plant-emoji{font-size:28px;line-height:1;}
+.stage-lbl{font-size:7.5px;color:rgba(200,190,255,0.4);text-align:center;}
+.stage-pct{font-size:8px;font-weight:700;color:rgba(200,190,255,0.6);}
+.plant-progress{display:flex;flex-direction:column;gap:5px;margin-top:4px;}
+.pp-row{display:flex;align-items:center;gap:7px;}
+.pp-lbl{font-size:8.5px;color:rgba(200,190,255,0.4);width:60px;flex-shrink:0;}
+.pp-bar{flex:1;height:4.5px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.pp-fill{height:100%;border-radius:2px;background:linear-gradient(to right,#a3e635,#84cc16);}
+.pp-val{font-size:8.5px;font-weight:700;color:#bef264;width:26px;text-align:right;flex-shrink:0;}
+
+/* ── C3: GHOST MODE TIMELINE ── */
+.ghost-track{position:relative;padding-left:14px;display:flex;flex-direction:column;gap:0;}
+.ghost-line{position:absolute;left:5px;top:0;bottom:0;width:1.5px;background:rgba(129,140,248,0.2);}
+.ghost-event{display:flex;align-items:flex-start;gap:8px;padding:5px 0;position:relative;}
+.ghost-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;position:absolute;left:-10px;top:9px;}
+.gd-past{background:rgba(129,140,248,0.5);box-shadow:0 0 6px rgba(129,140,248,0.3);}
+.gd-now{background:#818cf8;box-shadow:0 0 8px rgba(129,140,248,0.6);}
+.gd-future{background:rgba(129,140,248,0.2);border:1.5px dashed rgba(129,140,248,0.4);}
+.ge-info{flex:1;}
+.ge-time{font-size:7.5px;color:rgba(200,190,255,0.35);margin-bottom:1px;}
+.ge-text{font-size:9.5px;color:rgba(220,210,255,0.7);line-height:1.35;}
+.ge-score{font-size:8px;font-weight:700;padding:1.5px 6px;border-radius:4px;}
+.gsc-up{background:rgba(34,197,94,0.12);color:#86efac;}
+.gsc-dn{background:rgba(239,68,68,0.12);color:#fca5a5;}
+.gsc-pj{background:rgba(129,140,248,0.12);color:#a5b4fc;}
+.ghost-tag{margin-top:auto;font-size:9px;color:rgba(200,190,255,0.4);font-style:italic;padding-top:4px;}
+
+/* ── C4: GRIND ROOM ── */
+.grind-timer{display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;gap:4px;}
+.timer-ring{width:60px;height:60px;border-radius:50%;background:conic-gradient(#fb923c 72%,rgba(255,255,255,0.06) 0);display:flex;align-items:center;justify-content:center;position:relative;}
+.timer-inner{width:46px;height:46px;border-radius:50%;background:#060614;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.timer-num{font-size:13px;font-weight:800;color:#fff;}
+.timer-sub-sm{font-size:6.5px;color:rgba(200,190,255,0.4);}
+.grind-mode{display:flex;gap:5px;margin-bottom:7px;}
+.gm-chip{flex:1;text-align:center;padding:4px;border-radius:7px;font-size:8.5px;font-weight:700;border:1px solid rgba(255,255,255,0.07);}
+.gmc-on{background:rgba(251,146,60,0.15);color:#fb923c;border-color:rgba(251,146,60,0.25);}
+.gmc-off{background:rgba(255,255,255,0.03);color:rgba(200,190,255,0.4);}
+.grind-tasks{display:flex;flex-direction:column;gap:5px;}
+.gt{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);}
+.gt-done{opacity:0.45;}
+.gt-check{width:14px;height:14px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;}
+.gtc-done{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#86efac;}
+.gtc-open{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);}
+.gt-nm{font-size:9.5px;color:rgba(220,210,255,0.7);flex:1;}
+.gt-xp{font-size:8px;font-weight:700;color:#fb923c;}
+
+/* ── C5: GUILDS ── */
+.guild-header{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.12);margin-bottom:8px;}
+.guild-badge{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#065f46,#10b981);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.guild-nm{font-size:12px;font-weight:700;color:#fff;}
+.guild-sub{font-size:8.5px;color:rgba(200,190,255,0.4);}
+.guild-members{display:flex;gap:-6px;margin-bottom:6px;}
+.gm-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#1e293b,#334155);display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #060614;margin-left:-6px;}
+.gm-av:first-child{margin-left:0;}
+.gm-count{font-size:9px;color:rgba(200,190,255,0.5);margin-left:6px;align-self:center;}
+.guild-goal{display:flex;flex-direction:column;gap:5px;}
+.gg-row{display:flex;align-items:center;gap:7px;}
+.gg-ico{font-size:11px;flex-shrink:0;}
+.gg-nm{font-size:9.5px;color:rgba(200,190,255,0.65);flex:1;}
+.gg-bar{width:60px;height:4.5px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;flex-shrink:0;}
+.gg-fill{height:100%;border-radius:2px;background:linear-gradient(to right,#10b981,#34d399);}
+.gg-pct{font-size:8.5px;font-weight:700;color:#34d399;width:24px;text-align:right;flex-shrink:0;}
+
+/* ── C6: JOB MARKET ── */
+.jm-job{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:6px;}
+.jm-co{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:rgba(96,165,250,0.1);}
+.jm-info{flex:1;}
+.jm-title{font-size:10.5px;font-weight:700;color:#fff;}
+.jm-co-nm{font-size:8.5px;color:rgba(200,190,255,0.45);}
+.jm-match{padding:2.5px 7px;border-radius:5px;font-size:8px;font-weight:700;flex-shrink:0;}
+.jmm-high{background:rgba(34,197,94,0.12);color:#86efac;border:1px solid rgba(34,197,94,0.2);}
+.jmm-mid{background:rgba(245,158,11,0.12);color:#fde68a;border:1px solid rgba(245,158,11,0.2);}
+.skill-gap{margin-top:auto;padding:6px 10px;border-radius:8px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.1);}
+.sg-title{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#93c5fd;margin-bottom:4px;}
+.sg-tags{display:flex;flex-wrap:wrap;gap:4px;}
+.sg-tag{padding:2.5px 7px;border-radius:5px;font-size:8px;font-weight:700;background:rgba(96,165,250,0.1);color:#93c5fd;border:1px solid rgba(96,165,250,0.18);}
+.sg-tag.missing{background:rgba(239,68,68,0.1);color:#fca5a5;border-color:rgba(239,68,68,0.2);}
+
+.bottom{position:absolute;bottom:14px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.brand{font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(139,92,246,0.4);text-transform:uppercase;}
+.nav{font-size:8.5px;color:rgba(200,190,255,0.3);letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+<div class="scale-wrap" id="scaleWrap">
+<div class="slide">
+  <div class="top-bar"></div>
+  <div class="orb orb1"></div><div class="orb orb2"></div>
+
+  <div class="hdr">
+    <div>
+      <div class="ey">04 · Features</div>
+      <div class="ht"><span>BeyondSelf</span> — What It Does</div>
+    </div>
+    <div class="hdr-r">
+      <div class="pg">SLIDE 2 OF 3</div>
+      <div class="pg-sub">Avatar · Life Plant · Ghost Timeline · Grind Room · Guilds · Job Market</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ── C1: INCLUSIVE AVATAR ── -->
+    <div class="card c1">
+      <div class="ch"><div class="ci ci1">🧑‍🎨</div><div class="ctg ctg1">Avatar</div></div>
+      <div class="ctitle">Inclusive Avatar Creator</div>
+      <div class="cdesc">Fully customisable avatar — body type, skin tone, gender expression — changes with your life state.</div>
+      <div class="avatar-showcase">
+        <div class="av-item"><div class="av-circle" style="background:rgba(244,114,182,0.1);border-color:rgba(244,114,182,0.2);">🧕</div><div class="av-lbl">Modest</div></div>
+        <div class="av-item"><div class="av-circle" style="background:rgba(96,165,250,0.1);border-color:rgba(96,165,250,0.2);">👨‍💼</div><div class="av-lbl">Professional</div></div>
+        <div class="av-item"><div class="av-circle" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.2);">🧑‍🤝‍🧑</div><div class="av-lbl">Casual</div></div>
+        <div class="av-item"><div class="av-circle" style="background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.2);">🏃</div><div class="av-lbl">Active</div></div>
+      </div>
+      <div class="state-row">
+        <div class="state-chip sc-active">⚡ Energised</div>
+        <div class="state-chip sc-tired">😴 Tired</div>
+        <div class="state-chip sc-stress">😤 Stressed</div>
+        <div class="state-chip sc-focus">🎯 Focus</div>
+      </div>
+      <div class="av-note">Avatar appearance auto-updates based on your live health, mood & stress data.</div>
+    </div>
+
+    <!-- ── C2: LIFE BLOOM PLANT ── -->
+    <div class="card c2">
+      <div class="ch"><div class="ci ci2">🌱</div><div class="ctg ctg2">Life Plant</div></div>
+      <div class="ctitle">Life Bloom Plant</div>
+      <div class="cdesc">A virtual plant that grows as you complete goals — visible progress, real motivation.</div>
+      <div class="plant-stages">
+        <div class="plant-stage"><div class="plant-emoji">🌱</div><div class="stage-lbl">Seed</div><div class="stage-pct">0–25%</div></div>
+        <div class="plant-stage"><div class="plant-emoji">🪴</div><div class="stage-lbl">Sprout</div><div class="stage-pct">25–50%</div></div>
+        <div class="plant-stage"><div class="plant-emoji">🌿</div><div class="stage-lbl">Growing</div><div class="stage-pct">50–75%</div></div>
+        <div class="plant-stage"><div class="plant-emoji">🌸</div><div class="stage-lbl">Bloom</div><div class="stage-pct">75–90%</div></div>
+        <div class="plant-stage" style="transform:scale(1.1);"><div class="plant-emoji">🌳</div><div class="stage-lbl" style="color:#bef264;font-weight:700;">Full</div><div class="stage-pct" style="color:#bef264;">100%</div></div>
+      </div>
+      <div class="plant-progress">
+        <div class="pp-row"><span class="pp-lbl">Health Goals</span><div class="pp-bar"><div class="pp-fill" style="width:72%"></div></div><span class="pp-val">72%</span></div>
+        <div class="pp-row"><span class="pp-lbl">Finance Goals</span><div class="pp-bar"><div class="pp-fill" style="width:45%"></div></div><span class="pp-val">45%</span></div>
+        <div class="pp-row"><span class="pp-lbl">Career Goals</span><div class="pp-bar"><div class="pp-fill" style="width:60%"></div></div><span class="pp-val">60%</span></div>
+      </div>
+    </div>
+
+    <!-- ── C3: GHOST MODE TIMELINE ── -->
+    <div class="card c3">
+      <div class="ch"><div class="ci ci3">👻</div><div class="ctg ctg3">Ghost Timeline</div></div>
+      <div class="ctitle">Ghost Mode Timeline</div>
+      <div class="cdesc">Overlay your past self on your present — see exactly how far you've come and what's ahead.</div>
+      <div class="ghost-track">
+        <div class="ghost-line"></div>
+        <div class="ghost-event">
+          <div class="ghost-dot gd-past"></div>
+          <div class="ge-info"><div class="ge-time">6 months ago</div><div class="ge-text">Started tracking — Life Score 54</div></div>
+          <span class="ge-score gsc-dn">54</span>
+        </div>
+        <div class="ghost-event">
+          <div class="ghost-dot gd-past"></div>
+          <div class="ge-info"><div class="ge-time">3 months ago</div><div class="ge-text">Joined gym · Cut junk food</div></div>
+          <span class="ge-score gsc-up">+8</span>
+        </div>
+        <div class="ghost-event" style="background:rgba(129,140,248,0.05);border-radius:6px;padding:5px 4px;">
+          <div class="ghost-dot gd-now"></div>
+          <div class="ge-info"><div class="ge-time" style="color:#a5b4fc;font-weight:700;">TODAY</div><div class="ge-text" style="color:#fff;font-weight:600;">Life Score 74 · On track</div></div>
+          <span class="ge-score" style="background:rgba(129,140,248,0.15);color:#a5b4fc;">74</span>
+        </div>
+        <div class="ghost-event" style="opacity:0.65;">
+          <div class="ghost-dot gd-future"></div>
+          <div class="ge-info"><div class="ge-time">3 months ahead</div><div class="ge-text">Projected: Financial goal reached</div></div>
+          <span class="ge-score gsc-pj">→ 82</span>
+        </div>
+      </div>
+      <div class="ghost-tag">👻 Ghost overlay shows your past self — see the delta</div>
+    </div>
+
+    <!-- ── C4: GRIND ROOM ── -->
+    <div class="card c4">
+      <div class="ch"><div class="ci ci4">💪</div><div class="ctg ctg4">Grind Room</div></div>
+      <div class="ctitle">Grind Room</div>
+      <div class="cdesc">Deep work mode — Pomodoro timer, focus tasks & XP rewards for staying in the zone.</div>
+      <div class="grind-timer">
+        <div class="timer-ring">
+          <div class="timer-inner"><div class="timer-num">18:32</div><div class="timer-sub-sm">remaining</div></div>
+        </div>
+      </div>
+      <div class="grind-mode">
+        <div class="gm-chip gmc-on">🔥 Deep Work</div>
+        <div class="gm-chip gmc-off">☕ Short Break</div>
+        <div class="gm-chip gmc-off">🧘 Long Break</div>
+      </div>
+      <div class="grind-tasks">
+        <div class="gt gt-done"><div class="gt-check gtc-done">✓</div><span class="gt-nm" style="text-decoration:line-through;opacity:0.5;">Review PR comments</span><span class="gt-xp">+15 XP</span></div>
+        <div class="gt"><div class="gt-check gtc-open"></div><span class="gt-nm">Finish finance dashboard</span><span class="gt-xp">+25 XP</span></div>
+        <div class="gt"><div class="gt-check gtc-open"></div><span class="gt-nm">Update career resume section</span><span class="gt-xp">+20 XP</span></div>
+      </div>
+    </div>
+
+    <!-- ── C5: GUILDS ── -->
+    <div class="card c5">
+      <div class="ch"><div class="ci ci5">⚔️</div><div class="ctg ctg5">Guilds</div></div>
+      <div class="ctitle">Guilds</div>
+      <div class="cdesc">Join or create a guild — compete, collaborate and grow together with shared life goals.</div>
+      <div class="guild-header">
+        <div class="guild-badge">⚔️</div>
+        <div><div class="guild-nm">Phoenix Builders</div><div class="guild-sub">Rank #3 Globally · Season 4</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div class="guild-members">
+          <div class="gm-av">🧑</div><div class="gm-av">👩</div><div class="gm-av">👨‍💻</div>
+          <div class="gm-av">🧕</div><div class="gm-av">🧑‍🎤</div>
+        </div>
+        <div class="gm-count">+18 members</div>
+      </div>
+      <div class="guild-goal">
+        <div class="gg-row"><span class="gg-ico">🏃</span><span class="gg-nm">Guild Fitness Challenge</span><div class="gg-bar"><div class="gg-fill" style="width:78%"></div></div><span class="gg-pct">78%</span></div>
+        <div class="gg-row"><span class="gg-ico">💰</span><span class="gg-nm">Savings Sprint</span><div class="gg-bar"><div class="gg-fill" style="width:55%"></div></div><span class="gg-pct">55%</span></div>
+        <div class="gg-row"><span class="gg-ico">📚</span><span class="gg-nm">Learning League</span><div class="gg-bar"><div class="gg-fill" style="width:62%"></div></div><span class="gg-pct">62%</span></div>
+      </div>
+    </div>
+
+    <!-- ── C6: JOB MARKET ── -->
+    <div class="card c6">
+      <div class="ch"><div class="ci ci6">💼</div><div class="ctg ctg6">Job Market</div></div>
+      <div class="ctitle">Job Market Finder</div>
+      <div class="cdesc">AI matches your career profile to live job listings — shows skill gaps and match score.</div>
+      <div class="jm-job">
+        <div class="jm-co">🚀</div>
+        <div class="jm-info"><div class="jm-title">Senior Product Engineer</div><div class="jm-co-nm">Razorpay · Bangalore · ₹28–40L</div></div>
+        <div class="jm-match jmm-high">94% match</div>
+      </div>
+      <div class="jm-job">
+        <div class="jm-co">💎</div>
+        <div class="jm-info"><div class="jm-title">Full Stack Developer</div><div class="jm-co-nm">CRED · Remote · ₹22–32L</div></div>
+        <div class="jm-match jmm-mid">79% match</div>
+      </div>
+      <div class="skill-gap">
+        <div class="sg-title">Skill Gap Analysis</div>
+        <div class="sg-tags">
+          <span class="sg-tag">React ✓</span>
+          <span class="sg-tag">Node.js ✓</span>
+          <span class="sg-tag missing">AWS ✗</span>
+          <span class="sg-tag missing">System Design ✗</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom">
+    <div class="brand">BeyondSelf</div>
+    <div class="nav">Slide 2 / 3 · Continue → Market Analysis · LIFE Market · Stress Test · Cascade Map</div>
+  </div>
+</div>
+</div>
+<script>
+function scale(){var s=Math.min(window.innerWidth/1400,window.innerHeight/900);document.getElementById('scaleWrap').style.transform='scale('+s+')';}
+scale();window.addEventListener('resize',scale);
+</script>
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — Novelty & Innovation Features</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#09081e;font-family:'Inter',sans-serif;overflow:hidden;width:100%;height:100%;}
+#deck{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#09081e;}
+#scaler{width:1400px;height:900px;position:relative;transform-origin:center center;}
+
+.slide{
+  width:1400px;height:900px;
+  background:#09081e;
+  overflow:hidden;display:flex;flex-direction:column;
+  position:relative;
+}
+.slide::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 55% 50% at 10% 15%,rgba(139,92,246,0.11) 0%,transparent 60%),
+    radial-gradient(ellipse 45% 45% at 90% 85%,rgba(34,211,238,0.08) 0%,transparent 55%),
+    radial-gradient(ellipse 35% 35% at 50% 50%,rgba(99,102,241,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 30% at 85% 10%,rgba(236,72,153,0.06) 0%,transparent 50%);
+}
+.slide>*{position:relative;z-index:1;}
+
+/* ── HEADER ── */
+.hd{padding:14px 44px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hd-eyebrow{font-size:8.5px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:rgba(167,139,250,0.55);margin-bottom:3px;}
+.hd-title{font-size:24px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.1;}
+.hd-title em{font-style:normal;background:linear-gradient(135deg,#a78bfa,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hd-right{display:flex;align-items:center;gap:10px;}
+.hd-brand{font-size:9px;font-weight:700;color:rgba(167,139,250,0.2);letter-spacing:2px;}
+.hd-count{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(167,139,250,0.7);background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);padding:3px 10px;border-radius:6px;}
+
+/* ── BENTO GRID ── */
+.bento{
+  flex:1;
+  padding:8px 44px 0;
+  display:grid;
+  grid-template-columns: 1fr 1.05fr 1.05fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    "balance  future  future  ghost"
+    "avatar   future  future  bloom"
+    "cascade  aiinput stress  market";
+  gap:7px;
+  min-height:0;
+}
+
+/* ── BASE CARD ── */
+.card{
+  border-radius:13px;
+  border:1px solid transparent;
+  background:rgba(255,255,255,0.022);
+  padding:12px 14px;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+/* top shimmer line */
+.card::before{
+  content:'';position:absolute;top:0;left:10%;right:10%;
+  height:1px;border-radius:1px;
+}
+/* inner corner glow */
+.card::after{
+  content:'';position:absolute;top:0;left:0;
+  width:80px;height:80px;
+  border-radius:50%;
+  filter:blur(22px);
+  opacity:0.35;
+}
+
+/* Card header row */
+.ch{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-bottom:6px;}
+.c-icon{font-size:15px;line-height:1;flex-shrink:0;}
+.c-name{font-size:11px;font-weight:900;line-height:1.2;flex:1;}
+.c-tag{font-size:7px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:1.5px 6px;border-radius:4px;flex-shrink:0;}
+.c-desc{font-size:8px;color:rgba(255,255,255,0.3);line-height:1.5;flex-shrink:0;margin-top:auto;}
+.c-viz{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;}
+
+/* ══ LIFE BALANCE ══ */
+.card-balance{
+  grid-area:balance;
+  border-color:rgba(167,139,250,0.22);
+  background:rgba(139,92,246,0.05);
+}
+.card-balance::before{background:linear-gradient(to right,transparent,rgba(167,139,250,0.5),transparent);}
+.card-balance::after{background:#8b5cf6;}
+.card-balance .c-name{background:linear-gradient(135deg,#ddd6fe,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-balance .c-tag{background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);color:#a78bfa;}
+
+/* ══ FUTURE SELF — HERO ══ */
+.card-future{
+  grid-area:future;
+  border-color:rgba(99,102,241,0.3);
+  background:rgba(79,70,229,0.07);
+  padding:16px 18px;
+}
+.card-future::before{background:linear-gradient(to right,transparent,rgba(129,140,248,0.7),transparent);}
+.card-future::after{background:#6366f1;width:120px;height:120px;opacity:0.2;}
+.card-future .c-name{font-size:16px;background:linear-gradient(135deg,#e0e7ff,#818cf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-future .c-tag{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);color:#818cf8;}
+
+/* ══ GHOST TIMELINE ══ */
+.card-ghost{
+  grid-area:ghost;
+  border-color:rgba(34,211,238,0.22);
+  background:rgba(8,145,178,0.05);
+}
+.card-ghost::before{background:linear-gradient(to right,transparent,rgba(34,211,238,0.5),transparent);}
+.card-ghost::after{background:#22d3ee;}
+.card-ghost .c-name{background:linear-gradient(135deg,#cffafe,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-ghost .c-tag{background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.25);color:#22d3ee;}
+
+/* ══ AVATAR ══ */
+.card-avatar{
+  grid-area:avatar;
+  border-color:rgba(244,114,182,0.22);
+  background:rgba(157,23,77,0.05);
+}
+.card-avatar::before{background:linear-gradient(to right,transparent,rgba(244,114,182,0.5),transparent);}
+.card-avatar::after{background:#ec4899;}
+.card-avatar .c-name{background:linear-gradient(135deg,#fce7f3,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-avatar .c-tag{background:rgba(244,114,182,0.1);border:1px solid rgba(244,114,182,0.25);color:#f472b6;}
+
+/* ══ BLOOM PLANT ══ */
+.card-bloom{
+  grid-area:bloom;
+  border-color:rgba(74,222,128,0.22);
+  background:rgba(22,101,52,0.05);
+}
+.card-bloom::before{background:linear-gradient(to right,transparent,rgba(74,222,128,0.5),transparent);}
+.card-bloom::after{background:#4ade80;}
+.card-bloom .c-name{background:linear-gradient(135deg,#dcfce7,#4ade80);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-bloom .c-tag{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25);color:#4ade80;}
+
+/* ══ CASCADE MAP ══ */
+.card-cascade{
+  grid-area:cascade;
+  border-color:rgba(96,165,250,0.22);
+  background:rgba(30,64,175,0.05);
+}
+.card-cascade::before{background:linear-gradient(to right,transparent,rgba(96,165,250,0.5),transparent);}
+.card-cascade::after{background:#3b82f6;}
+.card-cascade .c-name{background:linear-gradient(135deg,#dbeafe,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-cascade .c-tag{background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.25);color:#60a5fa;}
+
+/* ══ AI INPUT ══ */
+.card-ai{
+  grid-area:aiinput;
+  border-color:rgba(52,211,153,0.22);
+  background:rgba(6,78,59,0.05);
+}
+.card-ai::before{background:linear-gradient(to right,transparent,rgba(52,211,153,0.5),transparent);}
+.card-ai::after{background:#10b981;}
+.card-ai .c-name{background:linear-gradient(135deg,#d1fae5,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-ai .c-tag{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:#34d399;}
+
+/* ══ STRESS TEST ══ */
+.card-stress{
+  grid-area:stress;
+  border-color:rgba(251,191,36,0.22);
+  background:rgba(120,53,15,0.05);
+}
+.card-stress::before{background:linear-gradient(to right,transparent,rgba(251,191,36,0.5),transparent);}
+.card-stress::after{background:#f59e0b;}
+.card-stress .c-name{background:linear-gradient(135deg,#fef9c3,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-stress .c-tag{background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;}
+
+/* ══ LIFE MARKET ══ */
+.card-market{
+  grid-area:market;
+  border-color:rgba(253,224,71,0.22);
+  background:rgba(113,63,18,0.05);
+}
+.card-market::before{background:linear-gradient(to right,transparent,rgba(253,224,71,0.5),transparent);}
+.card-market::after{background:#facc15;}
+.card-market .c-name{background:linear-gradient(135deg,#fefce8,#fde047);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card-market .c-tag{background:rgba(253,224,71,0.1);border:1px solid rgba(253,224,71,0.25);color:#fde047;}
+
+/* ── FUTURE SELF CHAT ── */
+.bubble{border-radius:10px;padding:7px 10px;font-size:9.5px;line-height:1.5;max-width:90%;}
+.b-you{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.65);align-self:flex-start;}
+.b-ghost{background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.15));border:1px solid rgba(99,102,241,0.3);color:#e0e7ff;align-self:flex-end;position:relative;}
+.chat-col{display:flex;flex-direction:column;gap:7px;width:100%;}
+.ghost-label{font-size:7.5px;color:rgba(129,140,248,0.55);font-weight:700;margin-top:4px;display:flex;align-items:center;gap:4px;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#818cf8;box-shadow:0 0 6px rgba(129,140,248,.8);}
+.sim-bar{display:flex;align-items:center;gap:6px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15);border-radius:7px;padding:5px 9px;margin-top:6px;}
+
+/* ── GHOST TIMELINE MINI ── */
+.gtl{display:flex;flex-direction:column;gap:5px;width:100%;}
+.gtl-nodes{display:flex;justify-content:space-between;align-items:flex-end;position:relative;padding:0 4px;}
+.gtl-line{position:absolute;top:5px;left:8px;right:8px;height:1.5px;background:linear-gradient(to right,rgba(139,92,246,0.4),rgba(34,211,238,0.7),rgba(34,211,238,0.15));}
+.gn{display:flex;flex-direction:column;align-items:center;gap:3px;z-index:1;}
+.gn-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid;}
+.gn-dot.past{border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.2);}
+.gn-dot.now{width:13px;height:13px;border-color:#22d3ee;background:rgba(34,211,238,0.25);box-shadow:0 0 10px rgba(34,211,238,0.6);}
+.gn-dot.future{border-color:rgba(34,211,238,0.28);background:transparent;border-style:dashed;}
+.gn-yr{font-size:7px;font-weight:700;color:rgba(255,255,255,0.22);}
+.gn-yr.now{color:#22d3ee;}
+.gn-sc{font-size:9px;font-weight:900;}
+.gn-sc.past{color:rgba(139,92,246,0.6);}
+.gn-sc.now{color:#22d3ee;}
+.gn-sc.future{color:rgba(34,211,238,0.3);font-style:italic;}
+
+/* ── AVATAR VISUAL ── */
+.ava-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:90px;height:90px;}
+.ava-ring{position:absolute;border-radius:50%;border-style:solid;}
+
+/* ── BLOOM STAGES ── */
+.bloom-stages{display:flex;align-items:flex-end;justify-content:space-between;gap:5px;width:100%;padding:0 4px;}
+.bs{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bs-emoji{font-size:16px;line-height:1;}
+.bs-bar{width:18px;border-radius:2px;}
+.bs-lbl{font-size:6.5px;font-weight:700;color:rgba(255,255,255,0.25);}
+
+/* ── CASCADE CHAIN ── */
+.chain{display:flex;align-items:center;gap:3px;flex-wrap:nowrap;width:100%;justify-content:center;}
+.ch-node{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.ch-box{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid;}
+.ch-lbl{font-size:7px;font-weight:700;color:rgba(255,255,255,0.3);}
+.ch-arr{font-size:11px;color:rgba(96,165,250,0.45);margin-bottom:14px;}
+
+/* ── AI INPUT ── */
+.ai-wrap{display:flex;flex-direction:column;gap:6px;width:100%;}
+.ai-row{display:flex;align-items:center;gap:7px;}
+.ai-orb{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ai-waves{display:flex;align-items:center;gap:2px;}
+.ai-w{width:3px;border-radius:2px;}
+.ai-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.ai-chip{font-size:8px;font-weight:800;padding:2px 7px;border-radius:5px;}
+
+/* ── STRESS TEST ── */
+.sc-scenario{font-size:9px;font-weight:800;display:flex;align-items:center;gap:5px;margin-bottom:5px;}
+.sc-bars{display:flex;flex-direction:column;gap:4px;width:100%;}
+.sc-row{display:flex;align-items:center;gap:5px;}
+.sc-lbl{font-size:7.5px;color:rgba(255,255,255,0.3);font-weight:700;width:48px;flex-shrink:0;}
+.sc-track{flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;position:relative;}
+.sc-before{position:absolute;top:0;left:0;height:100%;border-radius:3px;opacity:0.25;}
+.sc-after{position:absolute;top:0;left:0;height:100%;border-radius:3px;}
+.sc-delta{font-size:8px;font-weight:800;width:30px;text-align:right;flex-shrink:0;}
+
+/* ── LIFE MARKET ── */
+.market-wrap{display:flex;flex-direction:column;gap:5px;width:100%;}
+.market-item{display:flex;align-items:center;gap:7px;background:rgba(253,224,71,0.06);border:1px solid rgba(253,224,71,0.15);border-radius:8px;padding:6px 9px;}
+.market-icon{font-size:18px;flex-shrink:0;}
+.market-body{flex:1;min-width:0;}
+.market-name{font-size:10px;font-weight:800;color:#fde047;}
+.market-cost{font-size:8px;color:rgba(255,255,255,0.3);}
+.market-prog{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-top:4px;}
+.market-fill{height:100%;border-radius:2px;background:linear-gradient(to right,#fbbf24,#fde047);}
+.market-lock{font-size:11px;flex-shrink:0;}
+.commit-row{display:flex;gap:3px;flex-wrap:wrap;}
+.commit-chip{font-size:7px;font-weight:700;padding:1.5px 6px;border-radius:4px;background:rgba(253,224,71,0.09);border:1px solid rgba(253,224,71,0.18);color:rgba(253,224,71,0.6);}
+
+/* ── BOTTOM STRIP ── */
+.strip{margin:7px 44px 11px;padding:8px 18px;border-radius:9px;background:rgba(139,92,246,0.04);border:1px solid rgba(139,92,246,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.strip-quote{font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.24);line-height:1.5;}
+.strip-quote em{color:rgba(196,181,253,0.65);font-style:normal;font-weight:700;}
+.stats{display:flex;gap:20px;}
+.stat{text-align:center;}
+.stat-n{font-size:18px;font-weight:900;background:linear-gradient(135deg,#a78bfa,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.stat-l{font-size:7px;color:rgba(255,255,255,0.18);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:1px;}
+</style>
+</head>
+<body>
+<div id="deck"><div id="scaler">
+<div class="slide">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div>
+      <div class="hd-eyebrow">Novelty & Innovation · Feature Showcase</div>
+      <div class="hd-title">Features That <em>Didn't Exist</em> Before</div>
+    </div>
+    <div class="hd-right">
+      <div class="hd-brand">◈ BEYONDSELF</div>
+      <div class="hd-count">9 Original Features</div>
+    </div>
+  </div>
+
+  <!-- BENTO GRID -->
+  <div class="bento">
+
+    <!-- ══════════════════════════════════════
+         1. OVERALL LIFE BALANCE SCORE
+    ══════════════════════════════════════ -->
+    <div class="card card-balance">
+      <div class="ch">
+        <span class="c-icon">⚖️</span>
+        <span class="c-name">Life Balance Score</span>
+        <span class="c-tag">Holistic</span>
+      </div>
+      <div class="c-viz">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <!-- Donut -->
+          <svg viewBox="0 0 80 80" width="74" height="74">
+            <circle cx="40" cy="40" r="28" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
+            <!-- Health green ~35% -->
+            <circle cx="40" cy="40" r="28" fill="none" stroke="#4ade80" stroke-width="8"
+              stroke-dasharray="55 121" stroke-dashoffset="0" transform="rotate(-90 40 40)" opacity=".9"/>
+            <!-- Finance amber ~28% -->
+            <circle cx="40" cy="40" r="28" fill="none" stroke="#f59e0b" stroke-width="8"
+              stroke-dasharray="44 121" stroke-dashoffset="-59" transform="rotate(-90 40 40)" opacity=".9"/>
+            <!-- Career blue ~32% -->
+            <circle cx="40" cy="40" r="28" fill="none" stroke="#818cf8" stroke-width="8"
+              stroke-dasharray="50 121" stroke-dashoffset="-107" transform="rotate(-90 40 40)" opacity=".9"/>
+            <text x="40" y="44" text-anchor="middle" fill="#fff" font-size="15" font-weight="900" font-family="Inter">74</text>
+          </svg>
+          <!-- Legend -->
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:8.5px;"><div style="width:7px;height:7px;border-radius:2px;background:#4ade80;"></div><span style="color:rgba(255,255,255,0.4);">Health 78</span></div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:8.5px;"><div style="width:7px;height:7px;border-radius:2px;background:#f59e0b;"></div><span style="color:rgba(255,255,255,0.4);">Finance 68</span></div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:8.5px;"><div style="width:7px;height:7px;border-radius:2px;background:#818cf8;"></div><span style="color:rgba(255,255,255,0.4);">Career 71</span></div>
+            <div style="height:1px;background:rgba(255,255,255,0.06);margin:1px 0;"></div>
+            <div style="font-size:7.5px;color:rgba(167,139,250,0.5);font-weight:700;">Burnout penalty: −4</div>
+          </div>
+        </div>
+      </div>
+      <div class="c-desc">Weighted composite — same input, same output, no randomness</div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         2. TALK WITH FUTURE SELF — HERO
+    ══════════════════════════════════════ -->
+    <div class="card card-future" style="display:flex;flex-direction:column;">
+      <div class="ch" style="margin-bottom:10px;">
+        <span class="c-icon" style="font-size:20px;">🌌</span>
+        <div style="flex:1;">
+          <div class="c-name" style="font-size:17px;margin-bottom:2px;">Talk With Future Self</div>
+          <div style="font-size:8px;color:rgba(199,210,254,0.4);">Groq llama-3.3-70b · your actual data trajectory</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);border-radius:5px;padding:3px 8px;">
+          <div style="width:5px;height:5px;border-radius:50%;background:#818cf8;box-shadow:0 0 6px rgba(129,140,248,.9);"></div>
+          <span style="font-size:8px;font-weight:800;color:#a5b4fc;letter-spacing:.5px;">LIVE</span>
+        </div>
+      </div>
+
+      <div class="chat-col" style="flex:1;justify-content:center;">
+        <!-- User bubble -->
+        <div style="display:flex;align-items:flex-start;gap:7px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">👤</div>
+          <div class="bubble b-you">"Should I quit my job and study full-time?"</div>
+        </div>
+        <!-- Ghost bubble -->
+        <div style="display:flex;align-items:flex-start;gap:7px;flex-direction:row-reverse;">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.2));border:1.5px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;box-shadow:0 0 12px rgba(99,102,241,0.4);">🌌</div>
+          <div class="bubble b-ghost">
+            "You stayed. Your salary doubled in 18 months. The React skills you're dreading — they opened 3 offers. Don't quit."
+            <div class="ghost-label"><div class="live-dot"></div>Future You · 2028 · 847 simulations</div>
+          </div>
+        </div>
+        <!-- User bubble 2 -->
+        <div style="display:flex;align-items:flex-start;gap:7px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">👤</div>
+          <div class="bubble b-you">"Did I ever hit my ₹2L savings goal?"</div>
+        </div>
+        <!-- Ghost bubble 2 -->
+        <div style="display:flex;align-items:flex-start;gap:7px;flex-direction:row-reverse;">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.2));border:1.5px solid rgba(99,102,241,0.5);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;box-shadow:0 0 12px rgba(99,102,241,0.4);">🌌</div>
+          <div class="bubble b-ghost" style="background:linear-gradient(135deg,rgba(34,211,238,0.12),rgba(99,102,241,0.15));">
+            "₹2.4L saved by March — but you almost derailed it. Avoid the impulsive laptop buy."
+            <div style="font-size:8px;color:rgba(34,211,238,0.5);margin-top:3px;font-style:italic;">↳ based on current trajectory + 847 simulations</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sim-bar">
+        <span style="font-size:10px;">🧠</span>
+        <span style="font-size:8px;color:rgba(199,210,254,0.35);">Not generic advice — </span>
+        <span style="font-size:8px;color:rgba(129,140,248,0.7);font-weight:700;">your trajectory, your voice, your decisions</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         3. GHOST TIMELINE
+    ══════════════════════════════════════ -->
+    <div class="card card-ghost">
+      <div class="ch">
+        <span class="c-icon">👻</span>
+        <span class="c-name">Ghost Timeline</span>
+        <span class="c-tag">Temporal</span>
+      </div>
+      <div class="c-viz" style="flex-direction:column;gap:8px;">
+        <div class="gtl" style="width:100%;">
+          <div class="gtl-nodes">
+            <div class="gtl-line"></div>
+            <div class="gn">
+              <div class="gn-sc past">58</div>
+              <div class="gn-dot past"></div>
+              <div class="gn-yr">2023</div>
+            </div>
+            <div class="gn">
+              <div class="gn-sc past">64</div>
+              <div class="gn-dot past"></div>
+              <div class="gn-yr">2024</div>
+            </div>
+            <div class="gn">
+              <div class="gn-sc now">74</div>
+              <div class="gn-dot now"></div>
+              <div class="gn-yr now">NOW</div>
+            </div>
+            <div class="gn">
+              <div class="gn-sc future">81?</div>
+              <div class="gn-dot future"></div>
+              <div class="gn-yr">2026</div>
+            </div>
+            <div class="gn">
+              <div class="gn-sc future" style="opacity:.5;">88?</div>
+              <div class="gn-dot future" style="opacity:.4;"></div>
+              <div class="gn-yr" style="opacity:.4;">2027</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.12);border-radius:6px;padding:4px 8px;">
+          <span style="font-size:9px;">👻</span>
+          <span style="font-size:8px;color:rgba(255,255,255,0.28);">Scroll past & future ghosts of yourself</span>
+        </div>
+      </div>
+      <div class="c-desc">Past data + projected future on one interactive axis</div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         4. ADAPTIVE DIGITAL AVATAR
+    ══════════════════════════════════════ -->
+    <div class="card card-avatar">
+      <div class="ch">
+        <span class="c-icon">🪞</span>
+        <span class="c-name">Adaptive Digital Avatar</span>
+        <span class="c-tag">Identity</span>
+      </div>
+      <div class="c-viz">
+        <!-- Avatar with rings -->
+        <div class="ava-wrap">
+          <!-- outer ring -->
+          <div class="ava-ring" style="width:86px;height:86px;border:1.5px dashed rgba(244,114,182,0.22);"></div>
+          <!-- mid ring -->
+          <div class="ava-ring" style="width:68px;height:68px;border:1.5px solid rgba(244,114,182,0.38);box-shadow:0 0 12px rgba(236,72,153,0.15);"></div>
+          <!-- inner glow -->
+          <div style="position:absolute;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle,rgba(236,72,153,0.18),transparent 70%);"></div>
+          <!-- SVG body -->
+          <svg width="30" height="52" viewBox="0 0 30 52" style="position:relative;z-index:2;">
+            <circle cx="15" cy="9" r="7.5" fill="rgba(244,114,182,0.7)" stroke="rgba(244,114,182,0.9)" stroke-width="1"/>
+            <path d="M5,19 Q15,16 25,19 L27,38 Q15,41 3,38 Z" fill="rgba(244,114,182,0.55)" stroke="rgba(244,114,182,0.75)" stroke-width="1"/>
+            <rect x="7" y="38" width="7" height="13" rx="3.5" fill="rgba(244,114,182,0.55)"/>
+            <rect x="16" y="38" width="7" height="13" rx="3.5" fill="rgba(244,114,182,0.55)"/>
+          </svg>
+          <!-- score bubble -->
+          <div style="position:absolute;top:-2px;right:-4px;background:rgba(236,72,153,0.9);border-radius:5px;padding:1px 6px;font-size:9px;font-weight:900;color:#fff;">74</div>
+        </div>
+        <!-- State chips -->
+        <div style="display:flex;flex-direction:column;gap:4px;margin-left:8px;">
+          <div style="font-size:7.5px;color:rgba(244,114,182,0.6);font-weight:700;letter-spacing:1px;text-transform:uppercase;">State</div>
+          <div style="font-size:8px;padding:2px 7px;border-radius:4px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.22);color:#86efac;font-weight:700;">🟢 Thriving</div>
+          <div style="font-size:7.5px;color:rgba(255,255,255,0.25);margin-top:2px;">Changes as you grow</div>
+        </div>
+      </div>
+      <div class="c-desc">Glow, color & posture shift with your life score</div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         5. LIFE BLOOM PLANT
+    ══════════════════════════════════════ -->
+    <div class="card card-bloom">
+      <div class="ch">
+        <span class="c-icon">🌱</span>
+        <span class="c-name">Life Bloom Plant</span>
+        <span class="c-tag">Goals</span>
+      </div>
+      <div class="c-viz" style="flex-direction:column;gap:7px;padding:4px 2px;">
+        <div class="bloom-stages">
+          <div class="bs">
+            <span class="bs-emoji" style="font-size:13px;opacity:0.5;">🌰</span>
+            <div class="bs-bar" style="height:10px;background:rgba(100,116,139,0.4);border-radius:2px;"></div>
+            <span class="bs-lbl">Seed</span>
+          </div>
+          <div class="bs">
+            <span class="bs-emoji" style="font-size:14px;opacity:0.65;">🌱</span>
+            <div class="bs-bar" style="height:18px;background:rgba(74,222,128,0.35);border-radius:2px;"></div>
+            <span class="bs-lbl">Sprout</span>
+          </div>
+          <div class="bs">
+            <span class="bs-emoji" style="font-size:16px;opacity:0.75;">🌿</span>
+            <div class="bs-bar" style="height:28px;background:rgba(74,222,128,0.5);border-radius:2px;"></div>
+            <span class="bs-lbl">Plant</span>
+          </div>
+          <div class="bs">
+            <span class="bs-emoji" style="font-size:18px;">🌸</span>
+            <div class="bs-bar" style="height:38px;background:rgba(74,222,128,0.7);border-radius:2px;border:1.5px solid rgba(74,222,128,0.6);box-shadow:0 0 8px rgba(74,222,128,0.3);"></div>
+            <span class="bs-lbl" style="color:#4ade80;font-weight:800;">NOW</span>
+          </div>
+          <div class="bs">
+            <span class="bs-emoji" style="font-size:19px;opacity:0.35;">🌳</span>
+            <div class="bs-bar" style="height:48px;background:rgba(74,222,128,0.18);border-radius:2px;border:1px dashed rgba(74,222,128,0.25);"></div>
+            <span class="bs-lbl" style="opacity:0.4;">Tree</span>
+          </div>
+        </div>
+        <!-- Progress bar -->
+        <div style="display:flex;flex-direction:column;gap:3px;padding:0 4px;">
+          <div style="display:flex;justify-content:space-between;font-size:7.5px;">
+            <span style="color:rgba(74,222,128,0.6);font-weight:700;">Goal Progress</span>
+            <span style="color:#4ade80;font-weight:800;">65%</span>
+          </div>
+          <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
+            <div style="width:65%;height:100%;background:linear-gradient(to right,#4ade80,#22d3ee);border-radius:3px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="c-desc">Wilts with burnout · blooms on consistency</div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         6. CASCADE MAP
+    ══════════════════════════════════════ -->
+    <div class="card card-cascade">
+      <div class="ch">
+        <span class="c-icon">🗺️</span>
+        <span class="c-name">Cascade Map</span>
+        <span class="c-tag">Cross-Domain</span>
+      </div>
+      <div class="c-viz">
+        <div class="chain">
+          <div class="ch-node">
+            <div class="ch-box" style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);">💰</div>
+            <div class="ch-lbl" style="color:#fbbf24;">Salary ↑</div>
+          </div>
+          <div class="ch-arr">→</div>
+          <div class="ch-node">
+            <div class="ch-box" style="background:rgba(249,115,22,0.12);border-color:rgba(249,115,22,0.3);">😴</div>
+            <div class="ch-lbl" style="color:#fb923c;">Sleep ↓</div>
+          </div>
+          <div class="ch-arr">→</div>
+          <div class="ch-node">
+            <div class="ch-box" style="background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);">💪</div>
+            <div class="ch-lbl" style="color:#f87171;">Health ↓</div>
+          </div>
+          <div class="ch-arr">→</div>
+          <div class="ch-node">
+            <div class="ch-box" style="background:rgba(96,165,250,0.12);border-color:rgba(96,165,250,0.3);">📉</div>
+            <div class="ch-lbl" style="color:#60a5fa;">Output ↓</div>
+          </div>
+        </div>
+      </div>
+      <div class="c-desc">Decisions ripple across all 3 domains — modelled in real time</div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         7. UNIVERSAL AI INPUT ENGINE
+    ══════════════════════════════════════ -->
+    <div class="card card-ai">
+      <div class="ch">
+        <span class="c-icon">🎙️</span>
+        <span class="c-name">Universal AI Input</span>
+        <span class="c-tag">Zero-Friction</span>
+      </div>
+      <div class="c-viz" style="flex-direction:column;gap:7px;">
+        <!-- Input sources row -->
+        <div class="ai-row">
+          <div class="ai-orb" style="background:rgba(52,211,153,0.12);border:1.5px solid rgba(52,211,153,0.3);">🎙️</div>
+          <div class="ai-waves">
+            <div class="ai-w" style="height:6px;background:rgba(52,211,153,0.5);"></div>
+            <div class="ai-w" style="height:14px;background:rgba(52,211,153,0.7);"></div>
+            <div class="ai-w" style="height:9px;background:rgba(52,211,153,0.6);"></div>
+            <div class="ai-w" style="height:18px;background:rgba(52,211,153,0.85);"></div>
+            <div class="ai-w" style="height:11px;background:rgba(52,211,153,0.65);"></div>
+            <div class="ai-w" style="height:7px;background:rgba(52,211,153,0.5);"></div>
+          </div>
+          <div style="font-size:8.5px;font-style:italic;color:rgba(255,255,255,0.3);">"₹450 on medicine"</div>
+        </div>
+        <!-- Doc row -->
+        <div class="ai-row" style="gap:5px;">
+          <div style="display:flex;gap:3px;">
+            <div style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);color:rgba(52,211,153,0.65);font-weight:700;">📄 Salary slip</div>
+            <div style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);color:rgba(52,211,153,0.65);font-weight:700;">🧪 Lab report</div>
+          </div>
+        </div>
+        <!-- Arrow -->
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="flex:1;height:1px;background:linear-gradient(to right,rgba(52,211,153,0.3),rgba(52,211,153,0.1));"></div>
+          <span style="font-size:8px;color:rgba(52,211,153,0.5);font-weight:700;">Groq NLP classifies →</span>
+          <div style="flex:1;height:1px;background:linear-gradient(to left,rgba(52,211,153,0.3),rgba(52,211,153,0.1));"></div>
+        </div>
+        <!-- Output chips -->
+        <div class="ai-chips">
+          <div class="ai-chip" style="background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);color:#86efac;">✓ Health</div>
+          <div class="ai-chip" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fcd34d;">✓ Finance</div>
+          <div class="ai-chip" style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.25);color:#93c5fd;">✓ Career</div>
+        </div>
+      </div>
+      <div class="c-desc">Speak it or upload it — AI routes it, zero manual tags</div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         8. STRESS TEST SIMULATOR
+    ══════════════════════════════════════ -->
+    <div class="card card-stress">
+      <div class="ch">
+        <span class="c-icon">⚡</span>
+        <span class="c-name">Stress Test Simulator</span>
+        <span class="c-tag">Crisis AI</span>
+      </div>
+      <div class="c-viz" style="flex-direction:column;gap:6px;width:100%;">
+        <div class="sc-scenario" style="color:#fbbf24;">
+          <span>⚠️</span> "I lose my job tomorrow"
+        </div>
+        <div class="sc-bars">
+          <div class="sc-row">
+            <div class="sc-lbl">Finance</div>
+            <div class="sc-track">
+              <div class="sc-before" style="width:78%;background:#22c55e;"></div>
+              <div class="sc-after" style="width:30%;background:linear-gradient(to right,#ef4444,#f87171);"></div>
+            </div>
+            <div class="sc-delta" style="color:#f87171;">−48</div>
+          </div>
+          <div class="sc-row">
+            <div class="sc-lbl">Health</div>
+            <div class="sc-track">
+              <div class="sc-before" style="width:72%;background:#22c55e;"></div>
+              <div class="sc-after" style="width:55%;background:linear-gradient(to right,#f59e0b,#fbbf24);"></div>
+            </div>
+            <div class="sc-delta" style="color:#fbbf24;">−17</div>
+          </div>
+          <div class="sc-row">
+            <div class="sc-lbl">Career</div>
+            <div class="sc-track">
+              <div class="sc-before" style="width:65%;background:#22c55e;"></div>
+              <div class="sc-after" style="width:75%;background:linear-gradient(to right,#22d3ee,#34d399);"></div>
+            </div>
+            <div class="sc-delta" style="color:#34d399;">+10</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.18);border-radius:6px;padding:4px 8px;">
+          <span style="font-size:9px;">🛡️</span>
+          <span style="font-size:8px;color:rgba(251,191,36,0.7);font-weight:700;">Resilience 6.2 · Runway 4.1 months</span>
+        </div>
+      </div>
+      <div class="c-desc">Model any crisis — see cross-domain impact before it hits</div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         9. LIFE MARKET
+    ══════════════════════════════════════ -->
+    <div class="card card-market">
+      <div class="ch">
+        <span class="c-icon">🏪</span>
+        <span class="c-name">LIFE Market</span>
+        <span class="c-tag">Earn It</span>
+      </div>
+      <div class="c-viz" style="flex-direction:column;gap:6px;width:100%;">
+        <div class="market-wrap">
+          <div class="market-item">
+            <div class="market-icon">🎧</div>
+            <div class="market-body">
+              <div class="market-name">Premium Headphones</div>
+              <div class="market-cost">₹24,999 · 21 days to earn</div>
+              <div class="market-prog"><div class="market-fill" style="width:60%;"></div></div>
+            </div>
+            <div class="market-lock">🔒</div>
+          </div>
+        </div>
+        <!-- Commitments -->
+        <div style="font-size:7.5px;color:rgba(253,224,71,0.45);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:1px;">Commitments required</div>
+        <div class="commit-row">
+          <div class="commit-chip">📚 12h upskilling</div>
+          <div class="commit-chip">🥗 Skip 3 junk meals</div>
+        </div>
+        <div style="font-size:8px;color:rgba(253,224,71,0.35);display:flex;align-items:center;gap:4px;">
+          <span>⚠️</span>
+          <span>Miss target → entertainment budget frozen 2 weeks</span>
+        </div>
+      </div>
+      <div class="c-desc">Purchases unlocked by life goals, not just money</div>
+    </div>
+
+  </div><!-- /bento -->
+
+  <!-- BOTTOM STRIP -->
+  <div class="strip">
+    <div class="strip-quote">
+      ✦ Every feature was built from scratch — <em>no existing app combines these capabilities in a single Digital Twin.</em>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n">9</div><div class="stat-l">Original Features</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Domains Unified</div></div>
+      <div class="stat"><div class="stat-n">0</div><div class="stat-l">Existing Rivals</div></div>
+    </div>
+  </div>
+
+</div>
+</div></div>
+
+<script>
+function resize(){
+  const s=document.getElementById('scaler');
+  const sc=Math.min(window.innerWidth/1400,window.innerHeight/900)*0.98;
+  s.style.transform='scale('+sc+')';
+}
+resize();
+window.addEventListener('resize',resize);
+</script>
+</body>
+</html>

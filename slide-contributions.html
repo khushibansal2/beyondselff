@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — Team Contributions</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#060614;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;}
+.scale-wrap{width:1400px;height:900px;transform-origin:center center;flex-shrink:0;}
+.slide{width:1400px;height:900px;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,#0c0a2e 0%,#060614 70%);}
+.slide::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(139,92,246,0.06) 1px,transparent 1px);background-size:44px 44px;}
+.top-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#5b21b6,#8b5cf6,#22d3ee,#8b5cf6,#5b21b6);}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(100px);}
+.orb1{width:500px;height:500px;background:rgba(139,92,246,0.08);top:-200px;left:-100px;}
+.orb2{width:400px;height:400px;background:rgba(34,211,238,0.05);bottom:-150px;right:-80px;}
+
+/* HEADER */
+.hdr{position:absolute;top:34px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.ey{font-size:8.5px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:rgba(196,181,253,0.5);display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.ey::before{content:'';width:18px;height:1px;background:rgba(196,181,253,0.3);}
+.ht{font-size:34px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.0;}
+.ht span{background:linear-gradient(135deg,#ede9fe 0%,#c4b5fd 40%,#8b5cf6 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-r{text-align:right;}
+.pg{font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(139,92,246,0.5);}
+.pg-sub{font-size:9px;color:rgba(200,190,255,0.3);margin-top:3px;}
+
+/* 3-COLUMN GRID */
+.cols{position:absolute;top:118px;left:60px;right:60px;bottom:44px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* MEMBER CARD */
+.member{border-radius:18px;padding:20px 22px 18px;display:flex;flex-direction:column;gap:0;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.022);position:relative;overflow:hidden;}
+.member::after{content:'';position:absolute;inset:0;border-radius:18px;pointer-events:none;background:radial-gradient(ellipse 100% 40% at 50% 0%,rgba(255,255,255,0.03),transparent 55%);}
+.m1{border-top:2.5px solid #8b5cf6;}
+.m2{border-top:2.5px solid #22d3ee;}
+.m3{border-top:2.5px solid #f59e0b;}
+
+/* member header */
+.mem-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.av1{background:linear-gradient(135deg,#4c1d95,#7c3aed);border:2px solid rgba(139,92,246,0.4);}
+.av2{background:linear-gradient(135deg,#0c4a6e,#0891b2);border:2px solid rgba(34,211,238,0.35);}
+.av3{background:linear-gradient(135deg,#78350f,#d97706);border:2px solid rgba(245,158,11,0.35);}
+.mem-name{font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.3px;}
+.mem-role{font-size:9px;color:rgba(200,190,255,0.4);margin-top:2px;}
+.files-badge{margin-left:auto;padding:3px 8px;border-radius:6px;font-size:8px;font-weight:700;flex-shrink:0;align-self:flex-start;white-space:nowrap;}
+.fb1{background:rgba(139,92,246,0.12);color:#c084fc;border:1px solid rgba(139,92,246,0.2);}
+.fb2{background:rgba(34,211,238,0.1);color:#67e8f9;border:1px solid rgba(34,211,238,0.2);}
+.fb3{background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.2);}
+
+/* section group */
+.grp{margin-bottom:7px;}
+.grp-label{font-size:7px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:6px;opacity:0.85;}
+.grp-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.055);}
+.gl1{color:#a78bfa;} .gl2{color:#22d3ee;} .gl3{color:#fbbf24;}
+
+/* items */
+.items{display:flex;flex-direction:column;gap:3px;}
+.item{display:flex;align-items:flex-start;gap:6px;font-size:9.5px;color:rgba(215,205,255,0.72);line-height:1.3;}
+.dot{width:3.5px;height:3.5px;border-radius:50%;flex-shrink:0;margin-top:4.5px;}
+.d1{background:#8b5cf6;} .d2{background:#22d3ee;} .d3{background:#f59e0b;}
+.tag{padding:1.5px 5px;border-radius:4px;font-size:7.5px;font-weight:700;flex-shrink:0;margin-left:2px;align-self:center;}
+.tag-fe{background:rgba(139,92,246,0.12);color:#c084fc;}
+.tag-be{background:rgba(244,63,94,0.12);color:#fb7185;}
+.tag-fs{background:rgba(34,197,94,0.1);color:#86efac;}
+
+/* BOTTOM */
+.bottom{position:absolute;bottom:15px;left:60px;right:60px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.brand{font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(139,92,246,0.4);text-transform:uppercase;}
+.note{font-size:8.5px;color:rgba(200,190,255,0.25);font-style:italic;}
+</style>
+</head>
+<body>
+<div class="scale-wrap" id="scaleWrap">
+<div class="slide">
+  <div class="top-bar"></div>
+  <div class="orb orb1"></div><div class="orb orb2"></div>
+
+  <div class="hdr">
+    <div>
+      <div class="ey">08 · Team</div>
+      <div class="ht">What <span>Each Member</span> Built</div>
+    </div>
+    <div class="hdr-r">
+      <div class="pg">08 / 09</div>
+      <div class="pg-sub">Based on actual file ownership across the codebase</div>
+    </div>
+  </div>
+
+  <div class="cols">
+
+    <!-- ── KHUSHI BANSAL ── -->
+    <div class="member m1">
+      <div class="mem-hdr">
+        <div class="avatar av1">👩‍💻</div>
+        <div>
+          <div class="mem-name">Khushi Bansal</div>
+          <div class="mem-role">Lead Frontend · Core pages, scoring & unique features</div>
+        </div>
+        <div class="files-badge fb1">50+ files touched</div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl1">Scoring System</div>
+        <div class="items">
+          <div class="item"><div class="dot d1"></div>Health, Finance & Career score engines</div>
+          <div class="item"><div class="dot d1"></div>Overall Life Balance Score + donut chart</div>
+          <div class="item"><div class="dot d1"></div>Seeded deterministic trend data (no flicker)</div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl1">AI & Voice Features</div>
+        <div class="items">
+          <div class="item"><div class="dot d1"></div>AI Life Coach — Groq API + voice fallback</div>
+          <div class="item"><div class="dot d1"></div>Food Calorie Scanner — Nutritionix API</div>
+          <div class="item"><div class="dot d1"></div>Global Smart Mic — auto-detects life domain</div>
+          <div class="item"><div class="dot d1"></div>OCR Doc Scanner — salary slip, utility bill, reports</div>
+          <div class="item"><div class="dot d1"></div>Neural Core — future trajectory engine</div>
+          <div class="item"><div class="dot d1"></div>Cascade Map — data-driven domain graph</div>
+          <div class="item"><div class="dot d1"></div>Ghost Mode Timeline</div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl1">Features & Pages</div>
+        <div class="items">
+          <div class="item"><div class="dot d1"></div>Dashboard — Today's Plan, quick goals, snapshot</div>
+          <div class="item"><div class="dot d1"></div>Gamification — XP system, leaderboard</div>
+          <div class="item"><div class="dot d1"></div>LIFE Market & Sustainability persistence</div>
+          <div class="item"><div class="dot d1"></div>Life Simulator, Stress Test pages</div>
+          <div class="item"><div class="dot d1"></div>Menstrual Cycle Tracker</div>
+          <div class="item"><div class="dot d1"></div>Avatar state system (score-reactive)</div>
+          <div class="item"><div class="dot d1"></div>Landing page + App routing + Navigation</div>
+        </div>
+      </div>
+
+      <div class="grp" style="margin-bottom:0;">
+        <div class="grp-label gl1">Backend & DevOps</div>
+        <div class="items">
+          <div class="item"><div class="dot d1"></div>User entity + Auth (AuthController, AuthService)<span class="tag tag-be">BE</span></div>
+          <div class="item"><div class="dot d1"></div>Record APIs — Health / Finance / Career repos<span class="tag tag-be">BE</span></div>
+          <div class="item"><div class="dot d1"></div>Fitbit OAuth wiring + SyncController<span class="tag tag-be">BE</span></div>
+          <div class="item"><div class="dot d1"></div>Career intelligence — skill trends, salary sim</div>
+          <div class="item"><div class="dot d1"></div>Deployment — render.yaml, Docker, CORS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAVANI ── -->
+    <div class="member m2">
+      <div class="mem-hdr">
+        <div class="avatar av2">👩‍💻</div>
+        <div>
+          <div class="mem-name">Pavani</div>
+          <div class="mem-role">Full Stack · Integrations, backend API & security</div>
+        </div>
+        <div class="files-badge fb2">35 files owned</div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl2">API Integrations</div>
+        <div class="items">
+          <div class="item"><div class="dot d2"></div>GitHub — profile sync, repo & commit analysis</div>
+          <div class="item"><div class="dot d2"></div>LinkedIn — job matching panel</div>
+          <div class="item"><div class="dot d2"></div>Coursera — learning path UI & course catalog</div>
+          <div class="item"><div class="dot d2"></div>Nutritionix — food search & macro lookup</div>
+          <div class="item"><div class="dot d2"></div>Fitbit — activity panel UI</div>
+          <div class="item"><div class="dot d2"></div>Banking — upload panel + doc demo</div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl2">Frontend Features</div>
+        <div class="items">
+          <div class="item"><div class="dot d2"></div>OCR Upload page — doc scan UI + auto-routing</div>
+          <div class="item"><div class="dot d2"></div>Resume Parser — extract & score career data</div>
+          <div class="item"><div class="dot d2"></div>Global DataContext — app-wide state management</div>
+          <div class="item"><div class="dot d2"></div>VoiceController — voice UI + parser + transcription</div>
+          <div class="item"><div class="dot d2"></div>Anomaly detection engine</div>
+          <div class="item"><div class="dot d2"></div>Digital Twin + Future You pages</div>
+          <div class="item"><div class="dot d2"></div>Settings, Auth, Goals pages</div>
+        </div>
+      </div>
+
+      <div class="grp" style="margin-bottom:0;">
+        <div class="grp-label gl2">Backend (Spring Boot)</div>
+        <div class="items">
+          <div class="item"><div class="dot d2"></div>JwtAuthFilter — JWT security filter + RBAC<span class="tag tag-be">BE</span></div>
+          <div class="item"><div class="dot d2"></div>UploadController + UploadService — doc parsing<span class="tag tag-be">BE</span></div>
+          <div class="item"><div class="dot d2"></div>AI proxy controller (Gemini / Groq)<span class="tag tag-be">BE</span></div>
+          <div class="item"><div class="dot d2"></div>TranscriptionController — voice backend<span class="tag tag-be">BE</span></div>
+          <div class="item"><div class="dot d2"></div>CORS config + security hardening + tests<span class="tag tag-be">BE</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SAMRIDHI PANDEY ── -->
+    <div class="member m3">
+      <div class="mem-hdr">
+        <div class="avatar av3">👩‍💻</div>
+        <div>
+          <div class="mem-name">Samridhi Pandey</div>
+          <div class="mem-role">Frontend · Health, Finance, Career UI & features</div>
+        </div>
+        <div class="files-badge fb3">12 files touched</div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl3">Dashboard</div>
+        <div class="items">
+          <div class="item"><div class="dot d3"></div>Circular score rings (Health / Finance / Career)</div>
+          <div class="item"><div class="dot d3"></div>Dashboard UI layout updates</div>
+          <div class="item"><div class="dot d3"></div>First-Time User Guide / onboarding flow</div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl3">Health Domain</div>
+        <div class="items">
+          <div class="item"><div class="dot d3"></div>Health Overview UI</div>
+          <div class="item"><div class="dot d3"></div>Nutrition plans & meal suggestions</div>
+          <div class="item"><div class="dot d3"></div>Wellness log & data tracking UI</div>
+          <div class="item"><div class="dot d3"></div>nutritionService.js (service layer)</div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-label gl3">Career Domain</div>
+        <div class="items">
+          <div class="item"><div class="dot d3"></div>Learning paths for target career roles</div>
+          <div class="item"><div class="dot d3"></div>Career page UI improvements</div>
+          <div class="item"><div class="dot d3"></div>learningService.js (service layer)</div>
+        </div>
+      </div>
+
+      <div class="grp" style="margin-bottom:0;">
+        <div class="grp-label gl3">Finance & Cross-domain</div>
+        <div class="items">
+          <div class="item"><div class="dot d3"></div>Finance page UI improvements</div>
+          <div class="item"><div class="dot d3"></div>Finance Invest tab</div>
+          <div class="item"><div class="dot d3"></div>AI Recommendations UI</div>
+          <div class="item"><div class="dot d3"></div>Sustainability page updates</div>
+          <div class="item"><div class="dot d3"></div>Error handling component</div>
+          <div class="item"><div class="dot d3"></div>Cross-page UI polish & bug fixes</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom">
+    <div class="brand">BeyondSelf</div>
+    <div class="note">Attribution from git file ownership · AI Assistant commits counted as Khushi's</div>
+  </div>
+</div>
+</div>
+<script>
+function scale(){var s=Math.min(window.innerWidth/1400,window.innerHeight/900);document.getElementById('scaleWrap').style.transform='scale('+s+')';}
+scale();window.addEventListener('resize',scale);
+</script>
+</body>
+</html>

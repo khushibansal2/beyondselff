@@ -100,6 +100,49 @@ public class GamificationService {
         return buildResult(xpAmount, stats, List.of());
     }
 
+    // ─── Daily check-in (50 XP, once per calendar day) ───────────────────────
+
+    private static final int XP_CHECK_IN = 50;
+
+    private static final String[] CHECK_IN_MESSAGES = {
+        "Another day, another edge. Keep showing up.",
+        "Discipline is choosing between what you want now and what you want most.",
+        "The compound effect is real. Today's log builds tomorrow's legend.",
+        "You showed up. That's already ahead of 80% of people.",
+        "Streak maintained. The system remembers even when motivation doesn't.",
+        "Consistency is a superpower. You're building it right now.",
+        "One more day of data. One more step toward the version of you that doesn't quit.",
+    };
+
+    public Map<String, Object> dailyCheckIn(String userId) {
+        UserStats stats = getOrCreate(userId);
+        LocalDate today = LocalDate.now();
+
+        if (today.equals(stats.getLastActivityDate())) {
+            return Map.of(
+                    "alreadyDone", true,
+                    "streak",  stats.getCurrentStreak(),
+                    "totalXp", stats.getXp(),
+                    "level",   stats.getLevel(),
+                    "message", "Already checked in today. See you tomorrow."
+            );
+        }
+
+        int streakBonus = updateStreak(stats);
+        addXp(stats, XP_CHECK_IN + streakBonus);
+        statsRepo.save(stats);
+
+        List<UserBadge> newBadges = new ArrayList<>();
+        if (streakBonus == XP_STREAK_7)  newBadges.addAll(tryAwardBadge(userId, "week_warrior",  "Week Warrior",  "7-day check-in streak",  "general", "🔥"));
+        if (streakBonus == XP_STREAK_30) newBadges.addAll(tryAwardBadge(userId, "month_warrior", "Month Warrior", "30-day check-in streak", "general", "⚡"));
+
+        String msg = CHECK_IN_MESSAGES[(int)(Math.random() * CHECK_IN_MESSAGES.length)];
+        java.util.HashMap<String, Object> result = new java.util.HashMap<>(buildResult(XP_CHECK_IN + streakBonus, stats, newBadges));
+        result.put("alreadyDone", false);
+        result.put("message", msg);
+        return result;
+    }
+
     // ─── Public getters ───────────────────────────────────────────────────────
 
     public UserStats getStats(String userId) {

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>BeyondSelf — Line of Innovation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#06061a;font-family:'Inter',sans-serif;overflow:hidden;width:100%;height:100%;}
+#deck{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#06061a;}
+#scaler{width:1400px;height:900px;position:relative;transform-origin:center center;}
+.slide{width:1400px;height:900px;background:#08081e;overflow:hidden;position:absolute;inset:0;display:none;flex-direction:column;}
+.slide.active{display:flex;}
+.slide::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 55% at 8% 20%,rgba(139,92,246,0.13) 0%,transparent 60%),
+    radial-gradient(ellipse 45% 50% at 92% 80%,rgba(34,211,238,0.09) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 40% at 50% 0%,rgba(99,102,241,0.07) 0%,transparent 50%);}
+.slide>*{position:relative;z-index:1;}
+
+/* HEADER */
+.hd{padding:10px 40px 0;display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;}
+.hd-tag{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#a78bfa;margin-bottom:4px;}
+.hd-title{font-size:26px;font-weight:900;color:#fff;line-height:1.05;letter-spacing:-.5px;}
+.hd-title em{font-style:normal;background:linear-gradient(135deg,#8b5cf6,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.hd-brand{font-size:10px;color:rgba(255,255,255,0.65);font-weight:700;letter-spacing:1.5px;}
+.pill{display:flex;align-items:center;gap:6px;border-radius:8px;padding:4px 12px;font-size:9.5px;font-weight:700;}
+.pill-v{background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.42);color:rgba(196,181,253,1);}
+.pill-g{background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);color:rgba(134,239,172,1);}
+.pdot{width:6px;height:6px;border-radius:50%;}
+.pill-v .pdot{background:#8b5cf6;box-shadow:0 0 6px rgba(139,92,246,.6);}
+.pill-g .pdot{background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,.5);}
+
+/* GRID */
+.grid{flex:1;padding:6px 40px 0;display:grid;gap:7px;}
+.g1{grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr;}
+.g2{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr;}
+.span2{grid-column:span 2;}
+.r2{grid-row:span 2;}
+
+/* CARDS */
+.card{border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.card::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;border-radius:1px;}
+.cp::before{background:linear-gradient(to right,transparent,#8b5cf6,transparent);}
+.cc::before{background:linear-gradient(to right,transparent,#22d3ee,transparent);}
+.cg::before{background:linear-gradient(to right,transparent,#4ade80,transparent);}
+.co::before{background:linear-gradient(to right,transparent,#fb923c,transparent);}
+.cm::before{background:linear-gradient(to right,transparent,#ec4899,transparent);}
+.cb::before{background:linear-gradient(to right,transparent,#3b82f6,transparent);}
+.cp{border-color:rgba(139,92,246,0.22);}
+.cc{border-color:rgba(34,211,238,0.20);}
+.cg{border-color:rgba(74,222,128,0.20);}
+.co{border-color:rgba(251,146,60,0.20);}
+.cm{border-color:rgba(236,72,153,0.20);}
+.cb{border-color:rgba(59,130,246,0.20);}
+
+.card-viz{flex:1;padding:10px 14px 6px;display:flex;align-items:center;justify-content:center;}
+.card-foot{padding:7px 14px 9px;border-top:1px solid rgba(255,255,255,0.08);}
+.cf-tag{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
+.cp .cf-tag{color:#c4b5fd;} .cc .cf-tag{color:#67e8f9;} .cg .cf-tag{color:#86efac;}
+.co .cf-tag{color:#fdba74;} .cm .cf-tag{color:#f9a8d4;} .cb .cf-tag{color:#93c5fd;}
+.cf-title{font-size:12px;font-weight:900;color:#ffffff;line-height:1.2;}
+.cf-desc{font-size:9px;color:rgba(255,255,255,0.75);margin-top:2px;line-height:1.45;}
+
+/* STRIP */
+.strip{margin:4px 40px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.tagline{font-size:13px;font-weight:900;color:rgba(255,255,255,0.75);letter-spacing:.3px;}
+.tagline em{color:rgba(196,181,253,1);font-style:normal;}
+.stats{display:flex;gap:18px;}
+.stat{text-align:center;}
+.stat-n{font-size:19px;font-weight:900;color:#c4b5fd;line-height:1;}
+.stat-l{font-size:8px;color:rgba(255,255,255,0.65);font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+
+/* NAV */
+.nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 20px;background:rgba(6,6,26,0.92);border:1px solid rgba(139,92,246,0.2);border-radius:12px;backdrop-filter:blur(10px);z-index:9999;}
+.nav button{background:#12122e;color:#fff;border:1.5px solid rgba(139,92,246,0.35);padding:7px 26px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;transition:all .2s;}
+.nav button:hover{background:#8b5cf6;border-color:#8b5cf6;}
+#ctr{color:#6060a0;font-size:12px;font-weight:700;min-width:44px;text-align:center;}
+
+/* ═══════════════════════════════════════════
+   VIZ STYLES PER CARD
+═══════════════════════════════════════════ */
+
+/* FUTURE SELF CHAT */
+.chat-wrap{display:flex;flex-direction:column;gap:7px;width:100%;}
+.chat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.chat-you-tag{font-size:8px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.7);}
+.chat-ghost-tag{font-size:8px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(196,181,253,0.95);}
+.bubble{border-radius:12px;padding:8px 12px;font-size:10.5px;line-height:1.5;max-width:85%;}
+.b-you{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.92);align-self:flex-start;}
+.b-ghost{background:linear-gradient(135deg,rgba(139,92,246,0.25),rgba(34,211,238,0.18));border:1px solid rgba(139,92,246,0.45);color:#f0ecff;align-self:flex-end;position:relative;}
+.b-ghost::after{content:'✦ Future You · 2028';position:absolute;bottom:-14px;right:4px;font-size:7.5px;color:rgba(196,181,253,0.85);font-weight:700;}
+.chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ghost-ava{background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(34,211,238,0.2));border:1.5px solid rgba(139,92,246,0.4);box-shadow:0 0 12px rgba(139,92,246,0.3);}
+.bubble-row{display:flex;align-items:flex-end;gap:7px;}
+
+/* NEURAL CORE */
+.neural-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;}
+.neural-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(103,232,249,0.9);}
+
+/* GHOST TIMELINE */
+.gtl-wrap{display:flex;flex-direction:column;gap:8px;width:100%;}
+.gtl-axis{display:flex;align-items:center;gap:0;position:relative;padding:0 8px;}
+.gtl-line{flex:1;height:2px;background:linear-gradient(to right,rgba(139,92,246,0.15),rgba(139,92,246,0.5),rgba(34,211,238,0.5),rgba(34,211,238,0.15));}
+.gtl-nodes{display:flex;justify-content:space-between;margin-top:-1px;}
+.gtl-node{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.gtl-dot{width:10px;height:10px;border-radius:50%;border:2px solid;}
+.gtl-dot.past{border-color:rgba(139,92,246,0.5);background:rgba(139,92,246,0.2);}
+.gtl-dot.now{width:14px;height:14px;border-color:#22d3ee;background:rgba(34,211,238,0.25);box-shadow:0 0 10px rgba(34,211,238,0.5);}
+.gtl-dot.future{border-color:rgba(34,211,238,0.3);background:rgba(34,211,238,0.06);border-style:dashed;}
+.gtl-yr{font-size:8px;font-weight:700;color:rgba(255,255,255,0.7);}
+.gtl-yr.now{color:#22d3ee;}
+.gtl-score{font-size:9.5px;font-weight:900;}
+.gtl-score.past{color:rgba(196,181,253,0.9);}
+.gtl-score.now{color:#22d3ee;}
+.gtl-score.future{color:rgba(103,232,249,0.6);font-style:italic;}
+.ghost-banner{display:flex;align-items:center;gap:6px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.28);border-radius:7px;padding:5px 10px;font-size:9px;color:rgba(255,255,255,0.75);}
+
+/* GRIND ROOM */
+.grind-wrap{display:flex;flex-direction:column;gap:7px;width:100%;}
+.grind-timer{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.grind-clock{font-size:32px;font-weight:900;font-variant-numeric:tabular-nums;background:linear-gradient(135deg,#fb923c,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.grind-phase{font-size:8px;font-weight:700;color:#fb923c;letter-spacing:2px;text-transform:uppercase;}
+.grind-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.gs-cell{background:rgba(251,146,60,0.07);border:1px solid rgba(251,146,60,0.15);border-radius:8px;padding:6px 8px;text-align:center;}
+.gs-n{font-size:15px;font-weight:900;color:#fb923c;}
+.gs-l{font-size:7.5px;color:rgba(255,255,255,0.75);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.grind-bar-wrap{display:flex;flex-direction:column;gap:3px;}
+.gb-row{display:flex;align-items:center;gap:6px;}
+.gb-label{font-size:8px;color:rgba(255,255,255,0.8);font-weight:700;width:42px;text-align:right;flex-shrink:0;}
+.gb-track{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.gb-fill{height:100%;border-radius:3px;}
+
+/* MIC PARSER */
+.mic-wrap{display:flex;flex-direction:column;gap:8px;width:100%;}
+.mic-center{display:flex;align-items:center;justify-content:center;gap:14px;}
+.mic-orb{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,rgba(74,222,128,0.2),rgba(34,211,238,0.15));border:2px solid rgba(74,222,128,0.4);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(74,222,128,0.2),0 0 40px rgba(74,222,128,0.08);flex-shrink:0;}
+.wave-bars{display:flex;align-items:center;gap:2px;}
+.wb{width:3px;border-radius:2px;background:linear-gradient(to top,rgba(74,222,128,0.3),rgba(74,222,128,0.8));}
+.detected-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
+.dchip{font-size:9px;font-weight:800;padding:3px 10px;border-radius:6px;display:flex;align-items:center;gap:4px;}
+.dchip.h{background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);color:#86efac;}
+.dchip.f{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);color:#fcd34d;}
+.dchip.c{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#93c5fd;}
+.mic-transcript{font-size:9.5px;color:rgba(255,255,255,0.82);text-align:center;font-style:italic;background:rgba(255,255,255,0.05);border-radius:7px;padding:5px 10px;}
+.mic-transcript span{color:rgba(134,239,172,0.95);font-style:normal;font-weight:700;}
+
+/* STRESS TEST */
+.stress-wrap{display:flex;flex-direction:column;gap:6px;width:100%;}
+.scenario-box{background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:9px;padding:8px 12px;}
+.sc-title{font-size:10px;font-weight:800;color:#f87171;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.sc-bars{display:flex;flex-direction:column;gap:4px;}
+.sc-row{display:flex;align-items:center;gap:6px;}
+.sc-label{font-size:8.5px;color:rgba(255,255,255,0.85);font-weight:700;width:54px;flex-shrink:0;}
+.sc-track{flex:1;height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;position:relative;}
+.sc-before{height:100%;border-radius:4px;opacity:0.4;}
+.sc-after{position:absolute;top:0;left:0;height:100%;border-radius:4px;}
+.sc-delta{font-size:8.5px;font-weight:800;width:34px;text-align:right;flex-shrink:0;}
+.resilience-chip{display:flex;align-items:center;gap:5px;background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.2);border-radius:6px;padding:4px 10px;font-size:9px;font-weight:700;color:#fb923c;}
+
+/* FOOD SCANNER */
+.food-wrap{display:flex;gap:10px;width:100%;align-items:center;}
+.cam-box{width:80px;height:80px;border-radius:12px;border:1.5px solid rgba(74,222,128,0.35);background:rgba(74,222,128,0.04);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;position:relative;overflow:hidden;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,rgba(74,222,128,0.8),transparent);top:40%;}
+.cam-corner{position:absolute;width:10px;height:10px;border-color:rgba(74,222,128,0.6);border-style:solid;}
+.cc-tl{top:4px;left:4px;border-width:2px 0 0 2px;}
+.cc-tr{top:4px;right:4px;border-width:2px 2px 0 0;}
+.cc-bl{bottom:4px;left:4px;border-width:0 0 2px 2px;}
+.cc-br{bottom:4px;right:4px;border-width:0 2px 2px 0;}
+.food-info{flex:1;display:flex;flex-direction:column;gap:5px;}
+.food-name{font-size:12px;font-weight:900;color:#fff;}
+.food-macros{display:flex;gap:4px;flex-wrap:wrap;}
+.fmacro{font-size:8px;font-weight:800;padding:2px 7px;border-radius:5px;}
+.fmacro.cal{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.22);color:#fca5a5;}
+.fmacro.pro{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.22);color:#93c5fd;}
+.fmacro.fat{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.22);color:#fcd34d;}
+.fmacro.carb{background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.22);color:#c4b5fd;}
+.food-goal{font-size:9px;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:4px;}
+.food-goal span{color:#4ade80;font-weight:700;}
+
+/* BALANCE SCORE */
+.balance-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;}
+.balance-ring-wrap{position:relative;width:90px;height:90px;flex-shrink:0;}
+
+/* SMART PARSER */
+.parser-wrap{display:flex;flex-direction:column;gap:7px;width:100%;}
+.parse-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.025);border-radius:8px;padding:6px 10px;border:1px solid rgba(255,255,255,0.06);}
+.pi-icon{font-size:15px;flex-shrink:0;}
+.pi-body{flex:1;min-width:0;}
+.pi-name{font-size:10px;font-weight:700;color:#e2e8f0;}
+.pi-meta{font-size:8.5px;color:rgba(255,255,255,0.75);margin-top:1px;}
+.pi-chip{font-size:8px;font-weight:800;padding:2px 8px;border-radius:5px;flex-shrink:0;}
+.pi-chip.h{background:rgba(74,222,128,0.12);color:#86efac;border:1px solid rgba(74,222,128,0.2);}
+.pi-chip.f{background:rgba(245,158,11,0.12);color:#fcd34d;border:1px solid rgba(245,158,11,0.2);}
+.pi-chip.c{background:rgba(59,130,246,0.12);color:#93c5fd;border:1px solid rgba(59,130,246,0.2);}
+.pi-chip.a{background:rgba(139,92,246,0.12);color:#c4b5fd;border:1px solid rgba(139,92,246,0.2);}
+</style>
+</head>
+<body>
+<div id="deck"><div id="scaler">
+
+<!-- ═══════════════════════════════════════
+     SLIDE 1 — THE INNER UNIVERSE
+═══════════════════════════════════════ -->
+<div class="slide active">
+  <div class="hd">
+    <div class="hd-left">
+      <div class="hd-tag">Line of Innovation · Page 1 / 2</div>
+      <div class="hd-title">Features That <em>Didn't Exist</em> Before</div>
+    </div>
+    <div class="hd-right">
+      <div class="hd-brand">◈ BeyondSelf · Beyond the Brief</div>
+      <div class="pill pill-v"><div class="pdot"></div>Original Inventions — Not in Any Rival System</div>
+    </div>
+  </div>
+
+  <div class="grid g1">
+
+    <!-- ══ 1. TALK WITH FUTURE SELF (tall left) ══ -->
+    <div class="card cp r2">
+      <div class="card-viz" style="align-items:flex-start;padding-top:16px;">
+        <div class="chat-wrap" style="display:flex;flex-direction:column;gap:8px;width:100%;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:rgba(139,92,246,0.15);border:1.5px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(139,92,246,0.3);">👤</div>
+            <div>
+              <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.9);letter-spacing:1px;text-transform:uppercase;">You — Today</div>
+              <div style="font-size:8px;color:rgba(255,255,255,0.65);">Life Score 67 · Career Stuck</div>
+            </div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:4px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);border-radius:6px;padding:3px 7px;">
+              <div style="width:5px;height:5px;border-radius:50%;background:#8b5cf6;box-shadow:0 0 5px rgba(139,92,246,.7);"></div>
+              <span style="font-size:8px;font-weight:700;color:#c4b5fd;">LIVE CHANNEL</span>
+            </div>
+          </div>
+
+          <div class="bubble-row">
+            <div class="bubble b-you">"Am I even on the right track? Should I quit my job and study more?"</div>
+          </div>
+
+          <div class="bubble-row" style="flex-direction:row-reverse;">
+            <div class="chat-avatar ghost-ava">🌌</div>
+            <div class="bubble b-ghost" style="margin-right:0;">"You stayed. In 18 months, your salary doubled. The React skills you're dreading — they opened 3 offers. Don't quit."</div>
+          </div>
+
+          <div class="bubble-row">
+            <div class="bubble b-you">"Did I ever hit my savings goal?"</div>
+          </div>
+
+          <div class="bubble-row" style="flex-direction:row-reverse;">
+            <div class="chat-avatar ghost-ava">🌌</div>
+            <div class="bubble b-ghost" style="margin-right:0;background:linear-gradient(135deg,rgba(34,211,238,0.15),rgba(139,92,246,0.12));">"₹2.4L saved by March. But you almost derailed it — the impulsive laptop buy. Avoid that."<br/><span style="font-size:8.5px;color:rgba(34,211,238,0.5);margin-top:4px;display:block;">↳ based on your current trajectory + 847 simulations</span></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:5px 8px;background:rgba(139,92,246,0.06);border-radius:8px;border:1px solid rgba(139,92,246,0.12);">
+            <span style="font-size:10px;">🧠</span>
+            <span style="font-size:8.5px;color:rgba(255,255,255,0.75);">Powered by Neural Core projections · Groq llama-3.3-70b · Your actual data history</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Original Feature · Temporal AI</div>
+        <div class="cf-title">Talk With Your Future Self — an AI built on your own data that answers as who you'll become</div>
+        <div class="cf-desc">Not generic advice. Your trajectory, your voice, your decisions.</div>
+      </div>
+    </div>
+
+    <!-- ══ 2. NEURAL CORE ══ -->
+    <div class="card cc">
+      <div class="card-viz" style="padding:10px 14px 6px;">
+        <div style="display:flex;align-items:center;gap:12px;width:100%;">
+          <!-- SVG Radar -->
+          <svg viewBox="0 0 110 110" style="width:100px;height:100px;flex-shrink:0;">
+            <defs>
+              <radialGradient id="rg1" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#22d3ee" stop-opacity=".25"/>
+                <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <!-- grid rings -->
+            <circle cx="55" cy="55" r="42" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <circle cx="55" cy="55" r="28" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <circle cx="55" cy="55" r="14" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <!-- axes (5: health, finance, career, balance, momentum) -->
+            <line x1="55" y1="13" x2="55" y2="97" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="13" y1="55" x2="97" y2="55" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="25" y1="25" x2="85" y2="85" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="85" y1="25" x2="25" y2="85" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <!-- current state polygon -->
+            <polygon points="55,22 84,38 80,72 35,74 30,36" fill="rgba(34,211,238,0.12)" stroke="#22d3ee" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- projected polygon (dashed) -->
+            <polygon points="55,16 90,32 88,78 26,80 22,30" fill="none" stroke="rgba(139,92,246,0.5)" stroke-width="1.2" stroke-dasharray="4,2" stroke-linejoin="round"/>
+            <!-- dots -->
+            <circle cx="55" cy="22" r="3" fill="#22d3ee"/>
+            <circle cx="84" cy="38" r="3" fill="#22d3ee"/>
+            <circle cx="80" cy="72" r="3" fill="#22d3ee"/>
+            <circle cx="35" cy="74" r="3" fill="#22d3ee"/>
+            <circle cx="30" cy="36" r="3" fill="#22d3ee"/>
+            <!-- center glow -->
+            <circle cx="55" cy="55" r="6" fill="url(#rg1)"/>
+            <circle cx="55" cy="55" r="3" fill="#22d3ee" opacity=".8"/>
+            <!-- labels -->
+            <text x="55" y="10" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="7.5" font-family="Inter" font-weight="700">HEALTH</text>
+            <text x="101" y="58" text-anchor="start" fill="rgba(255,255,255,0.85)" font-size="7.5" font-family="Inter" font-weight="700">FIN</text>
+            <text x="55" y="106" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="7.5" font-family="Inter" font-weight="700">CAREER</text>
+            <text x="7" y="58" text-anchor="end" fill="rgba(255,255,255,0.85)" font-size="7.5" font-family="Inter" font-weight="700">BAL</text>
+          </svg>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <div style="font-size:22px;font-weight:900;background:linear-gradient(135deg,#22d3ee,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;">74<span style="font-size:12px;">/100</span></div>
+            <div style="font-size:8px;font-weight:700;color:rgba(103,232,249,0.95);letter-spacing:1.5px;text-transform:uppercase;">Life Trajectory</div>
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="display:flex;justify-content:space-between;font-size:8.5px;"><span style="color:rgba(255,255,255,0.75);">Now</span><span style="color:#22d3ee;font-weight:700;">74</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:8.5px;"><span style="color:rgba(255,255,255,0.75);">6mo</span><span style="color:#c4b5fd;font-weight:700;">81 ↑</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:8.5px;"><span style="color:rgba(255,255,255,0.75);">12mo</span><span style="color:rgba(196,181,253,0.8);font-weight:700;font-style:italic;">88?</span></div>
+            </div>
+            <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:74%;background:linear-gradient(to right,#22d3ee,#8b5cf6);border-radius:2px;"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Predictive Engine · Neural Core</div>
+        <div class="cf-title">Radar trajectory — where you're headed across all domains simultaneously</div>
+      </div>
+    </div>
+
+    <!-- ══ 3. GHOST TIMELINE ══ -->
+    <div class="card cp">
+      <div class="card-viz" style="padding:10px 14px 6px;">
+        <div class="gtl-wrap" style="width:100%;">
+          <!-- Timeline row -->
+          <div style="position:relative;padding:8px 0 20px;">
+            <!-- line -->
+            <div style="position:absolute;top:13px;left:12px;right:12px;height:2px;background:linear-gradient(to right,rgba(139,92,246,0.5),rgba(34,211,238,0.6),rgba(34,211,238,0.15));"></div>
+            <!-- nodes -->
+            <div style="display:flex;justify-content:space-between;">
+              <!-- past nodes -->
+              <div class="gtl-node">
+                <div style="width:8px;height:8px;border-radius:50%;background:rgba(139,92,246,0.3);border:1.5px solid rgba(139,92,246,0.5);opacity:0.6;"></div>
+                <div style="font-size:7.5px;color:rgba(139,92,246,0.5);font-weight:700;margin-top:4px;">2023</div>
+                <div style="font-size:9px;font-weight:900;color:rgba(139,92,246,0.55);">58</div>
+              </div>
+              <div class="gtl-node">
+                <div style="width:8px;height:8px;border-radius:50%;background:rgba(139,92,246,0.4);border:1.5px solid rgba(139,92,246,0.6);opacity:0.7;"></div>
+                <div style="font-size:7.5px;color:rgba(139,92,246,0.6);font-weight:700;margin-top:4px;">2024</div>
+                <div style="font-size:9px;font-weight:900;color:rgba(139,92,246,0.65);">64</div>
+              </div>
+              <!-- NOW -->
+              <div class="gtl-node">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(34,211,238,0.25);border:2px solid #22d3ee;box-shadow:0 0 10px rgba(34,211,238,0.5);margin-top:-3px;"></div>
+                <div style="font-size:8px;color:#22d3ee;font-weight:800;margin-top:3px;">NOW</div>
+                <div style="font-size:11px;font-weight:900;color:#22d3ee;">74</div>
+              </div>
+              <!-- future ghosts -->
+              <div class="gtl-node">
+                <div style="width:8px;height:8px;border-radius:50%;background:rgba(34,211,238,0.08);border:1.5px dashed rgba(34,211,238,0.3);"></div>
+                <div style="font-size:7.5px;color:rgba(34,211,238,0.3);font-weight:700;margin-top:4px;">2026</div>
+                <div style="font-size:9px;font-weight:900;color:rgba(34,211,238,0.3);font-style:italic;">81?</div>
+              </div>
+              <div class="gtl-node">
+                <div style="width:8px;height:8px;border-radius:50%;background:rgba(34,211,238,0.04);border:1.5px dashed rgba(34,211,238,0.18);"></div>
+                <div style="font-size:7.5px;color:rgba(34,211,238,0.18);font-weight:700;margin-top:4px;">2027</div>
+                <div style="font-size:9px;font-weight:900;color:rgba(34,211,238,0.18);font-style:italic;">88?</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);border-radius:6px;padding:5px 9px;font-size:9px;color:rgba(255,255,255,0.8);">
+            <span>👻</span> Ghost versions of you fade in as projections — interact with past decisions
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Temporal UX · Ghost Timeline</div>
+        <div class="cf-title">Scroll through ghost-versions of your past & future self on one interactive axis</div>
+      </div>
+    </div>
+
+    <!-- ══ 4. GRIND ROOM ══ -->
+    <div class="card co">
+      <div class="card-viz" style="padding:10px 14px 6px;">
+        <div class="grind-wrap" style="width:100%;">
+          <div class="grind-timer">
+            <div class="grind-clock">24:37</div>
+            <div class="grind-phase">🔥 Deep Focus · Session 3</div>
+          </div>
+          <div class="grind-stats">
+            <div class="gs-cell"><div class="gs-n">3.2h</div><div class="gs-l">Today</div></div>
+            <div class="gs-cell"><div class="gs-n">+42 XP</div><div class="gs-l">Earned</div></div>
+          </div>
+          <div class="grind-bar-wrap">
+            <div class="gb-row">
+              <div class="gb-label">DSA</div>
+              <div class="gb-track"><div class="gb-fill" style="width:72%;background:linear-gradient(to right,#fb923c,#f59e0b);"></div></div>
+            </div>
+            <div class="gb-row">
+              <div class="gb-label">React</div>
+              <div class="gb-track"><div class="gb-fill" style="width:45%;background:linear-gradient(to right,#fb923c,#f59e0b);"></div></div>
+            </div>
+            <div class="gb-row">
+              <div class="gb-label">System</div>
+              <div class="gb-track"><div class="gb-fill" style="width:28%;background:linear-gradient(to right,#fb923c,#f59e0b);"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Focus Engine · Grind Room</div>
+        <div class="cf-title">Dedicated deep-work arena — Pomodoro + skill tracking + real XP rewards</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="strip">
+    <div class="tagline">Your Twin. <em>Not a Dashboard — a Mirror.</em></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n">847</div><div class="stat-l">Simulations Run</div></div>
+      <div class="stat"><div class="stat-n">3yr</div><div class="stat-l">Trajectory Depth</div></div>
+      <div class="stat"><div class="stat-n">∞</div><div class="stat-l">What-If Branches</div></div>
+      <div class="stat"><div class="stat-n">1</div><div class="stat-l">System Like This</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SLIDE 2 — THE SENSING LAYER
+═══════════════════════════════════════ -->
+<div class="slide">
+  <div class="hd">
+    <div class="hd-left">
+      <div class="hd-tag">Line of Innovation · Page 2 / 2</div>
+      <div class="hd-title">The <em>Sensing Layer</em> — Input Reimagined</div>
+    </div>
+    <div class="hd-right">
+      <div class="hd-brand">◈ BeyondSelf · The Input Revolution</div>
+      <div class="pill pill-g"><div class="pdot"></div>Zero-Friction Data — Your Life, Auto-Captured</div>
+    </div>
+  </div>
+
+  <div class="grid g2">
+
+    <!-- ══ 1. UNIVERSAL MIC PARSER (wide) ══ -->
+    <div class="card cg span2">
+      <div class="card-viz" style="padding:12px 20px 8px;">
+        <div style="display:flex;gap:20px;align-items:center;width:100%;">
+          <!-- Mic + waveform -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;">
+            <div class="mic-orb">🎙️</div>
+            <div style="display:flex;align-items:center;gap:2px;">
+              <!-- animated-looking bars with varying heights -->
+              <div style="width:3px;height:8px;border-radius:2px;background:rgba(74,222,128,0.6);"></div>
+              <div style="width:3px;height:18px;border-radius:2px;background:rgba(74,222,128,0.8);"></div>
+              <div style="width:3px;height:12px;border-radius:2px;background:rgba(74,222,128,0.7);"></div>
+              <div style="width:3px;height:22px;border-radius:2px;background:rgba(74,222,128,0.9);"></div>
+              <div style="width:3px;height:10px;border-radius:2px;background:rgba(74,222,128,0.6);"></div>
+              <div style="width:3px;height:16px;border-radius:2px;background:rgba(74,222,128,0.75);"></div>
+              <div style="width:3px;height:8px;border-radius:2px;background:rgba(74,222,128,0.5);"></div>
+              <div style="width:3px;height:20px;border-radius:2px;background:rgba(74,222,128,0.85);"></div>
+            </div>
+            <div style="font-size:8px;font-weight:700;color:rgba(134,239,172,0.95);letter-spacing:1.5px;text-transform:uppercase;">Listening…</div>
+          </div>
+          <!-- transcript + detection -->
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(255,255,255,0.03);border-radius:9px;padding:8px 12px;border:1px solid rgba(74,222,128,0.1);">
+              <div style="font-size:9px;font-weight:700;color:rgba(134,239,172,0.9);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">You Said</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.92);line-height:1.5;">"I had <span style="color:#86efac;font-weight:700;">dal chawal for lunch</span> and went for a <span style="color:#86efac;font-weight:700;">30 min walk</span>. Also paid ₹2,800 for <span style="color:#fcd34d;font-weight:700;">electricity bill</span>."</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="font-size:8.5px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">Auto-parsed →</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                <div class="dchip h">🥗 dal chawal · 520 kcal</div>
+                <div class="dchip h">🚶 walk · 30min · 180 kcal</div>
+                <div class="dchip f">⚡ electricity ₹2,800</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <div style="flex:1;background:rgba(74,222,128,0.09);border:1px solid rgba(74,222,128,0.25);border-radius:7px;padding:5px 9px;font-size:9px;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:4px;"><span>📎</span> Same parser reads salary slips, utility bills, lab reports</div>
+              <div style="flex:1;background:rgba(59,130,246,0.09);border:1px solid rgba(59,130,246,0.25);border-radius:7px;padding:5px 9px;font-size:9px;color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:4px;"><span>🤖</span> NLP domain classifier — zero manual tagging needed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Universal Input · One Mic, All Domains</div>
+        <div class="cf-title">Speak naturally — AI detects Health, Finance, or Career context and logs it for you automatically</div>
+        <div class="cf-desc">Same engine parses uploaded files: salary slip → finance. Lab report → health. Certificate → career.</div>
+      </div>
+    </div>
+
+    <!-- ══ 2. STRESS TEST SIMULATOR ══ -->
+    <div class="card cm">
+      <div class="card-viz" style="padding:10px 14px 6px;">
+        <div class="stress-wrap" style="width:100%;">
+          <div class="scenario-box">
+            <div class="sc-title">⚡ Scenario: "I lose my job tomorrow"</div>
+            <div class="sc-bars">
+              <div class="sc-row">
+                <div class="sc-label">Finance</div>
+                <div class="sc-track">
+                  <div class="sc-before" style="width:78%;background:#22c55e;"></div>
+                  <div class="sc-after" style="width:30%;background:#ef4444;"></div>
+                </div>
+                <div class="sc-delta" style="color:#f87171;">−48</div>
+              </div>
+              <div class="sc-row">
+                <div class="sc-label">Health</div>
+                <div class="sc-track">
+                  <div class="sc-before" style="width:72%;background:#22c55e;"></div>
+                  <div class="sc-after" style="width:55%;background:#f59e0b;"></div>
+                </div>
+                <div class="sc-delta" style="color:#fbbf24;">−17</div>
+              </div>
+              <div class="sc-row">
+                <div class="sc-label">Career</div>
+                <div class="sc-track">
+                  <div class="sc-before" style="width:65%;background:#22c55e;"></div>
+                  <div class="sc-after" style="width:75%;background:#22d3ee;"></div>
+                </div>
+                <div class="sc-delta" style="color:#22d3ee;">+10</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.32);border-radius:6px;padding:5px 9px;">
+            <span style="font-size:10px;">🛡️</span>
+            <span style="font-size:9px;font-weight:700;color:rgba(249,168,212,0.95);">Resilience Score: 6.2 / 10 · Runway: 4.1 months</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Crisis Simulation · Stress Test</div>
+        <div class="cf-title">Simulate life crises before they happen — cross-domain impact in real time</div>
+      </div>
+    </div>
+
+    <!-- ══ 3. FOOD CALORIE SCANNER ══ -->
+    <div class="card cg">
+      <div class="card-viz" style="padding:10px 14px 6px;">
+        <div style="display:flex;flex-direction:column;gap:8px;width:100%;">
+          <div class="food-wrap">
+            <div class="cam-box">
+              🍛
+              <div class="scan-line"></div>
+              <div class="cam-corner cc-tl"></div>
+              <div class="cam-corner cc-tr"></div>
+              <div class="cam-corner cc-bl"></div>
+              <div class="cam-corner cc-br"></div>
+            </div>
+            <div class="food-info">
+              <div style="display:flex;align-items:center;gap:5px;">
+                <div style="font-size:7.5px;font-weight:800;color:rgba(134,239,172,0.95);letter-spacing:1.5px;text-transform:uppercase;">Detected</div>
+                <div style="width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px rgba(74,222,128,.6);"></div>
+              </div>
+              <div class="food-name">Butter Chicken + Rice</div>
+              <div class="food-macros">
+                <div class="fmacro cal">🔥 680 kcal</div>
+                <div class="fmacro pro">💪 34g protein</div>
+                <div class="fmacro fat">🧈 22g fat</div>
+                <div class="fmacro carb">🌾 68g carbs</div>
+              </div>
+              <div class="food-goal">Daily budget: <span>1,800 kcal</span> · Used: 63% after this</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+            <div style="background:rgba(74,222,128,0.09);border:1px solid rgba(74,222,128,0.25);border-radius:7px;padding:5px 8px;font-size:8.5px;color:rgba(255,255,255,0.82);display:flex;align-items:center;gap:4px;"><span>📸</span> Snap photo → instant macros</div>
+            <div style="background:rgba(59,130,246,0.09);border:1px solid rgba(59,130,246,0.25);border-radius:7px;padding:5px 8px;font-size:8.5px;color:rgba(255,255,255,0.82);display:flex;align-items:center;gap:4px;"><span>🍽️</span> Auto-logs to health domain</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Vision AI · Food Calorie Scanner</div>
+        <div class="cf-title">Point camera at your meal — Nutritionix + CV returns macros in under 2 seconds</div>
+      </div>
+    </div>
+
+    <!-- ══ 4. LIFE BALANCE + SMART PARSER ══ -->
+    <div class="card cb">
+      <div class="card-viz" style="padding:10px 14px 6px;align-items:flex-start;">
+        <div style="display:flex;flex-direction:column;gap:7px;width:100%;">
+          <!-- Balance donut -->
+          <div style="display:flex;align-items:center;gap:12px;">
+            <svg viewBox="0 0 80 80" style="width:70px;height:70px;flex-shrink:0;">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
+              <!-- health arc ~33% -->
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#4ade80" stroke-width="10" stroke-dasharray="67 134" stroke-dashoffset="0" transform="rotate(-90 40 40)" opacity=".8"/>
+              <!-- finance arc ~30% -->
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#f59e0b" stroke-width="10" stroke-dasharray="60 134" stroke-dashoffset="-67" transform="rotate(-90 40 40)" opacity=".8"/>
+              <!-- career arc ~24% -->
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#3b82f6" stroke-width="10" stroke-dasharray="48 134" stroke-dashoffset="-127" transform="rotate(-90 40 40)" opacity=".8"/>
+              <text x="40" y="44" text-anchor="middle" fill="#fff" font-size="14" font-weight="900" font-family="Inter">74</text>
+            </svg>
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:10px;font-weight:900;color:#fff;line-height:1.2;">Overall Life<br/>Balance Score</div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;align-items:center;gap:5px;font-size:8.5px;"><div style="width:8px;height:8px;border-radius:2px;background:#4ade80;flex-shrink:0;"></div><span style="color:rgba(255,255,255,0.85);">Health 78</span></div>
+                <div style="display:flex;align-items:center;gap:5px;font-size:8.5px;"><div style="width:8px;height:8px;border-radius:2px;background:#f59e0b;flex-shrink:0;"></div><span style="color:rgba(255,255,255,0.85);">Finance 68</span></div>
+                <div style="display:flex;align-items:center;gap:5px;font-size:8.5px;"><div style="width:8px;height:8px;border-radius:2px;background:#3b82f6;flex-shrink:0;"></div><span style="color:rgba(255,255,255,0.85);">Career 71</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- Smart doc parser -->
+          <div style="font-size:7.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(147,197,253,0.95);margin-bottom:1px;">Smart Doc Parser</div>
+          <div class="parse-item">
+            <span class="pi-icon">📄</span>
+            <div class="pi-body"><div class="pi-name">SalarySlip_May2025.pdf</div><div class="pi-meta">Extracted: CTC ₹8.4L · HRA · PF</div></div>
+            <div class="pi-chip f">Finance</div>
+          </div>
+          <div class="parse-item">
+            <span class="pi-icon">🧪</span>
+            <div class="pi-body"><div class="pi-name">BloodReport_Mar25.pdf</div><div class="pi-meta">HbA1c: 5.2 · Vit D: Low</div></div>
+            <div class="pi-chip h">Health</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-foot">
+        <div class="cf-tag">Holistic Score + Doc AI</div>
+        <div class="cf-title">One unified life score + any uploaded document auto-classified and parsed</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="strip">
+    <div class="tagline">Speak it. Snap it. <em>It just knows.</em></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n">4</div><div class="stat-l">Input Methods</div></div>
+      <div class="stat"><div class="stat-n">0</div><div class="stat-l">Manual Tags Needed</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Domains Auto-Detected</div></div>
+      <div class="stat"><div class="stat-n">&lt;2s</div><div class="stat-l">Parse Latency</div></div>
+    </div>
+  </div>
+</div>
+
+</div></div><!-- end #scaler #deck -->
+
+<!-- NAV (outside scaler so it's always visible) -->
+<div class="nav">
+  <button onclick="go(-1)">← Page 1</button>
+  <span id="ctr">1 / 2</span>
+  <button onclick="go(1)">Page 2 →</button>
+</div>
+
+<script>
+// scale slide canvas to fit viewport
+function resize(){
+  const s=document.getElementById('scaler');
+  const scaleX=window.innerWidth/1400;
+  const scaleY=window.innerHeight/900;
+  const scale=Math.min(scaleX,scaleY);
+  s.style.transform='scale('+scale+')';
+}
+resize();
+window.addEventListener('resize',resize);
+
+const sl=document.querySelectorAll('.slide');let c=0;
+function go(d){
+  sl[c].classList.remove('active');
+  c=((c+d)%2+2)%2;
+  sl[c].classList.add('active');
+  document.getElementById('ctr').textContent=(c+1)+' / 2';
+}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight',' '].includes(e.key)){e.preventDefault();go(1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();go(-1);}
+});
+</script>
+</body>
+</html>
