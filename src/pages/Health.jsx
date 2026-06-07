@@ -1698,7 +1698,6 @@ export default function Health() {
     { id: 'nutrition',       label: 'Nutrition' },
     { id: 'scan',            label: 'Scan AI' },
     { id: 'recommendations', label: 'AI Recommendations' },
-    { id: 'tracker',         label: 'Food Tracker' },
   ];
 
   const handleLog = async (e) => {
@@ -2767,14 +2766,6 @@ export default function Health() {
 
       {tab === 'recommendations' && (
         <HealthRecommendations recommendations={recommendations} h={h} score={score} />
-      )}
-
-      {tab === 'tracker' && (
-        <FoodTrackerPanel
-          health={health}
-          updateDomain={updateDomain}
-          addRecords={addRecords}
-        />
       )}
 
       {tab === 'cycle' && (
