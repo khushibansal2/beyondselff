@@ -2879,6 +2879,21 @@ function IndiaBankingPanel() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
+      {/* ── PLAID SECTION ── */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em' }}>🇺🇸 US & Global Banks</span>
+          <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+        </div>
+        <PlaidPanel />
+      </div>
+
+      {/* ── INDIA SECTION DIVIDER ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em' }}>🇮🇳 India Banks</span>
+        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+      </div>
+
       {/* ── HEADER CARD ── */}
       <GlassCard className="!p-5">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
@@ -4258,7 +4273,6 @@ const TABS = [
   { id: 'linkedin',    label: 'LinkedIn',     icon: Linkedin,   color: 'text-[#0077b5]'    },
   { id: 'nutritionix', label: 'Nutrition',    icon: Utensils,   color: 'text-emerald-400'  },
   { id: 'fitbit',      label: 'Fitbit',       icon: Activity,   color: 'text-[#00b0b9]'    },
-  { id: 'plaid',       label: 'Plaid',        icon: Landmark,   color: 'text-[#00b573]'    },
   { id: 'banking',     label: 'Banking',      icon: Landmark,   color: 'text-emerald-400'  },
   { id: 'coursera',    label: 'Coursera',     icon: BookOpen,   color: 'text-[#0056d2]'    },
 ];
@@ -4388,7 +4402,6 @@ export default function Integrations() {
           {tab === 'linkedin'    && <LinkedInPanel />}
           {tab === 'nutritionix' && <NutritionixPanel />}
           {tab === 'fitbit'      && <FitbitPanel />}
-          {tab === 'plaid'       && <PlaidPanel />}
           {tab === 'banking'     && <IndiaBankingPanel />}
           {tab === 'coursera'    && <CourseraPanel />}
         </motion.div>
