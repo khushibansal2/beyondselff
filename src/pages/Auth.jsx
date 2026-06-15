@@ -9,6 +9,7 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slowWarning, setSlowWarning] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -16,14 +17,19 @@ export function Login() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSlowWarning(false);
+    const slowTimer = setTimeout(() => setSlowWarning(true), 6000);
     try {
       const result = await login(email, password);
+      clearTimeout(slowTimer);
       if (result.success) navigate('/dashboard');
       else setError(result.error || 'Invalid credentials');
     } catch {
+      clearTimeout(slowTimer);
       setError('Unexpected error. Please try again.');
     } finally {
       setLoading(false);
+      setSlowWarning(false);
     }
   };
 
@@ -74,6 +80,11 @@ export function Login() {
               <label className="text-xs text-slate-400 mb-1.5 block">Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="input-premium" placeholder="••••••••" required />
             </div>
+            {slowWarning && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400">
+                ⏳ Server is waking up — this can take up to 30 seconds. Please wait…
+              </div>
+            )}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2">
               {loading ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity }} className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" /> : 'Sign In →'}
             </button>

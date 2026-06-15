@@ -6,7 +6,7 @@
  * Safely parse a value to a number. If invalid, returns the fallback.
  */
 export function safeNum(value, fallback = 0) {
-  if (value == null || isNaN(value)) return fallback;
+  if (value == null || value === '' || isNaN(value)) return fallback;
   const parsed = Number(value);
   return isNaN(parsed) ? fallback : parsed;
 }

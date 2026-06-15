@@ -214,7 +214,8 @@ function edgeSeverity(edge, nodeScores) {
 export default function CascadeMap() {
   const { computed, health = {}, finance = {}, career = {} } = useData();
 
-  const crossDomain  = computed?.crossDomain   ?? [];
+  const crossDomain   = computed?.crossDomain    ?? [];
+  const correlations  = computed?.correlations   ?? [];
   const healthScore  = computed?.healthScore?.score  ?? 65;
   const financeScore = computed?.financeScore?.score ?? 65;
   const careerScore  = computed?.careerScore?.score  ?? 68;
@@ -257,6 +258,10 @@ export default function CascadeMap() {
   // Augment with real computed cascade if one matches this edge's cascadeId
   const selectedRealCascade = selectedEdgeData?.cascadeId
     ? crossDomain.find(c => c.id === selectedEdgeData.cascadeId)
+    : null;
+  // Real statistical correlation for selected edge (from user's own data)
+  const selectedCorrelation = selectedEdgeData
+    ? correlations.find(c => c.edgeId === selectedEdgeData.id)
     : null;
 
   // Severity color per cross edge based on real node scores
@@ -572,6 +577,40 @@ export default function CascadeMap() {
                       {selectedRealCascade && (
                         <p style={{ fontSize:11, color:'#64748b', lineHeight:1.5, marginTop:4 }}>{selectedRealCascade.mechanism}</p>
                       )}
+                      {selectedCorrelation && (
+                        <div style={{ marginTop:12, padding:'10px 14px', borderRadius:8, background:'rgba(99,102,241,0.08)', border:'1px solid rgba(99,102,241,0.2)' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                            <span style={{ fontSize:10, fontWeight:700, color:'#818cf8', textTransform:'uppercase', letterSpacing:'0.08em' }}>Your Data</span>
+                            <span style={{ fontSize:10, color:'#475569' }}>·</span>
+                            <span style={{ fontSize:10, color:'#64748b' }}>{selectedCorrelation.n} days measured</span>
+                            <span style={{ fontSize:10, color:'#475569' }}>·</span>
+                            <span style={{ fontSize:10, fontWeight:700, color: selectedCorrelation.strength === 'strong' ? '#a78bfa' : selectedCorrelation.strength === 'moderate' ? '#818cf8' : '#64748b' }}>
+                              {selectedCorrelation.strength} correlation
+                            </span>
+                          </div>
+                          {/* r-value bar */}
+                          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                            <span style={{ fontSize:10, color:'#475569', width:14, textAlign:'right' }}>-1</span>
+                            <div style={{ flex:1, height:5, borderRadius:99, background:'rgba(255,255,255,0.06)', position:'relative' }}>
+                              <div style={{
+                                position:'absolute', top:0, height:'100%', borderRadius:99,
+                                background: selectedCorrelation.r > 0 ? '#818cf8' : '#f87171',
+                                left: selectedCorrelation.r >= 0 ? '50%' : `${(0.5 + selectedCorrelation.r / 2) * 100}%`,
+                                width: `${Math.abs(selectedCorrelation.r) / 2 * 100}%`,
+                              }} />
+                              <div style={{ position:'absolute', top:-2, left:'50%', width:1, height:9, background:'rgba(255,255,255,0.2)' }} />
+                            </div>
+                            <span style={{ fontSize:10, color:'#475569', width:14 }}>+1</span>
+                            <span style={{ fontSize:11, fontWeight:800, color: selectedCorrelation.r > 0 ? '#818cf8' : '#f87171', fontFamily:'monospace', minWidth:36 }}>
+                              r={selectedCorrelation.r.toFixed(2)}
+                            </span>
+                          </div>
+                          <p style={{ fontSize:11, color:'#a5b4fc', lineHeight:1.5 }}>{selectedCorrelation.insight}</p>
+                          {selectedCorrelation.lag === 1 && (
+                            <p style={{ fontSize:10, color:'#475569', marginTop:4 }}>Measured with 1-day lag (today's {selectedCorrelation.fromLabel} vs tomorrow's {selectedCorrelation.toLabel})</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -632,6 +671,84 @@ export default function CascadeMap() {
                       <p style={{ fontSize:11, color:'#64748b', lineHeight:1.5 }}>{c.mechanism}</p>
                     </div>
                     <ArrowRight size={14} style={{ color:'#475569', flexShrink:0, marginTop:2 }}/>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── Your Personal Correlations ── */}
+        <div>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+            <TrendingUp size={14} style={{color:'#a78bfa'}}/>
+            <p style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.1em' }}>
+              Your personal correlations — computed from your data
+            </p>
+            {correlations.length > 0 && (
+              <span style={{ padding:'2px 10px', borderRadius:999, background:'rgba(167,139,250,0.15)', color:'#a78bfa', fontSize:10, fontWeight:700 }}>
+                {correlations.length} found
+              </span>
+            )}
+          </div>
+
+          {correlations.length === 0 ? (
+            <div style={{ padding:'20px', borderRadius:12, textAlign:'center', background:'rgba(99,102,241,0.04)', border:'1px solid rgba(99,102,241,0.1)' }}>
+              <Info size={18} style={{color:'#475569', margin:'0 auto 8px'}}/>
+              <p style={{ fontSize:13, fontWeight:700, color:'#64748b' }}>Need more data</p>
+              <p style={{ fontSize:12, color:'#475569', marginTop:4, lineHeight:1.5 }}>
+                Log at least 14 days across health, finance, and career to see your personal correlations.<br/>
+                Unlike the fixed rules above, these are computed directly from your history.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              {correlations.map((c, i) => {
+                const fromColor = DC[c.fromDomain]?.p || '#94a3b8';
+                const toColor   = DC[c.toDomain]?.p   || '#94a3b8';
+                const rColor = c.r > 0 ? '#818cf8' : '#f87171';
+                const strengthColor = c.strength === 'strong' ? '#a78bfa' : c.strength === 'moderate' ? '#818cf8' : '#64748b';
+                return (
+                  <motion.div key={c.id}
+                    initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} transition={{ delay: i * 0.06 }}
+                    style={{ background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 16px' }}>
+
+                    {/* Header row */}
+                    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:10, flexWrap:'wrap' }}>
+                      <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', padding:'2px 8px', borderRadius:4, background:`${fromColor}20`, color:fromColor }}>
+                        {c.fromLabel}
+                      </span>
+                      <ArrowRight size={10} style={{ color:'#475569' }}/>
+                      <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.07em', padding:'2px 8px', borderRadius:4, background:`${toColor}20`, color:toColor }}>
+                        {c.toLabel}
+                      </span>
+                      {c.lag === 1 && (
+                        <span style={{ fontSize:9, color:'#475569', marginLeft:2 }}>+1 day</span>
+                      )}
+                      <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, color:strengthColor }}>{c.strength}</span>
+                    </div>
+
+                    {/* r-value bar */}
+                    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
+                      <span style={{ fontSize:9, color:'#374151', width:12, textAlign:'right' }}>-1</span>
+                      <div style={{ flex:1, height:4, borderRadius:99, background:'rgba(255,255,255,0.05)', position:'relative' }}>
+                        <div style={{
+                          position:'absolute', top:0, height:'100%', borderRadius:99,
+                          background: rColor,
+                          left:  c.r >= 0 ? '50%' : `${(0.5 + c.r / 2) * 100}%`,
+                          width: `${Math.abs(c.r) / 2 * 100}%`,
+                        }} />
+                        <div style={{ position:'absolute', top:-2, left:'50%', width:1, height:8, background:'rgba(255,255,255,0.15)' }} />
+                      </div>
+                      <span style={{ fontSize:9, color:'#374151', width:12 }}>+1</span>
+                      <span style={{ fontSize:11, fontWeight:800, color:rColor, fontFamily:'monospace', minWidth:36 }}>
+                        r={c.r.toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Insight */}
+                    <p style={{ fontSize:11, color:'#94a3b8', lineHeight:1.55 }}>{c.insight}</p>
+                    <p style={{ fontSize:10, color:'#374151', marginTop:6 }}>Based on {c.n} days of your data</p>
                   </motion.div>
                 );
               })}

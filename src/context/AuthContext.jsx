@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
   const loginReal = async (email, password) => {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
+      const timeout = setTimeout(() => controller.abort(), 35000);
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

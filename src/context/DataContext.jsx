@@ -15,6 +15,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { detectAnomalies } from '../engines/anomalyEngine';
+import { computeCorrelations } from '../engines/correlationEngine';
 import { calculateRealSustainability } from '../services/sustainabilityService';
 
 const DataContext = createContext(null);
@@ -678,10 +679,12 @@ export function DataProvider({ children }) {
     try {
       const lifeBalance = computeLifeBalance(userData, state.records);
       const anomalies = detectAnomalies(userData, state.records);
+      const correlations = computeCorrelations(state.records);
       return {
         ...lifeBalance,
         lifeBalance,
         anomalies,
+        correlations,
         hasData,
       };
     } catch (e) {
