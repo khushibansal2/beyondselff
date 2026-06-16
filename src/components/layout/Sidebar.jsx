@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Heart, Wallet, Target, Trophy, Sparkles,
   Brain, MessageSquare, Star, Leaf, Upload, Settings,
   ChevronLeft, ChevronRight, ChevronDown, LogOut, Menu, X, Zap,
-  Link2, ArrowLeftRight, Dna, GitBranch, Cpu
+  Link2, ArrowLeftRight, Dna, GitBranch, Cpu, FlaskConical
 } from 'lucide-react';
 
 const navSections = [
@@ -32,6 +32,7 @@ const navSections = [
     label: 'Intelligence',
     items: [
       { path: '/simulator',   label: 'Simulator',   icon: Sparkles,       color: '#8b5cf6' },
+      { path: '/what-if',     label: 'What-If ML',  icon: FlaskConical,   color: '#a855f7' },
       { path: '/insights',    label: 'Insights',    icon: Brain,          color: '#8b5cf6' },
       { path: '/neural-core', label: 'Neural Core', icon: Dna,            color: '#10b981' },
       { path: '/coach',       label: 'AI Coach',    icon: MessageSquare,  color: '#6366f1' },
@@ -223,7 +224,7 @@ export default function Sidebar() {
                   <div key={label} className="flex flex-col items-center gap-1 flex-1">
                     <div style={{ position: 'relative', width: 44, height: 44 }}>
                       <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: 'rotate(-90deg)', display: 'block' }}>
-                        <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                        <circle cx="22" cy="22" r={r} fill="none" stroke={isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'} strokeWidth="4" />
                         <circle
                           cx="22" cy="22" r={r}
                           fill="none" stroke={color} strokeWidth="4"
@@ -234,7 +235,7 @@ export default function Sidebar() {
                         />
                       </svg>
                       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{score}</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: isLight ? '#0f172a' : '#fff', lineHeight: 1 }}>{score}</span>
                       </div>
                     </div>
                     <span style={{ fontSize: 8, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label.slice(0, 3)}</span>
@@ -258,7 +259,7 @@ export default function Sidebar() {
               return (
                 <div key={i} style={{ position: 'relative', width: 22, height: 22 }}>
                   <svg width="22" height="22" viewBox="0 0 22 22" style={{ transform: 'rotate(-90deg)', display: 'block' }}>
-                    <circle cx="11" cy="11" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2.5" />
+                    <circle cx="11" cy="11" r={r} fill="none" stroke={isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)'} strokeWidth="2.5" />
                     <circle cx="11" cy="11" r={r} fill="none" stroke={color} strokeWidth="2.5"
                       strokeLinecap="round" strokeDasharray={circ}
                       strokeDashoffset={circ - (score / 100) * circ}

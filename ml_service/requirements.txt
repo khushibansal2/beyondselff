@@ -2,6 +2,8 @@ fastapi
 uvicorn
 python-multipart
 sqlalchemy
+scikit-learn
+numpy
 # torch
 # torchvision
 # pillow

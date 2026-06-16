@@ -31,6 +31,7 @@ const StressTest    = lazy(() => import('./pages/StressTest'));
 const FutureYou     = lazy(() => import('./pages/FutureYou'));
 const CascadeMap    = lazy(() => import('./pages/CascadeMap'));
 const DigitalTwin   = lazy(() => import('./pages/DigitalTwin'));
+const WhatIfEngine  = lazy(() => import('./pages/WhatIfEngine'));
 
 
 const pageVariants = {
@@ -115,6 +116,7 @@ export default function App() {
             <Route path="/cascade-map"   element={<Suspense fallback={<LoadingScreen />}><CascadeMap /></Suspense>} />
             <Route path="/digital-twin"  element={<Suspense fallback={<LoadingScreen />}><DigitalTwin /></Suspense>} />
             <Route path="/settings"      element={<Suspense fallback={<LoadingScreen />}><Settings /></Suspense>} />
+            <Route path="/what-if"       element={<Suspense fallback={<LoadingScreen />}><WhatIfEngine /></Suspense>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

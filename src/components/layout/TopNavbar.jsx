@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -27,7 +28,7 @@ export default function TopNavbar() {
   const location = useLocation();
   const { user } = useAuth();
   const { anomalies = [] } = useData();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const pageName = routeNames[location.pathname] || 'Dashboard';
   const isLight = theme === 'light';
 
@@ -48,6 +49,20 @@ export default function TopNavbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+            className="p-1.5 rounded-lg transition-all duration-200"
+            style={{
+              background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
+              color: isLight ? '#475569' : '#94a3b8',
+              border: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
+            {isLight ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
+
           {/* Alerts bell */}
           <AnomalyBell anomalies={anomalies} />
 

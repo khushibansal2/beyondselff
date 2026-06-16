@@ -4,6 +4,9 @@ from agents.vision_agent import VisionAgent
 from agents.portion_agent import PortionAgent
 from agents.nutrition_agent import NutritionAgent
 from agents.tracking_agent import TrackingAgent
+from agents.prediction_agent import PredictionAgent
+from pydantic import BaseModel
+from typing import List, Optional
 
 import os
 
@@ -25,6 +28,31 @@ vision_agent = VisionAgent()
 portion_agent = PortionAgent()
 nutrition_agent = NutritionAgent()
 tracking_agent = TrackingAgent()
+prediction_agent = PredictionAgent()
+
+# ── What-If Prediction schemas ────────────────────────────────────────────────
+
+class TrainingRecord(BaseModel):
+    sleep_hours: Optional[float] = 7.0
+    stress_level: Optional[float] = 5.0
+    workout_minutes: Optional[float] = 30.0
+    study_hours: Optional[float] = 2.0
+    spending_ratio: Optional[float] = 0.7
+    mood_score: Optional[float] = 6.0
+    health_score: Optional[float] = None
+    finance_score: Optional[float] = None
+    career_score: Optional[float] = None
+
+class TrainRequest(BaseModel):
+    records: List[TrainingRecord]
+
+class PredictRequest(BaseModel):
+    sleep_hours: Optional[float] = 7.0
+    stress_level: Optional[float] = 5.0
+    workout_minutes: Optional[float] = 30.0
+    study_hours: Optional[float] = 2.0
+    spending_ratio: Optional[float] = 0.7
+    mood_score: Optional[float] = 6.0
 
 @app.post("/api/analyze-meal")
 async def analyze_meal(file: UploadFile = File(...), user_id: str = Form("demo_user")):
@@ -63,3 +91,29 @@ async def analyze_meal(file: UploadFile = File(...), user_id: str = Form("demo_u
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── What-If Prediction routes ─────────────────────────────────────────────────
+
+@app.post("/api/whatif/train")
+async def train_whatif_model(request: TrainRequest):
+    try:
+        records = [r.dict() for r in request.records]
+        return prediction_agent.train(records)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/whatif/predict")
+async def predict_whatif(request: PredictRequest):
+    try:
+        return prediction_agent.predict(request.dict())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/whatif/status")
+async def whatif_status():
+    return {
+        "trained": prediction_agent.trained,
+        "accuracy": prediction_agent.accuracy,
+        "feature_importance": prediction_agent.feature_importance,
+    }
