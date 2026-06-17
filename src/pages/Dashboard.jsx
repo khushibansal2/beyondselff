@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { useTheme } from '../context/ThemeContext';
 import { generateNarrative, chatWithAI } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
@@ -360,7 +359,7 @@ function ShareCard({ user, healthScore, financeScore, careerScore, lifeBalance, 
               { label: 'Finance', v: financeScore, icon: '💰' },
               { label: 'Career', v: careerScore, icon: '🎯' },
             ].map(d => (
-              <div key={d.label} className="py-3 text-center" style={{ background: 'var(--db-panel)' }}>
+              <div key={d.label} className="py-3 text-center" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 <p className="text-base mb-0.5">{d.icon}</p>
                 <p className="text-lg font-black" style={{ color: domainColor(d.v) }}>{d.v}</p>
                 <p className="text-[10px] text-slate-500">{d.label}</p>
@@ -465,7 +464,7 @@ function FactorRow({ name, status, value, unit, weight, pts, rawScore }) {
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '110px 68px 1fr auto', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span style={{ fontSize: 10, color: 'var(--db-text)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 10, color: '#e2e8f0', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {name}
         </span>
         <StatusPill status={status} />
@@ -476,7 +475,7 @@ function FactorRow({ name, status, value, unit, weight, pts, rawScore }) {
           +{pts || 0}pts
         </span>
       </div>
-      <div style={{ height: 4, background: 'var(--db-track)', borderRadius: 2, overflow: 'hidden' }}>
+      <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${barW}%` }}
@@ -491,7 +490,7 @@ function FactorRow({ name, status, value, unit, weight, pts, rawScore }) {
 // ─── DOMAIN SCORE CARD ────────────────────────────────────────────────────────
 function DomainScoreCard({ icon, title, score, color, factors, bottomChips }) {
   return (
-    <div style={{ background: 'var(--db-card)', border: '1px solid var(--db-border)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 18 }}>{icon}</span>
@@ -537,7 +536,7 @@ function DomainScoreCard({ icon, title, score, color, factors, bottomChips }) {
       </div>
 
       {/* Footer note */}
-      <div style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', borderTop: '1px solid var(--db-track)', paddingTop: 8 }}>
+      <div style={{ fontSize: 9, color: '#6b7280', fontStyle: 'italic', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 8 }}>
         Scores computed deterministically from your logged data. No AI guessing.
       </div>
 
@@ -554,11 +553,11 @@ function DomainScoreCard({ icon, title, score, color, factors, bottomChips }) {
 // ─── STAT CHIP ────────────────────────────────────────────────────────────────
 function StatChip({ icon, label, value, change, isPositive }) {
   return (
-    <div style={{ flex: 1, background: 'var(--db-panel)', border: '1px solid var(--db-track)', borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 7 }}>
+    <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 7 }}>
       <span style={{ fontSize: 15 }}>{icon}</span>
       <div>
         <div style={{ fontSize: 8, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--db-text)' }}>{value}</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0' }}>{value}</div>
         {change && <div style={{ fontSize: 9, color: isPositive ? '#22c55e' : '#ef4444' }}>{change}</div>}
       </div>
     </div>
@@ -572,8 +571,8 @@ function ExplainAICard({ label, display, color, change, up, factors, insight, li
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        background: 'linear-gradient(160deg, var(--db-panel) 0%, var(--db-card) 100%)',
-        border: '1px solid var(--db-border)',
+        background: 'linear-gradient(160deg, rgba(255,255,255,0.025) 0%, #111827 100%)',
+        border: '1px solid rgba(255,255,255,0.08)',
         borderTop: `2px solid ${color}`,
         borderRadius: 12,
         padding: '12px 13px',
@@ -599,7 +598,7 @@ function ExplainAICard({ label, display, color, change, up, factors, insight, li
       </div>
 
       {/* Divider */}
-      <div style={{ height: 1, background: 'var(--db-track)' }} />
+      <div style={{ height: 1, background: 'rgba(255,255,255,0.05)' }} />
 
       {/* Factor breakdown */}
       <div style={{ flex: 1 }}>
@@ -612,13 +611,13 @@ function ExplainAICard({ label, display, color, change, up, factors, insight, li
           return (
             <div key={f.name || i} style={{ marginBottom: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-                <span style={{ fontSize: 9, color: 'var(--db-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 95 }}>{f.name}</span>
+                <span style={{ fontSize: 9, color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 95 }}>{f.name}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                   <span style={{ fontSize: 8, color: '#6b7280' }}>{f.value != null ? `${f.value}${f.unit ? ` ${f.unit}` : ''}` : '—'}</span>
                   <span style={{ fontSize: 8, fontWeight: 700, color: barColor }}>{f.status === 'good' ? '✓' : f.status === 'critical' ? '!' : '~'}</span>
                 </div>
               </div>
-              <div style={{ height: 3, background: 'var(--db-track)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ height: 3, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${barW}%` }}
@@ -651,7 +650,7 @@ function ExplainAICard({ label, display, color, change, up, factors, insight, li
       <Link to={link || '/'} style={{ textDecoration: 'none' }}>
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          paddingTop: 7, borderTop: '1px solid var(--db-track)', cursor: 'pointer',
+          paddingTop: 7, borderTop: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer',
         }}>
           <span style={{ fontSize: 8, color: '#374151', fontStyle: 'italic' }}>Deterministic · data-driven</span>
           <span style={{ fontSize: 9, color: color, fontWeight: 600, opacity: 0.75 }}>Details →</span>
@@ -675,8 +674,8 @@ function DashboardScoreRing({ label, icon, score, display, color, change, up, is
         flex: 1,
         textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
         cursor: 'pointer', padding: '16px 12px', borderRadius: 16,
-        background: isActive ? `${color}15` : 'var(--db-card)',
-        border: `1px solid ${isActive ? `${color}50` : 'var(--db-track)'}`,
+        background: isActive ? `${color}15` : '#111827',
+        border: `1px solid ${isActive ? `${color}50` : 'rgba(255,255,255,0.05)'}`,
         transition: 'all 0.2s',
         position: 'relative',
         boxShadow: isActive ? `0 0 20px ${color}20` : 'none',
@@ -696,7 +695,7 @@ function DashboardScoreRing({ label, icon, score, display, color, change, up, is
           />
         )}
         <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="60" cy="60" r={r} fill="none" stroke="var(--db-track)" strokeWidth="10" />
+          <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
           <circle
             cx="60" cy="60" r={r}
             fill="none"
@@ -709,12 +708,12 @@ function DashboardScoreRing({ label, icon, score, display, color, change, up, is
           />
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--db-text)', lineHeight: 1 }}>{display}</span>
-          <span style={{ fontSize: 11, color: 'var(--db-muted)', lineHeight: 1.5, marginTop: 2 }}>/100</span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: '#ffffff', lineHeight: 1 }}>{display}</span>
+          <span style={{ fontSize: 11, color: '#9ca3af', lineHeight: 1.5, marginTop: 2 }}>/100</span>
         </div>
       </div>
       
-      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--db-muted)', transition: 'color 0.2s', marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</span>
+      <span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', transition: 'color 0.2s', marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</span>
       <span style={{ fontSize: 11, color: up ? '#22c55e' : '#ef4444', fontWeight: 600 }}>{change}</span>
       
       {/* "Why this score?" dropdown row */}
@@ -787,7 +786,7 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.2 }}
       style={{
-        background: `linear-gradient(135deg, ${color}08 0%, var(--db-card) 100%)`,
+        background: `linear-gradient(135deg, ${color}08 0%, #0f1320 100%)`,
         border: `1px solid ${color}22`,
         borderRadius: 10,
         overflow: 'hidden',
@@ -801,7 +800,7 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
       }}>
         <span style={{ fontSize: 18 }}>{icon}</span>
         <div style={{ flex: 1 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--db-text)' }}>{label} Score</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{label} Score</span>
           <span style={{ fontSize: 9, color: '#4b5563', marginLeft: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.6 }}>Explainable AI</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
@@ -826,7 +825,7 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
               Why this score?
             </div>
             <div style={{
-              fontSize: 13, fontWeight: 700, color: 'var(--db-text)', lineHeight: 1.4,
+              fontSize: 13, fontWeight: 700, color: '#e2e8f0', lineHeight: 1.4,
             }}>
               {headline}
             </div>
@@ -835,8 +834,8 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
           {/* Body explanation */}
           <div style={{
             fontSize: 12, color: '#94a3b8', lineHeight: 1.65,
-            background: 'var(--db-panel)',
-            border: '1px solid var(--db-track)',
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 8, padding: '10px 12px',
           }}>
             {body}
@@ -913,14 +912,14 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
                   <div key={f.name || i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     {/* Factor name + status */}
                     <div style={{ width: 130, flexShrink: 0 }}>
-                      <div style={{ fontSize: 10, color: 'var(--db-text)', fontWeight: 600, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                      <div style={{ fontSize: 10, color: '#cbd5e1', fontWeight: 600, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
                       <span style={{ fontSize: 8, fontWeight: 700, color: barColor, background: `${barColor}15`, padding: '1px 6px', borderRadius: 99 }}>
                         {f.status === 'good' ? '✓ Good' : f.status === 'critical' ? '! Critical' : '~ Watch'}
                       </span>
                     </div>
                     {/* Bar */}
                     <div style={{ flex: 1, position: 'relative' }}>
-                      <div style={{ height: 6, background: 'var(--db-track)', borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{ height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${barW}%` }}
@@ -935,7 +934,7 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
                     </div>
                     {/* Weight badge */}
                     <div style={{ width: 44, flexShrink: 0, textAlign: 'right' }}>
-                      <span style={{ fontSize: 8, color: '#374151', background: 'var(--db-panel)', border: '1px solid var(--db-border)', padding: '2px 5px', borderRadius: 5 }}>
+                      <span style={{ fontSize: 8, color: '#374151', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', padding: '2px 5px', borderRadius: 5 }}>
                         {pct}% wt
                       </span>
                     </div>
@@ -950,7 +949,7 @@ function ExplainAIPanel({ label, display, color, icon, change, up, link, factors
           )}
 
           {/* Score math note */}
-          <div style={{ marginTop: 14, padding: '8px 12px', background: 'var(--db-panel)', border: '1px solid var(--db-track)', borderRadius: 7 }}>
+          <div style={{ marginTop: 14, padding: '8px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 7 }}>
             <span style={{ fontSize: 8, color: '#374151', fontStyle: 'italic' }}>
               Score = weighted sum of all factors above. Computed deterministically from your logged data — no AI guessing.
             </span>
@@ -993,7 +992,7 @@ export default function Dashboard() {
     const isOpen = !!prev[label];
     return isOpen ? {} : { [label]: true };
   });
-  const { theme, toggleTheme } = useTheme();
+  const [theme, setTheme] = useState('dark');
   const scoreRingsRef = useRef(null);
   const searchRef = useRef(null);
   const [whatIfHours, setWhatIfHours] = useState(2);
@@ -1343,7 +1342,7 @@ export default function Dashboard() {
   const C = {
     bg: theme === 'dark' ? '#07090e' : '#f8fafc',
     doomBg: theme === 'dark' ? '#0a0305' : '#fef2f2',
-    panel: theme === 'dark' ? 'var(--db-card)' : '#ffffff',
+    panel: theme === 'dark' ? '#111827' : '#ffffff',
     text: theme === 'dark' ? '#e2e8f0' : '#0f172a',
     textMuted: theme === 'dark' ? '#6b7280' : '#475569',
     border: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
@@ -1391,18 +1390,18 @@ export default function Dashboard() {
             {searchQuery ? (
               <button onClick={() => { setSearchQuery(''); setSearchOpen(false); }} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 14, lineHeight: 1, padding: '2px 4px' }}>✕</button>
             ) : (
-              <div style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'var(--db-panel)', padding: '2px 5px', borderRadius: 4, fontSize: 9, color: C.textMuted, pointerEvents: 'none' }}>⌘K</div>
+              <div style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.06)', padding: '2px 5px', borderRadius: 4, fontSize: 9, color: C.textMuted, pointerEvents: 'none' }}>⌘K</div>
             )}
             {searchOpen && searchResults.length > 0 && (
               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid #6366f1`, borderTop: 'none', borderRadius: '0 0 12px 12px', zIndex: 999, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
                 {searchResults.map((r, i) => (
                   <Link key={i} to={r.path} onClick={() => { setSearchQuery(''); setSearchOpen(false); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', textDecoration: 'none', borderBottom: i < searchResults.length - 1 ? `1px solid var(--db-track)` : 'none', transition: 'background 0.15s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', textDecoration: 'none', borderBottom: i < searchResults.length - 1 ? `1px solid rgba(255,255,255,0.04)` : 'none', transition: 'background 0.15s' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.1)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <span style={{ fontSize: 14 }}>{r.icon}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: 'var(--db-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.label}</p>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.label}</p>
                       <p style={{ margin: 0, fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{r.type} · {r.sub}</p>
                     </div>
                   </Link>
@@ -1410,7 +1409,7 @@ export default function Dashboard() {
               </div>
             )}
             {searchOpen && searchQuery.length >= 2 && searchResults.length === 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid var(--db-border)`, borderTop: 'none', borderRadius: '0 0 12px 12px', zIndex: 999, padding: '12px 14px', fontSize: 11, color: '#64748b' }}>
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid rgba(255,255,255,0.1)`, borderTop: 'none', borderRadius: '0 0 12px 12px', zIndex: 999, padding: '12px 14px', fontSize: 11, color: '#64748b' }}>
                 No results for "{searchQuery}"
               </div>
             )}
@@ -1419,7 +1418,7 @@ export default function Dashboard() {
           {/* Right actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
-              onClick={toggleTheme}
+              onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
               style={{ background: C.card, border: `1px solid ${C.border}`, width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, transition: 'transform 0.15s, background 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -1520,7 +1519,7 @@ export default function Dashboard() {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: 'easeOut' }}
-                      style={{ overflow: 'hidden', border: `1px solid ${card.color}22`, borderRadius: 10, background: 'var(--db-card)', margin: '8px 0 16px' }}
+                      style={{ overflow: 'hidden', border: `1px solid ${card.color}22`, borderRadius: 10, background: '#111827', margin: '8px 0 16px' }}
                     >
                       <ExplainAIPanel
                         label={card.label}
@@ -1546,17 +1545,17 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr 0.95fr', gap: 16, alignItems: 'stretch', marginBottom: 16 }}>
 
             {/* COLUMN 1: Life Core Card */}
-            <div style={{ ...S('var(--db-card)'), padding: '16px 18px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
+            <div style={{ ...S('#111827'), padding: '16px 18px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
               {/* Card Title & Subtitle */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--db-text)' }}>Life Core</span>
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: '#e2e8f0' }}>Life Core</span>
                   </div>
                   <div style={{ fontSize: 10, color: '#6b7280', marginTop: 1 }}>Your Digital Twin</div>
                 </div>
                 {/* Live Sync Badge */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5.5, background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 99, padding: '3px 10px', fontSize: 9.5, fontWeight: 700, color: 'var(--db-text)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5.5, background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 99, padding: '3px 10px', fontSize: 9.5, fontWeight: 700, color: '#cbd5e1' }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
                   Live Sync
                 </div>
@@ -1708,9 +1707,9 @@ export default function Dashboard() {
             {/* COLUMN 2: Stacked Today's Plan & Life Bloom */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
               {/* Today's Plan */}
-              <div style={{ ...S('var(--db-card)'), padding: '12px 14px', flexShrink: 0 }}>
+              <div style={{ ...S('#111827'), padding: '12px 14px', flexShrink: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--db-text)' }}>Today's Plan</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0' }}>Today's Plan</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 600 }}>{planDoneCount} / {todayPlan.length} done</div>
                     <button onClick={() => setShowAddGoal(s => !s)}
@@ -1719,7 +1718,7 @@ export default function Dashboard() {
                     </button>
                   </div>
                 </div>
-                <div style={{ height: 1, background: 'var(--db-panel)', marginBottom: 8 }} />
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
 
                 {/* Inline add-goal input */}
                 {showAddGoal && (
@@ -1730,7 +1729,7 @@ export default function Dashboard() {
                       onChange={e => setNewGoalText(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') addCustomTask(); if (e.key === 'Escape') { setShowAddGoal(false); setNewGoalText(''); } }}
                       placeholder="Add today's goal..."
-                      style={{ flex: 1, fontSize: 10, background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, padding: '5px 8px', color: 'var(--db-text)', outline: 'none' }}
+                      style={{ flex: 1, fontSize: 10, background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, padding: '5px 8px', color: '#e2e8f0', outline: 'none' }}
                     />
                     <button onClick={addCustomTask}
                       style={{ padding: '4px 10px', borderRadius: 8, background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.4)', color: '#a78bfa', fontSize: 10, fontWeight: 700, cursor: 'pointer', outline: 'none' }}>
@@ -1743,7 +1742,7 @@ export default function Dashboard() {
                   {todayPlan.map((task) => (
                     <div key={task.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
-                        style={{ width: 14, height: 14, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid var(--db-border)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s', cursor: 'pointer' }}>
+                        style={{ width: 14, height: 14, borderRadius: '50%', border: task.done ? 'none' : '1.5px solid rgba(255,255,255,0.2)', background: task.done ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s', cursor: 'pointer' }}>
                         {task.done && <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>}
                       </div>
                       <span onClick={() => setCheckedTasks(p => ({ ...p, [task.id]: !p[task.id] }))}
@@ -2018,7 +2017,7 @@ export default function Dashboard() {
                               const done = !!checkedTasks[t.id];
                               const [c1] = getDomainColors(t.domain);
                               return (
-                                <div key={t.id} style={{ display:'flex', alignItems:'center', gap:3, background: done ? `${c1}20` : 'var(--db-panel)', border:`1px solid ${done ? c1+'50' : 'var(--db-border)'}`, borderRadius:99, padding:'2px 6px', transition:'all 0.2s' }}>
+                                <div key={t.id} style={{ display:'flex', alignItems:'center', gap:3, background: done ? `${c1}20` : 'rgba(255,255,255,0.03)', border:`1px solid ${done ? c1+'50' : 'rgba(255,255,255,0.07)'}`, borderRadius:99, padding:'2px 6px', transition:'all 0.2s' }}>
                                   <div style={{ width:6, height:6, borderRadius:'50%', background: done ? c1 : '#374151', flexShrink:0, transition:'background 0.2s' }}/>
                                   <span style={{ fontSize:8, color: done ? c1 : '#4b5563', fontWeight: done ? 700 : 500, whiteSpace:'nowrap' }}>{t.icon} {t.domain}</span>
                                 </div>
@@ -2026,7 +2025,7 @@ export default function Dashboard() {
                             })}
                           </div>
                         )}
-                        <div style={{height:4,background:'var(--db-track)',borderRadius:999,overflow:'hidden'}}>
+                        <div style={{height:4,background:'rgba(255,255,255,0.06)',borderRadius:999,overflow:'hidden'}}>
                           <motion.div animate={{width:`${pct*100}%`}} transition={{duration:0.5,ease:'easeOut'}}
                             style={{height:'100%',background:`linear-gradient(90deg,${th.a},${th.b})`,borderRadius:999}}/>
                         </div>
@@ -2042,13 +2041,13 @@ export default function Dashboard() {
             </div>
 
             {/* COLUMN 3: Future Self Card — inline AI chat */}
-            <div style={{ background: 'linear-gradient(160deg, rgba(109,40,217,0.18) 0%, var(--db-card) 60%)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ background: 'linear-gradient(160deg, rgba(109,40,217,0.18) 0%, #111827 60%)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50, background: 'linear-gradient(180deg, rgba(139,92,246,0.12) 0%, transparent 100%)', pointerEvents: 'none' }} />
 
               {/* Header with editable age */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--db-text)', display: 'flex', alignItems: 'center', gap: 5 }}>✨ Future Self</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 5 }}>✨ Future Self</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
                     <span style={{ fontSize: 9, color: '#a78bfa' }}>Age</span>
                     <input
@@ -2073,7 +2072,7 @@ export default function Dashboard() {
                       <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}>👦</div>
                     </div>
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--db-text)', lineHeight: 1.55, background: 'var(--db-panel)', border: '1px solid var(--db-track)', borderRadius: 10, padding: '8px 10px', marginBottom: 10, flex: 1 }}>
+                  <div style={{ fontSize: 10, color: '#cbd5e1', lineHeight: 1.55, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '8px 10px', marginBottom: 10, flex: 1 }}>
                     {aiNarrative
                       ? `I'm you, age ${futureSelfDisplayAge}. ${aiNarrative.slice(0, 140)}${aiNarrative.length > 140 ? '...' : ''}`
                       : `I'm you, age ${futureSelfDisplayAge}, in ${currentYear + Math.max(0, futureSelfDisplayAge - (user?.age || 22))}. Life balance: ${lifeBalance}/100. Talk to me — I have things to tell you.`}
@@ -2092,7 +2091,7 @@ export default function Dashboard() {
                   {futureSelfMessages.map((m, i) => (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                       {m.role !== 'user' && <span style={{ fontSize: 8, color: '#7c3aed', marginBottom: 2, marginLeft: 4 }}>✨ Age {futureSelfDisplayAge}</span>}
-                      <div style={{ background: m.role === 'user' ? 'rgba(99,102,241,0.22)' : 'rgba(124,58,237,0.12)', border: `1px solid ${m.role === 'user' ? 'rgba(99,102,241,0.35)' : 'rgba(124,58,237,0.2)'}`, borderRadius: m.role === 'user' ? '10px 10px 3px 10px' : '10px 10px 10px 3px', padding: '5px 8px', fontSize: 9.5, color: 'var(--db-text)', lineHeight: 1.5, maxWidth: '90%' }}>
+                      <div style={{ background: m.role === 'user' ? 'rgba(99,102,241,0.22)' : 'rgba(124,58,237,0.12)', border: `1px solid ${m.role === 'user' ? 'rgba(99,102,241,0.35)' : 'rgba(124,58,237,0.2)'}`, borderRadius: m.role === 'user' ? '10px 10px 3px 10px' : '10px 10px 10px 3px', padding: '5px 8px', fontSize: 9.5, color: '#e2e8f0', lineHeight: 1.5, maxWidth: '90%' }}>
                         {m.text}
                       </div>
                     </div>
@@ -2116,7 +2115,7 @@ export default function Dashboard() {
                     onChange={e => setFutureSelfInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && sendFutureSelfMessage()}
                     placeholder="Ask your future self..."
-                    style={{ flex: 1, fontSize: 9, color: 'var(--db-text)', background: 'var(--db-track)', border: '1px solid var(--db-border)', borderRadius: 8, padding: '6px 8px', outline: 'none' }}
+                    style={{ flex: 1, fontSize: 9, color: '#e2e8f0', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 8px', outline: 'none' }}
                   />
                   <button onClick={sendFutureSelfMessage} disabled={futureSelfLoading || !futureSelfInput.trim()}
                     style={{ width: 28, height: 28, borderRadius: 8, background: futureSelfLoading ? 'rgba(99,102,241,0.2)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)', border: 'none', color: '#fff', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -2136,9 +2135,9 @@ export default function Dashboard() {
           {/* ════════════════════════════════════════════════════
               ROW 2 — 14-DAY LIFE TIMELINE (Ribbon Calendar)
           ════════════════════════════════════════════════════ */}
-          <div style={{ background: 'var(--db-card)', border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+          <div style={{ background: '#111827', border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--db-text)' }}>14-Day Life Timeline</span>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0' }}>14-Day Life Timeline</span>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                 <div style={{ display: 'flex', gap: 12, fontSize: 9.5 }}>
@@ -2149,7 +2148,7 @@ export default function Dashboard() {
                     <span style={{ width: 8, height: 8, borderRadius: '50%', border: '2px solid #a855f7', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }} /> Partial
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--db-card)', border: '1.5px solid var(--db-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a1f2c', border: '1.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
                       <span style={{ width: 4, height: 1, background: '#64748b', borderRadius: 1 }} />
                     </span> Missed
                   </span>
@@ -2202,7 +2201,7 @@ export default function Dashboard() {
                     boxSizing: 'border-box',
                   }}
                 >
-                  <span style={{ fontSize: 9.5, color: 'var(--db-text)', fontWeight: 700 }}>{item.date}</span>
+                  <span style={{ fontSize: 9.5, color: '#e2e8f0', fontWeight: 700 }}>{item.date}</span>
                   <span
                     style={{
                       fontSize: 8.5,
@@ -2230,7 +2229,7 @@ export default function Dashboard() {
                         );
                       } else {
                         return (
-                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--db-card)', border: '1.5px solid var(--db-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1a1f2c', border: '1.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
                             <div style={{ width: 6, height: 1.5, background: '#64748b', borderRadius: 1 }} />
                           </div>
                         );
@@ -2242,7 +2241,7 @@ export default function Dashboard() {
             </div>
 
             {/* Bottom Slider Progress Track */}
-            <div style={{ position: 'relative', width: '100%', height: 4, background: 'var(--db-panel)', borderRadius: 99, marginTop: 14 }}>
+            <div style={{ position: 'relative', width: '100%', height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 99, marginTop: 14 }}>
               <div
                 style={{
                   position: 'absolute',
@@ -2277,8 +2276,8 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
             
             {/* Column 1: Daily Intelligence — real data from health/career context */}
-            <div style={{ ...S('var(--db-card)'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--db-text)', marginBottom: 12, textTransform: 'none', letterSpacing: 0.2 }}>Daily Intelligence</div>
+            <div style={{ ...S('#111827'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0', marginBottom: 12, textTransform: 'none', letterSpacing: 0.2 }}>Daily Intelligence</div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {(() => {
@@ -2374,7 +2373,7 @@ export default function Dashboard() {
                       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                         <span style={{ color: '#64748b', fontSize: 8.5, fontWeight: 650 }}>{item.detail}</span>
                       </div>
-                      <div style={{ height: 3.5, background: 'var(--db-panel)', borderRadius: 99, marginTop: 2, width: '100%', position: 'relative' }}>
+                      <div style={{ height: 3.5, background: 'rgba(255,255,255,0.06)', borderRadius: 99, marginTop: 2, width: '100%', position: 'relative' }}>
                         <div
                           style={{
                             height: '100%',
@@ -2392,8 +2391,8 @@ export default function Dashboard() {
             </div>
 
             {/* Column 2: Habit Projection (What-if Engine) */}
-            <div style={{ ...S('var(--db-card)'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--db-text)', marginBottom: 12 }}>
+            <div style={{ ...S('#111827'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0', marginBottom: 12 }}>
                 Habit Projection <span style={{ fontSize: 10.5, color: '#64748b', fontWeight: 500, marginLeft: 2 }}>(What-If Engine)</span>
               </div>
               
@@ -2569,9 +2568,9 @@ export default function Dashboard() {
             </div>
 
             {/* Column 3: Cross-Domain Insights */}
-            <div style={{ ...S('var(--db-card)'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ ...S('#111827'), padding: '16px 18px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--db-text)' }}>Cross-Domain Insights</span>
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0' }}>Cross-Domain Insights</span>
                 <Link to="/insights" style={{ fontSize: 10, color: '#a78bfa', textDecoration: 'none', fontWeight: 700 }}>View all</Link>
               </div>
 

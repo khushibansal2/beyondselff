@@ -35,14 +35,6 @@
   --font-sans:    'Outfit', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', 'Space Grotesk', 'Inter', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
-
-  /* ── Inline-style theming helpers (used in Dashboard + pages) ── */
-  --db-card:   #111827;
-  --db-panel:  rgba(255,255,255,0.03);
-  --db-track:  rgba(255,255,255,0.05);
-  --db-border: rgba(255,255,255,0.07);
-  --db-text:   #e2e8f0;
-  --db-muted:  #9ca3af;
 }
 
 /* ===== BASE STYLES ===== */
@@ -605,13 +597,6 @@ textarea:focus-visible {
 
 /* ===== LIGHT MODE THEME ===== */
 [data-theme="light"] {
-  /* ── Inline-style theming helpers overrides ── */
-  --db-card:   #ffffff;
-  --db-panel:  rgba(0,0,0,0.025);
-  --db-track:  rgba(0,0,0,0.06);
-  --db-border: rgba(0,0,0,0.07);
-  --db-text:   #0f172a;
-  --db-muted:  #64748b;
   /* Override Tailwind v4 color variables to invert text palette */
   --color-white: #0f172a;
   --color-slate-50: #1e293b;
