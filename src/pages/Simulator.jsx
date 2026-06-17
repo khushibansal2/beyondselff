@@ -1007,47 +1007,84 @@ export default function Simulator() {
                   <span style={{fontSize:13, color:'#475569', cursor:'help'}} title="Scores projected 12 months out">ⓘ</span>
                 </div>
                 {/* Header row */}
-                <div style={{display:'grid', gridTemplateColumns:'120px 1fr 24px 1fr 60px', alignItems:'center', gap:8, marginBottom:10, paddingBottom:8, borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                  {['Area','Current','','Future','Change'].map(h => (
-                    <span key={h} style={{fontSize:11, color:'#475569', fontWeight:600}}>{h}</span>
-                  ))}
+                <div style={{display:'grid', gridTemplateColumns:'110px 1fr 18px 1fr 18px 80px 52px', alignItems:'center', gap:6, marginBottom:10, paddingBottom:8, borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                  <span style={{fontSize:11, color:'#475569', fontWeight:600}}>Area</span>
+                  <span style={{fontSize:11, color:'#475569', fontWeight:600}}>Current</span>
+                  <span/>
+                  <span style={{fontSize:11, color:'#6366f1', fontWeight:600}}>AI Future</span>
+                  <span/>
+                  <span style={{fontSize:11, color:'#a855f7', fontWeight:600}}>🧪 ML Pred.</span>
+                  <span style={{fontSize:11, color:'#475569', fontWeight:600}}>Δ AI</span>
                 </div>
                 {/* Domain rows */}
                 {SIM_DOMAINS.map(d => {
-                  const cur = result.scores?.baseline?.[d.key] ?? 0;
-                  const fut = result.scores?.projected?.[d.key] ?? 0;
+                  const cur   = result.scores?.baseline?.[d.key] ?? 0;
+                  const fut   = result.scores?.projected?.[d.key] ?? 0;
                   const delta = fut - cur;
+                  // ML prediction — map domain key to ML key
+                  const mlKey = d.key === 'wellbeing' ? null : `${d.key}_score`;
+                  const mlVal = mlKey ? (mlPrediction?.predictions?.[mlKey] ?? null) : null;
+                  const mlDelta = mlVal != null ? Math.round(mlVal - cur) : null;
                   return (
-                    <div key={d.key} style={{display:'grid', gridTemplateColumns:'120px 1fr 24px 1fr 60px', alignItems:'center', gap:8, padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                    <div key={d.key} style={{display:'grid', gridTemplateColumns:'110px 1fr 18px 1fr 18px 80px 52px', alignItems:'center', gap:6, padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
                       <div style={{display:'flex', alignItems:'center', gap:8}}>
                         <span style={{fontSize:14}}>{d.icon}</span>
                         <span style={{fontSize:13, fontWeight:600, color:'#e2e8f0'}}>{d.label}</span>
                       </div>
+                      {/* Current */}
                       <div>
-                        <div style={{display:'flex', alignItems:'baseline', gap:4, marginBottom:4}}>
-                          <span style={{fontSize:18, fontWeight:800, color:'#f1f5f9'}}>{cur}</span>
-                          <span style={{fontSize:10, color:'#475569'}}>/ 100</span>
+                        <div style={{display:'flex', alignItems:'baseline', gap:3, marginBottom:4}}>
+                          <span style={{fontSize:17, fontWeight:800, color:'#f1f5f9'}}>{cur}</span>
+                          <span style={{fontSize:10, color:'#475569'}}>/100</span>
                         </div>
-                        <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden'}}>
+                        <div style={{height:3, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden'}}>
                           <div style={{width:`${cur}%`, height:'100%', background:d.color, borderRadius:2}}/>
                         </div>
                       </div>
-                      <span style={{fontSize:14, color:'#475569', textAlign:'center'}}>→</span>
+                      <span style={{fontSize:12, color:'#334155', textAlign:'center'}}>→</span>
+                      {/* AI Future */}
                       <div>
-                        <div style={{display:'flex', alignItems:'baseline', gap:4, marginBottom:4}}>
-                          <span style={{fontSize:18, fontWeight:800, color:'#f1f5f9'}}>{fut}</span>
-                          <span style={{fontSize:10, color:'#475569'}}>/ 100</span>
+                        <div style={{display:'flex', alignItems:'baseline', gap:3, marginBottom:4}}>
+                          <span style={{fontSize:17, fontWeight:800, color:'#f1f5f9'}}>{fut}</span>
+                          <span style={{fontSize:10, color:'#475569'}}>/100</span>
                         </div>
-                        <div style={{height:4, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden'}}>
+                        <div style={{height:3, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden'}}>
                           <div style={{width:`${fut}%`, height:'100%', background:d.color, borderRadius:2}}/>
                         </div>
                       </div>
+                      <span style={{fontSize:12, color:'#334155', textAlign:'center'}}>·</span>
+                      {/* ML Prediction */}
+                      <div>
+                        {mlVal != null ? (
+                          <>
+                            <div style={{display:'flex', alignItems:'baseline', gap:3, marginBottom:4}}>
+                              <span style={{fontSize:17, fontWeight:800, color:'#a855f7'}}>{Math.round(mlVal)}</span>
+                              <span style={{fontSize:10, color:'#475569'}}>/100</span>
+                            </div>
+                            <div style={{height:3, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden'}}>
+                              <div style={{width:`${Math.round(mlVal)}%`, height:'100%', background:'#a855f7', borderRadius:2}}/>
+                            </div>
+                          </>
+                        ) : (
+                          <span style={{fontSize:12, color:'#334155'}}>—</span>
+                        )}
+                      </div>
+                      {/* AI delta */}
                       <span style={{fontSize:13, fontWeight:700, color:delta>0?'#10b981':delta<0?'#f43f5e':'#64748b'}}>
                         {delta>0?'+':''}{delta}
                       </span>
                     </div>
                   );
                 })}
+                {/* Legend */}
+                <div style={{display:'flex', gap:16, marginTop:12, paddingTop:10, borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                  <span style={{fontSize:10, color:'#475569', display:'flex', alignItems:'center', gap:5}}>
+                    <span style={{width:8, height:8, borderRadius:2, background:'#6366f1', display:'inline-block'}}/>AI Future (LLM)
+                  </span>
+                  <span style={{fontSize:10, color:'#475569', display:'flex', alignItems:'center', gap:5}}>
+                    <span style={{width:8, height:8, borderRadius:2, background:'#a855f7', display:'inline-block'}}/>ML Prediction (Ridge Regression)
+                  </span>
+                </div>
               </div>
 
               {/* AI Verdict */}
