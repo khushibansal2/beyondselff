@@ -1,16 +1,19 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { runAISimulation, computeBaselineScores } from '../services/simulatorService';
+import { trainWhatIfModel, predictWhatIf } from '../services/whatIfService';
 import { GlassCard, PageHeader, ScoreRing } from '../components/ui/Components';
 import {
   Brain, Sparkles, ChevronRight, AlertTriangle, CheckCircle,
   TrendingUp, TrendingDown, Minus, RotateCcw, Clock, Zap, Info,
-  GitCompare,
+  GitCompare, FlaskConical, Sliders, RefreshCw,
 } from 'lucide-react';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
   Tooltip, Legend, ReferenceLine, Dot,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  BarChart, Bar, Cell,
 } from 'recharts';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -410,10 +413,238 @@ function TimelineChart({ result }) {
   );
 }
 
+// ── ML What-If constants ──────────────────────────────────────────────────────
+
+const ML_SLIDERS = [
+  { key: 'sleep_hours',     label: 'Sleep',          unit: 'hrs',  min: 3,    max: 10,  step: 0.5, color: '#6366f1', icon: '😴' },
+  { key: 'stress_level',    label: 'Stress',         unit: '/10',  min: 1,    max: 10,  step: 0.5, color: '#ef4444', icon: '😤' },
+  { key: 'workout_minutes', label: 'Workout',         unit: 'min',  min: 0,    max: 120, step: 5,   color: '#10b981', icon: '🏃' },
+  { key: 'study_hours',     label: 'Study',          unit: 'hrs',  min: 0,    max: 12,  step: 0.5, color: '#3b82f6', icon: '📚' },
+  { key: 'spending_ratio',  label: 'Spending',       unit: '%',    min: 0.1,  max: 1,   step: 0.05,color: '#f59e0b', icon: '💸' },
+  { key: 'mood_score',      label: 'Mood',           unit: '/10',  min: 1,    max: 10,  step: 0.5, color: '#8b5cf6', icon: '😊' },
+];
+
+const ML_DEFAULT = { sleep_hours:7, stress_level:5, workout_minutes:30, study_hours:3, spending_ratio:0.7, mood_score:6 };
+
+const ML_DOMAINS = [
+  { key: 'health_score',  label: 'Health',  color: '#10b981', icon: '❤️' },
+  { key: 'finance_score', label: 'Finance', color: '#f59e0b', icon: '💰' },
+  { key: 'career_score',  label: 'Career',  color: '#6366f1', icon: '🚀' },
+];
+
+// ── ML What-If panel ──────────────────────────────────────────────────────────
+
+function MLWhatIfPanel({ health, finance, career, baseline }) {
+  const [params, setParams]         = useState(ML_DEFAULT);
+  const [trainResult, setTrainResult] = useState(null);
+  const [prediction, setPrediction] = useState(null);
+  const [training, setTraining]     = useState(false);
+  const [predicting, setPredicting] = useState(false);
+  const debounceRef                 = useRef(null);
+
+  // Auto-train on first mount
+  useEffect(() => {
+    let cancelled = false;
+    async function autoTrain() {
+      setTraining(true);
+      const res = await trainWhatIfModel(health || [], finance || [], career || []);
+      if (!cancelled) {
+        setTrainResult(res);
+        setTraining(false);
+        // Immediately predict with defaults
+        const pred = await predictWhatIf(ML_DEFAULT);
+        if (!cancelled) setPrediction(pred);
+      }
+    }
+    autoTrain();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const runPredict = useCallback(async (p) => {
+    setPredicting(true);
+    const res = await predictWhatIf(p);
+    setPrediction(res);
+    setPredicting(false);
+  }, []);
+
+  const updateParam = (key, val) => {
+    const next = { ...params, [key]: val };
+    setParams(next);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => runPredict(next), 280);
+  };
+
+  // Radar: baseline vs prediction
+  const radarData = ML_DOMAINS.map(d => ({
+    domain: d.label,
+    Baseline: baseline[d.key.replace('_score', '')] ?? 50,
+    'ML Prediction': prediction?.predictions?.[d.key] ?? (baseline[d.key.replace('_score', '')] ?? 50),
+  }));
+
+  const sCard = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+      {/* Status pill */}
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', ...sCard }}>
+        {training ? (
+          <>
+            <div style={{ width:12, height:12, border:'2px solid rgba(168,85,247,0.4)', borderTopColor:'#a855f7', borderRadius:'50%', animation:'spin 0.8s linear infinite', flexShrink:0 }} />
+            <span style={{ fontSize:12, color:'#94a3b8' }}>Training Ridge Regression model on your data…</span>
+          </>
+        ) : trainResult?.trained ? (
+          <>
+            <span style={{ fontSize:14 }}>✅</span>
+            <span style={{ fontSize:12, color:'#10b981', fontWeight:600 }}>Model ready</span>
+            <span style={{ fontSize:11, color:'#475569' }}>·</span>
+            <span style={{ fontSize:11, color:'#475569' }}>{trainResult.sample_count} samples</span>
+            {trainResult.user_records > 0 && (
+              <><span style={{ fontSize:11, color:'#475569' }}>·</span>
+              <span style={{ fontSize:11, color:'#6366f1' }}>{trainResult.user_records} from your history</span></>
+            )}
+            {trainResult.offline && (
+              <><span style={{ fontSize:11, color:'#475569' }}>·</span>
+              <span style={{ fontSize:11, color:'#f59e0b' }}>offline mode</span></>
+            )}
+            <div style={{ marginLeft:'auto', display:'flex', gap:12 }}>
+              {ML_DOMAINS.map(d => {
+                const acc = trainResult?.accuracy?.[d.key] ?? 0;
+                const pct = Math.round(acc * 100);
+                const c = pct >= 70 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+                return (
+                  <span key={d.key} style={{ fontSize:11, color:c, fontWeight:700 }}>
+                    {d.label} R²{pct}%
+                  </span>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <span style={{ fontSize:12, color:'#64748b' }}>Initializing model…</span>
+        )}
+      </div>
+
+      {/* Two-column layout */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+
+        {/* Left: Sliders */}
+        <div style={{ ...sCard, padding:'18px' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+            <p style={{ fontSize:13, fontWeight:700, color:'#f1f5f9' }}>Adjust Scenario</p>
+            <button
+              onClick={() => { setParams(ML_DEFAULT); runPredict(ML_DEFAULT); }}
+              style={{ fontSize:11, color:'#475569', background:'none', border:'none', cursor:'pointer' }}
+            >
+              Reset
+            </button>
+          </div>
+          {ML_SLIDERS.map(({ key, label, unit, min, max, step, color, icon }) => {
+            const val = params[key];
+            const pct = ((val - min) / (max - min)) * 100;
+            const display = key === 'spending_ratio' ? `${Math.round(val * 100)}%` : val;
+            return (
+              <div key={key} style={{ marginBottom:14 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                  <span style={{ fontSize:12, color:'#94a3b8' }}>{icon} {label}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color }}>{display}{key !== 'spending_ratio' ? ` ${unit}` : ''}</span>
+                </div>
+                <div style={{ position:'relative', height:6, borderRadius:3, background:'rgba(255,255,255,0.07)' }}>
+                  <div style={{ position:'absolute', left:0, top:0, height:'100%', width:`${pct}%`, borderRadius:3, background:color, boxShadow:`0 0 8px ${color}50`, transition:'width 0.1s' }} />
+                  <input type="range" min={min} max={max} step={step} value={val}
+                    onChange={e => updateParam(key, parseFloat(e.target.value))}
+                    style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:0, cursor:'pointer', zIndex:1 }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right: Predictions + Radar */}
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+          {/* Score cards */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+            {ML_DOMAINS.map(d => {
+              const baseKey = d.key.replace('_score', '');
+              const base = baseline[baseKey] ?? 50;
+              const pred = prediction?.predictions?.[d.key];
+              const delta = pred != null ? Math.round(pred - base) : 0;
+              return (
+                <div key={d.key} style={{ ...sCard, padding:'14px', textAlign:'center' }}>
+                  <span style={{ fontSize:16 }}>{d.icon}</span>
+                  <p style={{ fontSize:10, color:'#475569', margin:'4px 0 2px', textTransform:'uppercase', letterSpacing:'0.05em' }}>{d.label}</p>
+                  <AnimatePresence mode="wait">
+                    <motion.p key={pred ?? base}
+                      initial={{ opacity:0, scale:0.8 }} animate={{ opacity:1, scale:1 }} exit={{ opacity:0 }}
+                      transition={{ duration:0.15 }}
+                      style={{ fontSize:26, fontWeight:900, color:d.color, margin:0 }}>
+                      {predicting ? '…' : Math.round(pred ?? base)}
+                    </motion.p>
+                  </AnimatePresence>
+                  {pred != null && (
+                    <p style={{ fontSize:11, fontWeight:700, color: delta>0?'#10b981':delta<0?'#ef4444':'#64748b' }}>
+                      {delta>0?'+':''}{delta} vs now
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Radar */}
+          <div style={{ ...sCard, padding:'14px', flex:1 }}>
+            <p style={{ fontSize:12, fontWeight:600, color:'#94a3b8', marginBottom:6 }}>Baseline vs Prediction</p>
+            <ResponsiveContainer width="100%" height={200}>
+              <RadarChart data={radarData} outerRadius={72}>
+                <PolarGrid stroke="rgba(255,255,255,0.07)" />
+                <PolarAngleAxis dataKey="domain" tick={{ fill:'#94a3b8', fontSize:11, fontWeight:600 }} />
+                <Radar name="Baseline" dataKey="Baseline" stroke="#475569" fill="#47556920" strokeWidth={1.5} />
+                <Radar name="ML Prediction" dataKey="ML Prediction" stroke="#8b5cf6" fill="#8b5cf615" strokeWidth={2} dot={{ r:3, fill:'#8b5cf6' }} />
+                <Tooltip contentStyle={{ background:'#0f1224', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, fontSize:11 }} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Confidence bar */}
+      {prediction && (
+        <div style={{ ...sCard, padding:'12px 16px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
+            <span style={{ fontSize:11, color:'#475569', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em' }}>
+              Model Confidence
+            </span>
+            {ML_DOMAINS.map(d => {
+              const conf = prediction.confidence?.[d.key] ?? 0;
+              const pct = Math.round(conf * 100);
+              const c = pct >= 70 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+              return (
+                <div key={d.key} style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <span style={{ fontSize:11, color:'#64748b' }}>{d.label}</span>
+                  <div style={{ width:60, height:4, borderRadius:2, background:'rgba(255,255,255,0.07)' }}>
+                    <motion.div initial={{ width:0 }} animate={{ width:`${pct}%` }} transition={{ duration:0.6 }}
+                      style={{ height:'100%', borderRadius:2, background:c }} />
+                  </div>
+                  <span style={{ fontSize:11, fontWeight:700, color:c }}>{pct}%</span>
+                </div>
+              );
+            })}
+            <span style={{ marginLeft:'auto', fontSize:10, color:'#334155' }}>
+              {prediction.model === 'ridge_regression' ? '🤖 Ridge Regression' : prediction.offline ? '⚡ Offline engine' : ''}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function Simulator() {
-  const { health, finance, career, simulatorState, updateSimulatorState } = useData();
+  const { health, finance, career, records, simulatorState, updateSimulatorState } = useData();
 
   const [input,        setInput]        = useState(simulatorState?.input || '');
   const [inputB,       setInputB]       = useState(simulatorState?.inputB || '');
@@ -507,6 +738,8 @@ export default function Simulator() {
     return               { arrows: '↓↓', label: 'Declines',  color: '#f43f5e' };
   };
 
+  const [activeTab, setActiveTab] = useState('ai'); // 'ai' | 'ml'
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   const sCard = { background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14 };
@@ -518,6 +751,36 @@ export default function Simulator() {
         <h1 style={{fontSize:22, fontWeight:800, color:'#f0f0f3', margin:0}}>🔮 AI Life Simulator</h1>
         <p style={{fontSize:12, color:'#71717a', marginTop:3}}>Test a life decision before making it. See how it affects your future across Health, Finance, Career and Wellbeing.</p>
       </div>
+
+      {/* ── Tab switcher ── */}
+      <div style={{ display:'flex', gap:4, padding:4, borderRadius:12, width:'fit-content', marginBottom:16, background:'rgba(255,255,255,0.04)' }}>
+        {[
+          { id:'ai', label:'🔮 AI Scenario' },
+          { id:'ml', label:'🧪 ML What-If' },
+        ].map(t => (
+          <button key={t.id} onClick={() => setActiveTab(t.id)}
+            style={{
+              padding:'7px 18px', borderRadius:9, fontSize:13, fontWeight:600, cursor:'pointer', border:'none', transition:'all 0.15s',
+              background: activeTab === t.id ? 'linear-gradient(135deg,#6366f1,#8b5cf6)' : 'transparent',
+              color: activeTab === t.id ? '#fff' : '#64748b',
+            }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── ML What-If tab ── */}
+      {activeTab === 'ml' && (
+        <MLWhatIfPanel
+          health={records?.health}
+          finance={records?.finance}
+          career={records?.career}
+          baseline={{ health: baseline.health ?? 50, finance: baseline.finance ?? 50, career: baseline.career ?? 50 }}
+        />
+      )}
+
+      {/* ── AI Scenario tab ── */}
+      {activeTab === 'ai' && (<>
 
       {/* ── Search bar ── */}
       <div style={{display:'flex', alignItems:'center', gap:12, marginBottom:12, background:'rgba(15,20,35,0.98)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'12px 14px 12px 18px'}}>
@@ -802,6 +1065,8 @@ export default function Simulator() {
           </div>
         </motion.div>
       )}
+
+      </>)}
     </div>
   );
 }

@@ -32,7 +32,6 @@ const navSections = [
     label: 'Intelligence',
     items: [
       { path: '/simulator',   label: 'Simulator',   icon: Sparkles,       color: '#8b5cf6' },
-      { path: '/what-if',     label: 'What-If ML',  icon: FlaskConical,   color: '#a855f7' },
       { path: '/insights',    label: 'Insights',    icon: Brain,          color: '#8b5cf6' },
       { path: '/neural-core', label: 'Neural Core', icon: Dna,            color: '#10b981' },
       { path: '/coach',       label: 'AI Coach',    icon: MessageSquare,  color: '#6366f1' },
