@@ -413,6 +413,107 @@ function TimelineChart({ result }) {
   );
 }
 
+// ── Scenario → ML params parser ──────────────────────────────────────────────
+
+function parseScenarioToParams(text, baseline) {
+  const t = text.toLowerCase();
+  // Start from current baseline so predictions are personalised
+  const p = {
+    sleep_hours:     baseline._sleep     ?? 7,
+    stress_level:    baseline._stress    ?? 5,
+    workout_minutes: baseline._workout   ?? 30,
+    study_hours:     baseline._study     ?? 3,
+    spending_ratio:  baseline._spending  ?? 0.70,
+    mood_score:      baseline._mood      ?? 6,
+  };
+  const extracted = {}; // track which keys we actually touched
+
+  // ── Sleep ───────────────────────────────────────────────────────────────────
+  const sleepMatch = t.match(/sleep\s+(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)/);
+  if (sleepMatch) { p.sleep_hours = parseFloat(sleepMatch[1]); extracted.sleep_hours = true; }
+  else if (/better sleep|improve sleep|fix sleep|early sleep|proper sleep/.test(t)) {
+    p.sleep_hours = Math.min(9, p.sleep_hours + 1.5); extracted.sleep_hours = true;
+  } else if (/no sleep|can't sleep|insomnia|sleep depriv/.test(t)) {
+    p.sleep_hours = Math.max(3, p.sleep_hours - 2); extracted.sleep_hours = true;
+  }
+
+  // ── Workout ─────────────────────────────────────────────────────────────────
+  if (/quit.*gym|stop.*gym|no.*gym|no.*workout|no.*exercise/.test(t)) {
+    p.workout_minutes = 0; extracted.workout_minutes = true;
+  } else if (/gym|workout|exercise|run|jog|fitness|yoga|sport/.test(t)) {
+    const wMatch = t.match(/(\d+)\s*(min|hour)/);
+    if (wMatch) {
+      p.workout_minutes = wMatch[2].startsWith('hour') ? parseFloat(wMatch[1]) * 60 : parseFloat(wMatch[1]);
+    } else {
+      p.workout_minutes = Math.min(120, p.workout_minutes + 30);
+    }
+    extracted.workout_minutes = true;
+  }
+
+  // ── Study ───────────────────────────────────────────────────────────────────
+  const studyMatch = t.match(/study\s+(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)/);
+  if (studyMatch) { p.study_hours = parseFloat(studyMatch[1]); extracted.study_hours = true; }
+  else if (/upsc|gate|jee|neet|civil service|exam|prepare|preparation|masters|degree|phd|mba/.test(t)) {
+    p.study_hours = Math.min(12, p.study_hours + 4); extracted.study_hours = true;
+  } else if (/ai engineer|machine learn|data scien|software engin|coding|programming/.test(t)) {
+    p.study_hours = Math.min(12, p.study_hours + 3); extracted.study_hours = true;
+  }
+
+  // ── Stress ──────────────────────────────────────────────────────────────────
+  if (/quit.*job|leave.*job|resign|unemployed|fired/.test(t)) {
+    p.stress_level = Math.min(10, p.stress_level + 2);
+    p.spending_ratio = Math.min(0.95, p.spending_ratio + 0.15);
+    extracted.stress_level = true; extracted.spending_ratio = true;
+  } else if (/overtime|overwork|work.*long|crunch|night shift/.test(t)) {
+    p.stress_level = Math.min(10, p.stress_level + 2.5);
+    extracted.stress_level = true;
+  } else if (/sabbatical|vacation|break|rest|relax|slow down/.test(t)) {
+    p.stress_level = Math.max(1, p.stress_level - 2.5);
+    p.mood_score   = Math.min(10, p.mood_score + 1.5);
+    extracted.stress_level = true; extracted.mood_score = true;
+  } else if (/remote.*job|work from home|wfh/.test(t)) {
+    p.stress_level = Math.max(1, p.stress_level - 1.5);
+    extracted.stress_level = true;
+  } else if (/startup|entrepreneur|own business/.test(t)) {
+    p.stress_level = Math.min(10, p.stress_level + 2);
+    p.spending_ratio = Math.min(0.95, p.spending_ratio + 0.10);
+    extracted.stress_level = true; extracted.spending_ratio = true;
+  } else if (/abroad|immigrat|relocat|move.*country/.test(t)) {
+    p.stress_level   = Math.min(10, p.stress_level + 1.5);
+    p.spending_ratio = Math.min(0.95, p.spending_ratio + 0.12);
+    extracted.stress_level = true; extracted.spending_ratio = true;
+  }
+
+  // ── Finance / Spending ──────────────────────────────────────────────────────
+  if (/invest|save more|cut.*spend|reduc.*spend|frugal|budget/.test(t)) {
+    p.spending_ratio = Math.max(0.2, p.spending_ratio - 0.15);
+    extracted.spending_ratio = true;
+  } else if (/spend more|splurg|luxury|lifestyle inflat/.test(t)) {
+    p.spending_ratio = Math.min(0.95, p.spending_ratio + 0.12);
+    extracted.spending_ratio = true;
+  }
+
+  // Extract numeric ₹/Rs amount changes as spending_ratio hints
+  const moneyMatch = t.match(/(?:₹|rs\.?|inr)\s*([\d,]+)\s*k?\s*(?:monthly|per month|a month)?/i);
+  if (moneyMatch && !extracted.spending_ratio) {
+    const amount = parseFloat(moneyMatch[1].replace(',', '')) * (moneyMatch[0].includes('k') ? 1000 : 1);
+    if (/invest|save/.test(t) && amount > 1000) {
+      p.spending_ratio = Math.max(0.2, p.spending_ratio - Math.min(0.2, amount / 50000));
+      extracted.spending_ratio = true;
+    }
+  }
+
+  // Clamp everything
+  p.sleep_hours     = Math.max(3,   Math.min(10,  p.sleep_hours));
+  p.stress_level    = Math.max(1,   Math.min(10,  p.stress_level));
+  p.workout_minutes = Math.max(0,   Math.min(120, p.workout_minutes));
+  p.study_hours     = Math.max(0,   Math.min(12,  p.study_hours));
+  p.spending_ratio  = Math.max(0.1, Math.min(0.98,p.spending_ratio));
+  p.mood_score      = Math.max(1,   Math.min(10,  p.mood_score));
+
+  return { params: p, extracted };
+}
+
 // ── ML What-If constants ──────────────────────────────────────────────────────
 
 const ML_SLIDERS = [
@@ -654,6 +755,8 @@ export default function Simulator() {
   const [error,        setError]        = useState(null);
   const [expandedStep, setExpandedStep] = useState(simulatorState?.expandedStep || null);
   const [compareMode,  setCompareMode]  = useState(simulatorState?.compareMode || false);
+  const [mlPrediction, setMlPrediction] = useState(null);   // ML layer on AI tab
+  const [mlParams,     setMlParams]     = useState(null);   // extracted params for display
 
   // Sync back to global context when state changes
   useEffect(() => {
@@ -673,6 +776,16 @@ export default function Simulator() {
     return msg;
   }
 
+  // Raw domain values the parser needs to personalise its offsets
+  const rawBaseline = {
+    _sleep:    health?.sleepAvg     ?? 7,
+    _stress:   health?.stressLevel  ?? 5,
+    _workout:  (health?.workoutsPerWeek ?? 2) * (30 / 7) * 7, // approx minutes/day → keep simple
+    _study:    career?.studyHoursDaily ?? 3,
+    _spending: finance?.income ? Math.min(0.95, (finance.expenses ?? 15000) / finance.income) : 0.70,
+    _mood:     health?.moodAvg ?? 6,
+  };
+
   async function handleSimulate() {
     if (!input.trim() || loading) return;
     setLoading(true);
@@ -680,20 +793,34 @@ export default function Simulator() {
     setResult(null);
     setResultB(null);
     setExpandedStep(null);
+    setMlPrediction(null);
+    setMlParams(null);
+
+    // Parse scenario text → ML parameters (instant, no API)
+    const { params: parsedParams, extracted } = parseScenarioToParams(input.trim(), rawBaseline);
+    setMlParams({ params: parsedParams, extracted });
 
     try {
+      // Run AI simulation + ML prediction in parallel
+      const aiPromise = compareMode && inputB.trim()
+        ? Promise.all([
+            runAISimulation(input.trim(),  { health, finance, career }),
+            runAISimulation(inputB.trim(), { health, finance, career }),
+          ])
+        : runAISimulation(input.trim(), { health, finance, career });
+
+      const mlPromise = predictWhatIf(parsedParams);
+
+      const [aiRes, mlRes] = await Promise.all([aiPromise, mlPromise]);
+
       if (compareMode && inputB.trim()) {
-        // Run both in parallel
-        const [resA, resB] = await Promise.all([
-          runAISimulation(input.trim(),  { health, finance, career }),
-          runAISimulation(inputB.trim(), { health, finance, career }),
-        ]);
-        setResult(resA);
-        setResultB(resB);
+        setResult(aiRes[0]);
+        setResultB(aiRes[1]);
       } else {
-        const res = await runAISimulation(input.trim(), { health, finance, career });
-        setResult(res);
+        setResult(aiRes);
       }
+      setMlPrediction(mlRes);
+
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
     } catch (err) {
       setError(parseError(err));
@@ -709,6 +836,8 @@ export default function Simulator() {
     setResultB(null);
     setError(null);
     setExpandedStep(null);
+    setMlPrediction(null);
+    setMlParams(null);
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -1030,6 +1159,61 @@ export default function Simulator() {
                 })}
               </div>
             </div>
+
+            {/* ── ML Prediction layer ── */}
+            {mlPrediction?.success && mlParams && (
+              <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1 }}>
+                <div style={{ ...sCard, padding:'16px 20px', borderColor:'rgba(139,92,246,0.25)' }}>
+                  {/* Header */}
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+                    <span style={{ fontSize:16 }}>🧪</span>
+                    <p style={{ fontSize:13, fontWeight:700, color:'#f1f5f9' }}>ML Model Prediction</p>
+                    <span style={{ fontSize:11, color:'#475569', marginLeft:4 }}>
+                      — based on what this scenario implies for your habits
+                    </span>
+                    <span style={{ marginLeft:'auto', fontSize:10, color:'#6366f1', fontWeight:600, padding:'2px 8px', borderRadius:999, background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)' }}>
+                      {mlPrediction.model === 'ridge_regression' ? 'Ridge Regression' : 'Offline engine'}
+                    </span>
+                  </div>
+
+                  {/* Score cards */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:14 }}>
+                    {ML_DOMAINS.map(d => {
+                      const baseKey = d.key.replace('_score','');
+                      const base = baseline[baseKey] ?? 50;
+                      const pred = mlPrediction.predictions?.[d.key] ?? base;
+                      const delta = Math.round(pred - base);
+                      return (
+                        <div key={d.key} style={{ padding:'12px', borderRadius:10, border:'1px solid rgba(255,255,255,0.06)', background:'rgba(255,255,255,0.02)', textAlign:'center' }}>
+                          <span style={{ fontSize:16 }}>{d.icon}</span>
+                          <p style={{ fontSize:10, color:'#475569', margin:'4px 0 2px', textTransform:'uppercase', letterSpacing:'0.05em' }}>{d.label}</p>
+                          <p style={{ fontSize:24, fontWeight:900, color:d.color, margin:0 }}>{Math.round(pred)}</p>
+                          <p style={{ fontSize:11, fontWeight:700, color: delta>0?'#10b981':delta<0?'#ef4444':'#64748b' }}>
+                            {delta>0?'+':''}{delta} vs now
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Extracted parameters row */}
+                  {Object.keys(mlParams.extracted).length > 0 && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:8, paddingTop:10, borderTop:'1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontSize:11, color:'#475569', alignSelf:'center' }}>Detected from scenario:</span>
+                      {ML_SLIDERS.filter(s => mlParams.extracted[s.key]).map(s => {
+                        const val = mlParams.params[s.key];
+                        const display = s.key === 'spending_ratio' ? `${Math.round(val*100)}%` : `${val}${s.unit}`;
+                        return (
+                          <span key={s.key} style={{ fontSize:11, fontWeight:600, padding:'2px 10px', borderRadius:999, background:`${s.color}15`, color:s.color, border:`1px solid ${s.color}25` }}>
+                            {s.icon} {s.label} → {display}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
           </motion.div>
         )}
