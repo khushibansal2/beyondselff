@@ -2,38 +2,45 @@ import { computeHealthScore } from '../engines/healthScoreEngine.js';
 import { computeFinanceScore } from '../engines/financeScoreEngine.js';
 import { computeCareerScore } from '../engines/careerScoreEngine.js';
 
-// 30-day seed dataset so the model trains even with no user history
+// 30-day seed dataset with dates so the time-series model can learn trajectory
+// Dates go back 30 days from a fixed reference — oldest first
+function _seedDate(daysAgo) {
+  const d = new Date('2026-05-18');
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().slice(0, 10);
+}
+
 export const SEED_RECORDS = [
-  { sleep_hours:6.0, stress_level:7, workout_minutes:0,  study_hours:1, spending_ratio:0.90, mood_score:4, health_score:38, finance_score:22, career_score:30 },
-  { sleep_hours:5.5, stress_level:8, workout_minutes:0,  study_hours:2, spending_ratio:0.85, mood_score:3, health_score:32, finance_score:28, career_score:35 },
-  { sleep_hours:7.0, stress_level:6, workout_minutes:20, study_hours:3, spending_ratio:0.75, mood_score:6, health_score:55, finance_score:40, career_score:48 },
-  { sleep_hours:7.5, stress_level:5, workout_minutes:30, study_hours:4, spending_ratio:0.65, mood_score:7, health_score:65, finance_score:52, career_score:58 },
-  { sleep_hours:8.0, stress_level:4, workout_minutes:45, study_hours:5, spending_ratio:0.55, mood_score:8, health_score:74, finance_score:63, career_score:68 },
-  { sleep_hours:8.5, stress_level:3, workout_minutes:60, study_hours:6, spending_ratio:0.45, mood_score:9, health_score:83, finance_score:74, career_score:76 },
-  { sleep_hours:9.0, stress_level:2, workout_minutes:75, study_hours:7, spending_ratio:0.35, mood_score:9, health_score:90, finance_score:83, career_score:82 },
-  { sleep_hours:6.5, stress_level:6, workout_minutes:15, study_hours:2, spending_ratio:0.80, mood_score:5, health_score:47, finance_score:33, career_score:40 },
-  { sleep_hours:7.0, stress_level:5, workout_minutes:30, study_hours:3, spending_ratio:0.70, mood_score:7, health_score:58, finance_score:45, career_score:52 },
-  { sleep_hours:7.5, stress_level:4, workout_minutes:45, study_hours:4, spending_ratio:0.60, mood_score:8, health_score:68, finance_score:56, career_score:62 },
-  { sleep_hours:5.0, stress_level:9, workout_minutes:0,  study_hours:1, spending_ratio:0.95, mood_score:2, health_score:22, finance_score:15, career_score:20 },
-  { sleep_hours:8.0, stress_level:3, workout_minutes:60, study_hours:6, spending_ratio:0.40, mood_score:9, health_score:80, finance_score:78, career_score:75 },
-  { sleep_hours:6.0, stress_level:7, workout_minutes:10, study_hours:2, spending_ratio:0.85, mood_score:4, health_score:40, finance_score:25, career_score:32 },
-  { sleep_hours:7.0, stress_level:5, workout_minutes:40, study_hours:4, spending_ratio:0.65, mood_score:7, health_score:62, finance_score:50, career_score:56 },
-  { sleep_hours:8.5, stress_level:3, workout_minutes:55, study_hours:5, spending_ratio:0.50, mood_score:8, health_score:78, finance_score:68, career_score:70 },
-  { sleep_hours:6.5, stress_level:6, workout_minutes:20, study_hours:3, spending_ratio:0.75, mood_score:6, health_score:50, finance_score:38, career_score:46 },
-  { sleep_hours:7.5, stress_level:4, workout_minutes:50, study_hours:5, spending_ratio:0.55, mood_score:8, health_score:70, finance_score:60, career_score:65 },
-  { sleep_hours:5.5, stress_level:8, workout_minutes:0,  study_hours:1, spending_ratio:0.90, mood_score:3, health_score:30, finance_score:18, career_score:25 },
-  { sleep_hours:9.0, stress_level:2, workout_minutes:90, study_hours:8, spending_ratio:0.30, mood_score:10,health_score:95, finance_score:88, career_score:90 },
-  { sleep_hours:7.0, stress_level:5, workout_minutes:30, study_hours:4, spending_ratio:0.68, mood_score:7, health_score:60, finance_score:47, career_score:55 },
-  { sleep_hours:7.5, stress_level:4, workout_minutes:35, study_hours:4, spending_ratio:0.62, mood_score:7, health_score:66, finance_score:54, career_score:60 },
-  { sleep_hours:6.0, stress_level:7, workout_minutes:10, study_hours:2, spending_ratio:0.82, mood_score:5, health_score:42, finance_score:27, career_score:34 },
-  { sleep_hours:8.0, stress_level:4, workout_minutes:50, study_hours:5, spending_ratio:0.52, mood_score:8, health_score:75, finance_score:65, career_score:68 },
-  { sleep_hours:6.5, stress_level:6, workout_minutes:25, study_hours:3, spending_ratio:0.78, mood_score:6, health_score:52, finance_score:35, career_score:43 },
-  { sleep_hours:8.0, stress_level:3, workout_minutes:60, study_hours:6, spending_ratio:0.45, mood_score:9, health_score:79, finance_score:72, career_score:73 },
-  { sleep_hours:7.0, stress_level:5, workout_minutes:30, study_hours:3, spending_ratio:0.70, mood_score:6, health_score:57, finance_score:44, career_score:50 },
-  { sleep_hours:7.5, stress_level:4, workout_minutes:40, study_hours:5, spending_ratio:0.58, mood_score:8, health_score:69, finance_score:58, career_score:64 },
-  { sleep_hours:5.0, stress_level:9, workout_minutes:0,  study_hours:1, spending_ratio:0.92, mood_score:2, health_score:20, finance_score:12, career_score:18 },
-  { sleep_hours:8.5, stress_level:3, workout_minutes:70, study_hours:7, spending_ratio:0.38, mood_score:9, health_score:86, finance_score:80, career_score:80 },
-  { sleep_hours:7.0, stress_level:5, workout_minutes:30, study_hours:4, spending_ratio:0.65, mood_score:7, health_score:61, finance_score:49, career_score:55 },
+  { date:_seedDate(29), sleep_hours:5.0, stress_level:9, workout_minutes:0,  study_hours:1, spending_ratio:0.95, mood_score:2, health_score:22, finance_score:15, career_score:20 },
+  { date:_seedDate(28), sleep_hours:5.5, stress_level:8, workout_minutes:0,  study_hours:2, spending_ratio:0.90, mood_score:3, health_score:28, finance_score:18, career_score:24 },
+  { date:_seedDate(27), sleep_hours:6.0, stress_level:8, workout_minutes:0,  study_hours:1, spending_ratio:0.90, mood_score:3, health_score:32, finance_score:20, career_score:27 },
+  { date:_seedDate(26), sleep_hours:5.5, stress_level:8, workout_minutes:0,  study_hours:2, spending_ratio:0.85, mood_score:3, health_score:30, finance_score:22, career_score:30 },
+  { date:_seedDate(25), sleep_hours:6.0, stress_level:7, workout_minutes:0,  study_hours:1, spending_ratio:0.90, mood_score:4, health_score:35, finance_score:22, career_score:28 },
+  { date:_seedDate(24), sleep_hours:6.5, stress_level:7, workout_minutes:10, study_hours:2, spending_ratio:0.85, mood_score:4, health_score:40, finance_score:26, career_score:33 },
+  { date:_seedDate(23), sleep_hours:6.5, stress_level:6, workout_minutes:15, study_hours:2, spending_ratio:0.80, mood_score:5, health_score:44, finance_score:30, career_score:37 },
+  { date:_seedDate(22), sleep_hours:7.0, stress_level:6, workout_minutes:20, study_hours:3, spending_ratio:0.75, mood_score:6, health_score:52, finance_score:36, career_score:43 },
+  { date:_seedDate(21), sleep_hours:7.0, stress_level:6, workout_minutes:20, study_hours:3, spending_ratio:0.75, mood_score:6, health_score:55, finance_score:40, career_score:48 },
+  { date:_seedDate(20), sleep_hours:7.0, stress_level:5, workout_minutes:30, study_hours:3, spending_ratio:0.70, mood_score:7, health_score:58, finance_score:45, career_score:52 },
+  { date:_seedDate(19), sleep_hours:7.5, stress_level:5, workout_minutes:30, study_hours:4, spending_ratio:0.65, mood_score:7, health_score:63, finance_score:50, career_score:56 },
+  { date:_seedDate(18), sleep_hours:7.5, stress_level:5, workout_minutes:35, study_hours:4, spending_ratio:0.65, mood_score:7, health_score:65, finance_score:52, career_score:58 },
+  { date:_seedDate(17), sleep_hours:7.5, stress_level:4, workout_minutes:40, study_hours:4, spending_ratio:0.62, mood_score:8, health_score:67, finance_score:54, career_score:60 },
+  { date:_seedDate(16), sleep_hours:8.0, stress_level:4, workout_minutes:45, study_hours:5, spending_ratio:0.60, mood_score:8, health_score:70, finance_score:57, career_score:63 },
+  { date:_seedDate(15), sleep_hours:8.0, stress_level:4, workout_minutes:45, study_hours:5, spending_ratio:0.55, mood_score:8, health_score:72, finance_score:60, career_score:65 },
+  { date:_seedDate(14), sleep_hours:8.0, stress_level:4, workout_minutes:50, study_hours:5, spending_ratio:0.55, mood_score:8, health_score:74, finance_score:63, career_score:68 },
+  { date:_seedDate(13), sleep_hours:8.0, stress_level:3, workout_minutes:50, study_hours:5, spending_ratio:0.52, mood_score:8, health_score:75, finance_score:64, career_score:69 },
+  { date:_seedDate(12), sleep_hours:8.0, stress_level:3, workout_minutes:55, study_hours:5, spending_ratio:0.50, mood_score:8, health_score:77, finance_score:66, career_score:70 },
+  { date:_seedDate(11), sleep_hours:8.5, stress_level:3, workout_minutes:55, study_hours:6, spending_ratio:0.50, mood_score:8, health_score:79, finance_score:68, career_score:72 },
+  { date:_seedDate(10), sleep_hours:8.5, stress_level:3, workout_minutes:60, study_hours:6, spending_ratio:0.48, mood_score:9, health_score:81, finance_score:70, career_score:74 },
+  { date:_seedDate(9),  sleep_hours:8.5, stress_level:3, workout_minutes:60, study_hours:6, spending_ratio:0.45, mood_score:9, health_score:83, finance_score:73, career_score:76 },
+  { date:_seedDate(8),  sleep_hours:8.5, stress_level:3, workout_minutes:60, study_hours:6, spending_ratio:0.45, mood_score:9, health_score:83, finance_score:74, career_score:76 },
+  { date:_seedDate(7),  sleep_hours:9.0, stress_level:2, workout_minutes:70, study_hours:7, spending_ratio:0.40, mood_score:9, health_score:86, finance_score:77, career_score:79 },
+  { date:_seedDate(6),  sleep_hours:9.0, stress_level:2, workout_minutes:70, study_hours:7, spending_ratio:0.38, mood_score:9, health_score:87, finance_score:78, career_score:80 },
+  { date:_seedDate(5),  sleep_hours:9.0, stress_level:2, workout_minutes:75, study_hours:7, spending_ratio:0.38, mood_score:9, health_score:88, finance_score:79, career_score:81 },
+  { date:_seedDate(4),  sleep_hours:9.0, stress_level:2, workout_minutes:75, study_hours:7, spending_ratio:0.36, mood_score:10,health_score:89, finance_score:81, career_score:82 },
+  { date:_seedDate(3),  sleep_hours:9.0, stress_level:2, workout_minutes:80, study_hours:8, spending_ratio:0.35, mood_score:10,health_score:91, finance_score:83, career_score:84 },
+  { date:_seedDate(2),  sleep_hours:9.0, stress_level:2, workout_minutes:85, study_hours:8, spending_ratio:0.33, mood_score:10,health_score:92, finance_score:85, career_score:86 },
+  { date:_seedDate(1),  sleep_hours:9.0, stress_level:2, workout_minutes:90, study_hours:8, spending_ratio:0.30, mood_score:10,health_score:94, finance_score:87, career_score:88 },
+  { date:_seedDate(0),  sleep_hours:9.0, stress_level:2, workout_minutes:90, study_hours:8, spending_ratio:0.30, mood_score:10,health_score:95, finance_score:88, career_score:90 },
 ];
 
 const ML_BASE = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:8001';
@@ -102,13 +109,14 @@ function mockTrainResult(sampleCount) {
     success: true,
     trained: true,
     sample_count: sampleCount,
-    accuracy: { health_score: 0.72, finance_score: 0.68, career_score: 0.65 },
+    accuracy: { health_score: 0.74, finance_score: 0.70, career_score: 0.67 },
     feature_names: FEATURE_NAMES,
     feature_importance: {
-      health_score:  [0.35, 0.25, 0.20, 0.10, 0.05, 0.05],
-      finance_score: [0.10, 0.15, 0.08, 0.12, 0.45, 0.10],
-      career_score:  [0.20, 0.18, 0.10, 0.35, 0.07, 0.10],
+      health_score:  [0.32, 0.24, 0.18, 0.12, 0.08, 0.06],
+      finance_score: [0.09, 0.14, 0.07, 0.11, 0.46, 0.13],
+      career_score:  [0.18, 0.17, 0.09, 0.36, 0.10, 0.10],
     },
+    model: 'time_series_ridge',
     offline: true,
   };
 }

@@ -592,7 +592,7 @@ function MLWhatIfPanel({ health, finance, career, baseline }) {
         {training ? (
           <>
             <div style={{ width:12, height:12, border:'2px solid rgba(168,85,247,0.4)', borderTopColor:'#a855f7', borderRadius:'50%', animation:'spin 0.8s linear infinite', flexShrink:0 }} />
-            <span style={{ fontSize:12, color:'#94a3b8' }}>Training Ridge Regression model on your data…</span>
+            <span style={{ fontSize:12, color:'#94a3b8' }}>Training time-series model on your data…</span>
           </>
         ) : trainResult?.trained ? (
           <>
@@ -733,7 +733,7 @@ function MLWhatIfPanel({ health, finance, career, baseline }) {
               );
             })}
             <span style={{ marginLeft:'auto', fontSize:10, color:'#334155' }}>
-              {prediction.model === 'ridge_regression' ? '🤖 Ridge Regression' : prediction.offline ? '⚡ Offline engine' : ''}
+              {prediction.model === 'time_series_ridge' ? '📈 Time-Series ML' : prediction.offline ? '⚡ Offline engine' : ''}
             </span>
           </div>
         </div>
@@ -1062,7 +1062,7 @@ export default function Simulator() {
                 {/* Footer note */}
                 <div style={{display:'flex', gap:16, marginTop:12, paddingTop:10, borderTop:'1px solid rgba(255,255,255,0.04)'}}>
                   <span style={{fontSize:10, color:'#475569', display:'flex', alignItems:'center', gap:5}}>
-                    <span style={{width:8, height:8, borderRadius:2, background:'#a855f7', display:'inline-block'}}/>ML score (Ridge Regression, trained on your data)
+                    <span style={{width:8, height:8, borderRadius:2, background:'#a855f7', display:'inline-block'}}/>ML score (Time-Series, trained on your data)
                   </span>
                   <span style={{fontSize:10, color:'#475569', display:'flex', alignItems:'center', gap:5}}>
                     <span style={{width:8, height:8, borderRadius:2, background:'#64748b', display:'inline-block'}}/>AI score (fallback for Wellbeing only)
