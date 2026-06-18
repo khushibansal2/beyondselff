@@ -8,6 +8,29 @@ import AIExplainer from '../components/ui/AIExplainer';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, ReferenceLine } from 'recharts';
 import { Link } from 'react-router-dom';
 
+/* ─── Trend helpers ──────────────────────────────────────────────── */
+const TREND_META = {
+  improving: { arrow: '↑', color: '#10b981', label: 'Improving' },
+  declining:  { arrow: '↓', color: '#f43f5e', label: 'Declining'  },
+  stable:     { arrow: '→', color: '#f59e0b', label: 'Stable'     },
+};
+
+function TrendPill({ direction, momentum, domain }) {
+  const meta = TREND_META[direction] || TREND_META.stable;
+  const sign = momentum > 0 ? '+' : '';
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      fontSize: 10, fontWeight: 600,
+      padding: '2px 8px', borderRadius: 99,
+      background: `${meta.color}18`,
+      color: meta.color,
+    }}>
+      {meta.arrow} {meta.label}{momentum !== 0 ? ` (${sign}${momentum})` : ''}
+    </span>
+  );
+}
+
 /* ─── Animated Score Ring ─────────────────────────────────────────── */
 function ScoreRingInline({ score, size = 100, strokeWidth = 7, color, label, small }) {
   const [anim, setAnim] = useState(0);
@@ -217,6 +240,7 @@ export default function Insights() {
   const careerScore  = computed?.careerScore?.score  || 0;
   const balance      = computed?.balance || 0;
   const burnout      = computed?.burnout?.risk || 0;
+  const trends       = computed?.trends || {};
 
   const patterns = useMemo(() => {
     return (computed?.crossDomain || []).map(cd => ({
@@ -372,6 +396,43 @@ export default function Insights() {
         </div>
       </motion.div>
 
+      {/* ── 7-Day Trend Momentum Strip ───────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        style={{
+          marginBottom: 20,
+          padding: '14px 20px',
+          borderRadius: 14,
+          border: '1px solid rgba(255,255,255,0.06)',
+          background: 'rgba(255,255,255,0.02)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
+        }}
+      >
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b', flexShrink: 0 }}>📈 7-Day Momentum</span>
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+          {[
+            { label: '🏃 Health',  key: 'health'  },
+            { label: '💰 Finance', key: 'finance' },
+            { label: '📚 Career',  key: 'career'  },
+          ].map(({ label, key }) => {
+            const t = trends[key] || { direction: 'stable', momentum: 0, sampleCount: 0 };
+            return (
+              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>{label}</span>
+                <TrendPill direction={t.direction} momentum={t.momentum} domain={key} />
+              </div>
+            );
+          })}
+        </div>
+        <span style={{ fontSize: 10, color: '#334155' }}>
+          {Object.values(trends).reduce((s, t) => s + (t.sampleCount || 0), 0)} entries analyzed
+        </span>
+      </motion.div>
+
       {/* ── No Cascades / Pattern Cards ───────────────────────────── */}
       {patterns.length === 0 ? (
         <motion.div
@@ -413,9 +474,17 @@ export default function Insights() {
           <ScoreRingInline score={balance} size={84} strokeWidth={6} label={null} />
           <div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>Life Balance</p>
-            <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>
+            <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 6px' }}>
               {balance >= 75 ? 'Excellent balance' : balance >= 50 ? 'Needs attention in weak areas' : 'Significant imbalance detected'}
             </p>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {['health','finance','career'].map(k => {
+                const t = trends[k] || { direction: 'stable', momentum: 0 };
+                return t.direction !== 'stable'
+                  ? <TrendPill key={k} direction={t.direction} momentum={t.momentum} domain={k} />
+                  : null;
+              })}
+            </div>
           </div>
         </motion.div>
 
@@ -440,10 +509,11 @@ export default function Insights() {
           />
           <div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: '0 0 4px' }}>Burnout Risk</p>
-            <p style={{ fontSize: 11, color: '#64748b', margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ color: burnout > 60 ? '#f87171' : burnout > 30 ? '#fbbf24' : '#34d399' }}>✅</span>
               {burnout > 60 ? 'Immediate action required' : burnout > 30 ? 'Monitor and prevent' : 'Sustainable pace'}
             </p>
+            {trends.health && <TrendPill direction={trends.health.direction} momentum={trends.health.momentum} domain="health" />}
           </div>
         </motion.div>
 

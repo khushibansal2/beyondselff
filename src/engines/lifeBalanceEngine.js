@@ -1,7 +1,8 @@
 /**
  * Life Balance Engine — Combines all domain scores deterministically.
- * 
- * Also provides cross-domain impact detection.
+ *
+ * Also provides cross-domain impact detection, conflict resolution,
+ * and 7-day momentum trends.
  * No randomness. Same input = same output.
  */
 
@@ -29,6 +30,7 @@ export function computeLifeBalance(userData, records = {}) {
 
   // Detect cross-domain relationships
   const crossDomain = detectCrossDomainRelationships(userData, healthResult, financeResult, careerResult);
+  const trends = computeDomainTrends(records);
 
   // Find weakest domain
   const domains = [
@@ -50,6 +52,7 @@ export function computeLifeBalance(userData, records = {}) {
     careerScore: careerResult,
     burnout: burnoutResult,
     crossDomain,
+    trends,
     weakestDomain: domains[0],
     strongestDomain: domains[domains.length - 1],
     urgentAlerts,
@@ -215,7 +218,100 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
     });
   }
 
-  return relationships;
+  return resolveCrossDomainConflicts(relationships);
+}
+
+// ── P1: Rule priority + conflict resolution ───────────────────────────────────
+// For each (from→to) domain pair keep the single most severe negative,
+// or the single best positive if no negatives exist.
+// Final list is sorted critical → warning → positive.
+const SEVERITY_RANK = { critical: 4, warning: 3, positive: 2, info: 1 };
+
+function resolveCrossDomainConflicts(relationships) {
+  const groups = {};
+  for (const r of relationships) {
+    const key = `${r.from}→${r.to}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(r);
+  }
+
+  const resolved = [];
+  for (const group of Object.values(groups)) {
+    if (group.length === 1) { resolved.push(group[0]); continue; }
+
+    const negatives = group.filter(r => r.type === 'negative');
+    const positives = group.filter(r => r.type === 'positive');
+
+    if (negatives.length > 0) {
+      // Negatives override positives for same pair; keep highest severity negative
+      negatives.sort((a, b) => (SEVERITY_RANK[b.severity] || 1) - (SEVERITY_RANK[a.severity] || 1));
+      resolved.push(negatives[0]);
+    } else {
+      // All positive — keep highest
+      positives.sort((a, b) => (SEVERITY_RANK[b.severity] || 1) - (SEVERITY_RANK[a.severity] || 1));
+      resolved.push(positives[0]);
+    }
+  }
+
+  resolved.sort((a, b) => (SEVERITY_RANK[b.severity] || 1) - (SEVERITY_RANK[a.severity] || 1));
+  return resolved;
+}
+
+// ── P1: 7-day momentum trends ─────────────────────────────────────────────────
+// Splits the last 14 records in half (older vs newer) and computes direction +
+// momentum score for each domain using lightweight proxy metrics.
+function computeDomainTrends(records) {
+  const trends = {};
+
+  function trendFor(recs, proxy) {
+    const sorted = [...recs]
+      .filter(r => r.date || r.recordDate || r.transactionDate || r.activityDate)
+      .sort((a, b) => new Date(a.date || a.recordDate || a.transactionDate || a.activityDate)
+                    - new Date(b.date || b.recordDate || b.transactionDate || b.activityDate))
+      .slice(-14);
+
+    if (sorted.length < 4) return { direction: 'stable', momentum: 0, sampleCount: sorted.length };
+
+    const half = Math.floor(sorted.length / 2);
+    const older = sorted.slice(0, half);
+    const newer = sorted.slice(-half);
+
+    const avg = arr => arr.reduce((s, r) => s + proxy(r), 0) / arr.length;
+    const delta = avg(newer) - avg(older);
+
+    // 7-day rolling for the label
+    const last7 = sorted.slice(-7);
+    const rolling7 = avg(last7);
+
+    return {
+      direction: delta > 2 ? 'improving' : delta < -2 ? 'declining' : 'stable',
+      momentum: Math.round(delta * 10) / 10,
+      rolling7: Math.round(rolling7 * 10) / 10,
+      sampleCount: sorted.length,
+    };
+  }
+
+  trends.health = trendFor(records.health || [], r => {
+    const sleep  = Number(r.sleepHours   ?? r.sleep_hours   ?? r.sleep   ?? 7);
+    const stress = Number(r.stressLevel  ?? r.stress_level  ?? r.stress  ?? 5);
+    const mood   = Number(r.moodScore    ?? r.mood_score    ?? r.mood    ?? 6);
+    return (sleep / 8) * 40 + ((10 - stress) / 10) * 35 + (mood / 10) * 25;
+  });
+
+  trends.finance = trendFor(records.finance || [], r => {
+    const income   = Number(r.income ?? 20000);
+    const expenses = Math.abs(Number(r.amount ?? r.expenses ?? 15000));
+    return income > 0 ? Math.max(0, (income - expenses) / income * 100) : 50;
+  });
+
+  trends.career = trendFor(records.career || [], r => {
+    const study  = Number(r.studyHours  ?? r.study_hours  ?? 3);
+    const coding = Number(r.codingHours ?? r.coding_hours ?? 2);
+    const dsa    = Number(r.dsaProblems ?? r.dsa_problems ?? 1);
+    return Math.min(100, (study + coding) / 12 * 60 + Math.min(dsa, 5) / 5 * 40);
+  });
+
+  return trends;
 }
 
 function buildUrgentAlerts(userData, burnout, healthR, financeR) {
