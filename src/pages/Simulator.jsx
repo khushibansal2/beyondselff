@@ -514,6 +514,31 @@ function parseScenarioToParams(text, baseline) {
   return { params: p, extracted };
 }
 
+// ── Derive the 6 financial/career state signals from aggregated user data ─────
+// These are fixed from the user's real data — only the 6 lifestyle sliders
+// can be changed in the simulator. Without these, all 6 state features default
+// to 0 in Python, making predictions degenerate regardless of sleep/stress changes.
+function deriveStateSignals(health, finance, career) {
+  const h = health  || {};
+  const f = finance || {};
+  const c = career  || {};
+  const income   = f.income   ?? 20000;
+  const expenses = f.expenses ?? 15000;
+  const savings  = f.savings  ?? Math.max(0, income - expenses);
+  const debt     = f.debt     ?? 0;
+  const sleepHrs  = h.sleepAvg    ?? 7;
+  const stressLvl = h.stressLevel ?? 5;
+  const burnoutProxy = Math.round(((stressLvl / 10) * 6 + (Math.max(0, 8 - sleepHrs) / 8) * 4) * 10) / 10;
+  return {
+    income_level:   Math.min(2, income / 100000),
+    savings_months: Math.min(12, expenses > 0 ? savings / expenses : 0),
+    debt_ratio:     Math.min(3,  income > 0 ? debt / income : 0),
+    burnout_risk:   burnoutProxy,
+    dsa_problems:   c.dsaPractice      ?? 1,
+    coding_hours:   c.codingHoursDaily ?? 2,
+  };
+}
+
 // ── ML What-If constants ──────────────────────────────────────────────────────
 
 const ML_SLIDERS = [
@@ -535,13 +560,16 @@ const ML_DOMAINS = [
 
 // ── ML What-If panel ──────────────────────────────────────────────────────────
 
-function MLWhatIfPanel({ health, finance, career, baseline }) {
-  const [params, setParams]         = useState(ML_DEFAULT);
+function MLWhatIfPanel({ health, finance, career, baseline, userData }) {
+  const [params, setParams]           = useState(ML_DEFAULT);
   const [trainResult, setTrainResult] = useState(null);
-  const [prediction, setPrediction] = useState(null);
-  const [training, setTraining]     = useState(false);
-  const [predicting, setPredicting] = useState(false);
-  const debounceRef                 = useRef(null);
+  const [prediction, setPrediction]   = useState(null);
+  const [training, setTraining]       = useState(false);
+  const [predicting, setPredicting]   = useState(false);
+  const debounceRef                   = useRef(null);
+
+  // State signals from the user's actual data — fixed while sliders only touch lifestyle
+  const stateSignals = deriveStateSignals(userData?.health, userData?.finance, userData?.career);
 
   // Auto-train on first mount
   useEffect(() => {
@@ -552,8 +580,8 @@ function MLWhatIfPanel({ health, finance, career, baseline }) {
       if (!cancelled) {
         setTrainResult(res);
         setTraining(false);
-        // Immediately predict with defaults
-        const pred = await predictWhatIf(ML_DEFAULT);
+        // Predict with defaults + real state signals so the model gets proper context
+        const pred = await predictWhatIf({ ...stateSignals, ...ML_DEFAULT });
         if (!cancelled) setPrediction(pred);
       }
     }
@@ -563,10 +591,11 @@ function MLWhatIfPanel({ health, finance, career, baseline }) {
 
   const runPredict = useCallback(async (p) => {
     setPredicting(true);
-    const res = await predictWhatIf(p);
+    // Always merge state signals so income/savings/debt/burnout/dsa/coding are real values
+    const res = await predictWhatIf({ ...stateSignals, ...p });
     setPrediction(res);
     setPredicting(false);
-  }, []);
+  }, [stateSignals]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateParam = (key, val) => {
     const next = { ...params, [key]: val };
@@ -733,7 +762,7 @@ function MLWhatIfPanel({ health, finance, career, baseline }) {
               );
             })}
             <span style={{ marginLeft:'auto', fontSize:10, color:'#334155' }}>
-              {prediction.model === 'time_series_ridge' ? '📈 Time-Series ML' : prediction.offline ? '⚡ Offline engine' : ''}
+              {prediction.model === 'time_series_xgboost' ? '🌲 XGBoost (interactions)' : prediction.model === 'time_series_ridge_fallback' ? '📈 Ridge (fallback)' : prediction.offline ? '⚡ Offline' : ''}
             </span>
           </div>
         </div>
@@ -809,7 +838,9 @@ export default function Simulator() {
           ])
         : runAISimulation(input.trim(), { health, finance, career });
 
-      const mlPromise = predictWhatIf(parsedParams);
+      // Merge real state signals so income/savings/debt/burnout/dsa/coding aren't 0
+      const stateSignals = deriveStateSignals(health, finance, career);
+      const mlPromise = predictWhatIf({ ...stateSignals, ...parsedParams });
 
       const [aiRes, mlRes] = await Promise.all([aiPromise, mlPromise]);
 
@@ -905,6 +936,7 @@ export default function Simulator() {
           finance={records?.finance}
           career={records?.career}
           baseline={{ health: baseline.health ?? 50, finance: baseline.finance ?? 50, career: baseline.career ?? 50 }}
+          userData={{ health, finance, career }}
         />
       )}
 
