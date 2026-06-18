@@ -1705,14 +1705,15 @@ export default function Health() {
     const updated = { ...h };
     const record = { date: new Date().toISOString() };
     let changes = 0;
-    if (form.sleep)    { updated.sleepAvg       = Number(form.sleep);          record.sleep    = Number(form.sleep);          changes++; }
-    if (form.stress)   { updated.stressLevel    = parseInt(form.stress, 10);   record.stress   = parseInt(form.stress, 10);   changes++; }
-    if (form.mood)     { updated.moodAvg        = Number(form.mood);           record.mood     = Number(form.mood);           changes++; }
-    if (form.workout)  { updated.workoutsPerWeek = parseInt(form.workout, 10); record.workoutsPerWeek = parseInt(form.workout, 10); changes++; }
-    if (form.water)    { updated.waterIntake    = parseInt(form.water, 10);    record.water    = parseInt(form.water, 10);    changes++; }
-    if (form.calories) { updated.calories       = parseInt(form.calories, 10); record.calories = parseInt(form.calories, 10); changes++; }
-    if (form.weight)   { updated.weight         = Number(form.weight);         record.weight   = Number(form.weight);         changes++; }
-    if (form.bmi)      { updated.bmi            = Number(form.bmi);            record.bmi      = Number(form.bmi);            changes++; }
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    if (form.sleep)    { const v = clamp(Number(form.sleep),          3,  12); updated.sleepAvg        = v; record.sleep           = v; changes++; }
+    if (form.stress)   { const v = clamp(parseInt(form.stress, 10),   1,  10); updated.stressLevel     = v; record.stress          = v; changes++; }
+    if (form.mood)     { const v = clamp(Number(form.mood),           1,  10); updated.moodAvg         = v; record.mood            = v; changes++; }
+    if (form.workout)  { const v = clamp(parseInt(form.workout, 10),  0,   7); updated.workoutsPerWeek = v; record.workoutsPerWeek = v; changes++; }
+    if (form.water)    { const v = clamp(parseInt(form.water, 10),    0,  20); updated.waterIntake     = v; record.water           = v; changes++; }
+    if (form.calories) { const v = clamp(parseInt(form.calories, 10), 0,5000); updated.calories        = v; record.calories        = v; changes++; }
+    if (form.weight)   { const v = clamp(Number(form.weight),        20, 300); updated.weight          = v; record.weight          = v; changes++; }
+    if (form.bmi)      { const v = clamp(Number(form.bmi),           10,  60); updated.bmi             = v; record.bmi             = v; changes++; }
     if (changes === 0) { showToast('Please fill at least one field', 'error'); return; }
 
     // 1. Update local state immediately (optimistic)
@@ -2452,10 +2453,16 @@ export default function Health() {
                         <input
                           type="number"
                           value={form[f.key]}
-                          onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                          onChange={e => {
+                            const raw = e.target.value;
+                            const num = parseFloat(raw);
+                            if (raw === '' || raw === '-') { setForm(p => ({ ...p, [f.key]: raw })); return; }
+                            setForm(p => ({ ...p, [f.key]: isNaN(num) ? raw : String(Math.min(f.maxVal, Math.max(0, num))) }));
+                          }}
                           placeholder={f.placeholder}
                           step={f.key === 'sleep' || f.key === 'weight' || f.key === 'bmi' ? '0.1' : '1'}
                           min="0"
+                          max={f.maxVal}
                           style={{
                             width: '100%', background: 'transparent', border: 'none',
                             outline: 'none', color: '#ffffff', fontSize: '20px', fontWeight: '800',
