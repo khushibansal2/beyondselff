@@ -52,9 +52,11 @@ export function computeHealthScore(healthData, healthRecords = []) {
   const h = healthData || {};
 
   // Use record-derived averages if records exist, else fall back to summary
-  const sleepAvg = safeNum(weightedAverage(healthRecords, 'sleepHours', r => r.recordDate) ?? h.sleepAvg, 7);
-  const stressLevel = safeNum(weightedAverage(healthRecords, 'stressLevel', r => r.recordDate) ?? h.stressLevel, 5);
-  const moodAvg = safeNum(weightedAverage(healthRecords, 'mood', r => r.recordDate) ?? h.moodAvg, 6);
+  const clampSleep  = v => v != null ? Math.min(12, Math.max(3,  v)) : null;
+  const clampScale  = v => v != null ? Math.min(10, Math.max(1,  v)) : null;
+  const sleepAvg    = safeNum(weightedAverage(healthRecords, r => clampSleep(r.sleepHours  ?? r.sleep),  r => r.recordDate) ?? clampSleep(h.sleepAvg),  7);
+  const stressLevel = safeNum(weightedAverage(healthRecords, r => clampScale(r.stressLevel ?? r.stress), r => r.recordDate) ?? clampScale(h.stressLevel), 5);
+  const moodAvg     = safeNum(weightedAverage(healthRecords, r => clampScale(r.mood        ?? r.moodScore), r => r.recordDate) ?? clampScale(h.moodAvg), 6);
   const workoutsPerWeek = safeNum(h.workoutsPerWeek, 2);
   const waterIntake = safeNum(weightedAverage(healthRecords, 'waterGlasses', r => r.recordDate) ?? h.waterIntake, 6);
   const calories = safeNum(h.calories, 2200);
@@ -90,9 +92,16 @@ export function computeHealthScore(healthData, healthRecords = []) {
   // Compute trends from records (if available)
   const trends = computeHealthTrends(healthRecords);
 
+  const contributors = factors
+    .map(f => ({ factor: f.name, weight: Math.round(f.weight * 100), rawScore: f.rawScore, status: f.status }))
+    .sort((a, b) => (b.weight * (100 - b.rawScore)) - (a.weight * (100 - a.rawScore)))
+    .slice(0, 3)
+    .map(({ factor, weight, rawScore, status }) => ({ factor, weight, rawScore, status }));
+
   return {
     score: Math.max(0, Math.min(100, score)),
     factors,
+    contributors,
     trends,
     sources: buildHealthSources(healthRecords, h),
   };
@@ -129,9 +138,16 @@ export function computeBurnoutRisk(healthData, careerData, healthRecords = []) {
   if (moodAvg < 4) { risk += 10; riskFactors.push({ name: 'Low mood', impact: 10, value: `${moodAvg}/10` }); }
   if (waterIntake < 4) { risk += 5; riskFactors.push({ name: 'Dehydration', impact: 5, value: `${waterIntake} glasses` }); }
 
+  const contributors = riskFactors
+    .slice()
+    .sort((a, b) => b.impact - a.impact)
+    .slice(0, 3)
+    .map(f => ({ factor: f.name, weight: f.impact, value: f.value }));
+
   return {
     risk: Math.min(100, risk),
     factors: riskFactors,
+    contributors,
     level: risk > 60 ? 'critical' : risk > 30 ? 'moderate' : 'low',
   };
 }

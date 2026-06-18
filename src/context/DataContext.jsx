@@ -120,9 +120,9 @@ function aggregateHealth(records, currentState = {}) {
     const carbs = r.carbs;
     const fat = r.fat;
 
-    if (sleep != null) { sum.sleep += sleep; count.sleep++; }
-    if (mood != null) { sum.mood += mood; count.mood++; }
-    if (stress != null) { sum.stress += stress; count.stress++; }
+    if (sleep != null && sleep >= 0) { sum.sleep += Math.min(12, Math.max(3, sleep)); count.sleep++; }
+    if (mood != null) { sum.mood += Math.min(10, Math.max(1, mood)); count.mood++; }
+    if (stress != null) { sum.stress += Math.min(10, Math.max(1, stress)); count.stress++; }
     if (workout != null) { sum.workout += workout; count.workout++; }
     if (water != null) { sum.water += water; count.water++; }
     if (calories != null) { sum.calories += calories; count.calories++; }

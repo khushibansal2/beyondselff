@@ -75,9 +75,9 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR, ml
   const f = userData.finance || {};
   const c = userData.career || {};
 
-  const sleepAvg = h.sleepAvg ?? 7;
-  const stressLevel = h.stressLevel ?? 5;
-  const workoutsPerWeek = h.workoutsPerWeek ?? 2;
+  const sleepAvg = Math.min(12, Math.max(3, h.sleepAvg ?? 7));
+  const stressLevel = Math.min(10, Math.max(1, h.stressLevel ?? 5));
+  const workoutsPerWeek = Math.min(14, Math.max(0, h.workoutsPerWeek ?? 2));
   const studyHoursDaily = c.studyHoursDaily ?? 3;
   const codingHoursDaily = c.codingHoursDaily ?? 2;
   const expenses = f.expenses ?? 15000;
