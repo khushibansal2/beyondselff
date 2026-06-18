@@ -14,7 +14,7 @@ import { computeCareerScore } from './careerScoreEngine.js';
  * Compute life balance score and cross-domain analysis.
  * Returns comprehensive analysis with all domain scores, balance, burnout, cross-domain relationships.
  */
-export function computeLifeBalance(userData, records = {}) {
+export function computeLifeBalance(userData, records = {}, mlCascade = null) {
   const healthResult = computeHealthScore(userData.health, records.health || []);
   const financeResult = computeFinanceScore(userData.finance, records.finance || []);
   const careerResult = computeCareerScore(userData.career, records.career || []);
@@ -28,8 +28,8 @@ export function computeLifeBalance(userData, records = {}) {
   const sleepPenalty = (userData.health?.sleepAvg ?? 7) < 6 ? 10 : 0;
   const balance = Math.round(Math.max(0, Math.min(100, rawBalance - burnoutPenalty - sleepPenalty)));
 
-  // Detect cross-domain relationships
-  const crossDomain = detectCrossDomainRelationships(userData, healthResult, financeResult, careerResult);
+  // Detect cross-domain relationships (pass ML cascade data for enriched impact values)
+  const crossDomain = detectCrossDomainRelationships(userData, healthResult, financeResult, careerResult, mlCascade);
   const trends = computeDomainTrends(records);
 
   // Find weakest domain
@@ -70,7 +70,7 @@ export function computeLifeBalance(userData, records = {}) {
  * Detect cross-domain causal relationships.
  * These are computed deterministically — not invented by AI.
  */
-function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
+function detectCrossDomainRelationships(userData, healthR, financeR, careerR, mlCascade = null) {
   const h = userData.health || {};
   const f = userData.finance || {};
   const c = userData.career || {};
@@ -88,19 +88,36 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
 
   const relationships = [];
 
+  // Returns XGBoost-derived cascade deltas for a rule ID, or null if unavailable.
+  const mlImpact = (ruleId) => {
+    const pair = mlCascade?.pairs?.[ruleId];
+    if (!pair) return null;
+    return {
+      mlDirectDelta:   pair.direct[pair.target],
+      mlCascadeDelta:  pair.cascade[pair.target],
+      mlModel:         mlCascade.model,
+    };
+  };
+
   // ── Sleep ↔ Career (always fires) ────────────────────────────────────────
   if (sleepAvg < 6) {
     const productivityLoss = Math.round((1 - sleepAvg / 8) * 40);
+    const ml = mlImpact('sleep-productivity');
     relationships.push({
       id: 'sleep-productivity',
       type: 'negative',
       from: 'health',
       to: 'career',
       trigger: `Sleep at ${sleepAvg}h/night`,
-      effect: `Estimated ${productivityLoss}% reduction in study efficiency`,
+      effect: ml && Math.abs(ml.mlCascadeDelta) > 0.5
+        ? `${productivityLoss}% study efficiency loss — ML: ${Math.abs(ml.mlCascadeDelta).toFixed(1)}pt career impact (cascade)`
+        : `Estimated ${productivityLoss}% reduction in study efficiency`,
       severity: sleepAvg < 5 ? 'critical' : 'warning',
       mechanism: 'Sleep deficit reduces cognitive consolidation and working memory, lowering effective study hours.',
-      computedImpact: { productivityLoss, effectiveStudyHours: Math.round(studyHoursDaily * (sleepAvg / 8) * 10) / 10 },
+      computedImpact: {
+        productivityLoss, effectiveStudyHours: Math.round(studyHoursDaily * (sleepAvg / 8) * 10) / 10,
+        ...(ml && { mlCareerDelta: ml.mlDirectDelta, mlCascadeCareerDelta: ml.mlCascadeDelta, mlModel: ml.mlModel }),
+      },
     });
   } else {
     const perfBoost = Math.round((sleepAvg / 8) * 28);
@@ -120,21 +137,27 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
   // ── Stress ↔ Finance (always fires) ──────────────────────────────────────
   if (stressLevel > 6) {
     const excessSpending = Math.round(expenses * 0.15);
+    const ml = mlImpact('stress-spending');
     relationships.push({
       id: 'stress-spending',
       type: 'negative',
       from: 'health',
       to: 'finance',
       trigger: `Stress level at ${stressLevel}/10`,
-      effect: `Estimated ₹${excessSpending.toLocaleString()} in stress-related impulse spending per month`,
+      effect: ml && Math.abs(ml.mlCascadeDelta) > 0.5
+        ? `₹${excessSpending.toLocaleString()} impulse spending — ML: ${Math.abs(ml.mlCascadeDelta).toFixed(1)}pt finance impact (cascade)`
+        : `Estimated ₹${excessSpending.toLocaleString()} in stress-related impulse spending per month`,
       severity: stressLevel > 8 ? 'critical' : 'warning',
       mechanism: 'High cortisol reduces impulse control, increasing likelihood of comfort spending.',
-      computedImpact: { excessSpending, expenseRatio: Math.round((income > 0 ? expenses / income : 1) * 100) },
+      computedImpact: {
+        excessSpending, expenseRatio: Math.round((income > 0 ? expenses / income : 1) * 100),
+        ...(ml && { mlFinanceDelta: ml.mlDirectDelta, mlCascadeFinanceDelta: ml.mlCascadeDelta, mlModel: ml.mlModel }),
+      },
     });
   } else {
     relationships.push({
       id: 'stress-focus',
-      type: stressLevel <= 3 ? 'positive' : 'positive',
+      type: 'positive',
       from: 'health',
       to: 'career',
       trigger: `Stress level at ${stressLevel}/10`,
@@ -160,16 +183,22 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
       computedImpact: { focusBoost },
     });
   } else {
+    const ml = mlImpact('exercise-deficit');
     relationships.push({
       id: 'exercise-deficit',
       type: 'negative',
       from: 'health',
       to: 'career',
       trigger: `Only ${workoutsPerWeek} workout(s)/week`,
-      effect: 'Reduced BDNF production limiting cognitive performance and energy levels',
+      effect: ml && Math.abs(ml.mlCascadeDelta) > 0.5
+        ? `Reduced BDNF limiting performance — ML: ${Math.abs(ml.mlCascadeDelta).toFixed(1)}pt career impact (cascade)`
+        : 'Reduced BDNF production limiting cognitive performance and energy levels',
       severity: 'warning',
       mechanism: 'Sedentary lifestyle reduces cerebral blood flow and neuroplasticity, hindering learning.',
-      computedImpact: { focusReduction: 15 },
+      computedImpact: {
+        focusReduction: 15,
+        ...(ml && { mlCareerDelta: ml.mlDirectDelta, mlCascadeCareerDelta: ml.mlCascadeDelta, mlModel: ml.mlModel }),
+      },
     });
   }
 
@@ -189,32 +218,44 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR) {
         computedImpact: { stressReduction: 18 },
       });
     } else if (debt > 0 && savings < expenses) {
+      const ml = mlImpact('financial-stress');
       relationships.push({
         id: 'financial-stress',
         type: 'negative',
         from: 'finance',
         to: 'health',
         trigger: `Debt ₹${debt.toLocaleString()} with savings below 1 month expenses`,
-        effect: 'Elevated anxiety levels, potential sleep disruption and focus loss',
+        effect: ml && Math.abs(ml.mlCascadeDelta) > 0.5
+          ? `Financial anxiety disrupting health — ML: ${Math.abs(ml.mlCascadeDelta).toFixed(1)}pt health impact (cascade)`
+          : 'Elevated anxiety levels, potential sleep disruption and focus loss',
         severity: 'warning',
         mechanism: 'Financial insecurity activates chronic stress response, impacting sleep quality and mood.',
-        computedImpact: { stressIncrease: 1.5 },
+        computedImpact: {
+          stressIncrease: 1.5,
+          ...(ml && { mlHealthDelta: ml.mlDirectDelta, mlCascadeHealthDelta: ml.mlCascadeDelta, mlModel: ml.mlModel }),
+        },
       });
     }
   }
 
   // ── Overwork → Health (threshold lowered to > 8h) ─────────────────────────
   if (totalWorkHours > 8 && workoutsPerWeek < 2) {
+    const ml = mlImpact('overwork-health');
     relationships.push({
       id: 'overwork-health',
       type: 'negative',
       from: 'career',
       to: 'health',
       trigger: `${totalWorkHours}h daily desk work with minimal exercise`,
-      effect: 'Increased fatigue, reduced alertness, declining retention',
+      effect: ml && Math.abs(ml.mlCascadeDelta) > 0.5
+        ? `Fatigue & declining alertness — ML: ${Math.abs(ml.mlCascadeDelta).toFixed(1)}pt health impact (cascade)`
+        : 'Increased fatigue, reduced alertness, declining retention',
       severity: totalWorkHours > 12 ? 'critical' : 'warning',
       mechanism: 'Prolonged sedentary behavior reduces circulation and increases cognitive fatigue.',
-      computedImpact: { alertnessReduction: 25 },
+      computedImpact: {
+        alertnessReduction: 25,
+        ...(ml && { mlHealthDelta: ml.mlDirectDelta, mlCascadeHealthDelta: ml.mlCascadeDelta, mlModel: ml.mlModel }),
+      },
     });
   }
 

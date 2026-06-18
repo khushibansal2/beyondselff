@@ -12,7 +12,7 @@
  * - No duplicated state, no isolated page state
  */
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useState, useRef } from 'react';
 import { computeLifeBalance } from '../engines/lifeBalanceEngine';
 import { detectAnomalies } from '../engines/anomalyEngine';
 import { computeCorrelations } from '../engines/correlationEngine';
@@ -497,6 +497,7 @@ function dataReducer(state, action) {
 }
 
 import { storageAdapter } from '../utils/storageAdapter';
+import { trainWhatIfModel, getMLDashboardScores, getMLCascadeEffects } from '../services/whatIfService';
 
 // localStorage key (maintained in adapter)
 const STORAGE_KEY = storageAdapter.getKeyPrefix();
@@ -664,6 +665,10 @@ export function DataProvider({ children }) {
     return () => window.removeEventListener('storage', handleStorage);
   }, [state.userId]);
 
+  // ML state — declared before computed useMemo so mlCascade is available as a dep
+  const [mlRawScores, setMlRawScores] = useState(null);
+  const [mlCascade, setMlCascade] = useState(null);
+
   // Computed scores — derived from engines (deterministic, memoized)
   const computed = useMemo(() => {
     const userData = {
@@ -677,7 +682,7 @@ export function DataProvider({ children }) {
                     Object.keys(state.career).length > 0;
 
     try {
-      const lifeBalance = computeLifeBalance(userData, state.records);
+      const lifeBalance = computeLifeBalance(userData, state.records, mlCascade);
       const anomalies = detectAnomalies(userData, state.records);
       const correlations = computeCorrelations(state.records);
       return {
@@ -691,7 +696,68 @@ export function DataProvider({ children }) {
       console.error('DataContext: Score computation error', e);
       return { lifeBalance: null, anomalies: [], hasData: false };
     }
+  }, [state.health, state.finance, state.career, state.records, mlCascade]);
+
+  // ── ML scores (XGBoost, async) ────────────────────────────────────────────
+  // Replaces deterministic engine scores on the dashboard once the model is ready.
+  // Falls back to computed (deterministic) while loading or when the ML service
+  // is offline — consumers always see a score, never null.
+  const mlModelTrainedRef = useRef(false);
+  const mlPredictTimerRef = useRef(null);
+
+  // Train once when records change (records = training data)
+  useEffect(() => {
+    let cancelled = false;
+    async function trainModel() {
+      mlModelTrainedRef.current = false;
+      await trainWhatIfModel(
+        state.records.health,
+        state.records.finance,
+        state.records.career,
+      );
+      if (!cancelled) mlModelTrainedRef.current = true;
+    }
+    trainModel();
+    return () => { cancelled = true; };
+  }, [state.records]);
+
+  // Re-predict (debounced 400ms) when current habit values change
+  useEffect(() => {
+    clearTimeout(mlPredictTimerRef.current);
+    mlPredictTimerRef.current = setTimeout(async () => {
+      const userData = { health: state.health, finance: state.finance, career: state.career };
+      try {
+        const [scoreResult, cascadeResult] = await Promise.all([
+          getMLDashboardScores(userData, state.records),
+          getMLCascadeEffects(userData),
+        ]);
+        if (scoreResult?.predictions) setMlRawScores(scoreResult.predictions);
+        if (cascadeResult?.pairs) setMlCascade(cascadeResult);
+      } catch {
+        // silently fall back to deterministic
+      }
+    }, 400);
+    return () => clearTimeout(mlPredictTimerRef.current);
   }, [state.health, state.finance, state.career, state.records]);
+
+  // Merge ML scores into computed — override the three domain scores + balance
+  const computedWithML = useMemo(() => {
+    if (!mlRawScores || !computed) return computed;
+    const h = Math.round(Math.max(0, Math.min(100, mlRawScores.health_score  ?? computed.healthScore?.score  ?? 50)));
+    const f = Math.round(Math.max(0, Math.min(100, mlRawScores.finance_score ?? computed.financeScore?.score ?? 50)));
+    const c = Math.round(Math.max(0, Math.min(100, mlRawScores.career_score  ?? computed.careerScore?.score  ?? 50)));
+    const burnoutPenalty = computed.penalties?.burnoutPenalty ?? 0;
+    const sleepPenalty   = computed.penalties?.sleepPenalty   ?? 0;
+    const mlBalance = Math.round(Math.max(0, Math.min(100, h * 0.35 + f * 0.30 + c * 0.35 - burnoutPenalty - sleepPenalty)));
+    return {
+      ...computed,
+      healthScore:  { ...computed.healthScore,  score: h },
+      financeScore: { ...computed.financeScore, score: f },
+      careerScore:  { ...computed.careerScore,  score: c },
+      balance: mlBalance,
+      mlScoresActive: true,
+    };
+  }, [computed, mlRawScores]);
 
   // Computed sustainability — driven by real telemetry when sync is enabled
   const computedSustainability = useMemo(() => {
@@ -827,8 +893,10 @@ export function DataProvider({ children }) {
     // Raw state
     ...state,
 
-    // Computed scores (from deterministic engines)
-    computed,
+    // Computed scores — ML (XGBoost) when ready, deterministic as fallback
+    computed: computedWithML,
+    // Raw ML cascade data (XGBoost cross-domain impact pairs)
+    mlCascade,
 
     // Computed sustainability (from real telemetry when sync is enabled)
     computedSustainability,
@@ -843,7 +911,7 @@ export function DataProvider({ children }) {
     hasRealData: state.dataSource === 'imported' || state.dataSource === 'mixed',
     isDemo: state.dataSource === 'demo',
     isEmpty: state.dataSource === 'none',
-  }), [state, computed, computedSustainability, actions]);
+  }), [state, computedWithML, computedSustainability, actions]);
 
   return (
     <DataContext.Provider value={value}>
