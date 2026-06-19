@@ -1,9 +1,13 @@
 package com.digitaltwin.backend.service;
 
+import com.digitaltwin.backend.dto.ParsedBankStatement;
+import com.digitaltwin.backend.dto.ParsedMedicalReport;
+import com.digitaltwin.backend.dto.ParsedResume;
 import com.digitaltwin.backend.entity.CareerRecord;
 import com.digitaltwin.backend.entity.FinanceRecord;
 import com.digitaltwin.backend.entity.HealthRecord;
 import com.digitaltwin.backend.entity.ImportHistory;
+import com.digitaltwin.backend.entity.Resume;
 import com.digitaltwin.backend.normalizer.CareerNormalizer;
 import com.digitaltwin.backend.normalizer.FinanceNormalizer;
 import com.digitaltwin.backend.normalizer.HealthNormalizer;
@@ -12,6 +16,7 @@ import com.digitaltwin.backend.repository.CareerRecordRepository;
 import com.digitaltwin.backend.repository.FinanceRecordRepository;
 import com.digitaltwin.backend.repository.HealthRecordRepository;
 import com.digitaltwin.backend.repository.ImportHistoryRepository;
+import com.digitaltwin.backend.repository.ResumeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,6 +46,9 @@ public class UploadService {
     private final HealthRecordRepository healthRepo;
     private final FinanceRecordRepository financeRepo;
     private final CareerRecordRepository careerRepo;
+    private final ResumeRepository resumeRepo;
+    private final ResumeParserService resumeParserService;
+    private final PdfLlmParserService pdfLlmParserService;
     private final HealthNormalizer healthNormalizer;
     private final FinanceNormalizer financeNormalizer;
     private final CareerNormalizer careerNormalizer;
@@ -52,7 +60,10 @@ public class UploadService {
     public UploadService(FileParserService fileParserService, FileEncryptionService encryptionService,
                          ImportHistoryRepository importRepo,
                          HealthRecordRepository healthRepo, FinanceRecordRepository financeRepo,
-                         CareerRecordRepository careerRepo, HealthNormalizer healthNormalizer,
+                         CareerRecordRepository careerRepo, ResumeRepository resumeRepo,
+                         ResumeParserService resumeParserService,
+                         PdfLlmParserService pdfLlmParserService,
+                         HealthNormalizer healthNormalizer,
                          FinanceNormalizer financeNormalizer, CareerNormalizer careerNormalizer) {
         this.fileParserService = fileParserService;
         this.encryptionService = encryptionService;
@@ -60,6 +71,9 @@ public class UploadService {
         this.healthRepo = healthRepo;
         this.financeRepo = financeRepo;
         this.careerRepo = careerRepo;
+        this.resumeRepo = resumeRepo;
+        this.resumeParserService = resumeParserService;
+        this.pdfLlmParserService = pdfLlmParserService;
         this.healthNormalizer = healthNormalizer;
         this.financeNormalizer = financeNormalizer;
         this.careerNormalizer = careerNormalizer;
@@ -109,22 +123,92 @@ public class UploadService {
             
             int valid = 0;
             if (domain.equals("health")) {
-                for (Map<String, String> row : result.data) {
-                    HealthRecord rec = healthNormalizer.normalize(row, userId, history.getId());
-                    healthRepo.save(rec);
-                    valid++;
+                if (result.type.equals("pdf")) {
+                    String rawText = result.data.isEmpty() ? "" : result.data.get(0).getOrDefault("raw_text", "");
+                    ParsedMedicalReport report = pdfLlmParserService.parseMedicalReport(rawText);
+                    // Convert each extracted metric to a HealthRecord row
+                    if (report.getMetrics() != null && !report.getMetrics().isEmpty()) {
+                        for (ParsedMedicalReport.Metric metric : report.getMetrics()) {
+                            Map<String, String> row = new java.util.HashMap<>();
+                            row.put("date", report.getReportDate() != null ? report.getReportDate() : "");
+                            row.put(normalizeMetricKey(metric.getName()), metric.getValue());
+                            HealthRecord rec = healthNormalizer.normalize(row, userId, history.getId());
+                            healthRepo.save(rec);
+                            valid++;
+                        }
+                    } else {
+                        // No metrics extracted — save a single row with raw summary as note
+                        Map<String, String> row = new java.util.HashMap<>();
+                        row.put("date", report.getReportDate() != null ? report.getReportDate() : "");
+                        HealthRecord rec = healthNormalizer.normalize(row, userId, history.getId());
+                        healthRepo.save(rec);
+                        valid = 1;
+                    }
+                    log.info("Medical PDF parsed via LLM: {} health records created", valid);
+                } else {
+                    for (Map<String, String> row : result.data) {
+                        HealthRecord rec = healthNormalizer.normalize(row, userId, history.getId());
+                        healthRepo.save(rec);
+                        valid++;
+                    }
                 }
             } else if (domain.equals("finance")) {
-                for (Map<String, String> row : result.data) {
-                    FinanceRecord rec = financeNormalizer.normalize(row, userId, history.getId());
-                    financeRepo.save(rec);
-                    valid++;
+                if (result.type.equals("pdf")) {
+                    String rawText = result.data.isEmpty() ? "" : result.data.get(0).getOrDefault("raw_text", "");
+                    ParsedBankStatement statement = pdfLlmParserService.parseBankStatement(rawText);
+                    if (statement.getTransactions() != null) {
+                        for (ParsedBankStatement.Transaction tx : statement.getTransactions()) {
+                            Map<String, String> row = new java.util.HashMap<>();
+                            row.put("date", tx.getDate() != null ? tx.getDate() : "");
+                            row.put("description", tx.getDescription() != null ? tx.getDescription() : "");
+                            row.put("amount", tx.getAmount() != null ? String.valueOf(tx.getAmount()) : "0");
+                            row.put("category", tx.getCategory() != null ? tx.getCategory() : "Other");
+                            row.put("type", tx.getType() != null ? tx.getType() : "debit");
+                            row.put("merchant", tx.getMerchant() != null ? tx.getMerchant() : "");
+                            FinanceRecord rec = financeNormalizer.normalize(row, userId, history.getId());
+                            financeRepo.save(rec);
+                            valid++;
+                        }
+                    }
+                    log.info("Bank statement PDF parsed via LLM: {} finance records created", valid);
+                } else {
+                    for (Map<String, String> row : result.data) {
+                        FinanceRecord rec = financeNormalizer.normalize(row, userId, history.getId());
+                        financeRepo.save(rec);
+                        valid++;
+                    }
                 }
             } else if (domain.equals("career")) {
-                for (Map<String, String> row : result.data) {
-                    CareerRecord rec = careerNormalizer.normalize(row, userId, history.getId(), result.type);
-                    careerRepo.save(rec);
-                    valid++;
+                if (result.type.equals("pdf")) {
+                    // Resume PDF → LLM parsing pipeline
+                    String rawText = result.data.isEmpty() ? "" : result.data.get(0).getOrDefault("raw_text", "");
+                    ParsedResume parsed = resumeParserService.parse(rawText);
+                    String parsedJson = objectMapper.writeValueAsString(parsed);
+                    String skillsSnapshot = parsed.getSkills() != null
+                            ? String.join(", ", parsed.getSkills()) : "";
+
+                    Resume resume = Resume.builder()
+                            .userId(userId)
+                            .importId(history.getId())
+                            .originalFilename(file.getOriginalFilename())
+                            .candidateName(parsed.getName())
+                            .email(parsed.getEmail())
+                            .phone(parsed.getPhone())
+                            .location(parsed.getLocation())
+                            .summary(parsed.getSummary())
+                            .parsedJson(parsedJson)
+                            .skillsSnapshot(skillsSnapshot)
+                            .llmParsed(resumeParserService.isAvailable())
+                            .parsedAt(java.time.LocalDateTime.now())
+                            .build();
+                    resumeRepo.save(resume);
+                    valid = 1;
+                } else {
+                    for (Map<String, String> row : result.data) {
+                        CareerRecord rec = careerNormalizer.normalize(row, userId, history.getId(), result.type);
+                        careerRepo.save(rec);
+                        valid++;
+                    }
                 }
             }
 
@@ -139,6 +223,23 @@ public class UploadService {
         }
 
         return importRepo.save(history);
+    }
+
+    /** Maps LLM metric names to HealthNormalizer field keys. */
+    private String normalizeMetricKey(String metricName) {
+        if (metricName == null) return "note";
+        String lower = metricName.toLowerCase();
+        if (lower.contains("heart rate") || lower.contains("pulse")) return "heart_rate";
+        if (lower.contains("blood pressure") || lower.contains("bp")) return "blood_pressure";
+        if (lower.contains("sleep")) return "sleep";
+        if (lower.contains("weight") || lower.contains("bmi")) return "bmi";
+        if (lower.contains("stress")) return "stress";
+        if (lower.contains("mood")) return "mood";
+        if (lower.contains("calorie")) return "calories";
+        if (lower.contains("step")) return "steps";
+        if (lower.contains("water")) return "water";
+        if (lower.contains("workout") || lower.contains("exercise")) return "workout";
+        return lower.replace(" ", "_");
     }
 
     private String detectDomain(String[] headers, String type, String filename) {

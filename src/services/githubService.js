@@ -1,31 +1,31 @@
-// GitHub REST API — no auth required for public data
-// Optional: set VITE_GITHUB_TOKEN for higher rate limits (5000 req/hr vs 60/hr)
+// GitHub API — proxied through backend to keep GITHUB_TOKEN server-side
+// Backend endpoints: GET /api/github/user/:username  and  GET /api/github/user/:username/repos
 
-const GITHUB_API = 'https://api.github.com';
-const GROQ_URL   = 'https://api.groq.com/openai/v1/chat/completions';
+const BACKEND = (import.meta.env.VITE_API_BASE || 'http://localhost:8080/api').replace(/\/api$/, '');
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
-function ghHeaders() {
-  const token = import.meta.env.VITE_GITHUB_TOKEN || localStorage.getItem('github_token') || '';
-  const base = { 'Accept': 'application/vnd.github.v3+json' };
-  return token ? { ...base, 'Authorization': `Bearer ${token}` } : base;
-}
-
-function groqKey() {
-  return import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';
+function authHeaders() {
+  try {
+    const auth = localStorage.getItem('dt_auth');
+    if (auth) {
+      const { token } = JSON.parse(auth);
+      return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    }
+  } catch {}
+  return { 'Content-Type': 'application/json' };
 }
 
 // ── Main fetch ────────────────────────────────────────────────────────────────
 
 export async function fetchGitHubProfile(username) {
   const [userRes, reposRes] = await Promise.all([
-    fetch(`${GITHUB_API}/users/${username}`,                                          { headers: ghHeaders() }),
-    fetch(`${GITHUB_API}/users/${username}/repos?per_page=100&sort=updated`,          { headers: ghHeaders() }),
+    fetch(`${BACKEND}/api/github/user/${encodeURIComponent(username)}`,        { headers: authHeaders() }),
+    fetch(`${BACKEND}/api/github/user/${encodeURIComponent(username)}/repos`,  { headers: authHeaders() }),
   ]);
 
   if (!userRes.ok) {
     if (userRes.status === 404) throw new Error('GitHub user not found');
-    if (userRes.status === 403) throw new Error('GitHub rate limit hit. Add VITE_GITHUB_TOKEN to .env for higher limits.');
+    if (userRes.status === 403) throw new Error('GitHub rate limit hit. Set GITHUB_TOKEN in backend environment.');
     throw new Error(`GitHub error ${userRes.status}`);
   }
 
@@ -76,12 +76,9 @@ export async function fetchGitHubProfile(username) {
   return { user, repos, languages, topRepos, domains, metrics: { totalStars, totalForks, recentRepos, devScore, uniqueLangs } };
 }
 
-// ── AI Analysis via Groq ──────────────────────────────────────────────────────
+// ── AI Analysis via backend Groq proxy ───────────────────────────────────────
 
 export async function analyzeGitHubWithAI(profileData) {
-  const key = groqKey();
-  if (!key) throw new Error('NO_KEY');
-
   const { user, languages, topRepos, domains, metrics } = profileData;
 
   const prompt = `You are a senior engineering hiring manager analyzing a developer's GitHub profile.
@@ -107,13 +104,18 @@ Analyze this developer profile and return ONLY valid JSON, no markdown:
   "summary": "2-sentence developer summary suitable for a resume"
 }`;
 
-  const res = await fetch(GROQ_URL, {
+  const res = await fetch(`${BACKEND}/api/groq/chat`, {
     method: 'POST',
-    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 800, temperature: 0.3 }),
+    headers: authHeaders(),
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 800,
+      temperature: 0.3,
+    }),
   });
 
-  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  if (!res.ok) throw new Error(`Groq proxy ${res.status}`);
   const data = await res.json();
   const raw  = data.choices?.[0]?.message?.content ?? '';
   const s = raw.indexOf('{'), e = raw.lastIndexOf('}');

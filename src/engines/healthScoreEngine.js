@@ -63,7 +63,13 @@ export function computeHealthScore(healthData, healthRecords = []) {
   const bmi = safeNum(h.bmi, 23);
 
   // Factor calculations — each is 0-100
-  const sleepScore = Math.min(100, Math.max(0, (sleepAvg / 8) * 100));
+  // Sleep: inverted-U peaking at 7-8h. Oversleeping (>9h) penalised like undersleeping.
+  const sleepScore = (() => {
+    if (sleepAvg <= 4) return Math.max(0, (sleepAvg / 4) * 40);           // 0-4h: 0-40
+    if (sleepAvg <= 8) return 40 + ((sleepAvg - 4) / 4) * 60;             // 4-8h: 40-100
+    if (sleepAvg <= 9) return 100 - ((sleepAvg - 8) / 1) * 20;            // 8-9h: 100-80
+    return Math.max(0, 80 - ((sleepAvg - 9) / 3) * 80);                   // 9-12h: 80→0
+  })();
   const stressScore = Math.min(100, Math.max(0, ((10 - stressLevel) / 10) * 100));
   const moodScore = Math.min(100, Math.max(0, (moodAvg / 10) * 100));
   const workoutScore = Math.min(100, Math.max(0, (workoutsPerWeek / 5) * 100));
@@ -72,7 +78,7 @@ export function computeHealthScore(healthData, healthRecords = []) {
   const calorieScore = calories >= 1800 && calories <= 2400 ? 85 : calories > 2800 || calories < 1200 ? 40 : 60;
 
   const factors = [
-    { name: 'Sleep Quality', value: sleepAvg, unit: 'h/night', weight: 0.25, rawScore: sleepScore, status: sleepAvg >= 7 ? 'good' : sleepAvg >= 5.5 ? 'warning' : 'critical' },
+    { name: 'Sleep Quality', value: sleepAvg, unit: 'h/night', weight: 0.25, rawScore: sleepScore, status: sleepAvg >= 7 && sleepAvg <= 9 ? 'good' : sleepAvg >= 5.5 && sleepAvg <= 10 ? 'warning' : 'critical' },
     { name: 'Stress Level', value: stressLevel, unit: '/10', weight: 0.20, rawScore: stressScore, status: stressLevel <= 4 ? 'good' : stressLevel <= 7 ? 'warning' : 'critical' },
     { name: 'Mood', value: moodAvg, unit: '/10', weight: 0.15, rawScore: moodScore, status: moodAvg >= 7 ? 'good' : moodAvg >= 4 ? 'warning' : 'critical' },
     { name: 'Physical Activity', value: workoutsPerWeek, unit: 'workouts/wk', weight: 0.15, rawScore: workoutScore, status: workoutsPerWeek >= 4 ? 'good' : workoutsPerWeek >= 2 ? 'warning' : 'critical' },

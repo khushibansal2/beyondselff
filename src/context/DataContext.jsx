@@ -107,8 +107,20 @@ function aggregateHealth(records, currentState = {}) {
   const sum = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0, protein: 0, carbs: 0, fat: 0 };
   const count = { sleep: 0, mood: 0, stress: 0, workout: 0, water: 0, calories: 0, bmi: 0, weight: 0, protein: 0, carbs: 0, fat: 0 };
 
+  // Deduplicate sleep per calendar day: keep only the max sleep entry per day.
+  // Multiple logs on the same day (e.g. nap + night) must not stack — only the
+  // longest single sleep session counts, capped at 12h physiological max.
+  const sleepByDay = {};
   records.forEach(r => {
-    const sleep = r.sleepHours ?? r.sleep;
+    const rawSleep = r.sleepHours ?? r.sleep;
+    if (rawSleep == null || rawSleep < 0) return;
+    const day = (r.recordDate || r.date || '').slice(0, 10) || 'unknown';
+    const capped = Math.min(12, Math.max(0, rawSleep));
+    if (sleepByDay[day] == null || capped > sleepByDay[day]) sleepByDay[day] = capped;
+  });
+  const dedupedSleepValues = Object.values(sleepByDay);
+
+  records.forEach(r => {
     const mood = r.moodScore ?? r.mood;
     const stress = r.stressLevel ?? r.stress;
     const workout = r.workoutsPerWeek ?? (r.workoutMinutes != null ? Math.round(r.workoutMinutes / 30) : null) ?? r.workout;
@@ -120,7 +132,6 @@ function aggregateHealth(records, currentState = {}) {
     const carbs = r.carbs;
     const fat = r.fat;
 
-    if (sleep != null && sleep >= 0) { sum.sleep += Math.min(12, Math.max(3, sleep)); count.sleep++; }
     if (mood != null) { sum.mood += Math.min(10, Math.max(1, mood)); count.mood++; }
     if (stress != null) { sum.stress += Math.min(10, Math.max(1, stress)); count.stress++; }
     if (workout != null) { sum.workout += workout; count.workout++; }
@@ -131,6 +142,11 @@ function aggregateHealth(records, currentState = {}) {
     if (protein != null) { sum.protein += protein; count.protein++; }
     if (carbs != null) { sum.carbs += carbs; count.carbs++; }
     if (fat != null) { sum.fat += fat; count.fat++; }
+  });
+
+  // Aggregate deduped sleep values (one per day max)
+  dedupedSleepValues.forEach(v => {
+    if (v >= 3) { sum.sleep += v; count.sleep++; }
   });
 
   return {
@@ -499,6 +515,7 @@ function dataReducer(state, action) {
 
 import { storageAdapter } from '../utils/storageAdapter';
 import { trainWhatIfModel, getMLDashboardScores, getMLCascadeEffects } from '../services/whatIfService';
+import { llmHealthScoreCheck } from '../services/aiService';
 
 // localStorage key (maintained in adapter)
 const STORAGE_KEY = storageAdapter.getKeyPrefix();
@@ -688,6 +705,8 @@ export function DataProvider({ children }) {
   // ML state — declared before computed useMemo so mlCascade is available as a dep
   const [mlRawScores, setMlRawScores] = useState(null);
   const [mlCascade, setMlCascade] = useState(null);
+  // LLM sanity-check correction applied after deterministic + XGBoost
+  const [llmHealthCorrection, setLlmHealthCorrection] = useState({ delta: 0, reason: '', flags: [] });
 
   // Computed scores — derived from engines (deterministic, memoized)
   const computed = useMemo(() => {
@@ -753,6 +772,19 @@ export function DataProvider({ children }) {
         ]);
         if (scoreResult?.predictions) setMlRawScores(scoreResult.predictions);
         if (cascadeResult?.pairs) setMlCascade(cascadeResult);
+
+        // LLM sanity check — runs after XGBoost, corrects physiologically implausible scores
+        try {
+          const rawHealthScore = scoreResult?.predictions?.health_score ?? computed?.healthScore?.score ?? 50;
+          const correction = await llmHealthScoreCheck(
+            rawHealthScore,
+            computed?.healthScore?.factors ?? [],
+            state.health,
+          );
+          setLlmHealthCorrection(correction);
+        } catch {
+          // keep previous correction
+        }
       } catch {
         // silently fall back to deterministic
       }
@@ -763,7 +795,10 @@ export function DataProvider({ children }) {
   // Merge ML scores into computed — override the three domain scores + balance
   const computedWithML = useMemo(() => {
     if (!mlRawScores || !computed) return computed;
-    const h = Math.round(Math.max(0, Math.min(100, mlRawScores.health_score  ?? computed.healthScore?.score  ?? 50)));
+    const hRaw = Math.max(0, Math.min(100, mlRawScores.health_score ?? computed.healthScore?.score ?? 50));
+    // Apply LLM sanity-check delta (clamped again for safety)
+    const llmDelta = llmHealthCorrection?.delta ?? 0;
+    const h = Math.round(Math.max(0, Math.min(100, hRaw + llmDelta)));
     const f = Math.round(Math.max(0, Math.min(100, mlRawScores.finance_score ?? computed.financeScore?.score ?? 50)));
     const c = Math.round(Math.max(0, Math.min(100, mlRawScores.career_score  ?? computed.careerScore?.score  ?? 50)));
     const burnoutPenalty = computed.penalties?.burnoutPenalty ?? 0;
@@ -776,8 +811,10 @@ export function DataProvider({ children }) {
       careerScore:  { ...computed.careerScore,  score: c },
       balance: mlBalance,
       mlScoresActive: true,
+      llmHealthFlags: llmHealthCorrection?.flags ?? [],
+      llmHealthReason: llmHealthCorrection?.reason ?? '',
     };
-  }, [computed, mlRawScores]);
+  }, [computed, mlRawScores, llmHealthCorrection]);
 
   // Computed sustainability — driven by real telemetry when sync is enabled
   const computedSustainability = useMemo(() => {

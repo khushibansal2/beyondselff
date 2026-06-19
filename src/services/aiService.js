@@ -326,6 +326,65 @@ function _fallbackRecommendations(context) {
 }
 
 /**
+ * LLM sanity check on the computed health score.
+ * Detects physiologically implausible patterns (e.g. chronic oversleeping,
+ * all-perfect self-ratings while reporting high stress) and returns a small
+ * correction delta (-15 to +5) plus a plain-English reason.
+ *
+ * This runs after deterministic + XGBoost scoring. The caller applies the delta
+ * only when the LLM response is valid JSON; otherwise the score is unchanged.
+ *
+ * @param {number} currentScore - Current health score (0-100)
+ * @param {object} factors - Array of factor objects from healthScoreEngine
+ * @param {object} healthData - Raw aggregated health data (sleepAvg, stressLevel, etc.)
+ * @returns {Promise<{delta: number, reason: string, flags: string[]}>}
+ */
+export async function llmHealthScoreCheck(currentScore, factors = [], healthData = {}) {
+  const sleepH = healthData.sleepAvg ?? null;
+  const stress = healthData.stressLevel ?? null;
+  const mood = healthData.moodAvg ?? null;
+
+  const factorSummary = factors
+    .map(f => `${f.name}: ${f.value}${f.unit} (score ${Math.round(f.rawScore)}/100)`)
+    .join(', ');
+
+  const systemPrompt = `You are a health data validator for a wellness app. Your job is to detect physiologically implausible or contradictory patterns in self-reported health data and suggest a score correction.
+
+Rules:
+- Oversleeping (>9h consistently) is a health red flag, not a bonus. Apply a penalty.
+- If stress is high (>7) but mood is also high (>8), that is contradictory — apply a small penalty.
+- If ALL metrics are self-reported as perfect (sleep=8, stress=1, mood=10, workout=5/wk, water=8) simultaneously, apply a small skepticism penalty (-3 to -5).
+- Only flag genuine anomalies. Healthy data should get delta=0.
+- Never apply a positive delta greater than +3.
+- Never apply a penalty greater than -15.
+- Return ONLY a JSON object: {"delta": <integer -15 to 5>, "reason": "<one sentence>", "flags": ["<flag1>", ...]}
+- flags array should list the specific anomalies found (empty array if none).`;
+
+  const userMessage = `Health score: ${currentScore}/100
+Sleep: ${sleepH != null ? `${sleepH}h/night` : 'unknown'}
+Stress: ${stress != null ? `${stress}/10` : 'unknown'}
+Mood: ${mood != null ? `${mood}/10` : 'unknown'}
+Factor breakdown: ${factorSummary}
+
+Validate this data and return the correction JSON.`;
+
+  try {
+    const raw = await callGroqViaBackend(systemPrompt, [], userMessage, 200);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return { delta: 0, reason: '', flags: [] };
+    const parsed = JSON.parse(jsonMatch[0]);
+    const delta = Math.max(-15, Math.min(5, Math.round(parsed.delta ?? 0)));
+    return {
+      delta,
+      reason: parsed.reason ?? '',
+      flags: Array.isArray(parsed.flags) ? parsed.flags : [],
+    };
+  } catch {
+    return { delta: 0, reason: '', flags: [] };
+  }
+}
+
+/**
  * Check if the AI service is available.
  */
 export async function checkAIStatus() {

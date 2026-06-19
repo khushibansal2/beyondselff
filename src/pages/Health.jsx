@@ -1761,7 +1761,7 @@ export default function Health() {
     setCoachInput('');
     setCoachLoading(true);
     try {
-      const ctx = { domain: 'health', health: h, healthScore: score, userName: user?.name || 'User' };
+      const ctx = { ...computed, domain: 'health', health: h, userName: user?.name || 'User' };
       const history = coachMessages.map(m => ({ role: m.role, content: m.content }));
       const { response } = await chatWithAI(msg, ctx, history);
       setCoachMessages(prev => [...prev, { role: 'assistant', content: response }]);

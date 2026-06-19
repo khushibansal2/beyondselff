@@ -158,8 +158,18 @@ function normalizeJooble(job) {
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 
 async function fetchRemotive(query, limit = 15) {
-  // Proxy through backend to avoid browser CORS issues and rate limiting
-  const data = await fetchViaProxy('remotive', { query, limit });
+  // Try backend proxy first; fall back to direct browser fetch (Remotive allows CORS)
+  try {
+    const data = await fetchViaProxy('remotive', { query, limit });
+    const jobs = (data.jobs || []).map(normalizeRemotive);
+    if (jobs.length > 0) return jobs;
+  } catch {
+    // proxy unavailable — fall through to direct fetch
+  }
+  const url = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}&limit=${limit}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  if (!res.ok) throw new Error(`Remotive direct ${res.status}`);
+  const data = await res.json();
   return (data.jobs || []).map(normalizeRemotive);
 }
 

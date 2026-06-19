@@ -1542,7 +1542,7 @@ export default function Dashboard() {
           {/* ════════════════════════════════════════════════════
               ROW 2 — HERO ZONE (Grid of 3 columns)
           ════════════════════════════════════════════════════ */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr 0.95fr', gap: 16, alignItems: 'stretch', marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr 1.1fr', gap: 16, alignItems: 'stretch', marginBottom: 16 }}>
 
             {/* COLUMN 1: Life Core Card */}
             <div style={{ ...S('#111827'), padding: '16px 18px', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
@@ -1606,10 +1606,10 @@ export default function Dashboard() {
 
                 {/* Column B: Avatar & Segmented Progress Ring */}
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-                  <div style={{ position: 'relative', width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    
+                  <div style={{ position: 'relative', width: 160, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
                     {/* SVG overlay containing the exact split/segmented progress ring and outer dot halo */}
-                    <svg width="180" height="180" viewBox="0 0 180 180" style={{ position: 'absolute', inset: 0, overflow: 'visible', zIndex: 1 }}>
+                    <svg width="160" height="160" viewBox="0 0 180 180" style={{ position: 'absolute', inset: 0, overflow: 'visible', zIndex: 1 }}>
                       {/* Outer faint thin grid ring */}
                       <circle cx="90" cy="90" r="84" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
                       
@@ -1657,7 +1657,7 @@ export default function Dashboard() {
                     </svg>
 
                     {/* Nest Avatar inside ring with scale */}
-                    <div style={{ position: 'absolute', transform: 'scale(0.92)', transformOrigin: 'center center', width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
+                    <div style={{ position: 'absolute', transform: 'scale(0.78)', transformOrigin: 'center center', width: 160, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
                       <LifeAvatar
                         healthScore={healthScore}
                         financeScore={financeScore}
@@ -2066,10 +2066,10 @@ export default function Dashboard() {
               {!futureSelfOpen && (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
-                    <div style={{ position: 'relative', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'relative', width: 90, height: 90, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <motion.div animate={{ scale: [1.02, 1.14, 1.02], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 3, repeat: Infinity }}
                         style={{ position: 'absolute', inset: -4, borderRadius: '50%', border: '2px solid rgba(167,139,250,0.4)', filter: 'blur(1px)' }}/>
-                      <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}>👦</div>
+                      <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}>👦</div>
                     </div>
                   </div>
                   <div style={{ fontSize: 10, color: '#cbd5e1', lineHeight: 1.55, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '8px 10px', marginBottom: 10, flex: 1 }}>
@@ -2132,146 +2132,9 @@ export default function Dashboard() {
 
           </div>
 
-          {/* ════════════════════════════════════════════════════
-              ROW 2 — 14-DAY LIFE TIMELINE (Ribbon Calendar)
-          ════════════════════════════════════════════════════ */}
-          <div style={{ background: '#111827', border: `1px solid ${C.border}`, borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ fontSize: 12.5, fontWeight: 800, color: '#e2e8f0' }}>14-Day Life Timeline</span>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                <div style={{ display: 'flex', gap: 12, fontSize: 9.5 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px rgba(16,185,129,0.4)' }} /> Completed
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', border: '2px solid #a855f7', boxSizing: 'border-box', boxShadow: '0 0 6px rgba(168,85,247,0.4)' }} /> Partial
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#94a3b8', fontWeight: 600 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a1f2c', border: '1.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-                      <span style={{ width: 4, height: 1, background: '#64748b', borderRadius: 1 }} />
-                    </span> Missed
-                  </span>
-                </div>
-                <Link to="/simulator" style={{ fontSize: 10, color: '#a78bfa', textDecoration: 'none', fontWeight: 700 }}>View Calendar</Link>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 6, boxSizing: 'border-box' }}>
-              {(() => {
-                const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-                const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                const today = new Date();
-                // Build last 13 days
-                const days = Array.from({ length: 13 }, (_, i) => {
-                  const d = new Date(today); d.setDate(today.getDate() - (12 - i));
-                  const dateStr = d.toISOString().split('T')[0];
-                  // Check if any timeline entry exists for this day
-                  const entries = (timeline || []).filter(e => e.date === dateStr);
-                  const posCount = entries.filter(e => e.sentiment === 'positive').length;
-                  const negCount = entries.filter(e => e.sentiment === 'negative').length;
-                  let status = 'missed';
-                  if (entries.length === 0) status = i >= 12 ? 'today' : 'missed';
-                  else if (posCount > negCount) status = 'completed';
-                  else if (posCount > 0) status = 'partial';
-                  else status = 'missed';
-                  return {
-                    date: `${MONTHS[d.getMonth()]} ${d.getDate()}`,
-                    day: DAYS[d.getDay()],
-                    status,
-                    isToday: i === 12,
-                    entries,
-                  };
-                });
-                return days;
-              })().map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.015)',
-                    border: '1px solid rgba(255, 255, 255, 0.03)',
-                    borderRadius: 10,
-                    padding: '8px 4px',
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: 0,
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <span style={{ fontSize: 9.5, color: '#e2e8f0', fontWeight: 700 }}>{item.date}</span>
-                  <span
-                    style={{
-                      fontSize: 8.5,
-                      fontWeight: 700,
-                      marginTop: 2,
-                      color: item.status === 'completed' ? '#cbd5e1' : item.status === 'partial' ? '#c084fc' : '#475569',
-                    }}
-                  >
-                    {item.day}
-                  </span>
-                  
-                  <div style={{ marginTop: 8 }}>
-                    {(() => {
-                      if (item.status === 'completed') {
-                        return (
-                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px rgba(16,185,129,0.35)' }}>
-                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </div>
-                        );
-                      } else if (item.status === 'partial') {
-                        return (
-                          <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px rgba(168,85,247,0.35)', boxSizing: 'border-box' }} />
-                        );
-                      } else {
-                        return (
-                          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1a1f2c', border: '1.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-                            <div style={{ width: 6, height: 1.5, background: '#64748b', borderRadius: 1 }} />
-                          </div>
-                        );
-                      }
-                    })()}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Bottom Slider Progress Track */}
-            <div style={{ position: 'relative', width: '100%', height: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 99, marginTop: 14 }}>
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  height: '100%',
-                  width: '80%',
-                  background: 'linear-gradient(90deg, #10b981 0%, #a78bfa 60%, #3b82f6 100%)',
-                  borderRadius: 99,
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  left: '80%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  background: '#ffffff',
-                  border: '2.5px solid #3b82f6',
-                  boxShadow: '0 0 8px #3b82f6',
-                }}
-              />
-            </div>
-          </div>
 
           {/* ════════════════════════════════════════════════════
-              ROW 3 — INTELLIGENCE WIDGETS (3 columns grid)
+              ROW 2 — INTELLIGENCE WIDGETS (3 columns grid)
           ════════════════════════════════════════════════════ */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
             
