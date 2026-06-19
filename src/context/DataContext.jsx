@@ -345,12 +345,13 @@ function dataReducer(state, action) {
       const { domain, records } = action.payload;
       let domainUpdate = {};
       if (domain === 'health') {
-        domainUpdate = { health: aggregateHealth(records, state.health) };
+        // Use empty base so backend records are the sole source of truth — prevents
+        // localStorage state from a different browser session tainting the aggregate.
+        domainUpdate = { health: aggregateHealth(records, {}) };
       } else if (domain === 'finance') {
-        // Pass empty object so expenses are computed purely from the new records, not accumulated
         domainUpdate = { finance: aggregateFinance(records, {}, []) };
       } else if (domain === 'career') {
-        domainUpdate = { career: aggregateCareer(records, state.career) };
+        domainUpdate = { career: aggregateCareer(records, {}) };
       }
       return {
         ...state,
