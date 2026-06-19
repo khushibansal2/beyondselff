@@ -585,6 +585,34 @@ export function DataProvider({ children }) {
     return loadPersistedState() || EMPTY_STATE;
   });
 
+  // Pulls all backend records and dispatches them into state
+  const syncFromBackend = useCallback(async () => {
+    try {
+      const { health, finance, career, goals, gamification, sustainabilitySettings, ecoActions } = await fetchAllRecords();
+      if (health.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'health',  records: health  } });
+      if (finance.length) dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'finance', records: finance } });
+      if (career.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'career',  records: career  } });
+      if (goals && goals.length > 0) dispatch({ type: ACTIONS.UPDATE_GOALS, payload: goals });
+      if (gamification && gamification.stats) {
+        dispatch({ type: ACTIONS.UPDATE_GAMIFICATION, payload: {
+          xp: gamification.stats.xp,
+          level: gamification.stats.level,
+          streak: gamification.stats.currentStreak,
+          badges: gamification.badges || [],
+        } });
+      }
+      dispatch({
+        type: ACTIONS.SET_SUSTAINABILITY_DATA,
+        payload: {
+          syncEnabled: sustainabilitySettings ? sustainabilitySettings.syncEnabled : false,
+          ecoActions: ecoActions || [],
+        }
+      });
+    } catch (e) {
+      console.warn('DataContext: Backend sync failed (non-critical):', e.message);
+    }
+  }, []);
+
   // Sync with AuthContext on login/logout
   useEffect(() => {
     registerAuthCallback(async (authUser) => {
@@ -608,36 +636,27 @@ export function DataProvider({ children }) {
         })();
 
         if (isRealToken) {
-          try {
-            const { health, finance, career, goals, gamification, sustainabilitySettings, ecoActions } = await fetchAllRecords();
-            if (health.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'health',  records: health  } });
-            if (finance.length) dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'finance', records: finance } });
-            if (career.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'career',  records: career  } });
-            if (goals && goals.length > 0) dispatch({ type: ACTIONS.UPDATE_GOALS, payload: goals });
-            
-            if (gamification && gamification.stats) {
-              dispatch({ type: ACTIONS.UPDATE_GAMIFICATION, payload: {
-                xp: gamification.stats.xp,
-                level: gamification.stats.level,
-                streak: gamification.stats.currentStreak,
-                badges: gamification.badges || [],
-              } });
-            }
-
-            dispatch({
-              type: ACTIONS.SET_SUSTAINABILITY_DATA,
-              payload: {
-                syncEnabled: sustainabilitySettings ? sustainabilitySettings.syncEnabled : false,
-                ecoActions: ecoActions || [],
-              }
-            });
-          } catch (e) {
-            console.warn('DataContext: Backend sync failed (non-critical):', e.message);
-          }
+          await syncFromBackend();
         }
       }
     });
   }, [registerAuthCallback]);
+
+  // Re-fetch from backend when tab becomes visible (keeps multi-browser sessions in sync)
+  useEffect(() => {
+    const handleVisibility = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const raw = localStorage.getItem('dt_auth');
+        if (!raw) return;
+        const { isDemo, token } = JSON.parse(raw);
+        if (isDemo || !token || token.startsWith('DEMO_SESSION_')) return;
+        await syncFromBackend();
+      } catch { /* non-critical */ }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [syncFromBackend]);
 
   // Persist on every state change (debounced effect)
   useEffect(() => {

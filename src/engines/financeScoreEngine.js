@@ -56,6 +56,12 @@ export function computeFinanceScore(financeData, financeRecords = []) {
   const score = Math.round(factors.reduce((sum, f) => sum + f.rawScore * f.weight, 0));
   factors.forEach(f => { f.contribution = Math.round(f.rawScore * f.weight); });
 
+  const contributors = factors
+    .map(f => ({ factor: f.name, weight: Math.round(f.weight * 100), rawScore: f.rawScore, status: f.status }))
+    .sort((a, b) => (b.weight * (100 - b.rawScore)) - (a.weight * (100 - a.rawScore)))
+    .slice(0, 3)
+    .map(({ factor, weight, rawScore, status }) => ({ factor, weight, rawScore, status }));
+
   // Detect emotional spending risk from stress correlation
   const emotionalSpendingRisk = computeEmotionalSpendingRisk(financeData, financeRecords);
 
@@ -64,6 +70,7 @@ export function computeFinanceScore(financeData, financeRecords = []) {
   return {
     score: Math.max(0, Math.min(100, score)),
     factors,
+    contributors,
     trends,
     emotionalSpendingRisk,
     summary: {

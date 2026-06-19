@@ -8,6 +8,7 @@
  */
 
 import * as pdfjsLib from 'pdfjs-dist';
+import { stripDocumentPII } from '../utils/piiStrip.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -193,7 +194,8 @@ export async function parseCertificate(file, existingCareer = {}) {
     result = extractJson(data.choices?.[0]?.message?.content ?? '');
   }
 
-  return { ...result, careerPatch: buildCareerPatch(result, existingCareer) };
+  const withPatch = { ...result, careerPatch: buildCareerPatch(result, existingCareer) };
+  return stripDocumentPII(withPatch);
 }
 
 // ── Demo fallback ─────────────────────────────────────────────────────────────

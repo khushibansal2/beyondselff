@@ -339,10 +339,34 @@ export async function checkAIStatus() {
 }
 
 // ========== DETERMINISTIC FALLBACK RESPONSES ==========
-// Used when Gemini is unavailable. Grounded in computed engine outputs — no invented intelligence.
+// Used when the cloud AI is unavailable. Grounded in computed engine outputs — no invented intelligence.
 
 // State to rotate fallback templates, initialized randomly so variety persists across reloads
 let fallbackRotationCounter = Math.floor(Math.random() * 100);
+
+/**
+ * Build a natural-language explanation from a contributors array.
+ * For scores where lower = worse (health/finance/career): shows which factors are dragging the score down.
+ * For burnout: shows which factors are pushing risk up.
+ * @param {Array<{factor, weight, rawScore?, value?}>} contributors
+ * @param {'drag'|'risk'} mode
+ */
+function formatContributors(contributors, mode = 'drag') {
+  if (!contributors || contributors.length === 0) return '';
+  const top = contributors.slice(0, 2);
+  if (mode === 'risk') {
+    // Burnout contributors: factor is a risk driver, weight = impact points added
+    const parts = top.map(c => `${c.factor}${c.value ? ` (${c.value})` : ''}`);
+    return parts.length === 1
+      ? `The main driver is ${parts[0]}.`
+      : `The top drivers are ${parts[0]} and ${parts[1]}.`;
+  }
+  // Health/finance/career: show factors with most room to improve
+  const parts = top.map(c => `${c.factor} (${c.rawScore}/100, ${c.weight}% of score)`);
+  return parts.length === 1
+    ? `The factor holding your score back most is ${parts[0]}.`
+    : `The factors holding your score back most are ${parts[0]} and ${parts[1]}.`;
+}
 
 function generateFallbackResponse(message, context) {
   fallbackRotationCounter++;
@@ -364,27 +388,27 @@ function generateFallbackResponse(message, context) {
     if (lastSim) {
       const { baseline, simulated, stabilityTrend, dominantDriver, confidence, months, deltas } = lastSim;
       const bDelta = deltas.burnout;
-      
+
       const trendDescriptions = {
-        'recovery': 'This path leads to sustainable recovery.',
+        'recovery':  'This path leads to sustainable recovery.',
         'improving': 'This trajectory is healthy and sustainable long-term.',
-        'stable': 'This path maintains your current balance without adding risk.',
-        'volatile': 'This scenario shows high volatility — short-term gains but unsustainable burnout accumulation.',
-        'declining': 'This path is unsustainable and leads to compounding decline.'
+        'stable':    'This path maintains your current balance without adding risk.',
+        'volatile':  'This scenario shows high volatility — short-term gains but unsustainable burnout accumulation.',
+        'declining': 'This path is unsustainable and leads to compounding decline.',
       };
 
       const intro = [
         `Looking at your ${months}-month projection, `,
         `Based on the simulator engine (${confidence}% confidence), `,
-        `Projecting your current choices over ${months} months, `
+        `Projecting your current choices over ${months} months, `,
       ][rotationIndex];
 
-      const burnoutText = bDelta > 0 
-        ? `burnout risk climbs from ${baseline.burnout}% to ${simulated.burnout}%` 
+      const burnoutText = bDelta > 0
+        ? `burnout risk climbs from ${baseline.burnout}% to ${simulated.burnout}%`
         : `burnout drops by ${Math.abs(bDelta)}%`;
 
       const driverText = dominantDriver ? ` The dominant driver of this outcome is ${dominantDriver.text.toLowerCase()}` : '';
-      
+
       return `${intro}${trendDescriptions[stabilityTrend] || 'the trajectory is uncertain.'} Your ${burnoutText}.${driverText} Overall life balance relies on keeping burnout risk low — prioritize paths that classify as "stable" or "recovering".`;
     }
     return "To compare futures, please run a scenario in the Simulator tab first. I'll then be able to explain the deterministic long-term trajectory of those choices.";
@@ -393,20 +417,21 @@ function generateFallbackResponse(message, context) {
   // ---- Burnout / Stress ----
   if (msg.includes('burnout') || msg.includes('overwhelm') || msg.includes('tired') || msg.includes('exhausted')) {
     const risk = burnout.risk;
-    const factors = burnout.factors || [];
     if (risk != null) {
       const intros = [
         `Your burnout risk is currently ${risk}% (${burnout.level || 'moderate'}). `,
         `I'm tracking your burnout risk at ${risk}%. `,
-        `Based on your recent logs, your burnout risk sits at ${risk}% (${burnout.level || 'moderate'}). `
+        `Based on your recent logs, your burnout risk sits at ${risk}% (${burnout.level || 'moderate'}). `,
       ];
-      const factorText = factors.length > 0
-        ? `The main contributing factors your system detected are: ${factors.map(f => `${f.name} (${f.value})`).join(', ')}.`
-        : '';
-      return `${intros[rotationIndex]}${factorText} ${risk > 60 ? 'This is in the critical range — your data suggests reducing your total daily work hours and prioritising sleep recovery as the highest-impact changes.' : risk > 30 ? 'Moderate burnout risk detected. Small consistent improvements in sleep and exercise typically reduce this within 2–3 weeks.' : 'Your burnout risk is low. Keep maintaining your current recovery habits.'}`;
+      const driverText = formatContributors(burnout.contributors, 'risk');
+      const adviceText = risk > 60
+        ? 'This is in the critical range — address the top drivers above before adding more workload.'
+        : risk > 30
+          ? 'Moderate risk. Tackling the top drivers above typically brings this down within 2–3 weeks.'
+          : 'Your burnout risk is low. Keep sustaining your current recovery habits.';
+      return `${intros[rotationIndex]}${driverText ? driverText + ' ' : ''}${adviceText}`;
     }
   }
-
 
   // ---- Sleep ----
   if (msg.includes('sleep')) {
@@ -414,7 +439,7 @@ function generateFallbackResponse(message, context) {
     if (sleepFactor) {
       const cascade = crossDomain.find(cd => cd.id === 'sleep-productivity');
       const cascadeText = cascade ? ` Your data also shows this is affecting your career productivity — ${cascade.effect}.` : '';
-      return `Based on your logged data, your sleep averages ${sleepFactor.value}h/night (${sleepFactor.status}). ${sleepFactor.status === 'critical' ? 'This is significantly below the recommended 7-8 hours.' : 'You are close to optimal range.'}${cascadeText}`;
+      return `Based on your logged data, your sleep averages ${sleepFactor.value}h/night (${sleepFactor.status}). ${sleepFactor.status === 'critical' ? 'This is significantly below the recommended 7–8 hours.' : 'You are close to the optimal range.'}${cascadeText}`;
     }
     return 'Sleep quality directly impacts productivity, mood, and decision-making. Log your sleep data to get a personalised analysis.';
   }
@@ -424,28 +449,38 @@ function generateFallbackResponse(message, context) {
     const stressFactor = health?.factors?.find(f => f.name === 'Stress Level');
     const spendCascade = crossDomain.find(cd => cd.id === 'stress-spending');
     if (stressFactor) {
-      const spendText = spendCascade ? ` Your system also detected an emotional spending pattern linked to your stress — estimated ₹${spendCascade.computedImpact?.excessSpending?.toLocaleString()} in stress-related spending per month.` : '';
-      return `Your stress level is ${stressFactor.value}/10 (${stressFactor.status}).${spendText} Exercise and consistent sleep are the highest-leverage interventions based on your current data.`;
+      const spendText = spendCascade
+        ? ` Your system also detected an emotional spending pattern linked to your stress — estimated ₹${spendCascade.computedImpact?.excessSpending?.toLocaleString()} in stress-related spending per month.`
+        : '';
+      const healthContrib = formatContributors(health.contributors, 'drag');
+      return `Your stress level is ${stressFactor.value}/10 (${stressFactor.status}).${spendText} ${healthContrib ? healthContrib + ' ' : ''}Reducing stress and improving sleep are the highest-leverage interventions based on your data.`;
     }
   }
 
-  // ---- Finance / Spending / Balance ----
-  if (msg.includes('spend') || msg.includes('money') || msg.includes('finance') || msg.includes('budget') || msg.includes('balance') || msg.includes('saving')) {
+  // ---- Finance / Spending ----
+  if (msg.includes('spend') || msg.includes('money') || msg.includes('finance') || msg.includes('budget') || msg.includes('saving')) {
     const finScore = finance?.score;
-    const spendCascade = crossDomain.find(cd => cd.id === 'stress-spending');
     const emotionalRisk = finance?.emotionalSpendingRisk;
     if (finScore != null) {
-      const emotionalText = emotionalRisk?.level === 'high' ? ` Your system also detected high emotional spending risk (expense ratio: ${emotionalRisk.expenseRatio}%) — this may be stress-driven.` : '';
-      return `Your finance score is ${finScore}/100.${emotionalText} ${finScore < 50 ? 'Your system analysis suggests reviewing your expense-to-income ratio and building an emergency fund as priority actions.' : finScore < 70 ? 'You are in a reasonable position but there is room to improve savings rate and reduce subscriptions.' : 'Strong financial discipline. Focus on growing your investment rate for long-term compounding.'}`;
+      const emotionalText = emotionalRisk?.level === 'high'
+        ? ` High emotional spending risk detected (expense ratio: ${emotionalRisk.expenseRatio}%) — this may be stress-driven.`
+        : '';
+      const contribText = formatContributors(finance.contributors, 'drag');
+      const levelText = finScore < 50
+        ? 'Focus on the factors above to make the highest-impact improvements.'
+        : finScore < 70
+          ? 'You are in a reasonable position — the factors above have the most room to improve.'
+          : 'Strong financial discipline. Continue optimising the factors above for long-term compounding.';
+      return `Your finance score is ${finScore}/100.${emotionalText} ${contribText ? contribText + ' ' : ''}${levelText}`;
     }
   }
 
-  // ---- Recovery / Recovering ----
+  // ---- Recovery ----
   if (msg.includes('recover') || msg.includes('improving') || msg.includes('getting better')) {
     const burnoutRisk = burnout?.risk;
-    const urgentAlertCount = urgentAlerts.length;
     if (burnoutRisk != null) {
-      return `Based on your current data, your burnout risk is ${burnoutRisk}% (${burnout.level}). ${burnoutRisk < 30 ? 'Your data shows low burnout risk — you appear to be in a healthy recovery state. Keep sustaining your current habits.' : 'Recovery typically requires 2–4 weeks of consistent sleep improvements, reduced work hours, and light exercise. Your Digital Twin will track this and update your scores as you log new data.'}`;
+      const driverText = formatContributors(burnout.contributors, 'risk');
+      return `Based on your current data, your burnout risk is ${burnoutRisk}% (${burnout.level}). ${burnoutRisk < 30 ? 'Your data shows low burnout risk — you appear to be in a healthy recovery state.' : `Recovery typically requires 2–4 weeks of sustained improvements. ${driverText ? 'Focus first on: ' + driverText : 'Start with sleep and work-hour reductions.'}`}`;
     }
   }
 
@@ -457,7 +492,8 @@ function generateFallbackResponse(message, context) {
     if (careerScore != null) {
       const placementText = placementReadiness ? ` Your placement readiness is ${placementReadiness.score}/100 (${placementReadiness.level}).` : '';
       const gapText = skillGaps?.missing?.length > 0 ? ` Top skill gaps: ${skillGaps.missing.slice(0, 3).join(', ')}.` : '';
-      return `Your career score is ${careerScore}/100.${placementText}${gapText} Consistent daily DSA practice and project completion have the highest impact on placement readiness.`;
+      const contribText = formatContributors(career.contributors, 'drag');
+      return `Your career score is ${careerScore}/100.${placementText}${gapText} ${contribText ? contribText + ' Addressing these gives the highest score improvement per unit of effort.' : 'Consistent daily practice and project completion have the highest impact on placement readiness.'}`;
     }
   }
 
@@ -468,9 +504,9 @@ function generateFallbackResponse(message, context) {
     const generalIntros = [
       `Your life balance score is ${balance}/100. `,
       `Your current deterministic balance is ${balance}/100. `,
-      `Overall, you're tracking at a ${balance}/100 balance score. `
+      `Overall, you're tracking at a ${balance}/100 balance score. `,
     ];
-    return `${generalIntros[rotationIndex]}${weakestName ? `Your weakest domain is ${weakestName} (${weakestScore}/100) — improving this would have the highest projected positive impact across all areas.` : 'Keep logging data to unlock deeper cross-domain insights.'} What specific area would you like to explore?`;
+    return `${generalIntros[rotationIndex]}${weakestName ? `Your weakest domain is ${weakestName} (${weakestScore}/100) — improving this would have the highest projected cross-domain impact.` : 'Keep logging data to unlock deeper cross-domain insights.'} What specific area would you like to explore?`;
   }
 
   return "I'm your Digital Twin AI coach. I analyze connections between your health, finances, and career — all based on your real logged data. What would you like to explore?";

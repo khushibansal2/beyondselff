@@ -35,6 +35,14 @@
   --font-sans:    'Outfit', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', 'Space Grotesk', 'Inter', sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
+
+  /* ── Shared inline-style CSS vars (dark defaults) ── */
+  --db-card:   #111827;
+  --db-panel:  rgba(255,255,255,0.03);
+  --db-track:  rgba(255,255,255,0.05);
+  --db-border: rgba(255,255,255,0.07);
+  --db-text:   #e2e8f0;
+  --db-muted:  #9ca3af;
 }
 
 /* ===== BASE STYLES ===== */
@@ -610,6 +618,14 @@ textarea:focus-visible {
   --color-slate-800: #e2e8f0;
   --color-slate-900: #f0f4f8;
   --color-slate-950: #f8fafc;
+
+  /* ── Shared inline-style CSS vars (light overrides) ── */
+  --db-card:   #ffffff;
+  --db-panel:  rgba(0,0,0,0.025);
+  --db-track:  rgba(0,0,0,0.06);
+  --db-border: rgba(0,0,0,0.07);
+  --db-text:   #0f172a;
+  --db-muted:  #64748b;
 
   /* App CSS vars */
   --color-bg-primary: #f0f4f8;

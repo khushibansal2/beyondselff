@@ -1,5 +1,7 @@
 // Privacy-first: all parsing runs in the browser — no raw SMS data leaves the device.
 
+import { stripTextPII } from '../utils/piiStrip.js';
+
 // ── OTP / Sensitive detection ───────────────────────────────────────────────
 const OTP_PATTERNS = [
   /\botp\b/i, /one.?time.?pass(word)?/i, /do.?not.?share/i,
@@ -140,7 +142,7 @@ export function parseTransactionSMS(message) {
     bank,
     type,
     paymentMode,
-    rawMessage: message,
+    rawMessage: stripTextPII(message),
     parsedAt: new Date().toISOString(),
     source: 'manual',
   };

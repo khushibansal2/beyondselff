@@ -1,4 +1,5 @@
 // Vision Service — powered by Groq (llama-3.2-11b-vision)
+import { stripDocumentPII } from '../utils/piiStrip.js';
 // Free tier: 14,400 req/day, no credit card, no regional restrictions
 // Get a free key at console.groq.com → API Keys
 
@@ -162,7 +163,10 @@ export async function analyzeSupplementImage(imageFile) {
 }
 
 export async function analyzeDocument(imageFile) {
-  try { return await callVision(DOCUMENT_PROMPT, imageFile); }
+  try {
+    const result = await callVision(DOCUMENT_PROMPT, imageFile);
+    return stripDocumentPII(result);
+  }
   catch (err) { handleError(err); }
 }
 

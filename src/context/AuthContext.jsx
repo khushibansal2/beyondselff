@@ -89,69 +89,104 @@ export function AuthProvider({ children }) {
   };
 
   // ── Real login — calls backend, receives a signed JWT ───────────────────────
-  const loginReal = async (email, password) => {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60000);
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      let data = {};
-      try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
-      if (!res.ok) return { success: false, error: data.error || data.message || 'Invalid credentials' };
-      const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: data.age ?? null, gender: data.gender ?? null };
-      setUser(userObj); setToken(data.token); setIsDemo(false);
-      localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
-      return { success: true, isDemo: false };
-    } catch {
-      // Network error or backend unavailable
+  const loginReal = async (email, password, onRetry) => {
+    const MAX_ATTEMPTS = 5;
+    const RETRY_DELAY_MS = 25000; // 25 s between retries — Render cold starts take 60-90 s
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 55000);
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        let data = {};
+        try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
+        // A real auth error (wrong password etc.) — don't retry
+        if (res.status === 401 || res.status === 403 || res.status === 409 || res.status === 429)
+          return { success: false, error: data.error || data.message || 'Invalid credentials' };
+        if (!res.ok) {
+          // 5xx / 503 cold-start — fall through to retry
+          if (attempt < MAX_ATTEMPTS) {
+            onRetry?.(attempt, MAX_ATTEMPTS);
+            await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+            continue;
+          }
+          return { success: false, error: data.error || data.message || 'Server error. Please try again.' };
+        }
+        const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: data.age ?? null, gender: data.gender ?? null };
+        setUser(userObj); setToken(data.token); setIsDemo(false);
+        localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
+        return { success: true, isDemo: false };
+      } catch {
+        // Network error / timeout — retry
+        if (attempt < MAX_ATTEMPTS) {
+          onRetry?.(attempt, MAX_ATTEMPTS);
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+        }
+      }
     }
 
-    return { success: false, error: 'Cannot connect to the server. The backend may be starting up — please wait a moment and try again.' };
+    return { success: false, error: 'Cannot reach the server after 5 attempts. Please check your connection and try again.' };
   };
 
   // ── Unified login — picks demo or real path automatically ────────────────────
-  const login = (email, password) => {
+  const login = (email, password, onRetry) => {
     const demoFound = Object.values(demoUsers).find(
       u => u.email === email && (u.password === password || password === 'demo123')
     );
     if (demoFound) return loginDemo(email);
     // Real login returns a Promise — callers must await or .then()
-    return loginReal(email, password);
+    return loginReal(email, password, onRetry);
   };
 
   // ── Real signup — backend registers user & issues signed JWT ─────────────────
-  const signup = async (name, email, password, age = null, gender = null) => {
+  const signup = async (name, email, password, age = null, gender = null, onRetry) => {
     if (Object.values(demoUsers).find(u => u.email === email))
       return { success: false, error: 'Email already exists' };
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60000);
-      const res = await fetch(`${API_BASE}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, age, gender }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      let data = {};
-      try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
-      if (res.status === 409) return { success: false, error: 'An account with this email already exists. Please sign in instead.' };
-      if (!res.ok) return { success: false, error: data.error || data.message || 'Signup failed' };
-      const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: age ?? data.age ?? null, gender: gender ?? data.gender ?? null };
-      setUser(userObj); setToken(data.token); setIsDemo(false);
-      localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
-      return { success: true, isNew: true };
-    } catch {
-      // Network error or backend unavailable
+    const MAX_ATTEMPTS = 5;
+    const RETRY_DELAY_MS = 25000;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 55000);
+        const res = await fetch(`${API_BASE}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, age, gender }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        let data = {};
+        try { data = await res.json(); } catch { /* non-JSON response (e.g. cold-start 503) */ }
+        if (res.status === 409) return { success: false, error: 'An account with this email already exists. Please sign in instead.' };
+        if (!res.ok) {
+          if (attempt < MAX_ATTEMPTS) {
+            onRetry?.(attempt, MAX_ATTEMPTS);
+            await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+            continue;
+          }
+          return { success: false, error: data.error || data.message || 'Signup failed. Please try again.' };
+        }
+        const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: age ?? data.age ?? null, gender: gender ?? data.gender ?? null };
+        setUser(userObj); setToken(data.token); setIsDemo(false);
+        localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
+        return { success: true, isNew: true };
+      } catch {
+        if (attempt < MAX_ATTEMPTS) {
+          onRetry?.(attempt, MAX_ATTEMPTS);
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+        }
+      }
     }
 
-    return { success: false, error: 'Cannot connect to the server. The backend may be starting up — please wait a moment and try again.' };
+    return { success: false, error: 'Cannot reach the server after 5 attempts. Please check your connection and try again.' };
   };
 
   const logout = () => {
@@ -169,8 +204,11 @@ export function AuthProvider({ children }) {
 
   const registerAuthCallback = useCallback((cb) => setOnAuthChange(() => cb), []);
 
+  const signupWithRetry = (name, email, password, age, gender, onRetry) =>
+    signup(name, email, password, age, gender, onRetry);
+
   return (
-    <AuthContext.Provider value={{ user, token, isDemo, loading, login, signup, logout, updateUser, registerAuthCallback }}>
+    <AuthContext.Provider value={{ user, token, isDemo, loading, login, signup: signupWithRetry, logout, updateUser, registerAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );

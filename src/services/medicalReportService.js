@@ -9,6 +9,7 @@
  */
 
 import * as pdfjsLib from 'pdfjs-dist';
+import { stripDocumentPII } from '../utils/piiStrip.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -222,7 +223,8 @@ export async function parseMedicalReport(file) {
     result = extractJson(data.choices?.[0]?.message?.content ?? '');
   }
 
-  return { ...result, healthPatch: buildHealthPatch(result.markers || []) };
+  const withPatch = { ...result, healthPatch: buildHealthPatch(result.markers || []) };
+  return stripDocumentPII(withPatch);
 }
 
 // ── Demo fallback ─────────────────────────────────────────────────────────────
