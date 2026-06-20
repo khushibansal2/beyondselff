@@ -454,6 +454,23 @@ export const sustainabilityApi = {
   },
 };
 
+// ─── ML Scores API ───────────────────────────────────────────────────────────
+
+export const mlScoresApi = {
+  isEnabled: isAuthenticated,
+
+  async get() {
+    return authFetch('/ml-scores');
+  },
+
+  async save(predictions) {
+    return authFetch('/ml-scores', {
+      method: 'POST',
+      body: JSON.stringify(predictions),
+    });
+  },
+};
+
 // ─── Sync helper — fetch all records on login ────────────────────────────
 
 /**
@@ -462,9 +479,9 @@ export const sustainabilityApi = {
  * Silently returns empty arrays on any error (e.g. demo mode).
  */
 export async function fetchAllRecords() {
-  if (!isAuthenticated()) return { health: [], finance: [], career: [], goals: [], gamification: null, sustainabilitySettings: null, ecoActions: [] };
+  if (!isAuthenticated()) return { health: [], finance: [], career: [], goals: [], gamification: null, sustainabilitySettings: null, ecoActions: [], mlScores: null };
 
-  const [health, finance, career, goals, gamification, sustainabilitySettings, ecoActions] = await Promise.allSettled([
+  const [health, finance, career, goals, gamification, sustainabilitySettings, ecoActions, mlScores] = await Promise.allSettled([
     healthApi.getAll(),
     financeApi.getAll(),
     careerApi.getAll(),
@@ -472,6 +489,7 @@ export async function fetchAllRecords() {
     gamificationApi.getSummary(),
     sustainabilityApi.getSettings(),
     sustainabilityApi.getEcoActions(),
+    mlScoresApi.get(),
   ]);
 
   return {
@@ -482,6 +500,7 @@ export async function fetchAllRecords() {
     gamification: gamification.status === 'fulfilled' ? gamification.value : null,
     sustainabilitySettings: sustainabilitySettings.status === 'fulfilled' ? sustainabilitySettings.value : null,
     ecoActions: ecoActions.status === 'fulfilled' ? ecoActions.value : [],
+    mlScores: mlScores.status === 'fulfilled' ? mlScores.value : null,
   };
 }
 

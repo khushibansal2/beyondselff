@@ -119,6 +119,20 @@ function detectCrossDomainRelationships(userData, healthR, financeR, careerR, ml
         ...(ml && { mlCareerDelta: ml.mlDirectDelta, mlCascadeCareerDelta: ml.mlCascadeDelta, mlModel: ml.mlModel }),
       },
     });
+  } else if (sleepAvg > 9) {
+    // Oversleeping (hypersomnia) is associated with fatigue and reduced alertness
+    const fatigueImpact = Math.round((sleepAvg - 9) * 8);
+    relationships.push({
+      id: 'sleep-oversleep',
+      type: 'negative',
+      from: 'health',
+      to: 'career',
+      trigger: `Sleep at ${sleepAvg}h/night`,
+      effect: `Estimated ${fatigueImpact}% reduction in alertness and daily productivity from oversleeping`,
+      severity: sleepAvg > 10 ? 'warning' : 'warning',
+      mechanism: 'Excessive sleep disrupts circadian rhythm, increases grogginess (sleep inertia), and is linked to lower energy and mood.',
+      computedImpact: { fatigueImpact },
+    });
   } else {
     const perfBoost = Math.round((sleepAvg / 8) * 28);
     relationships.push({

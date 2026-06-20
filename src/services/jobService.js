@@ -179,10 +179,13 @@ async function fetchViaProxy(endpoint, params = {}, method = 'GET') {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
+  // VITE_API_BASE may already include /api (e.g. https://host.onrender.com/api)
+  // or may be bare (e.g. http://localhost:8080). Normalise to a base without trailing slash.
+  const base = BACKEND_BASE.replace(/\/api\/?$/, '');
   const isPost = method === 'POST';
   const url = isPost
-    ? `${BACKEND_BASE}/api/jobs/${endpoint}`
-    : `${BACKEND_BASE}/api/jobs/${endpoint}?${new URLSearchParams(params)}`;
+    ? `${base}/api/jobs/${endpoint}`
+    : `${base}/api/jobs/${endpoint}?${new URLSearchParams(params)}`;
 
   const res = await fetch(url, {
     method,
@@ -205,6 +208,13 @@ const NON_INDIA_REGIONS = [
   'latam only', 'latin america only',
 ];
 
+function isRelevantToQuery(job, query) {
+  const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+  if (!terms.length) return true;
+  const haystack = `${job.title} ${(job.tags || []).join(' ')} ${job.description || ''}`.toLowerCase();
+  return terms.some(t => haystack.includes(t));
+}
+
 function isIndiaRelevant(job) {
   if (job.remote) return true; // remote jobs are open to India
   const loc = (job.location || '').toLowerCase();
@@ -222,7 +232,7 @@ export async function fetchJobs(query, { location = 'India', limit = 24 } = {}) 
   if (!query?.trim()) return [];
 
   const settled = await Promise.allSettled([
-    fetchRemotive(query),
+    fetchRemotive(query).catch(() => []),
     // Adzuna India — dedicated /in/ endpoint, returns INR salaries
     fetchViaProxy('adzuna', { query: `${query} ${location}`, country: 'in' })
       .then(d => (d.results || []).map(normalizeAdzuna))
@@ -240,9 +250,10 @@ export async function fetchJobs(query, { location = 'India', limit = 24 } = {}) 
 
   if (!all.length) throw new Error('NO_RESULTS');
 
-  // Filter out non-India-relevant jobs, then deduplicate on title+company
+  // Filter by query relevance, then India relevance, then deduplicate on title+company
   const seen = new Set();
   return all
+    .filter(j => isRelevantToQuery(j, query))
     .filter(isIndiaRelevant)
     .filter(j => {
       const key = `${j.title.toLowerCase().slice(0, 30)}_${j.company.toLowerCase().slice(0, 20)}`;

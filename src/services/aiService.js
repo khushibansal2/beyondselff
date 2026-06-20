@@ -195,9 +195,12 @@ export async function chatWithAI(message, context = {}, history = []) {
  */
 export async function generateNarrative(computedData, type = 'dashboard') {
   try {
+    const token = getAuthToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`${API_BASE}/narrative`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         computedData: stripPII(computedData),
         type,

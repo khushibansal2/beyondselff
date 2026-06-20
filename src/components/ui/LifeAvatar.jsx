@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Palettes ──────────────────────────────────────────────────────────────────
@@ -645,16 +646,19 @@ export function LifeAvatar({
 
   return (
     <div className="flex flex-col items-center select-none relative">
-      {/* PersonaEditor modal — fixed overlay, outside avatar box */}
-      <AnimatePresence>
-        {showEditor && (
-          <PersonaEditor
-            persona={persona}
-            onChange={p => { setPersona(p); savePersona(p); }}
-            onClose={() => setShowEditor(false)}
-          />
-        )}
-      </AnimatePresence>
+      {/* PersonaEditor modal — rendered at body level via portal to escape transform stacking context */}
+      {createPortal(
+        <AnimatePresence>
+          {showEditor && (
+            <PersonaEditor
+              persona={persona}
+              onChange={p => { setPersona(p); savePersona(p); }}
+              onClose={() => setShowEditor(false)}
+            />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Status badge — hidden when parent already shows balance status */}
       {!hideLabel && (

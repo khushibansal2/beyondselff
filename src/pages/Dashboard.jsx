@@ -1609,7 +1609,7 @@ export default function Dashboard() {
                   <div style={{ position: 'relative', width: 160, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 
                     {/* SVG overlay containing the exact split/segmented progress ring and outer dot halo */}
-                    <svg width="160" height="160" viewBox="0 0 180 180" style={{ position: 'absolute', inset: 0, overflow: 'visible', zIndex: 1 }}>
+                    <svg width="160" height="160" viewBox="0 0 180 180" style={{ position: 'absolute', inset: 0, overflow: 'visible', zIndex: 1, pointerEvents: 'none' }}>
                       {/* Outer faint thin grid ring */}
                       <circle cx="90" cy="90" r="84" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
                       
