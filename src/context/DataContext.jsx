@@ -855,12 +855,30 @@ export function DataProvider({ children }) {
   // Merge ML scores into computed — override the three domain scores + balance
   const computedWithML = useMemo(() => {
     if (!mlRawScores || !computed) return computed;
-    const hRaw = Math.max(0, Math.min(100, mlRawScores.health_score ?? computed.healthScore?.score ?? 50));
-    // Apply LLM sanity-check delta (clamped again for safety)
+
+    // ML cache can only adjust the current deterministic score by ±ML_CAP.
+    // This ensures rings always move when the user logs new data (deterministic
+    // reacts immediately), while ML provides a refinement within that bound.
+    // Once the 400ms re-predict completes, mlRawScores are fresh and reflect
+    // the new data fully.
+    const ML_CAP = 15;
+    const det_h = computed.healthScore?.score  ?? 50;
+    const det_f = computed.financeScore?.score ?? 50;
+    const det_c = computed.careerScore?.score  ?? 50;
+
+    const clampToDetPlusMinus = (ml, det) =>
+      ml != null ? Math.max(det - ML_CAP, Math.min(det + ML_CAP, ml)) : det;
+
+    const hBlended = clampToDetPlusMinus(mlRawScores.health_score,  det_h);
+    const fBlended = clampToDetPlusMinus(mlRawScores.finance_score, det_f);
+    const cBlended = clampToDetPlusMinus(mlRawScores.career_score,  det_c);
+
+    // Apply LLM sanity-check delta on top of the blended health score
     const llmDelta = llmHealthCorrection?.delta ?? 0;
-    const h = Math.round(Math.max(0, Math.min(100, hRaw + llmDelta)));
-    const f = Math.round(Math.max(0, Math.min(100, mlRawScores.finance_score ?? computed.financeScore?.score ?? 50)));
-    const c = Math.round(Math.max(0, Math.min(100, mlRawScores.career_score  ?? computed.careerScore?.score  ?? 50)));
+    const h = Math.round(Math.max(0, Math.min(100, hBlended + llmDelta)));
+    const f = Math.round(Math.max(0, Math.min(100, fBlended)));
+    const c = Math.round(Math.max(0, Math.min(100, cBlended)));
+
     const burnoutPenalty = computed.penalties?.burnoutPenalty ?? 0;
     const sleepPenalty   = computed.penalties?.sleepPenalty   ?? 0;
     const mlBalance = Math.round(Math.max(0, Math.min(100, h * 0.35 + f * 0.30 + c * 0.35 - burnoutPenalty - sleepPenalty)));
