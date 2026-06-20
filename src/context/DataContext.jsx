@@ -273,6 +273,16 @@ function aggregateCareer(records, currentState = {}) {
   };
 }
 
+// Increment _revision for internal ordering; increment _userRevision only for
+// user-initiated mutations so that HYDRATE (cross-tab sync) doesn't let a
+// backend re-sync in another tab silently overwrite this tab's newer edits.
+function nextRevision(state) {
+  return (state._revision || 0) + 1;
+}
+function nextUserRevision(state) {
+  return (state._userRevision || 0) + 1;
+}
+
 function dataReducer(state, action) {
   switch (action.type) {
     case ACTIONS.SET_USER_DATA: {
@@ -326,7 +336,8 @@ function dataReducer(state, action) {
         [domain]: { ...state[domain], ...data },
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
         // Invalidate AI cache on data change
         aiCache: { ...state.aiCache, dashboardNarrative: null, dashboardNarrativeHash: null },
       };
@@ -352,7 +363,8 @@ function dataReducer(state, action) {
         ...domainUpdate,
         dataSource: state.dataSource === 'none' || state.dataSource === 'demo' ? 'imported' : state.dataSource,
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
         aiCache: { ...state.aiCache, dashboardNarrative: null, dashboardNarrativeHash: null },
       };
     }
@@ -378,7 +390,10 @@ function dataReducer(state, action) {
         ...domainUpdate,
         dataSource: 'imported',
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        // _revision increments (internal ordering) but _userRevision does NOT —
+        // backend re-sync is a read, not a user mutation, so it must not trigger
+        // HYDRATE overwrites in other tabs that may have newer user edits.
+        _revision: nextRevision(state),
         aiCache: { ...state.aiCache, dashboardNarrative: null, dashboardNarrativeHash: null },
       };
     }
@@ -389,7 +404,8 @@ function dataReducer(state, action) {
         goals: action.payload,
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -399,7 +415,8 @@ function dataReducer(state, action) {
         goals: [...state.goals, action.payload],
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -409,7 +426,8 @@ function dataReducer(state, action) {
         goals: state.goals.filter(g => g.id !== action.payload),
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -419,7 +437,8 @@ function dataReducer(state, action) {
         timeline: [action.payload, ...state.timeline].slice(0, 100), // Keep last 100
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -429,7 +448,8 @@ function dataReducer(state, action) {
         gamification: { ...state.gamification, ...action.payload },
         dataSource: state.dataSource === 'demo' ? 'mixed' : (state.dataSource === 'none' ? 'imported' : state.dataSource),
         lastUpdated: new Date().toISOString(),
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -437,7 +457,7 @@ function dataReducer(state, action) {
       return {
         ...state,
         aiCache: { ...state.aiCache, ...action.payload },
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
       };
     }
 
@@ -445,7 +465,7 @@ function dataReducer(state, action) {
       return {
         ...state,
         simulatorState: { ...(state.simulatorState || {}), ...action.payload },
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
       };
     }
 
@@ -453,7 +473,8 @@ function dataReducer(state, action) {
       return {
         ...state,
         sustainabilitySyncEnabled: !!action.payload,
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -466,7 +487,7 @@ function dataReducer(state, action) {
           ...state.sustainability,
           ecoActions: ecoActions || [],
         },
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
       };
     }
 
@@ -477,7 +498,8 @@ function dataReducer(state, action) {
           ...state.sustainability,
           ecoActions: [action.payload, ...(state.sustainability?.ecoActions || [])],
         },
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -488,7 +510,8 @@ function dataReducer(state, action) {
           ...state.sustainability,
           ecoActions: (state.sustainability?.ecoActions || []).filter(a => a.id !== action.payload && a.date !== action.payload),
         },
-        _revision: (state._revision || 0) + 1,
+        _revision: nextRevision(state),
+        _userRevision: nextUserRevision(state),
       };
     }
 
@@ -498,13 +521,14 @@ function dataReducer(state, action) {
 
     case ACTIONS.HYDRATE: {
       if (!action.payload || typeof action.payload !== 'object') return state;
-      // Conflict resolution: only hydrate if incoming state is newer using monotonic revision
-      const currentRevision = state._revision || 0;
-      const incomingRevision = action.payload._revision || 0;
-      
-      // If incoming revision is strictly less than or equal to current, ignore it to prevent overwriting newer local edits
-      if (incomingRevision <= currentRevision) return state;
-      
+      // Use _userRevision for conflict resolution — backend re-syncs bump _revision
+      // but NOT _userRevision, so a tab refreshing from the server cannot silently
+      // overwrite another tab's newer user edits.
+      const currentUserRev = state._userRevision || 0;
+      const incomingUserRev = action.payload._userRevision || 0;
+
+      if (incomingUserRev <= currentUserRev) return state;
+
       return migrateSchema({ ...EMPTY_STATE, ...action.payload });
     }
 
@@ -531,9 +555,12 @@ function migrateSchema(data) {
     migrated._version = 2;
   }
   
-  // Ensure _revision exists
+  // Ensure _revision and _userRevision exist
   if (typeof migrated._revision !== 'number') {
     migrated._revision = 0;
+  }
+  if (typeof migrated._userRevision !== 'number') {
+    migrated._userRevision = 0;
   }
   
   if (!migrated.simulatorState) migrated.simulatorState = { selected: [], months: 3 };
@@ -595,7 +622,7 @@ function persistState(state) {
 }
 
 import { useAuth } from './AuthContext';
-import { fetchAllRecords, sustainabilityApi, gamificationApi } from '../services/backendApi';
+import { fetchAllRecords, sustainabilityApi, gamificationApi, mlScoresApi } from '../services/backendApi';
 
 export function DataProvider({ children }) {
   const { registerAuthCallback } = useAuth();
@@ -603,13 +630,19 @@ export function DataProvider({ children }) {
     return loadPersistedState() || EMPTY_STATE;
   });
 
+  // Stable ref to setMlRawScores — lets syncFromBackend call it without being in its dep array
+  const setMlRawScoresRef = useRef(null);
+
   // Pulls all backend records and dispatches them into state
   const syncFromBackend = useCallback(async () => {
     try {
-      const { health, finance, career, goals, gamification, sustainabilitySettings, ecoActions } = await fetchAllRecords();
-      if (health.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'health',  records: health  } });
-      if (finance.length) dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'finance', records: finance } });
-      if (career.length)  dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'career',  records: career  } });
+      const { health, finance, career, goals, gamification, sustainabilitySettings, ecoActions, mlScores } = await fetchAllRecords();
+      // Always dispatch SET_RECORDS even for empty arrays — ensures cross-browser
+      // consistency by deriving domain state solely from backend records, overwriting
+      // any stale localStorage domain values that exist in another browser session.
+      dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'health',  records: health  } });
+      dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'finance', records: finance } });
+      dispatch({ type: ACTIONS.SET_RECORDS, payload: { domain: 'career',  records: career  } });
       if (goals && goals.length > 0) dispatch({ type: ACTIONS.UPDATE_GOALS, payload: goals });
       if (gamification && gamification.stats) {
         dispatch({ type: ACTIONS.UPDATE_GAMIFICATION, payload: {
@@ -626,6 +659,12 @@ export function DataProvider({ children }) {
           ecoActions: ecoActions || [],
         }
       });
+      // Seed ML scores from Postgres so every device shows the same scores immediately,
+      // without waiting for the XGBoost model to retrain locally.
+      if (mlScores && (mlScores.health_score != null || mlScores.finance_score != null || mlScores.career_score != null)) {
+        setMlRawScoresRef.current?.(mlScores);
+        try { localStorage.setItem('dt_ml_scores', JSON.stringify(mlScores)); } catch {}
+      }
     } catch (e) {
       console.warn('DataContext: Backend sync failed (non-critical):', e.message);
     }
@@ -703,7 +742,16 @@ export function DataProvider({ children }) {
   }, [state.userId]);
 
   // ML state — declared before computed useMemo so mlCascade is available as a dep
-  const [mlRawScores, setMlRawScores] = useState(null);
+  // Initialize from localStorage cache so scores are stable on refresh (no flash)
+  const [mlRawScores, setMlRawScores] = useState(() => {
+    try {
+      const raw = localStorage.getItem('dt_ml_scores');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
+  // Keep the ref in sync so syncFromBackend can call setMlRawScores without a dep cycle
+  setMlRawScoresRef.current = setMlRawScores;
+
   const [mlCascade, setMlCascade] = useState(null);
   // LLM sanity-check correction applied after deterministic + XGBoost
   const [llmHealthCorrection, setLlmHealthCorrection] = useState({ delta: 0, reason: '', flags: [] });
@@ -743,9 +791,16 @@ export function DataProvider({ children }) {
   // is offline — consumers always see a score, never null.
   const mlModelTrainedRef = useRef(false);
   const mlPredictTimerRef = useRef(null);
+  // Fingerprint of the last records set the model was trained on — skip retraining
+  // when records haven't actually changed (e.g. new device login with same data).
+  const mlRecordsFingerprintRef = useRef(null);
 
-  // Train once when records change (records = training data)
+  // Train only when records genuinely change (records = training data)
   useEffect(() => {
+    const fingerprint = `${state.records.health.length}:${state.records.finance.length}:${state.records.career.length}`;
+    if (fingerprint === mlRecordsFingerprintRef.current) return; // same data — skip retrain
+    mlRecordsFingerprintRef.current = fingerprint;
+
     let cancelled = false;
     async function trainModel() {
       mlModelTrainedRef.current = false;
@@ -770,7 +825,12 @@ export function DataProvider({ children }) {
           getMLDashboardScores(userData, state.records),
           getMLCascadeEffects(userData),
         ]);
-        if (scoreResult?.predictions) setMlRawScores(scoreResult.predictions);
+        if (scoreResult?.predictions) {
+          setMlRawScores(scoreResult.predictions);
+          try { localStorage.setItem('dt_ml_scores', JSON.stringify(scoreResult.predictions)); } catch {}
+          // Persist to Postgres so other devices get the same scores on next login
+          try { mlScoresApi.save(scoreResult.predictions); } catch {}
+        }
         if (cascadeResult?.pairs) setMlCascade(cascadeResult);
 
         // LLM sanity check — runs after XGBoost, corrects physiologically implausible scores

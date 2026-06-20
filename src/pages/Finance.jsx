@@ -1556,22 +1556,10 @@ export default function Finance() {
   const [parsedTxs, setParsedTxs] = useState(() => loadTxsLocal());
   const saveTxs = useCallback((txs) => { setParsedTxs(txs); saveTxsLocal(txs); }, []);
 
-  // Sync parsedTxs totals → DataContext so the finance score always reflects what's displayed
-  useEffect(() => {
-    if (!parsedTxs.length) return;
-    const totalExpenses = Math.round(parsedTxs
-      .filter(t => t.type !== 'Credit' && t.type !== 'Transfer')
-      .reduce((s, t) => s + (t.amount || 0), 0));
-    const totalIncome = Math.round(parsedTxs
-      .filter(t => t.type === 'Credit')
-      .reduce((s, t) => s + (t.amount || 0), 0));
-    const update = {
-      expenses: totalExpenses,
-      income:   totalIncome,  // always set income (0 if no credits — stale closure fixed)
-      savings:  Math.max(0, totalIncome - totalExpenses),
-    };
-    updateDomain('finance', update);
-  }, [parsedTxs]); // eslint-disable-line react-hooks/exhaustive-deps
+  // parsedTxs is a local UI transaction list used for display only.
+  // Finance domain state (income/expenses/savings) is derived exclusively from
+  // backend records via SET_RECORDS → aggregateFinance so values are consistent
+  // across browsers. Do NOT sync parsedTxs totals into DataContext here.
 
   // Listen for voice-logged transactions from VoiceLogger (same-tab real-time update)
   useEffect(() => {

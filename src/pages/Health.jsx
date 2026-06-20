@@ -1066,21 +1066,15 @@ function NutritionPanel({ healthData, updateDomain, cyclePhaseKey, isFemale }) {
   );
 }
 
-function HealthRecommendations({ recommendations, h, score }) {
+function HealthRecommendations({ recommendations, h, score, setTab }) {
   const [checkedActions, setCheckedActions] = useState({});
   const [accepted, setAccepted]             = useState({});
   const [history, setHistory]               = useState(() => {
     try { return JSON.parse(localStorage.getItem('health_rec_history') || '[]'); } catch { return []; }
   });
 
-  const sorted = [...recommendations].sort((a, b) => {
-    const order = { 'health-sleep': 1, 'health-mood': 2, 'health-stress': 2.5, 'health-workout': 3 };
-    const aOrder = order[a.id] || 99;
-    const bOrder = order[b.id] || 99;
-    return aOrder - bOrder;
-  });
-  const top3   = sorted.slice(0, 3);
-  const best   = top3[0];
+  const top3 = recommendations.slice(0, 3);
+  const best = top3[0];
 
   const getRecTheme = (id) => {
     if (id.includes('sleep')) {
@@ -1137,12 +1131,18 @@ function HealthRecommendations({ recommendations, h, score }) {
     !h?.sleepAvg        && { id:'log',     text: 'Log today\'s health data',                                impact: 'High Impact'   },
   ].filter(Boolean).slice(0, 4);
 
+  const recNavTarget = (id) => {
+    if (id === 'health-nutrition') return 'nutrition';
+    return 'log';
+  };
+
   const handleAccept = (rec) => {
     setAccepted(a => ({ ...a, [rec.id]: true }));
     const entry = { title: rec.title, scoreDelta: `+${Math.round(rec.confidence / 12)}`, acceptedAt: new Date().toISOString() };
     const next = [entry, ...history].slice(0, 10);
     setHistory(next);
     localStorage.setItem('health_rec_history', JSON.stringify(next));
+    if (setTab) setTab(recNavTarget(rec.id));
   };
 
   const daysAgo = (iso) => {
@@ -1177,7 +1177,7 @@ function HealthRecommendations({ recommendations, h, score }) {
                   {/* Tag */}
                   <div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-semibold tracking-wide ${theme.tagClass}`}>
-                      High Priority
+                      {rec.risk === 'critical' ? 'Critical' : rec.risk === 'high' ? 'High Priority' : rec.risk === 'medium' ? 'Medium Priority' : 'Maintain'}
                     </span>
                   </div>
 
@@ -1228,7 +1228,7 @@ function HealthRecommendations({ recommendations, h, score }) {
                   }}
                   className="hover:bg-[#1f2335] active:bg-[#252a3f] transition-all disabled:opacity-50"
                 >
-                  <span>{accepted[rec.id] ? '✓ Accepted' : 'Fix Now'}</span>
+                  <span>{accepted[rec.id] ? '✓ Done' : 'Fix Now →'}</span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
                     <path d="m9 18 6-6-6-6" />
                   </svg>
@@ -1497,7 +1497,7 @@ function HealthRecommendations({ recommendations, h, score }) {
 
 
 // ── Lab Report Uploader ───────────────────────────────────────────────────────
-function LabReportUploader({ health, updateDomain }) {
+function LabReportUploader({ health, updateDomain, addRecords }) {
   const [parsing,  setParsing]  = useState(false);
   const [result,   setResult]   = useState(null);
   const [error,    setError]    = useState(null);
@@ -1521,7 +1521,9 @@ function LabReportUploader({ health, updateDomain }) {
 
   function applyToHealth() {
     if (!result?.healthPatch) return;
-    updateDomain('health', { ...health, ...result.healthPatch });
+    // Save lab values as a health record so they reach PostgreSQL and are
+    // consistent across all browsers, not just stored in localStorage.
+    addRecords('health', [{ date: new Date().toISOString(), ...result.healthPatch, source: 'lab_report' }]);
     setApplied(true);
     showToast(`${result.markers?.length || 0} lab markers saved to your health profile`, 'success');
   }
@@ -1865,18 +1867,8 @@ export default function Health() {
       });
     }
 
-    const sortedRecs = recs.sort((a, b) => a.priority - b.priority);
-    // Explicitly bubble sleep, mood, and workout to the top in that specific order to match columns of Image 2 mockup
-    const priorityOrder = ['health-sleep', 'health-mood', 'health-workout'];
-    sortedRecs.sort((a, b) => {
-      const indexA = priorityOrder.indexOf(a.id);
-      const indexB = priorityOrder.indexOf(b.id);
-      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-      if (indexA !== -1) return -1;
-      if (indexB !== -1) return 1;
-      return a.priority - b.priority;
-    });
-    return sortedRecs;
+    recs.sort((a, b) => a.priority - b.priority);
+    return recs;
   }, [h, healthRecords, computed, finance, health]);
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -2605,7 +2597,7 @@ export default function Health() {
       {tab === 'scan' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <ScanVisionPanel onApplyCalories={handleApplyCalories} />
-          <LabReportUploader health={health} updateDomain={updateDomain} />
+          <LabReportUploader health={health} updateDomain={updateDomain} addRecords={addRecords} />
         </div>
       )}
 
@@ -2772,7 +2764,7 @@ export default function Health() {
       })()}
 
       {tab === 'recommendations' && (
-        <HealthRecommendations recommendations={recommendations} h={h} score={score} />
+        <HealthRecommendations recommendations={recommendations} h={h} score={score} setTab={setTab} />
       )}
 
       {tab === 'cycle' && (
