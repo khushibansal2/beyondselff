@@ -195,11 +195,31 @@ public class AIProxyController {
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> status() {
         boolean available = geminiService.isAvailable();
-        return ResponseEntity.ok(Map.of(
-            "available", available,
-            "provider", "groq",
-            "timestamp", System.currentTimeMillis()
-        ));
+        if (!available) {
+            return ResponseEntity.ok(Map.of(
+                "available", false,
+                "provider", "groq",
+                "error", "GROQ_API_KEY is blank — not loaded from environment",
+                "timestamp", System.currentTimeMillis()
+            ));
+        }
+        // Ping Groq with a minimal request to confirm the key actually works
+        try {
+            String ping = geminiService.chat("ping", Map.of(), "Reply with one word: ok", List.of());
+            return ResponseEntity.ok(Map.of(
+                "available", true,
+                "provider", "groq",
+                "ping", ping != null ? ping.trim() : "no response",
+                "timestamp", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of(
+                "available", false,
+                "provider", "groq",
+                "error", e.getMessage(),
+                "timestamp", System.currentTimeMillis()
+            ));
+        }
     }
 
     private String generateFallbackNarrative(Map<String, Object> request) {
