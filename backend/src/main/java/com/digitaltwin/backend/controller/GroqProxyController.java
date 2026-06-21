@@ -30,7 +30,7 @@ public class GroqProxyController {
     private static final Logger log = LoggerFactory.getLogger(GroqProxyController.class);
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-    @Value("${GROQ_API_KEY:}")
+    @Value("${groq.api.key:}")
     private String groqApiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
