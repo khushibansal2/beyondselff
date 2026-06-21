@@ -443,10 +443,26 @@ function generateFallbackResponse(message, context) {
   const urgentAlerts = context?.urgentAlerts || [];
   const lastSim = context?.lastSimulation;
 
+  const isFutureSelfMode = (message || '').startsWith('[FUTURE SELF MODE]');
   const msg = (message || '').toLowerCase();
 
+  // ---- Future Self chat — respond in character, no simulator required ----
+  if (isFutureSelfMode) {
+    const ageMatch = message.match(/at age (\d+)/);
+    const futureAge = ageMatch ? ageMatch[1] : 'older';
+    const hScore = health.score ?? 50;
+    const fScore = finance.score ?? 50;
+    const cScore = career.score ?? 50;
+    const responses = [
+      `Trust me — the choices you're making right now compound faster than you think. Your health score (${hScore}/100) is the foundation everything else builds on. Take care of your body first.`,
+      `I won't sugarcoat it: the financial habits you build in your 20s define your 30s. Your finance score is ${fScore}/100 — small consistent actions from here will make a huge difference by the time you're ${futureAge}.`,
+      `Your career score of ${cScore}/100 has more room to grow than you realize. The skill you invest in today is the one that opens doors for me. Keep going.`,
+    ];
+    return responses[rotationIndex];
+  }
+
   // ---- Simulator Comparison & Future Projection ----
-  if (msg.includes('which path') || msg.includes('what happens') || msg.includes('sustainable') || msg.includes('future') || msg.includes('long-term')) {
+  if (msg.includes('which path') || msg.includes('what happens') || msg.includes('sustainable') || msg.includes('long-term')) {
     if (lastSim) {
       const { baseline, simulated, stabilityTrend, dominantDriver, confidence, months, deltas } = lastSim;
       const bDelta = deltas.burnout;

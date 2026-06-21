@@ -809,7 +809,23 @@ export function DataProvider({ children }) {
         state.records.finance,
         state.records.career,
       );
-      if (!cancelled) mlModelTrainedRef.current = true;
+      if (cancelled) return;
+      mlModelTrainedRef.current = true;
+      // Predict immediately after training so the ML delta reflects the trained model,
+      // not the mock that fired during the 400ms debounce while training was in flight.
+      const userData = { health: state.health, finance: state.finance, career: state.career };
+      try {
+        const [scoreResult, cascadeResult] = await Promise.all([
+          getMLDashboardScores(userData, state.records),
+          getMLCascadeEffects(userData),
+        ]);
+        if (scoreResult?.predictions) {
+          setMlRawScores(scoreResult.predictions);
+          try { localStorage.setItem('dt_ml_scores', JSON.stringify(scoreResult.predictions)); } catch {}
+          try { mlScoresApi.save(scoreResult.predictions); } catch {}
+        }
+        if (cascadeResult?.pairs) setMlCascade(cascadeResult);
+      } catch { /* silently fall back */ }
     }
     trainModel();
     return () => { cancelled = true; };
