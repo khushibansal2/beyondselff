@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../context/DataContext';
 import { runAISimulation, computeBaselineScores } from '../services/simulatorService';
+import { predictWhatIf } from '../services/whatIfService';
 import { GlassCard, PageHeader, ScoreRing } from '../components/ui/Components';
 import {
   Brain, Sparkles, ChevronRight, AlertTriangle, CheckCircle,
