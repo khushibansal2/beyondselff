@@ -1,12 +1,29 @@
-// Nutrition Service — powered by Groq (meta-llama/llama-4-scout-17b-16e-instruct)
-// Handles AI generation of Indian-focused daily meal plans.
+// Nutrition Service — powered by Groq via backend proxy
+import { callGroqViaBackend } from './aiService';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 function getApiKey() {
-  const key = import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';
-  return key;
+  return import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';
+}
+
+async function callGroq(prompt, maxTokens = 1024, temperature = 0.9) {
+  // Try backend proxy first (key stays server-side)
+  try {
+    return await callGroqViaBackend('', [], prompt, maxTokens, GROQ_MODEL, temperature);
+  } catch (_) {}
+  // Fall back to direct call if frontend key available
+  const key = getApiKey();
+  if (!key) throw new Error('NO_KEY');
+  const res = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: maxTokens, temperature }),
+  });
+  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? '';
 }
 
 const INDIAN_FOOD_DATABASE = `
@@ -89,12 +106,6 @@ const CYCLE_PHASE_GUIDANCE = {
 };
 
 export async function generateMealPlan(profile, cyclePhase = null) {
-  const apiKey = getApiKey();
-
-  if (!apiKey) {
-    console.warn('[NutritionService] No API key found, returning demo meal plan');
-    return getDemoMealPlan(profile);
-  }
 
   let cuisineSpecificList = '';
   if (profile.cuisine === 'South Indian') {
@@ -169,43 +180,14 @@ Today's meal theme: ${theme}
 `;
 
   try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1024,
-        temperature: 0.9,
-      }),
-    });
-
-    if (!res.ok) {
-      if (res.status === 429) {
-        console.warn('[NutritionService] Quota exceeded, returning demo meal plan');
-        return getDemoMealPlan(profile);
-      }
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content;
-    if (!raw) throw new Error('Empty response from Groq');
-
+    const raw = await callGroq(prompt, 1024, 0.9);
     const result = extractJson(raw);
-    
-    // Ensure all required fields exist
     if (!result.meals || result.meals.length !== 4 || !result.macros) {
       throw new Error('Invalid JSON structure returned by AI');
     }
-
     return result;
   } catch (err) {
     console.error('[NutritionService] AI Meal Plan generation failed:', err);
-    console.warn('[NutritionService] Returning demo meal plan due to error');
     return getDemoMealPlan(profile);
   }
 }
@@ -296,12 +278,6 @@ function getDemoMealPlan(profile) {
 }
 
 export async function regenerateSingleMeal(profile, mealType, currentMealName, cyclePhase = null) {
-  const apiKey = getApiKey();
-
-  if (!apiKey) {
-    console.warn('[NutritionService] No API key found, returning demo single meal');
-    return getDemoSingleMeal(profile, mealType, currentMealName);
-  }
 
   const phaseInfo = cyclePhase ? CYCLE_PHASE_GUIDANCE[cyclePhase] : null;
 
@@ -328,41 +304,14 @@ Return ONLY a raw JSON object, no markdown, no backticks:
 `;
 
   try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 512,
-        temperature: 0.9,
-      }),
-    });
-
-    if (!res.ok) {
-      if (res.status === 429) {
-        console.warn('[NutritionService] Quota exceeded, returning demo single meal');
-        return getDemoSingleMeal(profile, mealType, currentMealName);
-      }
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    const data = await res.json();
-    const raw = data.choices?.[0]?.message?.content;
-    if (!raw) throw new Error('Empty response from Groq');
-
+    const raw = await callGroq(prompt, 512, 0.9);
     const result = extractJson(raw);
     if (!result.name || !result.calories || !result.macros) {
       throw new Error('Invalid JSON structure returned by AI for single meal');
     }
-
     return result;
   } catch (err) {
     console.error('[NutritionService] AI Single Meal generation failed:', err);
-    console.warn('[NutritionService] Returning demo single meal due to error');
     return getDemoSingleMeal(profile, mealType, currentMealName);
   }
 }

@@ -1,7 +1,6 @@
-// Learning Path Service — powered by Groq AI
-// Handles AI generation of structured career transition learning paths.
-
+// Learning Path Service — powered by Groq AI via backend proxy
 import { authFetch } from './backendApi';
+import { callGroqViaBackend } from './aiService';
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -143,8 +142,6 @@ function isBackendConnected() {
 
 // ── AI-Powered Learning Path Generation ─────────────────────────────────────
 export async function generateLearningPath(currentRole, targetRole) {
-  const apiKey = getApiKey();
-
   const courseDbString = LEARNING_PATH_COURSES.map(t =>
     `Transition: ${t.transition}\nCourses:\n${t.courses.map(c =>
       `  - "${c.title}" | ${c.platform} | ${c.hours}hrs | ${c.cost} | ${c.url}`
@@ -212,44 +209,37 @@ Schema:
     }
   }
 
-  // 2. Fallback to client-side API key direct Groq call
+  // 2. Try Groq via backend proxy
+  try {
+    const raw = await callGroqViaBackend('', [], prompt, 1500, GROQ_MODEL, 0.3);
+    const result = extractJson(raw);
+    if (result?.phases && Array.isArray(result.phases)) return result;
+  } catch (err) {
+    console.warn('[LearningService] Groq proxy failed:', err.message);
+  }
+
+  // 3. Direct Groq call if frontend key available
+  const apiKey = getApiKey();
   if (apiKey) {
     try {
-      console.log('[LearningService] Connecting to Groq direct API...');
       const res = await fetch(GROQ_URL, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 1500,
-          temperature: 0.3,
-        }),
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 1500, temperature: 0.3 }),
       });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+      if (res.ok) {
+        const data = await res.json();
+        const raw = data.choices?.[0]?.message?.content;
+        if (raw) {
+          const result = extractJson(raw);
+          if (result?.phases && Array.isArray(result.phases)) return result;
+        }
       }
-
-      const data = await res.json();
-      const raw = data.choices?.[0]?.message?.content;
-      if (!raw) throw new Error('Empty response from Groq');
-
-      const result = extractJson(raw);
-      if (!result.phases || !Array.isArray(result.phases)) {
-        throw new Error('Invalid JSON structure from AI');
-      }
-
-      return result;
     } catch (err) {
-      console.error('[LearningService] Direct Groq learning path generation failed:', err);
+      console.error('[LearningService] Direct Groq failed:', err);
     }
   }
 
-  console.warn('[LearningService] No API keys or backend connectivity active, returning local demo matching path');
   return getDemoLearningPath(currentRole, targetRole);
 }
 

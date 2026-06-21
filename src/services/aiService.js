@@ -22,21 +22,25 @@ function getAuthToken() {
   } catch { return null; }
 }
 
-/** Route Groq calls through the backend proxy (key stays server-side). */
-async function callGroqViaBackend(systemPrompt, history, userMessage, maxTokens = 500) {
+function authHeaders(extra = {}) {
   const token = getAuthToken();
+  const headers = { 'Content-Type': 'application/json', ...extra };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
+/** Route Groq calls through the backend proxy (key stays server-side). */
+export async function callGroqViaBackend(systemPrompt, history, userMessage, maxTokens = 500, model = GROQ_MODEL, temperature = 0.7) {
   const messages = [
-    { role: 'system', content: systemPrompt },
+    ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
     ...history,
     { role: 'user', content: userMessage },
   ];
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(`${GROQ_PROXY_BASE}/chat`, {
     method: 'POST',
-    headers,
-    body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: maxTokens, temperature: 0.7 }),
-    signal: AbortSignal.timeout(15000),
+    headers: authHeaders(),
+    body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature }),
+    signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) throw new Error(`Groq proxy ${res.status}`);
   const data = await res.json();
@@ -147,14 +151,14 @@ export async function chatWithAI(message, context = {}, history = []) {
   try {
     const res = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({
         message,
         context: stripPII(context),
         systemPrompt,
         history: conversationHistory,
       }),
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(12000),
     });
 
     if (res.status === 429) {
@@ -264,7 +268,7 @@ export async function explainInsight(insightData) {
   try {
     const res = await fetch(`${API_BASE}/explain`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ insightData: stripPII(insightData) }),
     });
 
@@ -288,7 +292,7 @@ export async function fetchRecommendations(context = {}) {
   try {
     const res = await fetch(`${API_BASE}/recommendations`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ context: stripPII(context) }),
       signal: AbortSignal.timeout(15000),
     });

@@ -197,12 +197,33 @@ export function getSalaryChartData() {
 }
 
 // ── AI Career Coach (Groq) ────────────────────────────────────────────────────
+import { callGroqViaBackend } from './aiService';
 
 const GROQ_URL   = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 function groqKey() {
   return import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';
+}
+
+async function groqText(prompt, maxTokens = 1600, temperature = 0.35) {
+  // Try backend proxy first (key stays server-side)
+  try {
+    const raw = await callGroqViaBackend('', [], prompt, maxTokens, GROQ_MODEL, temperature);
+    if (raw) return raw;
+  } catch (_) {}
+  // Fall back to direct if key available
+  const key = groqKey();
+  if (!key) throw new Error('NO_KEY');
+  const res = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], temperature, max_tokens: maxTokens }),
+    signal: AbortSignal.timeout(22000),
+  });
+  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? '';
 }
 
 /**
@@ -215,9 +236,6 @@ export async function generateCareerCoach({
   missingSkills = [], matchScore = 0,
   salaryRange = '', studyHours = 0, sleepAvg = 7,
 }) {
-  const key = groqKey();
-  if (!key) throw new Error('NO_KEY');
-
   const prompt = `You are an AI Career Coach for a Personal Digital Twin platform. Provide a concise, data-grounded career analysis.
 
 USER PROFILE:
@@ -249,31 +267,11 @@ Return ONLY valid JSON (no markdown fences). Use exactly this schema:
   "digitalTwinInsight": "<cross-domain insight connecting sleep/health/study to career performance>"
 }`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 22000);
-  try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.35,
-        max_tokens: 1600,
-      }),
-    });
-    if (!res.ok) throw new Error(`Groq ${res.status}`);
-    const data = await res.json();
-    let raw = data.choices?.[0]?.message?.content ?? '';
-    // strip markdown fences if any
-    raw = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
-    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
-    if (s !== -1 && e > s) raw = raw.slice(s, e + 1);
-    return JSON.parse(raw);
-  } finally {
-    clearTimeout(timer);
-  }
+  let raw = await groqText(prompt, 1600, 0.35);
+  raw = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+  const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+  if (s !== -1 && e > s) raw = raw.slice(s, e + 1);
+  return JSON.parse(raw);
 }
 
 // ── Career Path Simulation with salary milestones ────────────────────────────
@@ -286,14 +284,11 @@ Return ONLY valid JSON (no markdown fences). Use exactly this schema:
  * Output: { phases[{ month, role, salary, milestone, skills[] }], totalMonths, salaryGrowthPct }
  */
 export async function generateCareerPathSimulation({ currentRole, targetRole, skills = [], studyHoursDaily = 2, yearsExperience = 0 }) {
-  const key = groqKey();
-
   const currentSalary = getSalaryBenchmark(currentRole, skills);
   const targetSalary  = getSalaryBenchmark(targetRole, skills);
 
-  if (key) {
-    try {
-      const prompt = `You are a career trajectory analyst. Generate a realistic career path simulation.
+  try {
+    const prompt = `You are a career trajectory analyst. Generate a realistic career path simulation.
 
 CONTEXT:
 - Current Role: ${currentRole || 'Junior Software Engineer'}
@@ -324,25 +319,14 @@ Return ONLY valid JSON (no markdown fences):
   "salaryGrowthPct": <integer percentage salary increase from current to target>
 }`;
 
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), 15000);
-      const res = await fetch(GROQ_URL, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], temperature: 0.3, max_tokens: 1200 }),
-      });
-      if (!res.ok) throw new Error(`Groq ${res.status}`);
-      const data = await res.json();
-      let raw = data.choices?.[0]?.message?.content ?? '';
+      let raw = await groqText(prompt, 1200, 0.3);
       raw = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
       const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
       if (s !== -1 && e > s) raw = raw.slice(s, e + 1);
       const parsed = JSON.parse(raw);
       return { ...parsed, currentSalary, targetSalary, source: 'ai' };
-    } catch (e) {
-      console.warn('Career path simulation AI failed, using deterministic:', e.message);
-    }
+  } catch (e) {
+    console.warn('Career path simulation AI failed, using deterministic:', e.message);
   }
 
   // Deterministic fallback — builds a realistic path from salary table anchors
@@ -577,11 +561,9 @@ export async function fetchSkillDemandTrends(query, preloadedJobs = null) {
   const baseGrowth = 15 + (querySeed % 20); // 15% to 35% growth
   const hiringVelocity = baseGrowth > 28 ? 'Critical' : baseGrowth > 20 ? 'High' : 'Steady';
 
-  // 3. Try to enrich with Groq if key is present
-  const key = groqKey();
-  if (key) {
-    try {
-      const prompt = `You are a Career Intelligence Analyst. Generate a concise market trend summary for the job query: "${normalizedQuery}".
+  // 3. Try to enrich with Groq
+  try {
+    const prompt = `You are a Career Intelligence Analyst. Generate a concise market trend summary for the job query: "${normalizedQuery}".
 Analyze these actual skills found in live job postings: ${topSkills.map(s => s.skill).join(', ')}.
 
 Return ONLY valid JSON (no markdown fences, no extra text). Use exactly this schema:
@@ -590,40 +572,22 @@ Return ONLY valid JSON (no markdown fences, no extra text). Use exactly this sch
   "hiringVelocity": "Critical" | "High" | "Steady",
   "marketBrief": "<two sentences summarizing the current demand, hiring velocity, and key skill requirements for this role>"
 }`;
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8500);
-      const res = await fetch(GROQ_URL, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.25,
-          max_tokens: 300,
-        }),
-      });
-      clearTimeout(timer);
-      if (res.ok) {
-        const data = await res.json();
-        let raw = data.choices?.[0]?.message?.content ?? '';
-        raw = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(raw);
-        if (parsed.marketBrief) {
-          return {
-            query: normalizedQuery,
-            averageSalary: getSalaryBenchmark(normalizedQuery, topSkills.map(s => s.skill)).label,
-            demandGrowth: parsed.demandGrowth || baseGrowth,
-            hiringVelocity: parsed.hiringVelocity || hiringVelocity,
-            topSkills,
-            marketBrief: parsed.marketBrief,
-            source: 'Remotive + Adzuna + Jooble Live Data & AI Projections',
-          };
-        }
-      }
-    } catch (e) {
-      console.warn('fetchSkillDemandTrends AI enrichment failed, using statistical brief:', e);
+    let raw = await groqText(prompt, 300, 0.25);
+    raw = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(raw);
+    if (parsed.marketBrief) {
+      return {
+        query: normalizedQuery,
+        averageSalary: getSalaryBenchmark(normalizedQuery, topSkills.map(s => s.skill)).label,
+        demandGrowth: parsed.demandGrowth || baseGrowth,
+        hiringVelocity: parsed.hiringVelocity || hiringVelocity,
+        topSkills,
+        marketBrief: parsed.marketBrief,
+        source: 'Remotive + Adzuna + Jooble Live Data & AI Projections',
+      };
     }
+  } catch (e) {
+    console.warn('fetchSkillDemandTrends AI enrichment failed, using statistical brief:', e);
   }
 
   // Fallback / Default Narrative Brief if Groq not configured

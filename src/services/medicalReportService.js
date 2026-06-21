@@ -10,6 +10,7 @@
 
 import * as pdfjsLib from 'pdfjs-dist';
 import { stripDocumentPII } from '../utils/piiStrip.js';
+import { callGroqViaBackend } from './aiService';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -169,9 +170,6 @@ export function buildHealthPatch(markers = []) {
  * Returns { reportType, labName, patientName, reportDate, markers[], summary, flags[], healthPatch }
  */
 export async function parseMedicalReport(file) {
-  const key = groqKey();
-  if (!key) throw new Error('NO_KEY');
-
   const isPdf  = file.type === 'application/pdf';
   const isImage = file.type.startsWith('image/');
 
@@ -180,26 +178,31 @@ export async function parseMedicalReport(file) {
   let result;
 
   if (isPdf) {
-    // Extract text then use text model
     const text = await extractPdfText(file);
     if (!text.trim()) throw new Error('Could not extract text from PDF. Try uploading a photo/image of the report instead.');
 
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: GROQ_TEXT_MODEL,
-        messages: [{ role: 'user', content: LAB_PROMPT_TEXT(text) }],
-        temperature: 0.1,
-        max_tokens: 2000,
-      }),
-    });
-    if (!res.ok) throw new Error(`Groq error ${res.status}`);
-    const data = await res.json();
-    result = extractJson(data.choices?.[0]?.message?.content ?? '');
+    // Try backend proxy first, then direct
+    let raw;
+    try {
+      raw = await callGroqViaBackend('', [], LAB_PROMPT_TEXT(text), 2000, GROQ_TEXT_MODEL, 0.1);
+    } catch (_) {
+      const key = groqKey();
+      if (!key) throw new Error('NO_KEY');
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: GROQ_TEXT_MODEL, messages: [{ role: 'user', content: LAB_PROMPT_TEXT(text) }], temperature: 0.1, max_tokens: 2000 }),
+      });
+      if (!res.ok) throw new Error(`Groq error ${res.status}`);
+      const data = await res.json();
+      raw = data.choices?.[0]?.message?.content ?? '';
+    }
+    result = extractJson(raw);
 
   } else {
-    // Image — use vision model
+    // Image — vision model requires direct key (no proxy support for multimodal)
+    const key = groqKey();
+    if (!key) throw new Error('NO_KEY — add VITE_GROQ_API_KEY to enable image lab report scanning');
     const base64  = await fileToBase64(file);
     const dataUrl = `data:image/jpeg;base64,${base64}`;
     const res = await fetch(GROQ_URL, {

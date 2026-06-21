@@ -1,8 +1,9 @@
 // Resume Intelligence Service
 // PDF text extraction: pdfjs-dist (client-side, no backend needed)
-// AI parsing: Groq llama-3.3-70b-versatile
+// AI parsing: Groq llama-3.3-70b-versatile via backend proxy
 
 import * as pdfjsLib from 'pdfjs-dist';
+import { callGroqViaBackend } from './aiService';
 
 // Use CDN worker — avoids Vite bundling issues with the worker thread
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -48,9 +49,6 @@ export async function extractPdfText(file) {
 // ── AI Resume Parsing ─────────────────────────────────────────────────────────
 
 export async function parseResumeWithAI(resumeText, onStep) {
-  const key = groqKey();
-  if (!key) throw new Error('NO_KEY');
-
   onStep?.('Sending to Groq AI for intelligent parsing…');
 
   const prompt = `You are an expert resume parser and career intelligence AI. Analyze this resume completely.
@@ -124,24 +122,21 @@ Extract ALL information and generate career insights. Return ONLY valid JSON, no
   ]
 }`;
 
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 3000,
-      temperature: 0.2,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Groq ${res.status}: ${err.slice(0, 200)}`);
+  let raw;
+  try {
+    raw = await callGroqViaBackend('', [], prompt, 3000, GROQ_MODEL, 0.2);
+  } catch (_) {
+    const key = groqKey();
+    if (!key) throw new Error('NO_KEY');
+    const res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 3000, temperature: 0.2 }),
+    });
+    if (!res.ok) throw new Error(`Groq ${res.status}`);
+    const data = await res.json();
+    raw = data.choices?.[0]?.message?.content ?? '';
   }
-
-  const data = await res.json();
-  const raw  = data.choices?.[0]?.message?.content ?? '';
   if (!raw) throw new Error('Empty response from AI');
 
   let text = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();

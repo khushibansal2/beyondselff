@@ -9,6 +9,7 @@
 
 import * as pdfjsLib from 'pdfjs-dist';
 import { stripDocumentPII } from '../utils/piiStrip.js';
+import { callGroqViaBackend } from './aiService';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -142,9 +143,6 @@ export function buildCareerPatch(parsed, existingCareer = {}) {
  * Returns { certificationName, issuingOrganization, skills[], summary, ... , careerPatch }
  */
 export async function parseCertificate(file, existingCareer = {}) {
-  const key = groqKey();
-  if (!key) throw new Error('NO_KEY');
-
   const isPdf   = file.type === 'application/pdf';
   const isImage = file.type.startsWith('image/');
 
@@ -156,21 +154,27 @@ export async function parseCertificate(file, existingCareer = {}) {
     const text = await extractPdfText(file);
     if (!text.trim()) throw new Error('Could not extract text from PDF. Try uploading an image of the certificate instead.');
 
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: GROQ_TEXT_MODEL,
-        messages: [{ role: 'user', content: CERT_PROMPT_TEXT(text) }],
-        temperature: 0.1,
-        max_tokens: 800,
-      }),
-    });
-    if (!res.ok) throw new Error(`Groq error ${res.status}`);
-    const data = await res.json();
-    result = extractJson(data.choices?.[0]?.message?.content ?? '');
+    // Try backend proxy first, then direct
+    let raw;
+    try {
+      raw = await callGroqViaBackend('', [], CERT_PROMPT_TEXT(text), 800, GROQ_TEXT_MODEL, 0.1);
+    } catch (_) {
+      const key = groqKey();
+      if (!key) throw new Error('NO_KEY');
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: GROQ_TEXT_MODEL, messages: [{ role: 'user', content: CERT_PROMPT_TEXT(text) }], temperature: 0.1, max_tokens: 800 }),
+      });
+      if (!res.ok) throw new Error(`Groq error ${res.status}`);
+      const data = await res.json();
+      raw = data.choices?.[0]?.message?.content ?? '';
+    }
+    result = extractJson(raw);
 
   } else {
+    const key = groqKey();
+    if (!key) throw new Error('NO_KEY — add VITE_GROQ_API_KEY to enable image certificate scanning');
     const base64  = await fileToBase64(file);
     const dataUrl = `data:image/jpeg;base64,${base64}`;
     const res = await fetch(GROQ_URL, {
