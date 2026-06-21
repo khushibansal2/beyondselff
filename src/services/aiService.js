@@ -188,6 +188,45 @@ export async function chatWithAI(message, context = {}, history = []) {
 }
 
 /**
+ * Future Self chat — calls Groq with the future-self persona as the system prompt.
+ * Keeps the user's actual message clean (not wrapped with instructions).
+ */
+export async function chatFutureSelf({ userMessage, futureAge, currentAge, healthScore, financeScore, careerScore, burnoutRisk, year, history = [] }) {
+  const systemPrompt = `You are the user's future self at age ${futureAge} (year ${year}), speaking warmly and wisely to your ${currentAge}-year-old past self.
+
+Their current scores: Health ${healthScore}/100, Finance ${financeScore}/100, Career ${careerScore}/100, Burnout Risk ${burnoutRisk}%.
+
+Rules:
+- Respond in first person as their older self ("I", "we", "you and I")
+- Be warm, personal, and insightful — not generic motivational
+- Reference their actual scores and what those numbers meant for your life
+- 2-3 sentences max unless they ask for more
+- Never break character`;
+
+  const conversationHistory = history
+    .filter(m => m.text?.trim())
+    .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }));
+
+  try {
+    const response = await callGroqViaBackend(systemPrompt, conversationHistory, userMessage, 300);
+    if (response) return { response, source: 'groq' };
+  } catch (err) {
+    console.warn('Future Self Groq call failed:', err.message);
+  }
+
+  // Fallback
+  const hScore = healthScore ?? 50;
+  const fScore = financeScore ?? 50;
+  const cScore = careerScore ?? 50;
+  const fallbacks = [
+    `The choices you're making right now — with a health score of ${hScore} — compound faster than you think. Take care of your body first; everything else follows.`,
+    `Your finance score of ${fScore} has more room to grow than you realize. The habits you build now determine how free I feel at ${futureAge}.`,
+    `Career score ${cScore} — keep going. The skill you invest in today is the one that opens doors for me. Trust the process.`,
+  ];
+  return { response: fallbacks[Math.floor(Math.random() * fallbacks.length)], source: 'fallback' };
+}
+
+/**
  * Request an AI narrative summary for a specific view.
  * @param {object} computedData - Deterministically computed scores and factors
  * @param {string} type - 'dashboard' | 'insight' | 'simulator'

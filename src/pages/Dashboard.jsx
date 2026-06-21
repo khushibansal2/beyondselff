@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { generateNarrative, chatWithAI } from '../services/aiService';
+import { generateNarrative, chatFutureSelf } from '../services/aiService';
 import { ScoreRing, GlassCard, MetricCard, InsightCard, PageHeader, ExplainableScorePanel } from '../components/ui/Components';
 import { LifeAvatar } from '../components/ui/LifeAvatar';
 import { GhostTimeline } from '../components/ui/GhostTimeline';
@@ -1328,8 +1328,17 @@ export default function Dashboard() {
     setFutureSelfLoading(true);
     setTimeout(() => futureChatRef.current?.scrollTo({ top: 9999, behavior: 'smooth' }), 50);
     try {
-      const wrappedMsg = `[FUTURE SELF MODE] You are the user's future self at age ${futureSelfDisplayAge} (year ${currentYear + (futureSelfDisplayAge - (user?.age || 22))}), speaking warmly to your ${user?.age || 22}-year-old past self. Their current scores: Health ${healthScore}/100, Finance ${financeScore}/100, Career ${careerScore}/100, Burnout Risk ${burnoutRisk}%. Respond to: "${msg}" — be personal, insightful, 2-3 sentences, first-person older self to younger self.`;
-      const { response } = await chatWithAI(wrappedMsg, computed || {}, futureSelfMessages);
+      const { response } = await chatFutureSelf({
+        userMessage: msg,
+        futureAge: futureSelfDisplayAge,
+        currentAge: user?.age || 22,
+        healthScore,
+        financeScore,
+        careerScore,
+        burnoutRisk,
+        year: currentYear + Math.max(0, futureSelfDisplayAge - (user?.age || 22)),
+        history: futureSelfMessages,
+      });
       setFutureSelfMessages(prev => [...prev, { role: 'future', text: response }]);
     } catch {
       setFutureSelfMessages(prev => [...prev, { role: 'future', text: `Future you (age ${futureSelfDisplayAge}): Every choice you make right now compounds. Trust the process — it leads somewhere beautiful.` }]);
