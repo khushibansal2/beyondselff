@@ -121,6 +121,10 @@ export function AuthProvider({ children }) {
         const userObj = { id: data.userId, email: data.email, name: data.name, role: 'user', avatar: '👤', age: data.age ?? null, gender: data.gender ?? null };
         setUser(userObj); setToken(data.token); setIsDemo(false);
         localStorage.setItem('dt_auth', JSON.stringify({ user: userObj, token: data.token, isDemo: false }));
+        // Sign-in is for existing users — never show the data-entry onboarding.
+        // (Onboarding is gated only after a fresh sign-up, which deliberately
+        // leaves this flag unset.)
+        localStorage.setItem(`onboarding_completed_${data.userId}`, 'true');
         return { success: true, isDemo: false };
       } catch {
         // Network error / timeout — retry
