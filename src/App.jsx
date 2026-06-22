@@ -19,23 +19,6 @@ function needsOnboarding(user, isDemo) {
   return !localStorage.getItem(`onboarding_completed_${user.id}`);
 }
 
-// Full-screen gate: blocks the entire app (sidebar + every route) until the
-// new user has entered their data. Nothing else mounts behind it.
-function OnboardingGate({ children }) {
-  const { user, isDemo } = useAuth();
-  const { updateDomain, career } = useData();
-  const [gated, setGated] = useState(() => needsOnboarding(user, isDemo));
-
-  const complete = useCallback(() => {
-    if (user?.id) localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
-    setGated(false);
-  }, [user]);
-
-  if (gated && needsOnboarding(user, isDemo)) {
-    return <OnboardingWizard user={user} updateDomain={updateDomain} career={career} onComplete={complete} />;
-  }
-  return children;
-}
 
 // Heavy pages — lazy-loaded to reduce initial bundle
 const Health        = lazy(() => import('./pages/Health'));
@@ -86,19 +69,42 @@ function ProtectedRoute() {
   const { user, loading } = useAuth();
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
+  return <AppShell />;
+}
+
+// Authenticated app shell. Until a real (non-demo) user finishes the data-entry
+// onboarding, the sidebar stays visible but locked (greyed, non-clickable) and
+// the main content area shows the data-entry flow instead of the routed page.
+function AppShell() {
+  const { user, isDemo } = useAuth();
+  const { updateDomain, career } = useData();
+  const [done, setDone] = useState(() => !needsOnboarding(user, isDemo));
+  const locked = !done && needsOnboarding(user, isDemo);
+
+  const complete = useCallback(() => {
+    if (user?.id) localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+    setDone(true);
+  }, [user]);
+
   return (
-    <OnboardingGate>
+    <>
       <div className="flex min-h-screen" style={{ background: 'var(--color-bg-primary)' }}>
-        <Sidebar />
+        <Sidebar locked={locked} />
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="hidden lg:block">
             <TopNavbar />
           </div>
-          <AnimatedPages />
+          {locked ? (
+            <div className="flex-1 min-w-0 overflow-y-auto">
+              <OnboardingWizard user={user} updateDomain={updateDomain} career={career} onComplete={complete} inline />
+            </div>
+          ) : (
+            <AnimatedPages />
+          )}
         </div>
       </div>
-      <VoiceLogger />
-    </OnboardingGate>
+      {!locked && <VoiceLogger />}
+    </>
   );
 }
 

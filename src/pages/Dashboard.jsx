@@ -126,7 +126,7 @@ function NumberField({ label, hint, value, onChange, min, max, step = 1, unit })
   );
 }
 
-export function OnboardingWizard({ user, onComplete, updateDomain, career }) {
+export function OnboardingWizard({ user, onComplete, updateDomain, career, inline = false }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -298,7 +298,9 @@ export function OnboardingWizard({ user, onComplete, updateDomain, career }) {
   const currentStep = steps.find(s => s.id === step);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a0f]/96 backdrop-blur-xl flex flex-col items-center justify-center p-6">
+    <div className={inline
+      ? "relative min-h-full w-full bg-[#0a0a0f] flex flex-col items-center justify-center p-6 py-24"
+      : "fixed inset-0 z-[100] bg-[#0a0a0f]/96 backdrop-blur-xl flex flex-col items-center justify-center p-6"}>
       <div className="absolute top-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
         <div className="flex items-center gap-1.5">
           {steps.map(s => (
