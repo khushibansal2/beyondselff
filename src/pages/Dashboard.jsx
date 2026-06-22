@@ -102,31 +102,79 @@ function DoomSwitch({ active, onToggle }) {
 }
 
 
-// ─── ONBOARDING WIZARD ───────────────────────────────────────────────────────
-function OnboardingWizard({ user, onComplete, updateDomain, career }) {
-  const [step, setStep] = useState(1);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [selections, setSelections] = useState({ finance: 'skipped', health: 'skipped', career: 'skipped', calendar: 'skipped' });
-  const [inputs, setInputs] = useState({ bankName: '', upiId: '', healthToken: '', githubUsername: '', mobileNumber: '' });
+// ─── ONBOARDING WIZARD (DATA ENTRY) ──────────────────────────────────────────
+// New users fill in their real-world numbers across each life domain. Every step
+// writes straight into the DataContext via updateDomain(), so the dashboard score
+// rings are genuinely computed from what the user entered here.
+function NumberField({ label, hint, value, onChange, min, max, step = 1, unit }) {
+  return (
+    <label className="block">
+      <div className="flex items-baseline justify-between mb-1.5">
+        <span className="text-xs font-medium text-slate-300">{label}</span>
+        {hint && <span className="text-[10px] text-slate-500">{hint}</span>}
+      </div>
+      <div className="relative">
+        <input
+          type="number" inputMode="decimal" min={min} max={max} step={step}
+          className="input-premium pr-12" value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="0"
+        />
+        {unit && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">{unit}</span>}
+      </div>
+    </label>
+  );
+}
 
-  const nextStep = () => setStep(s => s + 1);
-  const skipStep = (domain) => { setSelections(s => ({ ...s, [domain]: 'skipped' })); nextStep(); };
-  const connectStep = async (domain) => {
-    setIsConnecting(true);
+export function OnboardingWizard({ user, onComplete, updateDomain, career, inline = false }) {
+  const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+
+  // Raw string-backed form state — empty by default so nothing is pre-filled
+  const [health, setHealth] = useState({ sleepAvg: '', stressLevel: '', moodAvg: '', workoutsPerWeek: '', waterIntake: '', calories: '', bmi: '' });
+  const [finance, setFinance] = useState({ income: '', expenses: '', savings: '', investments: '', subscriptions: '', debt: '' });
+  const [careerForm, setCareerForm] = useState({ studyHoursDaily: '', codingHoursDaily: '', dsaPractice: '', projectsCompleted: '', gpa: '', skills: '' });
+
+  const TOTAL_STEPS = 5;
+  const num = (v, fallback = 0) => { const n = parseFloat(v); return isNaN(n) ? fallback : n; };
+
+  // Persist a domain's entered numbers into the DataContext, then advance.
+  const commitAndNext = (domain) => {
+    setSaving(true);
     try {
-      if (domain === 'career' && inputs.githubUsername) {
-        const profile = await fetchGitHubProfile(inputs.githubUsername);
-        const newSkills = profile.languages.map(l => l.lang);
-        if (updateDomain) updateDomain('career', { skills: [...new Set([...(career?.skills || []), ...newSkills])], githubConnected: true, githubUsername: inputs.githubUsername });
-      } else if (domain === 'finance' && updateDomain) {
-        updateDomain('finance', { bankName: inputs.bankName, upiId: inputs.upiId, financeConnected: true });
+      if (domain === 'health') {
+        updateDomain && updateDomain('health', {
+          sleepAvg: num(health.sleepAvg, 7),
+          stressLevel: num(health.stressLevel, 5),
+          moodAvg: num(health.moodAvg, 6),
+          workoutsPerWeek: num(health.workoutsPerWeek, 2),
+          waterIntake: num(health.waterIntake, 6),
+          calories: num(health.calories, 2000),
+          bmi: num(health.bmi, 22),
+        });
+      } else if (domain === 'finance') {
+        updateDomain && updateDomain('finance', {
+          income: num(finance.income, 0),
+          expenses: num(finance.expenses, 0),
+          savings: num(finance.savings, 0),
+          investments: num(finance.investments, 0),
+          subscriptions: num(finance.subscriptions, 0),
+          debt: num(finance.debt, 0),
+        });
+      } else if (domain === 'career') {
+        const skills = careerForm.skills.split(',').map(s => s.trim()).filter(Boolean);
+        updateDomain && updateDomain('career', {
+          studyHoursDaily: num(careerForm.studyHoursDaily, 3),
+          codingHoursDaily: num(careerForm.codingHoursDaily, 2),
+          dsaPractice: num(careerForm.dsaPractice, 2),
+          projectsCompleted: num(careerForm.projectsCompleted, 0),
+          gpa: num(careerForm.gpa, 7),
+          ...(skills.length ? { skills: [...new Set([...(career?.skills || []), ...skills])] } : {}),
+        });
       }
-    } catch (e) { console.error('Failed to connect', e); }
-    setTimeout(() => {
-      setSelections(s => ({ ...s, [domain]: 'connected' }));
-      setIsConnecting(false);
-      nextStep();
-    }, domain === 'career' ? 400 : 1200);
+    } catch (e) { console.error('Onboarding save failed', e); }
+    setSaving(false);
+    setStep(s => s + 1);
   };
 
   const steps = [
@@ -136,10 +184,10 @@ function OnboardingWizard({ user, onComplete, updateDomain, career }) {
         <div className="text-center space-y-6">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-3xl border border-white/10">🧬</div>
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>Set up your Digital Twin</h2>
-            <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto">Connect your real-world data so the AI can build an accurate simulation of your life.</p>
+            <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>Build your Digital Twin</h2>
+            <p className="text-slate-400 text-sm leading-relaxed max-w-xs mx-auto">Answer a few quick questions about your habits. Your dashboard scores are calculated live from the numbers you enter.</p>
           </div>
-          <button onClick={nextStep} className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-slate-100 transition-colors w-full sm:w-auto">
+          <button onClick={() => setStep(2)} className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-slate-100 transition-colors w-full sm:w-auto">
             Get started <ArrowRight size={15} />
           </button>
         </div>
@@ -148,107 +196,94 @@ function OnboardingWizard({ user, onComplete, updateDomain, career }) {
     {
       id: 2,
       content: (
-        <div className="space-y-5 w-full max-w-sm mx-auto">
-          <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center"><Landmark className="text-amber-400" size={20} /></div>
+        <div className="space-y-4 w-full max-w-sm mx-auto">
+          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center"><Activity className="text-emerald-400" size={20} /></div>
           <div>
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>Connect Finance</h2>
-            <p className="text-slate-400 text-sm leading-relaxed mb-4">Link your bank to track transactions and financial health.</p>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>Your Health</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-2">A typical day for you, on average.</p>
           </div>
-          <div className="space-y-2">
-            <input type="text" placeholder="Bank Name (e.g. HDFC, Chase)" className="input-premium" value={inputs.bankName} onChange={e => setInputs(s => ({ ...s, bankName: e.target.value }))} />
-            <input type="text" placeholder="UPI ID / Account Identity" className="input-premium" value={inputs.upiId} onChange={e => setInputs(s => ({ ...s, upiId: e.target.value }))} />
+          <div className="grid grid-cols-2 gap-3">
+            <NumberField label="Sleep" hint="per night" unit="hrs" min={0} max={14} step={0.5} value={health.sleepAvg} onChange={v => setHealth(s => ({ ...s, sleepAvg: v }))} />
+            <NumberField label="Stress" hint="1–10" min={1} max={10} value={health.stressLevel} onChange={v => setHealth(s => ({ ...s, stressLevel: v }))} />
+            <NumberField label="Mood" hint="1–10" min={1} max={10} value={health.moodAvg} onChange={v => setHealth(s => ({ ...s, moodAvg: v }))} />
+            <NumberField label="Workouts" hint="per week" min={0} max={14} value={health.workoutsPerWeek} onChange={v => setHealth(s => ({ ...s, workoutsPerWeek: v }))} />
+            <NumberField label="Water" unit="glasses" min={0} max={20} value={health.waterIntake} onChange={v => setHealth(s => ({ ...s, waterIntake: v }))} />
+            <NumberField label="Calories" hint="per day" min={0} max={6000} step={50} value={health.calories} onChange={v => setHealth(s => ({ ...s, calories: v }))} />
+            <NumberField label="BMI" min={10} max={50} step={0.1} value={health.bmi} onChange={v => setHealth(s => ({ ...s, bmi: v }))} />
           </div>
-          <div className="space-y-2">
-            <button onClick={() => connectStep('finance')} disabled={isConnecting || !inputs.bankName || !inputs.upiId} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-semibold text-sm hover:bg-amber-500/20 transition-colors disabled:opacity-50">
-              {isConnecting ? <Loader2 size={14} className="animate-spin" /> : <Landmark size={14} />} {isConnecting ? 'Connecting...' : 'Sync Bank Details'}
-            </button>
-            <button onClick={() => skipStep('finance')} disabled={isConnecting} className="w-full flex items-center justify-center px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:text-white transition-colors">Skip for now</button>
-          </div>
+          <button onClick={() => commitAndNext('health')} disabled={saving} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm hover:bg-emerald-500/20 transition-colors disabled:opacity-50">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <ArrowRight size={14} />} Save &amp; continue
+          </button>
         </div>
       ),
     },
     {
       id: 3,
       content: (
-        <div className="space-y-5 w-full max-w-sm mx-auto">
-          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center"><Activity className="text-emerald-400" size={20} /></div>
+        <div className="space-y-4 w-full max-w-sm mx-auto">
+          <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center"><Landmark className="text-amber-400" size={20} /></div>
           <div>
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>Connect Health</h2>
-            <p className="text-slate-400 text-sm leading-relaxed mb-4">Sync your wearables to feed sleep, stress, and activity data.</p>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>Your Finances</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-2">Monthly figures in your currency.</p>
           </div>
-          <input type="text" placeholder="HealthKit / Google Fit API Token" className="input-premium" value={inputs.healthToken} onChange={e => setInputs(s => ({ ...s, healthToken: e.target.value }))} />
-          <div className="space-y-2">
-            <button onClick={() => connectStep('health')} disabled={isConnecting || !inputs.healthToken} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-sm hover:bg-emerald-500/20 transition-colors disabled:opacity-50">
-              {isConnecting ? <Loader2 size={14} className="animate-spin" /> : <Activity size={14} />} {isConnecting ? 'Syncing...' : 'Connect Wearable'}
-            </button>
-            <button onClick={() => skipStep('health')} disabled={isConnecting} className="w-full flex items-center justify-center px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:text-white transition-colors">Skip for now</button>
+          <div className="grid grid-cols-2 gap-3">
+            <NumberField label="Income" hint="monthly" min={0} step={100} value={finance.income} onChange={v => setFinance(s => ({ ...s, income: v }))} />
+            <NumberField label="Expenses" hint="monthly" min={0} step={100} value={finance.expenses} onChange={v => setFinance(s => ({ ...s, expenses: v }))} />
+            <NumberField label="Savings" hint="total" min={0} step={100} value={finance.savings} onChange={v => setFinance(s => ({ ...s, savings: v }))} />
+            <NumberField label="Investments" hint="total" min={0} step={100} value={finance.investments} onChange={v => setFinance(s => ({ ...s, investments: v }))} />
+            <NumberField label="Subscriptions" hint="monthly" min={0} step={10} value={finance.subscriptions} onChange={v => setFinance(s => ({ ...s, subscriptions: v }))} />
+            <NumberField label="Debt" hint="total" min={0} step={100} value={finance.debt} onChange={v => setFinance(s => ({ ...s, debt: v }))} />
           </div>
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
-            <CheckCircle size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-slate-400">You can also log manually in the Health page later.</p>
-          </div>
+          <button onClick={() => commitAndNext('finance')} disabled={saving} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-semibold text-sm hover:bg-amber-500/20 transition-colors disabled:opacity-50">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <ArrowRight size={14} />} Save &amp; continue
+          </button>
         </div>
       ),
     },
     {
       id: 4,
       content: (
-        <div className="space-y-5 w-full max-w-sm mx-auto">
+        <div className="space-y-4 w-full max-w-sm mx-auto">
           <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><Briefcase className="text-blue-400" size={20} /></div>
           <div>
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>Connect Career</h2>
-            <p className="text-slate-400 text-sm leading-relaxed mb-4">Link GitHub to calibrate career velocity and skill tracking.</p>
+            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>Your Career</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-2">Your learning &amp; building routine.</p>
           </div>
-          <input type="text" placeholder="GitHub Username" className="input-premium" value={inputs.githubUsername} onChange={e => setInputs(s => ({ ...s, githubUsername: e.target.value }))} />
-          <div className="space-y-2">
-            <button onClick={() => connectStep('career')} disabled={isConnecting || !inputs.githubUsername} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold text-sm hover:bg-blue-500/20 transition-colors disabled:opacity-50">
-              {isConnecting ? <Loader2 size={14} className="animate-spin" /> : <Briefcase size={14} />} {isConnecting ? 'Connecting...' : 'Connect GitHub'}
-            </button>
-            <button onClick={() => skipStep('career')} disabled={isConnecting} className="w-full flex items-center justify-center px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:text-white transition-colors">Skip for now</button>
+          <div className="grid grid-cols-2 gap-3">
+            <NumberField label="Study" hint="per day" unit="hrs" min={0} max={16} step={0.5} value={careerForm.studyHoursDaily} onChange={v => setCareerForm(s => ({ ...s, studyHoursDaily: v }))} />
+            <NumberField label="Coding" hint="per day" unit="hrs" min={0} max={16} step={0.5} value={careerForm.codingHoursDaily} onChange={v => setCareerForm(s => ({ ...s, codingHoursDaily: v }))} />
+            <NumberField label="DSA" hint="problems/day" min={0} max={50} value={careerForm.dsaPractice} onChange={v => setCareerForm(s => ({ ...s, dsaPractice: v }))} />
+            <NumberField label="Projects" hint="completed" min={0} max={200} value={careerForm.projectsCompleted} onChange={v => setCareerForm(s => ({ ...s, projectsCompleted: v }))} />
+            <NumberField label="GPA" hint="0–10" min={0} max={10} step={0.1} value={careerForm.gpa} onChange={v => setCareerForm(s => ({ ...s, gpa: v }))} />
           </div>
+          <label className="block">
+            <span className="text-xs font-medium text-slate-300 mb-1.5 block">Skills <span className="text-[10px] text-slate-500">comma separated</span></span>
+            <input type="text" className="input-premium" placeholder="JavaScript, React, Python" value={careerForm.skills} onChange={e => setCareerForm(s => ({ ...s, skills: e.target.value }))} />
+          </label>
+          <button onClick={() => commitAndNext('career')} disabled={saving} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold text-sm hover:bg-blue-500/20 transition-colors disabled:opacity-50">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <ArrowRight size={14} />} Save &amp; continue
+          </button>
         </div>
       ),
     },
     {
       id: 5,
       content: (
-        <div className="space-y-5 w-full max-w-sm mx-auto">
-          <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center"><Smartphone className="text-purple-400" size={20} /></div>
-          <div>
-            <h2 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>Notifications</h2>
-            <p className="text-slate-400 text-sm leading-relaxed mb-4">Add your mobile number for real-time SMS transaction alerts.</p>
-          </div>
-          <input type="tel" placeholder="Mobile Number (+91...)" className="input-premium" value={inputs.mobileNumber} onChange={e => setInputs(s => ({ ...s, mobileNumber: e.target.value }))} />
-          <div className="space-y-2">
-            <button onClick={() => connectStep('calendar')} disabled={isConnecting || !inputs.mobileNumber} className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 font-semibold text-sm hover:bg-purple-500/20 transition-colors disabled:opacity-50">
-              {isConnecting ? <Loader2 size={14} className="animate-spin" /> : <Smartphone size={14} />} {isConnecting ? 'Authenticating...' : 'Sync Mobile SMS'}
-            </button>
-            <button onClick={() => skipStep('calendar')} disabled={isConnecting} className="w-full flex items-center justify-center px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-slate-400 font-semibold text-sm hover:text-white transition-colors">Skip for now</button>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 6,
-      content: (
         <div className="space-y-5 w-full max-w-sm mx-auto text-center">
           <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto"><CheckCircle className="text-emerald-400" size={20} /></div>
           <div>
             <h2 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>You're all set</h2>
-            <p className="text-slate-400 text-sm leading-relaxed">Your Digital Twin is initialized.</p>
+            <p className="text-slate-400 text-sm leading-relaxed">Your Digital Twin is initialized from your data. Your scores below reflect what you entered.</p>
           </div>
           <div className="space-y-2 text-left">
             {[
-              { domain: 'Finance', status: selections.finance, color: 'text-amber-400' },
-              { domain: 'Health', status: selections.health, color: 'text-emerald-400' },
-              { domain: 'Career', status: selections.career, color: 'text-blue-400' },
-              { domain: 'Notifications', status: selections.calendar, color: 'text-purple-400' },
+              { domain: 'Health', color: 'text-emerald-400' },
+              { domain: 'Finance', color: 'text-amber-400' },
+              { domain: 'Career', color: 'text-blue-400' },
             ].map(item => (
               <div key={item.domain} className="flex justify-between items-center p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
                 <span className="text-sm font-medium text-slate-300">{item.domain}</span>
-                {item.status === 'connected'
-                  ? <span className={`text-xs font-semibold px-2.5 py-1 rounded-full bg-white/5 ${item.color} flex items-center gap-1`}><Check size={10} /> Connected</span>
-                  : <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white/5 text-slate-500">Skipped</span>}
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full bg-white/5 ${item.color} flex items-center gap-1`}><Check size={10} /> Saved</span>
               </div>
             ))}
           </div>
@@ -263,7 +298,9 @@ function OnboardingWizard({ user, onComplete, updateDomain, career }) {
   const currentStep = steps.find(s => s.id === step);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a0f]/96 backdrop-blur-xl flex flex-col items-center justify-center p-6">
+    <div className={inline
+      ? "relative min-h-full w-full bg-[#0a0a0f] flex flex-col items-center justify-center p-6 py-24"
+      : "fixed inset-0 z-[100] bg-[#0a0a0f]/96 backdrop-blur-xl flex flex-col items-center justify-center p-6"}>
       <div className="absolute top-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
         <div className="flex items-center gap-1.5">
           {steps.map(s => (

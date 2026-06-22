@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
+import { DataProvider, useData } from './context/DataContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
 import Sidebar from './components/layout/Sidebar';
@@ -10,7 +10,15 @@ import TopNavbar from './components/layout/TopNavbar';
 import VoiceLogger from './components/VoiceLogger';
 import Landing from './pages/Landing';
 import { Login, Signup } from './pages/Auth';
-import Dashboard from './pages/Dashboard';
+import Dashboard, { OnboardingWizard } from './pages/Dashboard';
+
+// Returns true while a real (non-demo) user still needs to complete the
+// data-entry onboarding. Once they finish, a flag is written to localStorage.
+function needsOnboarding(user, isDemo) {
+  if (!user || isDemo) return false;
+  return !localStorage.getItem(`onboarding_completed_${user.id}`);
+}
+
 
 // Heavy pages — lazy-loaded to reduce initial bundle
 const Health        = lazy(() => import('./pages/Health'));
@@ -61,18 +69,41 @@ function ProtectedRoute() {
   const { user, loading } = useAuth();
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
+  return <AppShell />;
+}
+
+// Authenticated app shell. Until a real (non-demo) user finishes the data-entry
+// onboarding, the sidebar stays visible but locked (greyed, non-clickable) and
+// the main content area shows the data-entry flow instead of the routed page.
+function AppShell() {
+  const { user, isDemo } = useAuth();
+  const { updateDomain, career } = useData();
+  const [done, setDone] = useState(() => !needsOnboarding(user, isDemo));
+  const locked = !done && needsOnboarding(user, isDemo);
+
+  const complete = useCallback(() => {
+    if (user?.id) localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+    setDone(true);
+  }, [user]);
+
   return (
     <>
       <div className="flex min-h-screen" style={{ background: 'var(--color-bg-primary)' }}>
-        <Sidebar />
+        <Sidebar locked={locked} />
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="hidden lg:block">
             <TopNavbar />
           </div>
-          <AnimatedPages />
+          {locked ? (
+            <div className="flex-1 min-w-0 overflow-y-auto">
+              <OnboardingWizard user={user} updateDomain={updateDomain} career={career} onComplete={complete} inline />
+            </div>
+          ) : (
+            <AnimatedPages />
+          )}
         </div>
       </div>
-      <VoiceLogger />
+      {!locked && <VoiceLogger />}
     </>
   );
 }

@@ -59,7 +59,7 @@ const mobileNavItems = [
   { path: '/coach',     label: 'Coach',   icon: MessageSquare,   color: '#6366f1' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ locked = false }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -83,17 +83,23 @@ export default function Sidebar() {
   const NavItem = ({ item, onClick }) => {
     const active = location.pathname === item.path;
     const Icon = item.icon;
+    // While onboarding is incomplete, nav items are visible but locked: no
+    // navigation, greyed out, and not clickable.
+    const Wrapper = locked ? 'div' : Link;
+    const wrapperProps = locked
+      ? { 'aria-disabled': true, title: 'Finish setting up your data first' }
+      : { to: item.path, onClick };
     return (
-      <Link
-        to={item.path}
-        onClick={onClick}
+      <Wrapper
+        {...wrapperProps}
         style={{
-          background: active ? `${item.color}15` : 'transparent',
-          border: `1px solid ${active ? `${item.color}30` : 'transparent'}`,
+          background: active && !locked ? `${item.color}15` : 'transparent',
+          border: `1px solid ${active && !locked ? `${item.color}30` : 'transparent'}`,
         }}
         className={`
           relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group
-          ${active
+          ${locked ? 'opacity-40 cursor-not-allowed pointer-events-none select-none' : ''}
+          ${active && !locked
             ? 'text-white shadow-sm'
             : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
           }
@@ -117,14 +123,14 @@ export default function Sidebar() {
             {item.label}
           </motion.span>
         )}
-        {active && !collapsed && (
+        {active && !collapsed && !locked && (
           <motion.div
             layoutId="nav-active-dot"
             className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0"
             style={{ background: item.color, boxShadow: `0 0 8px ${item.color}` }}
           />
         )}
-      </Link>
+      </Wrapper>
     );
   };
 
@@ -134,7 +140,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className={`${collapsed && !mobile ? 'px-4 py-5' : 'px-5 py-5'} flex-shrink-0`} style={{ borderBottom: `1px solid ${borderColor}` }}>
         <div className="flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
+          <Link to="/dashboard" className={`flex items-center gap-3 group ${locked ? 'pointer-events-none' : ''}`} onClick={locked ? (e) => e.preventDefault() : onClose}>
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-violet-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-violet-500/20">
               <Zap size={17} className="text-white" />
             </div>
@@ -370,13 +376,14 @@ export default function Sidebar() {
         }}>
         <div className="flex justify-around py-1.5 px-1">
           {mobileNavItems.map((item) => {
-            const active = location.pathname === item.path;
+            const active = location.pathname === item.path && !locked;
             const Icon = item.icon;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all"
+                onClick={locked ? (e) => e.preventDefault() : undefined}
+                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all ${locked ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                 style={{ color: active ? item.color : '#64748b' }}
               >
                 <div className="p-1.5 rounded-lg transition-all" style={{ background: active ? item.color + '20' : 'transparent' }}>
