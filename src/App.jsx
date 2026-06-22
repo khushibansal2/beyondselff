@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
+import { DataProvider, useData } from './context/DataContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LoadingScreen, ToastContainer } from './components/ui/Components';
 import Sidebar from './components/layout/Sidebar';
@@ -10,7 +10,32 @@ import TopNavbar from './components/layout/TopNavbar';
 import VoiceLogger from './components/VoiceLogger';
 import Landing from './pages/Landing';
 import { Login, Signup } from './pages/Auth';
-import Dashboard from './pages/Dashboard';
+import Dashboard, { OnboardingWizard } from './pages/Dashboard';
+
+// Returns true while a real (non-demo) user still needs to complete the
+// data-entry onboarding. Once they finish, a flag is written to localStorage.
+function needsOnboarding(user, isDemo) {
+  if (!user || isDemo) return false;
+  return !localStorage.getItem(`onboarding_completed_${user.id}`);
+}
+
+// Full-screen gate: blocks the entire app (sidebar + every route) until the
+// new user has entered their data. Nothing else mounts behind it.
+function OnboardingGate({ children }) {
+  const { user, isDemo } = useAuth();
+  const { updateDomain, career } = useData();
+  const [gated, setGated] = useState(() => needsOnboarding(user, isDemo));
+
+  const complete = useCallback(() => {
+    if (user?.id) localStorage.setItem(`onboarding_completed_${user.id}`, 'true');
+    setGated(false);
+  }, [user]);
+
+  if (gated && needsOnboarding(user, isDemo)) {
+    return <OnboardingWizard user={user} updateDomain={updateDomain} career={career} onComplete={complete} />;
+  }
+  return children;
+}
 
 // Heavy pages — lazy-loaded to reduce initial bundle
 const Health        = lazy(() => import('./pages/Health'));
@@ -62,7 +87,7 @@ function ProtectedRoute() {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   return (
-    <>
+    <OnboardingGate>
       <div className="flex min-h-screen" style={{ background: 'var(--color-bg-primary)' }}>
         <Sidebar />
         <div className="flex-1 min-w-0 flex flex-col">
@@ -73,7 +98,7 @@ function ProtectedRoute() {
         </div>
       </div>
       <VoiceLogger />
-    </>
+    </OnboardingGate>
   );
 }
 
